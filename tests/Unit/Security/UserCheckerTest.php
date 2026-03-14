@@ -6,7 +6,7 @@ namespace App\Tests\Unit\Security;
 
 use App\Entity\User;
 use App\Security\UserChecker;
-use App\Tests\TestCase;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAccountStatusException;
 use Symfony\Component\Security\Core\User\InMemoryUser;
 
@@ -21,11 +21,10 @@ final class UserCheckerTest extends TestCase
 
         $checker = new UserChecker();
 
-        $this->assertThrows(
-            CustomUserMessageAccountStatusException::class,
-            static fn () => $checker->checkPreAuth($user),
-            'Your account is inactive.'
-        );
+        $this->expectException(CustomUserMessageAccountStatusException::class);
+        $this->expectExceptionMessage('Your account is inactive.');
+
+        $checker->checkPreAuth($user);
     }
 
     public function testCheckPreAuthAllowsActiveApplicationUser(): void

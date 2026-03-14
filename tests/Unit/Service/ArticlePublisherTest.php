@@ -9,7 +9,8 @@ use App\Enum\ArticleStatus;
 use App\Repository\ArticleRepository;
 use App\Service\ArticlePublisher;
 use App\Service\ArticleSlugger;
-use App\Tests\TestCase;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 
 final class ArticlePublisherTest extends TestCase
 {
@@ -21,7 +22,10 @@ final class ArticlePublisherTest extends TestCase
             ->setStatus(ArticleStatus::PUBLISHED);
 
         $publisher = new ArticlePublisher(
-            new InMemoryArticleRepository(['nowy-wpis-o-symfony', 'nowy-wpis-o-symfony-2']),
+            $this->createRepositoryMock([
+                'nowy-wpis-o-symfony',
+                'nowy-wpis-o-symfony-2',
+            ]),
             new ArticleSlugger(),
         );
 
@@ -42,7 +46,7 @@ final class ArticlePublisherTest extends TestCase
             ->setPublishedAt($publishedAt);
 
         $publisher = new ArticlePublisher(
-            new InMemoryArticleRepository(['nowy-wpis-o-symfony']),
+            $this->createRepositoryMock(['nowy-wpis-o-symfony']),
             new ArticleSlugger(),
         );
 
@@ -61,7 +65,7 @@ final class ArticlePublisherTest extends TestCase
             ->setPublishedAt(new \DateTimeImmutable('-2 hours'));
 
         $publisher = new ArticlePublisher(
-            new InMemoryArticleRepository([]),
+            $this->createRepositoryMock([]),
             new ArticleSlugger(),
         );
 
@@ -70,20 +74,20 @@ final class ArticlePublisherTest extends TestCase
         $this->assertSame('szkic', $article->getSlug());
         $this->assertNull($article->getPublishedAt());
     }
-}
 
-final class InMemoryArticleRepository extends ArticleRepository
-{
     /**
      * @param list<string> $existingSlugs
      */
-    public function __construct(
-        private array $existingSlugs,
-    ) {
-    }
-
-    public function slugExists(string $slug, ?int $ignoreId = null): bool
+    private function createRepositoryMock(array $existingSlugs): ArticleRepository
     {
-        return in_array($slug, $this->existingSlugs, true);
+        /** @var ArticleRepository&MockObject $repository */
+        $repository = $this->createMock(ArticleRepository::class);
+        $repository
+            ->method('slugExists')
+            ->willReturnCallback(
+                static fn (string $slug, ?int $ignoreId = null): bool => in_array($slug, $existingSlugs, true)
+            );
+
+        return $repository;
     }
 }
