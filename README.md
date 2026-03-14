@@ -42,6 +42,23 @@ The server writes its PID to:
 Logs are written to:
 - [`var/log/dev-server.log`](./var/log/dev-server.log)
 
+## Unit tests
+
+The project includes lightweight unit tests for the domain and service layer:
+- slug generation in [`src/Service/ArticleSlugger.php`](./src/Service/ArticleSlugger.php)
+- article save preparation in [`src/Service/ArticlePublisher.php`](./src/Service/ArticlePublisher.php)
+- inactive user blocking in [`src/Security/UserChecker.php`](./src/Security/UserChecker.php)
+- selected behavior of [`src/Entity/User.php`](./src/Entity/User.php)
+
+How to run them:
+
+1. Install project dependencies:
+   `composer install`
+2. Run the test suite:
+   `php tests/run.php`
+
+The test runner does not require a database. It uses in-memory doubles for repository-dependent logic.
+
 ## Suggested structure
 
 ```text
