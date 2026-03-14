@@ -1,0 +1,14 @@
+{{ form_start(form) }}
+    {{ form_errors(form) }}
+    {{ form_row(form.title) }}
+    {{ form_row(form.language) }}
+    {{ form_row(form.excerpt) }}
+    {{ form_row(form.content) }}
+    {{ form_row(form.status) }}
+    {{ form_row(form.publishedAt) }}
+
+    <div class="actions">
+        <button type="submit">{{ submit_label|default('Save article') }}</button>
+        <a class="button secondary" href="{{ path('admin_article_index') }}">Cancel</a>
+    </div>
+{{ form_end(form) }}

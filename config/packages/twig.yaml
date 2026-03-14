@@ -1,0 +1,4 @@
+twig:
+    file_name_pattern: '*.twig'
+    globals:
+        app_name: 'Blog System AI'

@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin | {{ app_name }}{% endblock %}
+
+{% block body %}
+    <section class="panel">
+        <p class="meta">Admin area</p>
+        <h1>Content operations hub</h1>
+        <p>This dashboard is a lightweight starting point for editorial workflows, moderation and publishing tools.</p>
+
+        <div class="actions">
+            <a class="button" href="{{ path('admin_article_new') }}">Create article</a>
+            <a class="button secondary" href="{{ path('admin_article_index') }}">Browse articles</a>
+        </div>
+    </section>
+{% endblock %}

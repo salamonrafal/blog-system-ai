@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ article.title }} | {{ app_name }}{% endblock %}
+
+{% block body %}
+    <article class="panel">
+        <p class="meta">
+            Language: {{ article.language.label() }} |
+            Status: {{ article.status.label() }}
+            {% if article.publishedAt %}
+                | Published: {{ article.publishedAt|date('Y-m-d H:i') }}
+            {% endif %}
+        </p>
+        <h1>{{ article.title }}</h1>
+
+        {% if article.excerpt %}
+            <p><strong>{{ article.excerpt }}</strong></p>
+        {% endif %}
+
+        <div>
+            {{ article.content|nl2br }}
+        </div>
+
+        <div class="actions">
+            <a class="button secondary" href="{{ path('blog_index') }}">Back to articles</a>
+            {% if is_granted('ROLE_ADMIN') %}
+                <a class="button" href="{{ path('admin_article_edit', {id: article.id}) }}">Edit in admin</a>
+            {% endif %}
+        </div>
+    </article>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Articles | {{ app_name }}{% endblock %}
+
+{% block body %}
+    <section class="panel hero">
+        <p class="meta">Public blog</p>
+        <h1>Articles ready for readers</h1>
+        <p>Use this list as the storefront for published content. Categories, tags and search can be added on top of this foundation.</p>
+
+        <div class="actions">
+            <a class="button {{ current_language is null ? '' : 'secondary' }}" href="{{ path('blog_index') }}">All languages</a>
+            {% for language in language_options %}
+                <a class="button {{ current_language == language ? '' : 'secondary' }}" href="{{ path('blog_index', {lang: language.value}) }}">{{ language.label() }}</a>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="grid">
+        {% for article in articles %}
+            <article class="article-card">
+                <p class="meta">
+                    {{ article.language.label() }} |
+                    {{ article.publishedAt ? article.publishedAt|date('Y-m-d H:i') : article.createdAt|date('Y-m-d H:i') }}
+                </p>
+                <h2>{{ article.title }}</h2>
+                <p>{{ article.excerpt ?: article.content|slice(0, 180) ~ (article.content|length > 180 ? '...' : '') }}</p>
+                <a class="button secondary" href="{{ path('blog_show', {slug: article.slug}) }}">Read article</a>
+            </article>
+        {% else %}
+            <div class="panel">
+                <h2>No published articles yet</h2>
+                <p>Create the first entry in the admin panel to populate the homepage.</p>
+            </div>
+        {% endfor %}
+    </section>
+{% endblock %}

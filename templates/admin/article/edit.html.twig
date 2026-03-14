@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit {{ article.title }} | {{ app_name }}{% endblock %}
+
+{% block body %}
+    <section class="panel">
+        <p class="meta">Admin area</p>
+        <h1>Edit article</h1>
+        <p>Slug: <code>{{ article.slug }}</code></p>
+
+        {% include 'admin/article/_form.html.twig' with {
+            form: form,
+            submit_label: 'Update article'
+        } %}
+    </section>
+{% endblock %}

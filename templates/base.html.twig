@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{{ app_name }}{% endblock %}</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --bg: #f6f1e8;
+            --surface: rgba(255, 255, 255, 0.82);
+            --surface-strong: #ffffff;
+            --text: #1f1d18;
+            --muted: #5e584d;
+            --line: #ded6c8;
+            --accent: #b44d24;
+            --accent-soft: #f2d9cf;
+            --danger-bg: #f8e2df;
+            --danger-text: #7a2416;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Georgia, "Times New Roman", serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top left, rgba(180, 77, 36, 0.12), transparent 32%),
+                linear-gradient(180deg, #f5efe2 0%, #f0e8db 100%);
+            min-height: 100vh;
+        }
+
+        a {
+            color: inherit;
+        }
+
+        .shell {
+            width: min(1080px, calc(100% - 2rem));
+            margin: 0 auto;
+            padding: 2rem 0 4rem;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding: 1rem 1.25rem;
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            background: var(--surface);
+            backdrop-filter: blur(12px);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .brand {
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            text-decoration: none;
+        }
+
+        .panel {
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            background: var(--surface);
+            backdrop-filter: blur(12px);
+            padding: 1.5rem;
+            box-shadow: 0 24px 60px rgba(65, 45, 21, 0.08);
+        }
+
+        .hero {
+            margin-bottom: 1.5rem;
+        }
+
+        .grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .article-card {
+            padding: 1.25rem;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            background: var(--surface-strong);
+        }
+
+        .button,
+        button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.8rem 1.1rem;
+            border: 0;
+            border-radius: 999px;
+            background: var(--accent);
+            color: #fff;
+            cursor: pointer;
+            text-decoration: none;
+            font: inherit;
+        }
+
+        .button.secondary {
+            background: var(--accent-soft);
+            color: var(--text);
+        }
+
+        .meta {
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        form {
+            display: grid;
+            gap: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.45rem;
+            font-weight: 700;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.85rem 0.95rem;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: #fffdfa;
+            font: inherit;
+        }
+
+        .flash {
+            margin-bottom: 1rem;
+            padding: 0.95rem 1rem;
+            border-radius: 14px;
+            background: #e8f3ea;
+            color: #214d2a;
+        }
+
+        .flash.error,
+        .form-error {
+            background: var(--danger-bg);
+            color: var(--danger-text);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 0.85rem 0;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-top: 1.5rem;
+        }
+
+        @media (max-width: 700px) {
+            .nav {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="shell">
+    <nav class="nav">
+        <a class="brand" href="{{ path('blog_index') }}">{{ app_name }}</a>
+        <div class="nav-links">
+            <a href="{{ path('blog_index') }}">Articles</a>
+            {% if is_granted('ROLE_ADMIN') %}
+                <a href="{{ path('admin_dashboard') }}">Admin</a>
+                <a href="{{ path('admin_article_index') }}">Manage articles</a>
+                <a href="{{ path('app_logout') }}">Logout</a>
+            {% else %}
+                <a href="{{ path('app_login') }}">Login</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    {% for message in app.flashes('success') %}
+        <div class="flash">{{ message }}</div>
+    {% endfor %}
+
+    {% for message in app.flashes('error') %}
+        <div class="flash error">{{ message }}</div>
+    {% endfor %}
+
+    {% block body %}{% endblock %}
+</div>
+</body>
+</html>

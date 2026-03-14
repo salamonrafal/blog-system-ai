@@ -1,0 +1,34 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Login | {{ app_name }}{% endblock %}
+
+{% block body %}
+    <section class="panel" style="max-width: 520px; margin: 0 auto;">
+        <p class="meta">Admin access</p>
+        <h1>Sign in to manage content</h1>
+        <p>Only users with administrator permissions can access the editorial panel.</p>
+
+        {% if error %}
+            <div class="flash error">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+        {% endif %}
+
+        <form method="post">
+            <div>
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" value="{{ last_username }}" autocomplete="email" required autofocus>
+            </div>
+
+            <div>
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" autocomplete="current-password" required>
+            </div>
+
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+            <div class="actions">
+                <button type="submit">Login</button>
+                <a class="button secondary" href="{{ path('blog_index') }}">Back to blog</a>
+            </div>
+        </form>
+    </section>
+{% endblock %}
