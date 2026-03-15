@@ -93,6 +93,54 @@ Fullstack Developer</span>
     {% block body %}{% endblock %}
 </main>
 
+{% if app.user %}
+    <details class="admin-shortcuts">
+        <summary class="admin-shortcuts-toggle" aria-label="Admin shortcuts">
+            <span class="admin-shortcuts-gear" aria-hidden="true">
+                <svg viewBox="0 0 32 32">
+                    <path d="M13.2 4h5.6l.7 3.2c.9.3 1.8.7 2.6 1.3l3.1-1.1 2.8 4.8-2.5 2.2c.1.5.1 1 .1 1.6s0 1.1-.1 1.6l2.5 2.2-2.8 4.8-3.1-1.1c-.8.6-1.7 1-2.6 1.3l-.7 3.2h-5.6l-.7-3.2c-.9-.3-1.8-.7-2.6-1.3l-3.1 1.1-2.8-4.8 2.5-2.2a9.2 9.2 0 0 1 0-3.2l-2.5-2.2 2.8-4.8 3.1 1.1c.8-.6 1.7-1 2.6-1.3Z"></path>
+                    <circle cx="16" cy="16" r="4.2"></circle>
+                </svg>
+            </span>
+        </summary>
+        <nav class="admin-shortcuts-menu" aria-label="Admin shortcuts">
+            <a class="admin-shortcuts-link primary" href="{{ path('admin_article_new') }}">
+                <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                    <svg viewBox="0 0 32 32">
+                        <path d="M16 6v20"></path>
+                        <path d="M6 16h20"></path>
+                    </svg>
+                </span>
+                <span>Utwórz nowy artykuł</span>
+            </a>
+            <a class="admin-shortcuts-link" href="{{ path('admin_dashboard') }}">
+                <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                    <svg viewBox="0 0 32 32">
+                        <rect x="5" y="5" width="9" height="9" rx="2"></rect>
+                        <rect x="18" y="5" width="9" height="6" rx="2"></rect>
+                        <rect x="18" y="14" width="9" height="13" rx="2"></rect>
+                        <rect x="5" y="18" width="9" height="9" rx="2"></rect>
+                    </svg>
+                </span>
+                <span>Dashboard</span>
+            </a>
+            <a class="admin-shortcuts-link" href="{{ path('admin_article_index') }}">
+                <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                    <svg viewBox="0 0 32 32">
+                        <path d="M10 9h14"></path>
+                        <path d="M10 16h14"></path>
+                        <path d="M10 23h14"></path>
+                        <circle cx="7" cy="9" r="1.5"></circle>
+                        <circle cx="7" cy="16" r="1.5"></circle>
+                        <circle cx="7" cy="23" r="1.5"></circle>
+                    </svg>
+                </span>
+                <span>Lista artykułów</span>
+            </a>
+        </nav>
+    </details>
+{% endif %}
+
 <footer class="footer">
     <div class="footer-inner">
         <div class="footer-text">

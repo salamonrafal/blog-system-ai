@@ -428,10 +428,6 @@ main.container{flex:1;}
   box-shadow: 0 0 0 3px rgba(57,255,20,.06);
   text-decoration:none;
 }
-.big-link:hover .big-link-icon,
-.big-link:focus-visible .big-link-icon{
-}
-
 .section{padding:0;}
 .section.section-compact{padding:0;}
 .container > .hero,
@@ -484,6 +480,7 @@ main.container{flex:1;}
   margin-top:0;
   display:-webkit-box;
   -webkit-box-orient:vertical;
+  line-clamp:3;
   -webkit-line-clamp:3;
   overflow:hidden;
 }
@@ -1364,10 +1361,10 @@ input:focus, textarea:focus{outline:3px solid var(--focus); outline-offset:2px;}
   transform: translateY(8px);
 }
 .privacy-popup-title{
-  margin: 0 0 8px;
-  font-size: 15px;
-  color: var(--accent);
-  letter-spacing: .2px;
+  margin: 0 0 10px;
+  font-size: 17px;
+  color: color-mix(in oklab, var(--accent) 64%, var(--text) 36%);
+  letter-spacing: .3px;
 }
 .privacy-popup-title::before{
   content: "> ";
@@ -1375,18 +1372,21 @@ input:focus, textarea:focus{outline:3px solid var(--focus); outline-offset:2px;}
 }
 .privacy-popup-text{
   margin: 0;
-  padding: 10px 12px;
-  border: 1px solid color-mix(in oklab, var(--accent) 35%, var(--border));
-  border-radius: 10px;
-  background: color-mix(in oklab, var(--panel-2) 94%, transparent);
-  color: color-mix(in oklab, var(--text) 90%, var(--accent) 10%);
-  font-size: 12px;
-  line-height: 1.45;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.02);
+  padding: 14px 16px;
+  border: 1px solid color-mix(in oklab, var(--accent) 52%, var(--border));
+  border-radius: 12px;
+  background: color-mix(in oklab, var(--panel-2) 90%, var(--panel) 10%);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.7;
+  letter-spacing: .12px;
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--border) 65%, transparent);
 }
 .privacy-popup-text::before{
   content: "$ ";
-  color: var(--accent);
+  color: color-mix(in oklab, var(--accent) 72%, white 28%);
+  font-weight: 700;
 }
 .privacy-popup-actions{
   display: flex;
@@ -1398,6 +1398,7 @@ input:focus, textarea:focus{outline:3px solid var(--focus); outline-offset:2px;}
   border-radius: 8px;
   border-color: color-mix(in oklab, var(--accent) 45%, var(--border));
   background: color-mix(in oklab, var(--panel-2) 94%, transparent);
+  color: color-mix(in oklab, var(--text) 94%, white 6%);
   font-size: 12px;
   letter-spacing: .2px;
 }
@@ -1406,13 +1407,21 @@ input:focus, textarea:focus{outline:3px solid var(--focus); outline-offset:2px;}
   color: var(--accent);
   font-weight: 700;
 }
+.privacy-popup-actions .btn.primary::before{
+  color: var(--accent-contrast);
+}
 .privacy-popup-actions .btn.primary{
-  border-color: color-mix(in oklab, var(--accent-2) 55%, var(--border));
-  background: color-mix(in oklab, var(--link-bg) 62%, var(--panel) 38%);
+  border-color: color-mix(in oklab, var(--accent) 72%, var(--border));
+  background: color-mix(in oklab, var(--accent) 84%, var(--panel) 16%);
+  color: var(--accent-contrast);
 }
 .privacy-popup-actions .btn:hover{
   background: color-mix(in oklab, var(--panel) 85%, white 15%);
   border-color: var(--accent-2);
+}
+.privacy-popup-actions .btn.primary:hover{
+  background: color-mix(in oklab, var(--accent) 88%, white 12%);
+  border-color: color-mix(in oklab, var(--accent) 82%, white 18%);
 }
 .privacy-popup-actions .btn:focus-visible{
   outline: 2px solid color-mix(in oklab, var(--accent-2) 55%, var(--focus));
@@ -1849,6 +1858,150 @@ button.button {
   color:#ffd3d3;
 }
 
+.admin-shortcuts{
+  position:fixed;
+  right:20px;
+  bottom:20px;
+  z-index:85;
+  width:min(260px, calc(100vw - 24px));
+}
+
+.admin-shortcuts[open]{
+  z-index:86;
+}
+
+.admin-shortcuts-toggle{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:54px;
+  height:54px;
+  margin-left:auto;
+  border:1px solid color-mix(in oklab, var(--accent-2) 24%, var(--border));
+  border-radius:50%;
+  background: color-mix(in oklab, var(--panel) 92%, transparent);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(12px);
+  cursor:pointer;
+  list-style:none;
+  transition: transform .18s ease, border-color .18s ease, background-color .18s ease;
+}
+
+.admin-shortcuts-toggle::-webkit-details-marker{
+  display:none;
+}
+
+.admin-shortcuts-toggle:hover,
+.admin-shortcuts-toggle:focus-visible,
+.admin-shortcuts[open] .admin-shortcuts-toggle{
+  background: color-mix(in oklab, var(--panel-2) 90%, transparent);
+  border-color: color-mix(in oklab, var(--accent) 40%, var(--border));
+  transform: translateY(-1px);
+}
+
+.admin-shortcuts-toggle:focus-visible{
+  outline:2px solid color-mix(in oklab, var(--accent-2) 55%, var(--focus));
+  outline-offset:2px;
+}
+
+.admin-shortcuts-gear{
+  display:inline-flex;
+  width:24px;
+  height:24px;
+  color:var(--accent);
+}
+
+.admin-shortcuts-gear svg{
+  width:100%;
+  height:100%;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.admin-shortcuts-menu{
+  position:absolute;
+  right:0;
+  bottom:66px;
+  display:flex;
+  flex-direction:column;
+  gap:0;
+  width:100%;
+  padding:0;
+  border:1px solid color-mix(in oklab, var(--accent-2) 24%, var(--border));
+  border-radius:16px;
+  background: color-mix(in oklab, var(--panel) 92%, transparent);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(12px);
+  overflow:hidden;
+}
+
+.admin-shortcuts-link{
+  display:inline-flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:10px;
+  width:100%;
+  min-height:46px;
+  padding:11px 14px;
+  border:0;
+  border-radius:0;
+  background: color-mix(in oklab, var(--panel-2) 94%, transparent);
+  color:var(--text);
+  font-size:13px;
+  font-weight:700;
+  line-height:1.2;
+  text-align:left;
+  text-decoration:none;
+  transition: background-color .18s ease, border-color .18s ease, color .18s ease, transform .18s ease;
+}
+
+.admin-shortcuts-link + .admin-shortcuts-link{
+  border-top:1px solid color-mix(in oklab, var(--accent-2) 20%, var(--border));
+}
+
+.admin-shortcuts-link-icon{
+  flex:0 0 auto;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:18px;
+  height:18px;
+  color:var(--accent);
+}
+
+.admin-shortcuts-link-icon svg{
+  width:100%;
+  height:100%;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:2;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.admin-shortcuts-link:hover,
+.admin-shortcuts-link:focus-visible{
+  text-decoration:none;
+  background: color-mix(in oklab, var(--panel) 84%, white 16%);
+}
+
+.admin-shortcuts-link.primary{
+  background: color-mix(in oklab, var(--accent) 82%, var(--panel) 18%);
+  color:var(--accent-contrast);
+}
+
+.admin-shortcuts-link.primary .admin-shortcuts-link-icon{
+  color:var(--accent-contrast);
+}
+
+.admin-shortcuts-link.primary:hover,
+.admin-shortcuts-link.primary:focus-visible{
+  background: color-mix(in oklab, var(--accent) 88%, white 12%);
+}
+
 .login-shell {
   min-height: calc(100vh - 220px);
   display:flex;
@@ -2021,6 +2174,17 @@ select {
 }
 
 @media (max-width: 768px){
+  .admin-shortcuts{
+    right:12px;
+    bottom:12px;
+    left:12px;
+    width:auto;
+  }
+
+  .admin-shortcuts-menu{
+    width:100%;
+  }
+
   .login-shell {
     min-height:auto;
     padding:12px 0 4px;
