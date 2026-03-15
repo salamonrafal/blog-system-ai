@@ -3,43 +3,47 @@
 {% block title %}Manage Articles | {{ app_name }}{% endblock %}
 
 {% block body %}
-    <section class="panel">
-        <p class="meta">Admin area</p>
-        <div class="actions" style="justify-content: space-between; margin-top: 0;">
-            <div>
-                <h1>Article management</h1>
-                <p>All articles in one place, regardless of publication status.</p>
+    <section class="section">
+        <div class="panel">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow meta-pill">Admin area</p>
+                    <h1>Article management</h1>
+                    <p class="lede">All articles in one place, regardless of status. The table below keeps the admin view compact, while matching the new layout.</p>
+                </div>
+                <a class="button" href="{{ path('admin_article_new') }}">New article</a>
             </div>
-            <a class="button" href="{{ path('admin_article_new') }}">New article</a>
-        </div>
 
-        <table>
-            <thead>
-            <tr>
-                <th>Title</th>
-                <th>Language</th>
-                <th>Status</th>
-                <th>Slug</th>
-                <th>Updated</th>
-                <th></th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for article in articles %}
-                <tr>
-                    <td>{{ article.title }}</td>
-                    <td>{{ article.language.label() }}</td>
-                    <td>{{ article.status.label() }}</td>
-                    <td>{{ article.slug }}</td>
-                    <td>{{ article.updatedAt|date('Y-m-d H:i') }}</td>
-                    <td><a href="{{ path('admin_article_edit', {id: article.id}) }}">Edit</a></td>
-                </tr>
-            {% else %}
-                <tr>
-                    <td colspan="6">No articles found.</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Language</th>
+                        <th>Status</th>
+                        <th>Slug</th>
+                        <th>Updated</th>
+                        <th>Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for article in articles %}
+                        <tr>
+                            <td>{{ article.title }}</td>
+                            <td>{{ article.language.label() }}</td>
+                            <td>{{ article.status.label() }}</td>
+                            <td><code>{{ article.slug }}</code></td>
+                            <td>{{ article.updatedAt|date('Y-m-d H:i') }}</td>
+                            <td><a class="button secondary" href="{{ path('admin_article_edit', {id: article.id}) }}">Edit</a></td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="6">No articles found.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </section>
 {% endblock %}

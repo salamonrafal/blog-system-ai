@@ -1,204 +1,85 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="pl" data-theme="dark">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}{{ app_name }}{% endblock %}</title>
-    <style>
-        :root {
-            color-scheme: light;
-            --bg: #f6f1e8;
-            --surface: rgba(255, 255, 255, 0.82);
-            --surface-strong: #ffffff;
-            --text: #1f1d18;
-            --muted: #5e584d;
-            --line: #ded6c8;
-            --accent: #b44d24;
-            --accent-soft: #f2d9cf;
-            --danger-bg: #f8e2df;
-            --danger-text: #7a2416;
-        }
+    <meta name="description" content="{% block meta_description %}Portfolio Rafała Salamona: Senior PHP Developer / Fullstack Developer. Projekty, doświadczenie, narzędzia i kontakt.{% endblock %}">
+    <meta name="robots" content="index,follow,max-image-preview:large">
+    <meta name="author" content="Rafał Salamon">
+    <meta name="theme-color" content="#0b0f12">
 
-        * {
-            box-sizing: border-box;
-        }
+    <link rel="canonical" href="{% block canonical %}https://www.salamonrafal.pl/{% endblock %}">
+    <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/assets/css/styles.css">
 
-        body {
-            margin: 0;
-            font-family: Georgia, "Times New Roman", serif;
-            color: var(--text);
-            background:
-                radial-gradient(circle at top left, rgba(180, 77, 36, 0.12), transparent 32%),
-                linear-gradient(180deg, #f5efe2 0%, #f0e8db 100%);
-            min-height: 100vh;
-        }
+    <meta property="og:locale" content="pl_PL">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Rafał Salamon Portfolio">
+    <meta property="og:title" content="{% block og_title %}{% block title %}{{ app_name }}{% endblock %}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Portfolio Rafała Salamona: Senior PHP Developer / Fullstack Developer. Projekty, doświadczenie, narzędzia i kontakt.{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}https://www.salamonrafal.pl/{% endblock %}">
+    <meta property="og:image" content="https://www.salamonrafal.pl/assets/img/profile.jpg">
 
-        a {
-            color: inherit;
-        }
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{% block twitter_title %}{{ block('og_title') }}{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}{{ block('og_description') }}{% endblock %}">
+    <meta name="twitter:image" content="https://www.salamonrafal.pl/assets/img/profile.jpg">
 
-        .shell {
-            width: min(1080px, calc(100% - 2rem));
-            margin: 0 auto;
-            padding: 2rem 0 4rem;
-        }
-
-        .nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            padding: 1rem 1.25rem;
-            border: 1px solid var(--line);
-            border-radius: 20px;
-            background: var(--surface);
-            backdrop-filter: blur(12px);
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .brand {
-            font-size: 1.1rem;
-            font-weight: 700;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            text-decoration: none;
-        }
-
-        .panel {
-            border: 1px solid var(--line);
-            border-radius: 24px;
-            background: var(--surface);
-            backdrop-filter: blur(12px);
-            padding: 1.5rem;
-            box-shadow: 0 24px 60px rgba(65, 45, 21, 0.08);
-        }
-
-        .hero {
-            margin-bottom: 1.5rem;
-        }
-
-        .grid {
-            display: grid;
-            gap: 1rem;
-        }
-
-        .article-card {
-            padding: 1.25rem;
-            border: 1px solid var(--line);
-            border-radius: 18px;
-            background: var(--surface-strong);
-        }
-
-        .button,
-        button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.8rem 1.1rem;
-            border: 0;
-            border-radius: 999px;
-            background: var(--accent);
-            color: #fff;
-            cursor: pointer;
-            text-decoration: none;
-            font: inherit;
-        }
-
-        .button.secondary {
-            background: var(--accent-soft);
-            color: var(--text);
-        }
-
-        .meta {
-            color: var(--muted);
-            font-size: 0.95rem;
-        }
-
-        form {
-            display: grid;
-            gap: 1rem;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 0.45rem;
-            font-weight: 700;
-        }
-
-        input,
-        select,
-        textarea {
-            width: 100%;
-            padding: 0.85rem 0.95rem;
-            border: 1px solid var(--line);
-            border-radius: 14px;
-            background: #fffdfa;
-            font: inherit;
-        }
-
-        .flash {
-            margin-bottom: 1rem;
-            padding: 0.95rem 1rem;
-            border-radius: 14px;
-            background: #e8f3ea;
-            color: #214d2a;
-        }
-
-        .flash.error,
-        .form-error {
-            background: var(--danger-bg);
-            color: var(--danger-text);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th,
-        td {
-            text-align: left;
-            padding: 0.85rem 0;
-            border-bottom: 1px solid var(--line);
-        }
-
-        .actions {
-            display: flex;
-            gap: 0.75rem;
-            flex-wrap: wrap;
-            margin-top: 1.5rem;
-        }
-
-        @media (max-width: 700px) {
-            .nav {
-                align-items: flex-start;
-                flex-direction: column;
-            }
-        }
-    </style>
+    <title>{{ block('title') }}</title>
 </head>
-<body>
-<div class="shell">
-    <nav class="nav">
-        <a class="brand" href="{{ path('blog_index') }}">{{ app_name }}</a>
-        <div class="nav-links">
-            <a href="{{ path('blog_index') }}">Articles</a>
-            {% if is_granted('ROLE_ADMIN') %}
-                <a href="{{ path('admin_dashboard') }}">Admin</a>
-                <a href="{{ path('admin_article_index') }}">Manage articles</a>
-                <a href="{{ path('app_logout') }}">Logout</a>
-            {% else %}
-                <a href="{{ path('app_login') }}">Login</a>
-            {% endif %}
-        </div>
-    </nav>
 
+<body data-page-title="{% block page_title %}{{ block('title') }}{% endblock %}">
+<header class="topbar">
+    <div class="topbar-inner">
+        <a class="brand" href="https://www.salamonrafal.pl/" aria-label="Home">
+            <img src="/assets/img/logo.svg" alt="RS logo">
+            <div class="title">
+                <strong>Rafał Salamon</strong>
+                <span data-i18n="home_title">Senior PHP Developer
+Fullstack Developer</span>
+            </div>
+        </a>
+
+        <nav class="nav" aria-label="Primary">
+            <a href="https://www.salamonrafal.pl/" data-i18n="nav_home">Start</a>
+            <a href="https://www.salamonrafal.pl/about.html" data-i18n="nav_about">O mnie</a>
+            <a href="https://www.salamonrafal.pl/projects.html" data-i18n="nav_projects">Moje projekty</a>
+            <a href="https://www.salamonrafal.pl/tools.html" data-i18n="nav_tools">Moje narzędzia</a>
+            <a href="https://www.salamonrafal.pl/contact.html" data-i18n="nav_contact">Kontakt</a>
+        </nav>
+
+        <div class="actions">
+            <button class="hamburger" data-action="toggle-menu" aria-label="Menu">☰</button>
+            <div class="chip preferences-chip">
+                <div class="prefs-actions">
+                    <button type="button" data-action="toggle-lang" data-i18n-tooltip="prefs_lang_hint" data-tooltip="Przełącza język strony">PL</button>
+                    <button type="button" data-action="toggle-theme" data-i18n-tooltip="prefs_theme_hint" data-tooltip="Przełącza motyw jasny/ciemny">🌙</button>
+                    <span class="prefs-color-wrap" data-i18n-tooltip="prefs_color_hint" data-tooltip="Zmienia kolor akcentu interfejsu"><input class="color-input" type="color" data-action="accent-color" value="#39ff14" aria-label="Accent color"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="mobile-drawer" role="dialog" aria-label="Mobile menu">
+    <a href="https://www.salamonrafal.pl/" data-i18n="nav_home">Start</a>
+    <a href="https://www.salamonrafal.pl/about.html" data-i18n="nav_about">O mnie</a>
+    <a href="https://www.salamonrafal.pl/projects.html" data-i18n="nav_projects">Moje projekty</a>
+    <a href="https://www.salamonrafal.pl/tools.html" data-i18n="nav_tools">Moje narzędzia</a>
+    <a href="https://www.salamonrafal.pl/contact.html" data-i18n="nav_contact">Kontakt</a>
+    <div class="mobile-controls">
+        <div class="chip mobile-preferences" title="User preferences / Preferencje użytkownika">
+            <span data-i18n="chip_prefs">Preferencje</span>
+            <div class="prefs-actions">
+                <button type="button" data-action="toggle-lang">PL</button>
+                <button type="button" data-action="toggle-theme">🌙</button>
+                <input class="color-input" type="color" data-action="accent-color" value="#39ff14" aria-label="Accent color">
+            </div>
+        </div>
+    </div>
+</div>
+
+<main class="container">
     {% for message in app.flashes('success') %}
         <div class="flash">{{ message }}</div>
     {% endfor %}
@@ -208,6 +89,27 @@
     {% endfor %}
 
     {% block body %}{% endblock %}
-</div>
+</main>
+
+<footer class="footer">
+    <div class="footer-inner">
+        <div class="footer-text">
+            <span>&copy;</span>
+            <a class="footer-home-link" href="https://www.salamonrafal.pl/">Rafał Salamon</a>
+            <span>•</span>
+            <span data-i18n="footer">Tworzę rzeczy, które są czytelne, solidne i praktyczne.</span>
+            <span class="footer-break" aria-hidden="true"></span>
+            <a class="footer-sub-link" href="https://www.salamonrafal.pl/evaluation.html">Zobacz ewolucję strony</a>
+        </div>
+        <div class="footer-icons" aria-label="Social links">
+            <a class="footer-icon-link" href="https://github.com/salamonrafal" target="_blank" rel="noreferrer" aria-label="GitHub" title="GitHub"><span class="footer-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 5C9.9 5 5 9.9 5 16c0 4.9 3.2 9 7.6 10.4.6.1.8-.3.8-.6v-2.2c-3.1.7-3.8-1.3-3.8-1.3-.5-1.3-1.2-1.7-1.2-1.7-1-.7.1-.7.1-.7 1.1.1 1.7 1.2 1.7 1.2 1 .1 1.7.9 2 1.4.9.2 1.8.2 2.6-.1.1-.7.4-1.3.8-1.7-2.5-.3-5.1-1.2-5.1-5.4 0-1.2.4-2.2 1.1-3-.1-.3-.5-1.4.1-2.9 0 0 .9-.3 3 .1.9-.3 1.9-.4 2.9-.4s2 .1 2.9.4c2.1-.4 3-.1 3-.1.6 1.5.2 2.6.1 2.9.7.8 1.1 1.8 1.1 3 0 4.2-2.6 5.1-5.1 5.4.5.5.9 1.3.9 2.5v3.7c0 .3.2.7.8.6A11 11 0 0 0 27 16c0-6.1-4.9-11-11-11Z" stroke-width="1.7" stroke-linejoin="round"></path></svg></span></a>
+            <a class="footer-icon-link" href="https://www.linkedin.com/in/rafalsalamon/" target="_blank" rel="noreferrer" aria-label="LinkedIn" title="LinkedIn"><span class="footer-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><rect x="5" y="11" width="5" height="16" stroke-width="2"></rect><circle cx="7.5" cy="6.5" r="2.5" stroke-width="2"></circle><path d="M15 11v16M15 17c0-3.3 2.2-6 5.6-6 3.1 0 5.4 2.1 5.4 6.6V27h-5v-8.2c0-1.8-.7-3-2.4-3-1.9 0-3 1.4-3 3.4V27h-5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></a>
+            <a class="footer-icon-link" href="https://buymeacoffee.com/salamonrafal" target="_blank" rel="noreferrer" aria-label="Buy Me a Coffee" title="Buy Me a Coffee"><span class="footer-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M8 13h14v6a7 7 0 0 1-7 7 7 7 0 0 1-7-7Z" stroke-width="2" stroke-linejoin="round"></path><path d="M22 15h1.5a3.5 3.5 0 0 1 0 7H22" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 9c0 1.7-1.3 2.4-1.3 3.8M17 9c0 1.7-1.3 2.4-1.3 3.8" stroke-width="2" stroke-linecap="round"></path></svg></span></a>
+            <a class="footer-icon-link" href="mailto:rafal.salamon@salamonrafal.pl" aria-label="E-mail" title="E-mail"><span class="footer-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 9h22v14H5z" stroke-width="2"></path><path d="M6 10l10 8 10-8M6 23l7-6M26 23l-7-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></a>
+        </div>
+    </div>
+</footer>
+
+<script src="/assets/js/app.js"></script>
 </body>
 </html>

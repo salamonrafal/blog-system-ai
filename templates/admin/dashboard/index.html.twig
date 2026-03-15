@@ -3,14 +3,65 @@
 {% block title %}Admin | {{ app_name }}{% endblock %}
 
 {% block body %}
-    <section class="panel">
-        <p class="meta">Admin area</p>
-        <h1>Content operations hub</h1>
-        <p>This dashboard is a lightweight starting point for editorial workflows, moderation and publishing tools.</p>
+    <section class="section">
+        <div class="card">
+            <div class="card-header">
+                <div class="window-dots" aria-hidden="true">
+                    <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                </div>
+                <span class="pill">blog://published-feed</span>
+            </div>
 
-        <div class="actions">
-            <a class="button" href="{{ path('admin_article_new') }}">Create article</a>
-            <a class="button secondary" href="{{ path('admin_article_index') }}">Browse articles</a>
+            {% if published_articles is not empty %}
+                <div class="quick-links">
+                    {% for article in published_articles %}
+                        <a class="big-link" href="{{ path('admin_article_edit', {id: article.id}) }}">
+                            <span class="meta">{{ article.language.label() }} | {{ article.publishedAt ? article.publishedAt|date('Y-m-d H:i') : article.createdAt|date('Y-m-d H:i') }}</span>
+                            <strong>{{ article.title }}</strong>
+                            <span class="supporting-copy">{{ article.excerpt ?: article.content|slice(0, 140) ~ (article.content|length > 140 ? '...' : '') }}</span>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="meta">No published articles yet.</p>
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="hero">
+        <div class="hero-grid">
+            <div class="card">
+                <div class="card-header">
+                    <span class="pill">admin://dashboard</span>
+                </div>
+                <h1>Content operations hub</h1>
+                <p class="lede">A dashboard adapted to the reference layout, ready to branch into editorial workflows, moderation tools and publishing controls.</p>
+
+                <div class="actions">
+                    <a class="button" href="{{ path('admin_article_new') }}">Create article</a>
+                    <a class="button secondary" href="{{ path('admin_article_index') }}">Browse articles</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="pill">Quick actions</span>
+                </div>
+                <div class="quick-links">
+                    <a class="big-link" href="{{ path('admin_article_new') }}">
+                        <strong>New article</strong>
+                        <span class="supporting-copy">Start a fresh draft with auto-generated slug support.</span>
+                    </a>
+                    <a class="big-link" href="{{ path('admin_article_index') }}">
+                        <strong>Manage articles</strong>
+                        <span class="supporting-copy">Review drafts, published entries and update timestamps.</span>
+                    </a>
+                    <a class="big-link" href="{{ path('blog_index') }}">
+                        <strong>Open public blog</strong>
+                        <span class="supporting-copy">Jump back to the storefront readers can already see.</span>
+                    </a>
+                </div>
+            </div>
         </div>
     </section>
 {% endblock %}

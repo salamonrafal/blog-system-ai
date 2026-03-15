@@ -3,14 +3,16 @@
 {% block title %}New Article | {{ app_name }}{% endblock %}
 
 {% block body %}
-    <section class="panel">
-        <p class="meta">Admin area</p>
-        <h1>Create article</h1>
-        <p>New entries start as draft by default and receive a unique slug automatically.</p>
+    <section class="section">
+        <div class="panel">
+            <p class="eyebrow meta-pill">Admin area</p>
+            <h1>Create article</h1>
+            <p class="lede">New entries start as drafts by default and receive a unique slug automatically before saving.</p>
 
-        {% include 'admin/article/_form.html.twig' with {
-            form: form,
-            submit_label: 'Create article'
-        } %}
+            {% include 'admin/article/_form.html.twig' with {
+                form: form,
+                submit_label: 'Create article'
+            } %}
+        </div>
     </section>
 {% endblock %}

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="RS logo">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#39ff14"/>
+      <stop offset="1" stop-color="#00d4ff"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect x="16" y="16" width="224" height="224" rx="24" fill="#0b0f14" stroke="url(#g)" stroke-width="6"/>
+  <path d="M72 176V80h64q20 0 31 10.5T178 120q0 16-7.5 25.5T148 158l34 18v0h-24l-32-18H96v18H72zm24-40h36q10 0 15-4.5t5-12.5q0-8-5-12.5T132 102H96v34z" fill="url(#g)" filter="url(#glow)"/>
+  <path d="M192 90q-6-8-16-12t-24-4q-18 0-29 7.5T112 102q0 10 6.5 16t19.5 9l18 4q8 2 11 4.5t3 7.5q0 6-5 9.5t-15 3.5q-10 0-18-4t-12-10l-18 10q7 12 20 18t30 6q20 0 32-8.5t12-23.5q0-11-7-17.5T170 116l-18-4q-7-1-10-3.5t-3-6.5q0-5 4.5-8t13.5-3q8 0 14 2.5t10 7.5l16-11z" fill="#39ff14" opacity="0.35"/>
+  <text x="36" y="52" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace" font-size="18" fill="#9aa7b2">$</text>
+</svg>
