@@ -4,22 +4,18 @@
 
 {% block body %}
     <section class="section">
-        <div class="grid-2">
-            <div class="panel">
-                <p class="eyebrow meta-pill">Admin area</p>
+        <div class="card">
+            <div class="card-header">
+                <div class="window-dots" aria-hidden="true">
+                    <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                </div>
+                <span class="pill">admin://article-edit</span>
+            </div>
+
+            <div class="dashboard-feed-intro">
                 <h1>Edit article</h1>
                 <p class="lede">Update content, metadata and publication state while keeping the existing slug.</p>
 
-                {% include 'admin/article/_form.html.twig' with {
-                    form: form,
-                    submit_label: 'Update article'
-                } %}
-            </div>
-
-            <aside class="card">
-                <div class="card-header">
-                    <span class="pill">Article info</span>
-                </div>
                 <div class="stats">
                     <div class="stat">
                         <strong>{{ article.slug }}</strong>
@@ -34,7 +30,12 @@
                         <span class="supporting-copy">Last update timestamp</span>
                     </div>
                 </div>
-            </aside>
+            </div>
+
+            {% include 'admin/article/_form.html.twig' with {
+                form: form,
+                submit_label: 'Update article'
+            } %}
         </div>
     </section>
 {% endblock %}

@@ -4,17 +4,24 @@
 
 {% block body %}
     <section class="section">
-        <div class="panel">
-            <div class="section-heading">
-                <div>
-                    <p class="eyebrow meta-pill">Admin area</p>
-                    <h1>Article management</h1>
-                    <p class="lede">All articles in one place, regardless of status. The table below keeps the admin view compact, while matching the new layout.</p>
+        <div class="card">
+            <div class="card-header">
+                <div class="window-dots" aria-hidden="true">
+                    <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
                 </div>
-                <a class="button" href="{{ path('admin_article_new') }}">New article</a>
+                <span class="pill">admin://article-index</span>
             </div>
 
-            <div class="table-wrap">
+            <div class="dashboard-feed-intro">
+                <h1>Article management</h1>
+                <p class="lede">All articles in one place, regardless of status. The table below keeps the admin view compact, while matching the new layout.</p>
+
+                <div class="actions">
+                    <a class="button" href="{{ path('admin_article_new') }}">New article</a>
+                </div>
+            </div>
+
+            <div class="table-wrap article-index-table-wrap">
                 <table>
                     <thead>
                     <tr>

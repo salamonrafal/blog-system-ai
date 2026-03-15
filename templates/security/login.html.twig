@@ -3,24 +3,9 @@
 {% block title %}Login | {{ app_name }}{% endblock %}
 
 {% block body %}
-    <section class="hero">
-        <div class="hero-grid">
-            <div class="card">
-                <div class="card-header">
-                    <div class="window-dots" aria-hidden="true">
-                        <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
-                    </div>
-                    <span class="pill">auth://admin</span>
-                </div>
-                <div class="terminal">
-                    <span class="terminal-line"><strong>$</strong> access --role admin</span>
-                    <span class="terminal-line">Editorial access is limited to authenticated administrators.</span>
-                    <span class="terminal-line"><strong>$</strong> capabilities</span>
-                    <span class="terminal-line">Create, edit and publish articles from the control panel.</span>
-                </div>
-            </div>
-
-            <div class="panel" style="max-width: 100%;">
+    <section class="login-shell">
+        <div class="card login-panel">
+            <div class="login-panel-body">
                 <p class="eyebrow meta-pill">Admin access</p>
                 <h1>Sign in to manage content</h1>
                 <p class="lede">This login screen now uses the same visual layout language as the sample template.</p>
@@ -29,21 +14,21 @@
                     <div class="flash error">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
                 {% endif %}
 
-                <form method="post">
-                    <div>
+                <form method="post" class="form login-form">
+                    <div class="field">
                         <label for="email">Email</label>
                         <input type="email" id="email" name="email" value="{{ last_username }}" autocomplete="email" required autofocus>
                     </div>
 
-                    <div>
+                    <div class="field">
                         <label for="password">Password</label>
                         <input type="password" id="password" name="password" autocomplete="current-password" required>
                     </div>
 
                     <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
-                    <div class="actions">
-                        <button type="submit">Login</button>
+                    <div class="form-actions login-actions">
+                        <button type="submit" class="button">Login</button>
                         <a class="button secondary" href="{{ path('blog_index') }}">Back to blog</a>
                     </div>
                 </form>

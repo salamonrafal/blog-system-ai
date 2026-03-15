@@ -3,9 +3,14 @@
 {% block title %}{{ article.title }} | {{ app_name }}{% endblock %}
 
 {% block body %}
-    <section class="hero">
-        <div class="hero-grid">
-            <article class="card">
+    <section class="section">
+        <article class="card">
+            <div class="card-header">
+                <span class="pill">Article body</span>
+                <span class="meta">{{ article.publishedAt ? article.publishedAt|date('Y-m-d H:i') : article.createdAt|date('Y-m-d H:i') }}</span>
+            </div>
+
+            <div class="dashboard-feed-intro">
                 <p class="eyebrow meta-pill">{{ article.language.label() }} article</p>
                 <h1>{{ article.title }}</h1>
                 <p class="lede">
@@ -22,39 +27,35 @@
                         <a class="button" href="{{ path('admin_article_edit', {id: article.id}) }}">Edit in admin</a>
                     {% endif %}
                 </div>
-            </article>
+            </div>
 
-            <aside class="card">
-                <div class="card-header">
-                    <span class="pill">Metadata</span>
+            <div class="article-content-panel">
+                <div class="article-body">
+                    {{ article.content|nl2br }}
                 </div>
-                <div class="stats">
-                    <div class="stat">
-                        <strong>{{ article.status.label() }}</strong>
-                        <span class="supporting-copy">Current publication status</span>
-                    </div>
-                    <div class="stat">
-                        <strong>{{ article.publishedAt ? article.publishedAt|date('Y-m-d') : article.createdAt|date('Y-m-d') }}</strong>
-                        <span class="supporting-copy">Primary public date</span>
-                    </div>
-                    <div class="stat">
-                        <strong>{{ article.slug }}</strong>
-                        <span class="supporting-copy">Reader-facing slug</span>
-                    </div>
-                </div>
-            </aside>
-        </div>
+            </div>
+        </article>
     </section>
 
     <section class="section">
-        <div class="panel">
+        <aside class="card">
             <div class="card-header">
-                <span class="pill">Article body</span>
-                <span class="meta">{{ article.publishedAt ? article.publishedAt|date('Y-m-d H:i') : article.createdAt|date('Y-m-d H:i') }}</span>
+                <span class="pill">Metadata</span>
             </div>
-            <div class="article-body">
-                {{ article.content|nl2br }}
+            <div class="stats">
+                <div class="stat">
+                    <strong>{{ article.status.label() }}</strong>
+                    <span class="supporting-copy">Current publication status</span>
+                </div>
+                <div class="stat">
+                    <strong>{{ article.publishedAt ? article.publishedAt|date('Y-m-d') : article.createdAt|date('Y-m-d') }}</strong>
+                    <span class="supporting-copy">Primary public date</span>
+                </div>
+                <div class="stat">
+                    <strong>{{ article.slug }}</strong>
+                    <span class="supporting-copy">Reader-facing slug</span>
+                </div>
             </div>
-        </div>
+        </aside>
     </section>
 {% endblock %}

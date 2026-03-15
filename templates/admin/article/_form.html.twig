@@ -1,19 +1,54 @@
-{{ form_start(form) }}
+{{ form_start(form, { attr: { class: 'article-editor-form' } }) }}
     {% if not form.vars.valid %}
-        <div class="form-errors">
+        <div class="form-errors article-editor-errors">
             {{ form_errors(form) }}
         </div>
     {% endif %}
 
-    {{ form_row(form.title) }}
-    {{ form_row(form.language) }}
-    {{ form_row(form.excerpt) }}
-    {{ form_row(form.content) }}
-    {{ form_row(form.status) }}
-    {{ form_row(form.publishedAt) }}
+    <div class="article-editor-fields">
+        <div class="field article-editor-field">
+            {{ form_label(form.title) }}
+            {{ form_widget(form.title, { attr: { class: 'article-editor-input', placeholder: 'Enter article title' } }) }}
+            {{ form_errors(form.title) }}
+        </div>
 
-    <div class="actions">
-        <button type="submit">{{ submit_label|default('Save article') }}</button>
+        <div class="article-editor-grid">
+            <div class="field article-editor-field">
+                {{ form_label(form.language) }}
+                {{ form_widget(form.language, { attr: { class: 'article-editor-input article-editor-select' } }) }}
+                {{ form_errors(form.language) }}
+            </div>
+
+            <div class="field article-editor-field">
+                {{ form_label(form.status) }}
+                {{ form_widget(form.status, { attr: { class: 'article-editor-input article-editor-select' } }) }}
+                {{ form_errors(form.status) }}
+            </div>
+        </div>
+
+        <div class="field article-editor-field">
+            {{ form_label(form.excerpt) }}
+            {{ form_widget(form.excerpt, { attr: { class: 'article-editor-input article-editor-textarea', placeholder: 'Write a short summary for listings and previews' } }) }}
+            {{ form_errors(form.excerpt) }}
+        </div>
+
+        <div class="field article-editor-field">
+            {{ form_label(form.content) }}
+            {{ form_widget(form.content, { attr: { class: 'article-editor-input article-editor-textarea article-editor-textarea-lg', placeholder: 'Write the full article content here' } }) }}
+            {{ form_errors(form.content) }}
+        </div>
+
+        <div class="article-editor-grid">
+            <div class="field article-editor-field">
+                {{ form_label(form.publishedAt) }}
+                {{ form_widget(form.publishedAt, { attr: { class: 'article-editor-input' } }) }}
+                {{ form_errors(form.publishedAt) }}
+            </div>
+        </div>
+    </div>
+
+    <div class="actions article-editor-actions">
+        <button type="submit" class="button">{{ submit_label|default('Save article') }}</button>
         <a class="button secondary" href="{{ path('admin_article_index') }}">Cancel</a>
     </div>
 {{ form_end(form) }}

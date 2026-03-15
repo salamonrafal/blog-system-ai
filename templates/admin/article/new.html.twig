@@ -4,10 +4,18 @@
 
 {% block body %}
     <section class="section">
-        <div class="panel">
-            <p class="eyebrow meta-pill">Admin area</p>
-            <h1>Create article</h1>
-            <p class="lede">New entries start as drafts by default and receive a unique slug automatically before saving.</p>
+        <div class="card">
+            <div class="card-header">
+                <div class="window-dots" aria-hidden="true">
+                    <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                </div>
+                <span class="pill">admin://article-new</span>
+            </div>
+
+            <div class="dashboard-feed-intro">
+                <h1>Create article</h1>
+                <p class="lede">New entries start as drafts by default and receive a unique slug automatically before saving.</p>
+            </div>
 
             {% include 'admin/article/_form.html.twig' with {
                 form: form,
