@@ -13,11 +13,11 @@
             </div>
 
             <div class="dashboard-feed-intro">
-                <h1>Article management</h1>
-                <p class="lede">All articles in one place, regardless of status. The table below keeps the admin view compact, while matching the new layout.</p>
+                <h1 data-i18n="admin_article_index_title">Zarządzanie artykułami</h1>
+                <p class="lede" data-i18n="admin_article_index_lede">Wszystkie artykuły w jednym miejscu, niezależnie od statusu. Tabela poniżej utrzymuje widok administracyjny w zwartej formie.</p>
 
                 <div class="actions">
-                    <a class="button" href="{{ path('admin_article_new') }}">New article</a>
+                    <a class="button" href="{{ path('admin_article_new') }}" data-i18n="admin_quick_new_article">Nowy artykuł</a>
                 </div>
             </div>
 
@@ -25,27 +25,37 @@
                 <table>
                     <thead>
                     <tr>
-                        <th>Title</th>
-                        <th>Language</th>
-                        <th>Status</th>
-                        <th>Slug</th>
-                        <th>Updated</th>
-                        <th>Action</th>
+                        <th data-i18n="admin_table_title">Tytuł</th>
+                        <th data-i18n="admin_table_language">Język</th>
+                        <th data-i18n="admin_table_status">Status</th>
+                        <th data-i18n="admin_table_slug">Slug</th>
+                        <th data-i18n="admin_table_updated">Aktualizacja</th>
+                        <th data-i18n="admin_table_action">Akcja</th>
                     </tr>
                     </thead>
                     <tbody>
                     {% for article in articles %}
                         <tr>
                             <td>{{ article.title }}</td>
-                            <td>{{ article.language.label() }}</td>
-                            <td>{{ article.status.label() }}</td>
+                            <td>
+                                <span data-lang="pl">{{ article.language.value == 'pl' ? 'Polski (PL)' : 'Angielski (EN)' }}</span>
+                                <span data-lang="en">{{ article.language.value == 'pl' ? 'Polski (PL)' : 'English (EN)' }}</span>
+                            </td>
+                            <td>
+                                <span data-lang="pl">
+                                    {% if article.status.value == 'draft' %}Szkic{% elseif article.status.value == 'review' %}W recenzji{% else %}Opublikowany{% endif %}
+                                </span>
+                                <span data-lang="en">
+                                    {% if article.status.value == 'draft' %}Draft{% elseif article.status.value == 'review' %}In review{% else %}Published{% endif %}
+                                </span>
+                            </td>
                             <td><code>{{ article.slug }}</code></td>
                             <td>{{ article.updatedAt|date('Y-m-d H:i') }}</td>
-                            <td><a class="button secondary" href="{{ path('admin_article_edit', {id: article.id}) }}">Edit</a></td>
+                            <td><a class="button secondary" href="{{ path('admin_article_edit', {id: article.id}) }}" data-i18n="admin_table_edit">Edytuj</a></td>
                         </tr>
                     {% else %}
                         <tr>
-                            <td colspan="6">No articles found.</td>
+                            <td colspan="6" data-i18n="admin_table_no_articles">Nie znaleziono artykułów.</td>
                         </tr>
                     {% endfor %}
                     </tbody>

@@ -13,13 +13,13 @@
             </div>
 
             <div class="dashboard-feed-intro">
-                <h1>Create article</h1>
-                <p class="lede">New entries start as drafts by default and receive a unique slug automatically before saving.</p>
+                <h1 data-i18n="admin_new_article_title">Utwórz artykuł</h1>
+                <p class="lede" data-i18n="admin_new_article_lede">Nowe wpisy domyślnie zaczynają jako szkice i przed zapisaniem dostają unikalny slug.</p>
             </div>
 
             {% include 'admin/article/_form.html.twig' with {
                 form: form,
-                submit_label: 'Create article'
+                submit_key: 'form_submit_create'
             } %}
         </div>
     </section>

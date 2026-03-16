@@ -8,7 +8,7 @@
     <div class="article-editor-fields">
         <div class="field article-editor-field">
             {{ form_label(form.title) }}
-            {{ form_widget(form.title, { attr: { class: 'article-editor-input', placeholder: 'Enter article title' } }) }}
+            {{ form_widget(form.title, { attr: { class: 'article-editor-input', 'data-i18n-placeholder': 'form_placeholder_title', placeholder: 'Wpisz tytuł artykułu' } }) }}
             {{ form_errors(form.title) }}
         </div>
 
@@ -28,13 +28,13 @@
 
         <div class="field article-editor-field">
             {{ form_label(form.excerpt) }}
-            {{ form_widget(form.excerpt, { attr: { class: 'article-editor-input article-editor-textarea', placeholder: 'Write a short summary for listings and previews' } }) }}
+            {{ form_widget(form.excerpt, { attr: { class: 'article-editor-input article-editor-textarea', 'data-i18n-placeholder': 'form_placeholder_excerpt', placeholder: 'Wpisz krótki opis do list i podglądów' } }) }}
             {{ form_errors(form.excerpt) }}
         </div>
 
         <div class="field article-editor-field">
             {{ form_label(form.content) }}
-            {{ form_widget(form.content, { attr: { class: 'article-editor-input article-editor-textarea article-editor-textarea-lg', placeholder: 'Write the full article content here' } }) }}
+            {{ form_widget(form.content, { attr: { class: 'article-editor-input article-editor-textarea article-editor-textarea-lg', 'data-i18n-placeholder': 'form_placeholder_content', placeholder: 'Wpisz pełną treść artykułu' } }) }}
             {{ form_errors(form.content) }}
         </div>
 
@@ -48,7 +48,15 @@
     </div>
 
     <div class="actions article-editor-actions">
-        <button type="submit" class="button">{{ submit_label|default('Save article') }}</button>
-        <a class="button secondary" href="{{ path('admin_article_index') }}">Cancel</a>
+        <button type="submit" class="button" data-i18n="{{ submit_key|default('form_submit_save') }}">
+            {% if submit_key|default('form_submit_save') == 'form_submit_create' %}
+                Utwórz artykuł
+            {% elseif submit_key|default('form_submit_save') == 'form_submit_update' %}
+                Zapisz zmiany
+            {% else %}
+                Zapisz artykuł
+            {% endif %}
+        </button>
+        <a class="button secondary" href="{{ path('admin_article_index') }}" data-i18n="form_cancel">Anuluj</a>
     </div>
 {{ form_end(form) }}

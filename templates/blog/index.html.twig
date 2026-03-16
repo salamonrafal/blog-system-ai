@@ -17,24 +17,32 @@
                                 <h2 class="article-subpanel-title">{{ article.title }}</h2>
                                 <div class="meta article-subpanel-meta">
                                     {{ article.publishedAt ? article.publishedAt|date('Y-m-d H:i') : article.createdAt|date('Y-m-d H:i') }}
-                                    | {{ article.language.label() }}
-                                    | {{ article.status.label() }}
+                                    |
+                                    <span data-lang="pl">{{ article.language.value == 'pl' ? 'Polski (PL)' : 'Angielski (EN)' }}</span>
+                                    <span data-lang="en">{{ article.language.value == 'pl' ? 'Polski (PL)' : 'English (EN)' }}</span>
+                                    |
+                                    <span data-lang="pl">
+                                        {% if article.status.value == 'draft' %}Szkic{% elseif article.status.value == 'review' %}W recenzji{% else %}Opublikowany{% endif %}
+                                    </span>
+                                    <span data-lang="en">
+                                        {% if article.status.value == 'draft' %}Draft{% elseif article.status.value == 'review' %}In review{% else %}Published{% endif %}
+                                    </span>
                                 </div>
                             </div>
                             <div class="big-link-copy">
                                 <span>{{ article.excerpt ?: article.content|slice(0, 180) ~ (article.content|length > 180 ? '...' : '') }}</span>
                             </div>
                             <div class="article-subpanel-actions">
-                                <a class="btn article-subpanel-button" href="{{ path('blog_show', {slug: article.slug}) }}">Read article</a>
+                                <a class="btn article-subpanel-button" href="{{ path('blog_show', {slug: article.slug}) }}" data-i18n="blog_read_article">Czytaj artykuł</a>
                             </div>
                         </article>
                     {% endfor %}
                 </div>
             {% else %}
-                <p class="meta">No published articles yet.</p>
+                <p class="meta" data-i18n="blog_no_articles">Brak opublikowanych artykułów.</p>
                 {% if is_granted('ROLE_ADMIN') %}
                     <div class="actions" style="margin-top: 1rem;">
-                        <a class="btn primary" href="{{ path('admin_article_new') }}">Create the first article</a>
+                        <a class="btn primary" href="{{ path('admin_article_new') }}" data-i18n="blog_create_first_article">Utwórz pierwszy artykuł</a>
                     </div>
                 {% endif %}
             {% endif %}
@@ -45,37 +53,40 @@
         <div class="grid-2">
             <div class="card">
                 <div class="card-header">
-                    <span class="pill">Reader view</span>
+                    <span class="pill" data-i18n="blog_reader_view">Widok czytelnika</span>
                 </div>
-                <h1>Articles ready for readers</h1>
-                <p class="lede">Published content is now grouped into one main feed panel placed directly below the topbar, while this section keeps the supporting context and controls.</p>
+                <h1 data-i18n="blog_articles_ready">Artykuły gotowe dla czytelników</h1>
+                <p class="lede" data-i18n="blog_articles_ready_lede">Opublikowane treści są zebrane w jednym głównym panelu pod topbarem, a ta sekcja zachowuje dodatkowy kontekst i kontrolki.</p>
 
                 <div class="stats">
                     <div class="stat">
                         <strong>{{ articles|length }}</strong>
-                        <span class="supporting-copy">Published articles in the current selection</span>
+                        <span class="supporting-copy" data-i18n="blog_published_articles_count">Opublikowane artykuły w bieżącym widoku</span>
                     </div>
                     <div class="stat">
                         <strong>{{ language_options|length }}</strong>
-                        <span class="supporting-copy">Configured language variants</span>
+                        <span class="supporting-copy" data-i18n="blog_configured_languages">Skonfigurowane warianty językowe</span>
                     </div>
                 </div>
             </div>
 
             <div class="card">
                 <div class="card-header">
-                    <span class="pill">Filters</span>
+                    <span class="pill" data-i18n="blog_filters">Filtry</span>
                 </div>
                 <div class="filters" style="margin-top: 1rem;">
-                    <a class="{{ current_language is null ? '' : 'secondary' }}" href="{{ path('blog_index') }}">All languages</a>
+                    <a class="{{ current_language is null ? '' : 'secondary' }}" href="{{ path('blog_index') }}" data-i18n="blog_all_languages">Wszystkie języki</a>
                     {% for language in language_options %}
-                        <a class="{{ current_language == language ? '' : 'secondary' }}" href="{{ path('blog_index', {lang: language.value}) }}">{{ language.label() }}</a>
+                        <a class="{{ current_language == language ? '' : 'secondary' }}" href="{{ path('blog_index', {lang: language.value}) }}">
+                            <span data-lang="pl">{{ language.value == 'pl' ? 'Polski (PL)' : 'Angielski (EN)' }}</span>
+                            <span data-lang="en">{{ language.value == 'pl' ? 'Polski (PL)' : 'English (EN)' }}</span>
+                        </a>
                     {% endfor %}
                 </div>
                 {% if is_granted('ROLE_ADMIN') %}
                     <div class="actions" style="margin-top: 1rem;">
-                        <a class="btn" href="{{ path('admin_article_new') }}">Create article</a>
-                        <a class="btn" href="{{ path('admin_article_index') }}">Manage articles</a>
+                        <a class="btn" href="{{ path('admin_article_new') }}" data-i18n="blog_create_article">Utwórz artykuł</a>
+                        <a class="btn" href="{{ path('admin_article_index') }}" data-i18n="blog_manage_articles">Zarządzaj artykułami</a>
                     </div>
                 {% endif %}
             </div>

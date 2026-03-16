@@ -13,12 +13,12 @@
             </div>
 
             <div class="dashboard-feed-intro">
-                <h1>Content operations hub</h1>
-                <p class="lede">A dashboard adapted to the reference layout, ready to branch into editorial workflows, moderation tools and publishing controls.</p>
+                <h1 data-i18n="admin_dashboard_title">Centrum operacji treści</h1>
+                <p class="lede" data-i18n="admin_dashboard_lede">Panel administracyjny dopasowany do układu aplikacji, gotowy na workflow redakcyjny, moderację i publikację.</p>
 
                 <div class="actions">
-                    <a class="button" href="{{ path('admin_article_new') }}">Create article</a>
-                    <a class="button secondary" href="{{ path('admin_article_index') }}">Browse articles</a>
+                    <a class="button" href="{{ path('admin_article_new') }}" data-i18n="blog_create_article">Utwórz artykuł</a>
+                    <a class="button secondary" href="{{ path('admin_article_index') }}" data-i18n="admin_browse_articles">Przeglądaj artykuły</a>
                 </div>
             </div>
 
@@ -30,21 +30,29 @@
                                 <h2 class="article-subpanel-title">{{ article.title }}</h2>
                                 <div class="meta article-subpanel-meta">
                                     {{ article.publishedAt ? article.publishedAt|date('Y-m-d H:i') : article.createdAt|date('Y-m-d H:i') }}
-                                    | {{ article.language.label() }}
-                                    | {{ article.status.label() }}
+                                    |
+                                    <span data-lang="pl">{{ article.language.value == 'pl' ? 'Polski (PL)' : 'Angielski (EN)' }}</span>
+                                    <span data-lang="en">{{ article.language.value == 'pl' ? 'Polski (PL)' : 'English (EN)' }}</span>
+                                    |
+                                    <span data-lang="pl">
+                                        {% if article.status.value == 'draft' %}Szkic{% elseif article.status.value == 'review' %}W recenzji{% else %}Opublikowany{% endif %}
+                                    </span>
+                                    <span data-lang="en">
+                                        {% if article.status.value == 'draft' %}Draft{% elseif article.status.value == 'review' %}In review{% else %}Published{% endif %}
+                                    </span>
                                 </div>
                             </div>
                             <div class="big-link-copy">
                                 <span>{{ article.excerpt ?: article.content|slice(0, 180) ~ (article.content|length > 180 ? '...' : '') }}</span>
                             </div>
                             <div class="article-subpanel-actions">
-                                <a class="btn article-subpanel-button" href="{{ path('admin_article_edit', {id: article.id}) }}">Edit article</a>
+                                <a class="btn article-subpanel-button" href="{{ path('admin_article_edit', {id: article.id}) }}" data-i18n="admin_edit_article">Edytuj artykuł</a>
                             </div>
                         </article>
                     {% endfor %}
                 </div>
             {% else %}
-                <p class="meta">No published articles yet.</p>
+                <p class="meta" data-i18n="blog_no_articles">Brak opublikowanych artykułów.</p>
             {% endif %}
         </div>
     </section>
@@ -52,20 +60,20 @@
     <section class="section">
         <div class="card">
             <div class="card-header">
-                <span class="pill">Quick actions</span>
+                <span class="pill" data-i18n="admin_quick_actions">Szybkie akcje</span>
             </div>
             <div class="quick-links">
                 <a class="big-link" href="{{ path('admin_article_new') }}">
-                    <strong>New article</strong>
-                    <span class="supporting-copy">Start a fresh draft with auto-generated slug support.</span>
+                    <strong data-i18n="admin_quick_new_article">Nowy artykuł</strong>
+                    <span class="supporting-copy" data-i18n="admin_quick_new_article_desc">Rozpocznij nowy szkic z automatycznie generowanym slugiem.</span>
                 </a>
                 <a class="big-link" href="{{ path('admin_article_index') }}">
-                    <strong>Manage articles</strong>
-                    <span class="supporting-copy">Review drafts, published entries and update timestamps.</span>
+                    <strong data-i18n="admin_quick_manage_articles">Zarządzaj artykułami</strong>
+                    <span class="supporting-copy" data-i18n="admin_quick_manage_articles_desc">Przeglądaj szkice, wpisy opublikowane i aktualizuj treści.</span>
                 </a>
                 <a class="big-link" href="{{ path('blog_index') }}">
-                    <strong>Open public blog</strong>
-                    <span class="supporting-copy">Jump back to the storefront readers can already see.</span>
+                    <strong data-i18n="admin_quick_open_blog">Otwórz publiczny blog</strong>
+                    <span class="supporting-copy" data-i18n="admin_quick_open_blog_desc">Wróć do widoku, który widzą już czytelnicy.</span>
                 </a>
             </div>
         </div>

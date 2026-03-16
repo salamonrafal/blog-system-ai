@@ -6,9 +6,9 @@
     <section class="login-shell">
         <div class="card login-panel">
             <div class="login-panel-body">
-                <p class="eyebrow meta-pill">Admin access</p>
-                <h1>Sign in to manage content</h1>
-                <p class="lede">This login screen now uses the same visual layout language as the sample template.</p>
+                <p class="eyebrow meta-pill" data-i18n="login_eyebrow">Dostęp administratora</p>
+                <h1 data-i18n="login_title">Zaloguj się, aby zarządzać treścią</h1>
+                <p class="lede" data-i18n="login_lede">Ten ekran logowania korzysta z tego samego języka wizualnego co reszta aplikacji.</p>
 
                 {% if error %}
                     <div class="flash error">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
@@ -16,20 +16,20 @@
 
                 <form method="post" class="form login-form">
                     <div class="field">
-                        <label for="email">Email</label>
+                        <label for="email" data-i18n="login_email">Email</label>
                         <input type="email" id="email" name="email" value="{{ last_username }}" autocomplete="email" required autofocus>
                     </div>
 
                     <div class="field">
-                        <label for="password">Password</label>
+                        <label for="password" data-i18n="login_password">Hasło</label>
                         <input type="password" id="password" name="password" autocomplete="current-password" required>
                     </div>
 
                     <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
                     <div class="form-actions login-actions">
-                        <button type="submit" class="button">Login</button>
-                        <a class="button secondary" href="{{ path('blog_index') }}">Back to blog</a>
+                        <button type="submit" class="button" data-i18n="login_submit">Zaloguj się</button>
+                        <a class="button secondary" href="{{ path('blog_index') }}" data-i18n="login_back_to_blog">Wróć do bloga</a>
                     </div>
                 </form>
             </div>
