@@ -8,6 +8,10 @@
             <div class="card-header">
                 <span class="pill">blog://published-feed</span>
             </div>
+            <div class="dashboard-feed-intro">
+                <h1 data-i18n="blog_feed_title">Blog o programowaniu, technologii i praktyce tworzenia produktów</h1>
+                <p class="lede" data-i18n="blog_feed_lede">Znajdziesz tutaj artykuły o PHP, web developmencie, architekturze aplikacji, jakości kodu i codziennej pracy nad nowoczesnymi produktami cyfrowymi.</p>
+            </div>
 
             {% if articles is not empty %}
                 <div class="quick-links feed-panel-list">
@@ -49,47 +53,4 @@
         </div>
     </section>
 
-    <section class="hero">
-        <div class="grid-2">
-            <div class="card">
-                <div class="card-header">
-                    <span class="pill" data-i18n="blog_reader_view">Widok czytelnika</span>
-                </div>
-                <h1 data-i18n="blog_articles_ready">Artykuły gotowe dla czytelników</h1>
-                <p class="lede" data-i18n="blog_articles_ready_lede">Opublikowane treści są zebrane w jednym głównym panelu pod topbarem, a ta sekcja zachowuje dodatkowy kontekst i kontrolki.</p>
-
-                <div class="stats">
-                    <div class="stat">
-                        <strong>{{ articles|length }}</strong>
-                        <span class="supporting-copy" data-i18n="blog_published_articles_count">Opublikowane artykuły w bieżącym widoku</span>
-                    </div>
-                    <div class="stat">
-                        <strong>{{ language_options|length }}</strong>
-                        <span class="supporting-copy" data-i18n="blog_configured_languages">Skonfigurowane warianty językowe</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <span class="pill" data-i18n="blog_filters">Filtry</span>
-                </div>
-                <div class="filters" style="margin-top: 1rem;">
-                    <a class="{{ current_language is null ? '' : 'secondary' }}" href="{{ path('blog_index') }}" data-i18n="blog_all_languages">Wszystkie języki</a>
-                    {% for language in language_options %}
-                        <a class="{{ current_language == language ? '' : 'secondary' }}" href="{{ path('blog_index', {lang: language.value}) }}">
-                            <span data-lang="pl">{{ language.value == 'pl' ? 'Polski (PL)' : 'Angielski (EN)' }}</span>
-                            <span data-lang="en">{{ language.value == 'pl' ? 'Polski (PL)' : 'English (EN)' }}</span>
-                        </a>
-                    {% endfor %}
-                </div>
-                {% if is_granted('ROLE_ADMIN') %}
-                    <div class="actions" style="margin-top: 1rem;">
-                        <a class="btn" href="{{ path('admin_article_new') }}" data-i18n="blog_create_article">Utwórz artykuł</a>
-                        <a class="btn" href="{{ path('admin_article_index') }}" data-i18n="blog_manage_articles">Zarządzaj artykułami</a>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-    </section>
 {% endblock %}

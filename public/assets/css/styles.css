@@ -2082,7 +2082,7 @@ select {
 }
 
 .article-index-table-wrap {
-  margin:0 20px 20px;
+  margin:16px 20px 20px;
 }
 
 .article-editor-form {
@@ -2163,14 +2163,35 @@ select {
 }
 
 .article-content-panel {
-  margin:0 20px 20px;
+  margin:0;
+  padding:0 20px 20px;
 }
 
 .article-content-panel .article-body {
-  padding:18px 20px;
-  border:1px solid var(--border);
-  border-radius:16px;
-  background: color-mix(in oklab, var(--panel) 92%, transparent);
+  padding:0;
+  border:none;
+  border-radius:0;
+  background:transparent;
+}
+
+.article-content-actions {
+  justify-content:flex-end;
+  margin-top:16px;
+}
+
+.article-metadata-stats {
+  display:grid;
+  gap:14px;
+  padding:20px;
+}
+
+.article-metadata-stat {
+  display:grid;
+  gap:4px;
+}
+
+.article-metadata-stat strong {
+  line-height:1.35;
 }
 
 @media (max-width: 768px){
@@ -2207,7 +2228,7 @@ select {
   }
 
   .article-index-table-wrap {
-    margin:0 18px 18px;
+    margin:14px 18px 18px;
   }
 
   .article-editor-form {
@@ -2228,11 +2249,25 @@ select {
   }
 
   .article-content-panel {
-    margin:0 18px 18px;
+    margin:0;
+    padding:0 18px 18px;
   }
 
   .article-content-panel .article-body {
-    padding:16px 18px;
+    padding:0;
+  }
+
+  .article-content-actions {
+    justify-content:stretch;
+  }
+
+  .article-content-actions > * {
+    width:100%;
+  }
+
+  .article-metadata-stats {
+    gap:12px;
+    padding:18px;
   }
 }
 

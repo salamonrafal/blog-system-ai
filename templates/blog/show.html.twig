@@ -11,61 +11,58 @@
             </div>
 
             <div class="dashboard-feed-intro">
-                <p class="eyebrow meta-pill">
-                    <span data-lang="pl">{{ article.language.value == 'pl' ? 'Polski (PL)' : 'Angielski (EN)' }} artykuł</span>
-                    <span data-lang="en">{{ article.language.value == 'pl' ? 'Polski (PL)' : 'English (EN)' }} article</span>
-                </p>
                 <h1>{{ article.title }}</h1>
-                <p class="lede">
-                    {% if article.excerpt %}
-                        {{ article.excerpt }}
-                    {% else %}
-                        <span data-i18n="blog_article_fallback_excerpt">Strona opublikowanej treści wygenerowana z widoku bloga Twig.</span>
-                    {% endif %}
-                </p>
-
-                <div class="actions">
-                    <a class="button secondary" href="{{ path('blog_index') }}" data-i18n="blog_back_to_articles">Wróć do artykułów</a>
-                    {% if is_granted('ROLE_ADMIN') %}
-                        <a class="button" href="{{ path('admin_article_edit', {id: article.id}) }}" data-i18n="blog_edit_in_admin">Edytuj w panelu admina</a>
-                    {% endif %}
-                </div>
             </div>
 
             <div class="article-content-panel">
                 <div class="article-body">
                     {{ article.content|nl2br }}
                 </div>
+                <div class="actions article-content-actions">
+                    <a class="button secondary" href="{{ path('blog_index') }}" data-i18n="blog_back_to_articles">Wróć do artykułów</a>
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <a class="button" href="{{ path('admin_article_edit', {id: article.id}) }}" data-i18n="blog_edit_in_admin">Edytuj w panelu admina</a>
+                    {% endif %}
+                </div>
             </div>
         </article>
     </section>
 
-    <section class="section">
-        <aside class="card">
-            <div class="card-header">
-                <span class="pill" data-i18n="blog_metadata">Metadane</span>
-            </div>
-            <div class="stats">
-                <div class="stat">
-                    <strong>
-                        <span data-lang="pl">
-                            {% if article.status.value == 'draft' %}Szkic{% elseif article.status.value == 'review' %}W recenzji{% else %}Opublikowany{% endif %}
-                        </span>
-                        <span data-lang="en">
-                            {% if article.status.value == 'draft' %}Draft{% elseif article.status.value == 'review' %}In review{% else %}Published{% endif %}
-                        </span>
-                    </strong>
-                    <span class="supporting-copy" data-i18n="blog_publication_status">Bieżący status publikacji</span>
+    {% if app.user %}
+        <section class="section">
+            <aside class="card article-metadata-card">
+                <div class="card-header">
+                    <span class="pill" data-i18n="blog_metadata">Metadane</span>
                 </div>
-                <div class="stat">
-                    <strong>{{ article.publishedAt ? article.publishedAt|date('Y-m-d') : article.createdAt|date('Y-m-d') }}</strong>
-                    <span class="supporting-copy" data-i18n="blog_public_date">Główna data publiczna</span>
+                <div class="stats article-metadata-stats">
+                    <div class="stat article-metadata-stat">
+                        <strong>
+                            <span data-lang="pl">
+                                {% if article.status.value == 'draft' %}Szkic{% elseif article.status.value == 'review' %}W recenzji{% else %}Opublikowany{% endif %}
+                            </span>
+                            <span data-lang="en">
+                                {% if article.status.value == 'draft' %}Draft{% elseif article.status.value == 'review' %}In review{% else %}Published{% endif %}
+                            </span>
+                        </strong>
+                        <span class="supporting-copy" data-i18n="blog_publication_status">Bieżący status publikacji</span>
+                    </div>
+                    <div class="stat article-metadata-stat">
+                        <strong>{{ article.publishedAt ? article.publishedAt|date('Y-m-d') : article.createdAt|date('Y-m-d') }}</strong>
+                        <span class="supporting-copy" data-i18n="blog_public_date">Główna data publiczna</span>
+                    </div>
+                    <div class="stat article-metadata-stat">
+                        <strong>
+                            <span data-lang="pl">{{ article.language.value == 'pl' ? 'Polski (PL)' : 'Angielski (EN)' }}</span>
+                            <span data-lang="en">{{ article.language.value == 'pl' ? 'Polski (PL)' : 'English (EN)' }}</span>
+                        </strong>
+                        <span class="supporting-copy" data-i18n="blog_article_language">Język publikacji</span>
+                    </div>
+                    <div class="stat article-metadata-stat">
+                        <strong>{{ article.slug }}</strong>
+                        <span class="supporting-copy" data-i18n="blog_reader_slug">Slug widoczny dla czytelnika</span>
+                    </div>
                 </div>
-                <div class="stat">
-                    <strong>{{ article.slug }}</strong>
-                    <span class="supporting-copy" data-i18n="blog_reader_slug">Slug widoczny dla czytelnika</span>
-                </div>
-            </div>
-        </aside>
-    </section>
+            </aside>
+        </section>
+    {% endif %}
 {% endblock %}
