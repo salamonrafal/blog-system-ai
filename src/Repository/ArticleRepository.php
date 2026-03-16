@@ -54,6 +54,16 @@ class ArticleRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
+    public function findOneBySlug(string $slug): ?Article
+    {
+        return $this->createQueryBuilder('article')
+            ->andWhere('article.slug = :slug')
+            ->setParameter('slug', $slug)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     public function slugExists(string $slug, ?int $ignoreId = null): bool
     {
         $queryBuilder = $this->createQueryBuilder('article')

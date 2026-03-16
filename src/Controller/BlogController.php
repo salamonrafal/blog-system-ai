@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Enum\ArticleLanguage;
+use App\Enum\ArticleStatus;
 use App\Repository\ArticleRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,10 +29,14 @@ class BlogController extends AbstractController
     #[Route('/articles/{slug}', name: 'blog_show', methods: ['GET'])]
     public function show(string $slug, ArticleRepository $articleRepository): Response
     {
-        $article = $articleRepository->findOnePublishedBySlug($slug);
+        $article = $articleRepository->findOneBySlug($slug);
 
         if (null === $article) {
             throw $this->createNotFoundException('Article not found.');
+        }
+
+        if (ArticleStatus::PUBLISHED !== $article->getStatus()) {
+            $this->denyAccessUnlessGranted('IS_AUTHENTICATED_REMEMBERED');
         }
 
         return $this->render('blog/show.html.twig', [

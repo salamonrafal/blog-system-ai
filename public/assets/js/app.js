@@ -128,6 +128,12 @@ const i18n = {
     admin_table_updated: "Aktualizacja",
     admin_table_action: "Akcja",
     admin_table_edit: "Edytuj",
+    admin_table_archive: "Archiwizuj",
+    admin_table_delete: "Usuń",
+    admin_delete_popup_title: "Usunąć artykuł?",
+    admin_delete_popup_text: "Ta operacja jest nieodwracalna. Artykuł zostanie trwale usunięty.",
+    admin_delete_popup_cancel: "Przerwij",
+    admin_delete_popup_confirm: "Usuń",
     admin_table_no_articles: "Nie znaleziono artykułów.",
     admin_new_article_title: "Utwórz artykuł",
     admin_new_article_lede: "Nowe wpisy domyślnie zaczynają jako szkice i przed zapisaniem dostają unikalny slug.",
@@ -161,6 +167,7 @@ const i18n = {
     article_status_draft: "Szkic",
     article_status_review: "W recenzji",
     article_status_published: "Opublikowany",
+    article_status_archived: "Zarchiwizowany",
     validation_article_title_required: "Tytuł artykułu jest wymagany.",
     validation_article_title_too_long: "Tytuł artykułu może mieć maksymalnie 255 znaków.",
     validation_article_slug_too_long: "Slug artykułu może mieć maksymalnie 255 znaków.",
@@ -297,6 +304,12 @@ const i18n = {
     admin_table_updated: "Updated",
     admin_table_action: "Action",
     admin_table_edit: "Edit",
+    admin_table_archive: "Archive",
+    admin_table_delete: "Delete",
+    admin_delete_popup_title: "Delete article?",
+    admin_delete_popup_text: "This operation cannot be undone. The article will be permanently deleted.",
+    admin_delete_popup_cancel: "Cancel",
+    admin_delete_popup_confirm: "Delete",
     admin_table_no_articles: "No articles found.",
     admin_new_article_title: "Create article",
     admin_new_article_lede: "New entries start as drafts by default and receive a unique slug before saving.",
@@ -330,6 +343,7 @@ const i18n = {
     article_status_draft: "Draft",
     article_status_review: "In review",
     article_status_published: "Published",
+    article_status_archived: "Archived",
     validation_article_title_required: "Article title is required.",
     validation_article_title_too_long: "Article title can be at most 255 characters long.",
     validation_article_slug_too_long: "Article slug can be at most 255 characters long.",
@@ -463,13 +477,7 @@ function applyI18n(lang){
     const key = el.getAttribute('data-i18n-tooltip');
     if(t[key] !== undefined){
       el.setAttribute('data-tooltip', t[key]);
-      const isTopPrefsControl = !!el.closest('.preferences-chip');
-      if(isTopPrefsControl){
-        el.removeAttribute('title');
-      }else{
-        // Native tooltip fallback outside topbar preferences.
-        el.setAttribute('title', t[key]);
-      }
+      el.removeAttribute('title');
     }
   });
   qsa('[data-i18n-placeholder]').forEach(el=>{
@@ -490,6 +498,67 @@ function applyI18n(lang){
 
   syncAdminShortcuts();
 
+}
+
+function setupTooltips(){
+  const existingTooltip = qs('.app-tooltip');
+  if(existingTooltip){
+    existingTooltip.remove();
+  }
+
+  const tooltip = document.createElement('div');
+  tooltip.className = 'app-tooltip';
+  tooltip.setAttribute('hidden', '');
+  tooltip.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(tooltip);
+
+  let activeTrigger = null;
+
+  const positionTooltip = (trigger)=>{
+    if(!trigger || tooltip.hasAttribute('hidden')) return;
+    const rect = trigger.getBoundingClientRect();
+    const tooltipRect = tooltip.getBoundingClientRect();
+    const top = window.scrollY + rect.bottom + 10;
+    const maxLeft = window.scrollX + window.innerWidth - tooltipRect.width - 12;
+    const minLeft = window.scrollX + 12;
+    const centeredLeft = window.scrollX + rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+    const left = Math.min(Math.max(centeredLeft, minLeft), maxLeft);
+
+    tooltip.style.top = `${top}px`;
+    tooltip.style.left = `${left}px`;
+  };
+
+  const showTooltip = (trigger)=>{
+    const text = trigger.getAttribute('data-tooltip');
+    if(!text) return;
+    activeTrigger = trigger;
+    tooltip.textContent = text;
+    tooltip.removeAttribute('hidden');
+    tooltip.setAttribute('aria-hidden', 'false');
+    positionTooltip(trigger);
+  };
+
+  const hideTooltip = ()=>{
+    tooltip.setAttribute('hidden', '');
+    tooltip.setAttribute('aria-hidden', 'true');
+    activeTrigger = null;
+  };
+
+  qsa('[data-tooltip]').forEach((el)=>{
+    el.removeAttribute('title');
+    el.addEventListener('mouseenter', ()=> showTooltip(el));
+    el.addEventListener('mouseleave', hideTooltip);
+    el.addEventListener('focus', ()=> showTooltip(el));
+    el.addEventListener('blur', hideTooltip);
+  });
+
+  window.addEventListener('scroll', ()=>{
+    if(activeTrigger) positionTooltip(activeTrigger);
+  }, { passive: true });
+
+  window.addEventListener('resize', ()=>{
+    if(activeTrigger) positionTooltip(activeTrigger);
+  });
 }
 
 function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
@@ -614,16 +683,13 @@ function setupActions(){
       if(copied){
         const lang = getLang();
         copyBtn.setAttribute('data-tooltip', i18n[lang].contact_copied);
-        copyBtn.setAttribute('title', i18n[lang].contact_copied);
         setTimeout(()=>{
           const hint = i18n[getLang()].contact_copy_hint;
           copyBtn.setAttribute('data-tooltip', hint);
-          copyBtn.setAttribute('title', hint);
         }, 1200);
       }else{
         const lang = getLang();
         copyBtn.setAttribute('data-tooltip', i18n[lang].contact_copy_hint);
-        copyBtn.setAttribute('title', i18n[lang].contact_copy_hint);
       }
     });
   }
@@ -940,6 +1006,101 @@ function setupBackToTop(){
   toggleVisibility();
 }
 
+function setupDeleteConfirmation(){
+  const triggers = qsa('[data-action="confirm-delete-article"]');
+  if(!triggers.length) return;
+
+  const existingModal = qs('.confirm-delete-modal');
+  if(existingModal){
+    existingModal.remove();
+  }
+
+  const titleId = 'confirm-delete-title';
+  const textId = 'confirm-delete-text';
+  const modal = document.createElement('div');
+  modal.className = 'confirm-delete-modal';
+  modal.setAttribute('hidden', '');
+  modal.setAttribute('aria-hidden', 'true');
+  modal.innerHTML = `
+    <div class="confirm-delete-dialog" role="dialog" aria-modal="true" aria-labelledby="${titleId}" aria-describedby="${textId}">
+      <div class="confirm-delete-eyebrow">admin://danger-zone</div>
+      <h2 id="${titleId}" class="confirm-delete-title" data-i18n="admin_delete_popup_title">Usunac artykul?</h2>
+      <p id="${textId}" class="confirm-delete-text" data-i18n="admin_delete_popup_text">Ta operacja jest nieodwracalna. Artykul zostanie trwale usuniety.</p>
+      <p class="confirm-delete-article-name"></p>
+      <div class="confirm-delete-actions">
+        <button type="button" class="button secondary" data-action="cancel-delete" data-i18n="admin_delete_popup_cancel">Przerwij</button>
+        <button type="button" class="button button-danger" data-action="submit-delete" data-i18n="admin_delete_popup_confirm">Usun</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  applyI18n(getLang());
+
+  const dialog = qs('.confirm-delete-dialog', modal);
+  const cancelButton = qs('[data-action="cancel-delete"]', modal);
+  const submitButton = qs('[data-action="submit-delete"]', modal);
+  const articleName = qs('.confirm-delete-article-name', modal);
+  let activeForm = null;
+  let lastTrigger = null;
+
+  const closeModal = ()=>{
+    modal.setAttribute('hidden', '');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    if(lastTrigger) lastTrigger.focus({ preventScroll: true });
+    activeForm = null;
+  };
+
+  const openModal = (trigger)=>{
+    activeForm = trigger.closest('form');
+    lastTrigger = trigger;
+    if(articleName){
+      articleName.textContent = trigger.getAttribute('data-article-title') || '';
+    }
+    modal.removeAttribute('hidden');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    if(cancelButton) cancelButton.focus({ preventScroll: true });
+  };
+
+  triggers.forEach((trigger)=>{
+    trigger.addEventListener('click', ()=>{
+      openModal(trigger);
+    });
+  });
+
+  if(cancelButton){
+    cancelButton.addEventListener('click', closeModal);
+  }
+
+  if(submitButton){
+    submitButton.addEventListener('click', ()=>{
+      if(activeForm) activeForm.submit();
+    });
+  }
+
+  modal.addEventListener('click', (event)=>{
+    if(event.target === modal){
+      closeModal();
+    }
+  });
+
+  if(dialog){
+    dialog.addEventListener('click', (event)=>{
+      event.stopPropagation();
+    });
+  }
+
+  document.addEventListener('keydown', (event)=>{
+    if(modal.hasAttribute('hidden')) return;
+    if(event.key === 'Escape'){
+      event.preventDefault();
+      closeModal();
+    }
+  });
+}
+
 function setupPrivacyNotice(){
   const storageKey = 'privacy-consent';
   const acceptedValue = 'accepted';
@@ -1011,10 +1172,12 @@ function init(){
   setAccent(getAccent());
   const lang = getLang();
   applyI18n(lang);
+  setupTooltips();
   setupAdminShortcuts();
   setupActions();
   setupCharacterCounters();
   setupImagePreview();
+  setupDeleteConfirmation();
   setupPrivacyNotice();
   syncTopbarHeight();
 

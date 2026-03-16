@@ -35,10 +35,10 @@
                                     <span data-lang="en">{{ article.language.value == 'pl' ? 'Polski (PL)' : 'English (EN)' }}</span>
                                     |
                                     <span data-lang="pl">
-                                        {% if article.status.value == 'draft' %}Szkic{% elseif article.status.value == 'review' %}W recenzji{% else %}Opublikowany{% endif %}
+                                        {% if article.status.value == 'draft' %}Szkic{% elseif article.status.value == 'review' %}W recenzji{% elseif article.status.value == 'archived' %}Zarchiwizowany{% else %}Opublikowany{% endif %}
                                     </span>
                                     <span data-lang="en">
-                                        {% if article.status.value == 'draft' %}Draft{% elseif article.status.value == 'review' %}In review{% else %}Published{% endif %}
+                                        {% if article.status.value == 'draft' %}Draft{% elseif article.status.value == 'review' %}In review{% elseif article.status.value == 'archived' %}Archived{% else %}Published{% endif %}
                                     </span>
                                 </div>
                             </div>

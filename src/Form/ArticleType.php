@@ -58,6 +58,7 @@ class ArticleType extends AbstractType
                         ArticleStatus::DRAFT => 'article_status_draft',
                         ArticleStatus::REVIEW => 'article_status_review',
                         ArticleStatus::PUBLISHED => 'article_status_published',
+                        ArticleStatus::ARCHIVED => 'article_status_archived',
                     },
                 ],
             ])

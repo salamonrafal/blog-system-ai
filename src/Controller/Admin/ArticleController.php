@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Entity\Article;
+use App\Enum\ArticleStatus;
 use App\Form\ArticleType;
 use App\Repository\ArticleRepository;
 use App\Service\ArticlePublisher;
@@ -79,5 +80,50 @@ class ArticleController extends AbstractController
             'article' => $article,
             'form' => $form,
         ]);
+    }
+
+    #[Route('/{id}/archive', name: 'admin_article_archive', methods: ['POST'])]
+    public function archive(
+        Article $article,
+        Request $request,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        if (!$this->isCsrfTokenValid('archive_article_'.$article->getId(), (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        $article
+            ->setStatus(ArticleStatus::ARCHIVED)
+            ->setPublishedAt(null);
+
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Article archived.');
+
+        return $this->redirectToRoute('admin_article_index');
+    }
+
+    #[Route('/{id}/delete', name: 'admin_article_delete', methods: ['POST'])]
+    public function delete(
+        Article $article,
+        Request $request,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        if (!$this->isCsrfTokenValid('delete_article_'.$article->getId(), (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        if (ArticleStatus::ARCHIVED !== $article->getStatus()) {
+            $this->addFlash('error', 'Usunac mozna tylko zarchiwizowany artykul.');
+
+            return $this->redirectToRoute('admin_article_index');
+        }
+
+        $entityManager->remove($article);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Article deleted.');
+
+        return $this->redirectToRoute('admin_article_index');
     }
 }

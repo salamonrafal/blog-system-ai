@@ -36,22 +36,63 @@
                     <tbody>
                     {% for article in articles %}
                         <tr>
-                            <td>{{ article.title }}</td>
+                            <td><a href="{{ path('blog_show', {slug: article.slug}) }}">{{ article.title }}</a></td>
                             <td>
                                 <span data-lang="pl">{{ article.language.value == 'pl' ? 'Polski (PL)' : 'Angielski (EN)' }}</span>
                                 <span data-lang="en">{{ article.language.value == 'pl' ? 'Polski (PL)' : 'English (EN)' }}</span>
                             </td>
                             <td>
                                 <span data-lang="pl">
-                                    {% if article.status.value == 'draft' %}Szkic{% elseif article.status.value == 'review' %}W recenzji{% else %}Opublikowany{% endif %}
+                                    {% if article.status.value == 'draft' %}Szkic{% elseif article.status.value == 'review' %}W recenzji{% elseif article.status.value == 'archived' %}Zarchiwizowany{% else %}Opublikowany{% endif %}
                                 </span>
                                 <span data-lang="en">
-                                    {% if article.status.value == 'draft' %}Draft{% elseif article.status.value == 'review' %}In review{% else %}Published{% endif %}
+                                    {% if article.status.value == 'draft' %}Draft{% elseif article.status.value == 'review' %}In review{% elseif article.status.value == 'archived' %}Archived{% else %}Published{% endif %}
                                 </span>
                             </td>
                             <td><code>{{ article.slug }}</code></td>
                             <td>{{ article.updatedAt|date('Y-m-d H:i') }}</td>
-                            <td><a class="button secondary" href="{{ path('admin_article_edit', {id: article.id}) }}" data-i18n="admin_table_edit">Edytuj</a></td>
+                            <td>
+                                <div class="actions">
+                                    <a
+                                        class="button secondary article-action-button"
+                                        href="{{ path('admin_article_edit', {id: article.id}) }}"
+                                        data-i18n-tooltip="admin_table_edit"
+                                        data-tooltip="Edytuj"
+                                        aria-label="Edytuj"
+                                    >
+                                        <span class="article-action-icon is-edit" aria-hidden="true"></span>
+                                    </a>
+                                    {% if article.status.value == 'archived' %}
+                                        <form method="post" action="{{ path('admin_article_delete', {id: article.id}) }}" data-delete-form>
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete_article_' ~ article.id) }}">
+                                            <button
+                                                class="button secondary button-danger article-action-button"
+                                                type="button"
+                                                data-action="confirm-delete-article"
+                                                data-article-title="{{ article.title }}"
+                                                data-i18n-tooltip="admin_table_delete"
+                                                data-tooltip="Usuń"
+                                                aria-label="Usuń"
+                                            >
+                                                <span class="article-action-icon is-delete" aria-hidden="true"></span>
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <form method="post" action="{{ path('admin_article_archive', {id: article.id}) }}">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('archive_article_' ~ article.id) }}">
+                                            <button
+                                                class="button secondary article-action-button"
+                                                type="submit"
+                                                data-i18n-tooltip="admin_table_archive"
+                                                data-tooltip="Archiwizuj"
+                                                aria-label="Archiwizuj"
+                                            >
+                                                <span class="article-action-icon is-archive" aria-hidden="true"></span>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </td>
                         </tr>
                     {% else %}
                         <tr>
