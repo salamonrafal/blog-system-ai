@@ -103,6 +103,10 @@ const i18n = {
     admin_shortcut_new_article: "Utwórz nowy artykuł",
     admin_shortcut_dashboard: "Panel główny",
     admin_shortcut_articles: "Lista artykułów",
+    admin_shortcut_settings_title: "Szybkie ustawienia",
+    admin_shortcut_remember_device: "Zapamiętaj urządzenie",
+    admin_shortcut_forget_device: "Nie zapamiętuj urządzenia",
+    admin_shortcut_login_device: "Zaloguj się",
     admin_shortcut_logout: "Wyloguj",
     admin_dashboard_title: "Centrum operacji treści",
     admin_dashboard_lede: "Panel administracyjny dopasowany do układu aplikacji, gotowy na workflow redakcyjny, moderację i publikację.",
@@ -268,6 +272,10 @@ const i18n = {
     admin_shortcut_new_article: "Create new article",
     admin_shortcut_dashboard: "Dashboard",
     admin_shortcut_articles: "Article list",
+    admin_shortcut_settings_title: "Quick settings",
+    admin_shortcut_remember_device: "Remember this device",
+    admin_shortcut_forget_device: "Forget this device",
+    admin_shortcut_login_device: "Login",
     admin_shortcut_logout: "Log out",
     admin_dashboard_title: "Content operations hub",
     admin_dashboard_lede: "An admin dashboard aligned with the app layout, ready for editorial workflows, moderation and publishing.",
@@ -336,6 +344,7 @@ const i18n = {
 function qs(sel, root=document){ return root.querySelector(sel); }
 function qsa(sel, root=document){ return [...root.querySelectorAll(sel)]; }
 let terminalRenderId = 0;
+const adminDeviceStorageKey = 'admin_device_remembered';
 
 function syncTopbarHeight(){
   const topbar = qs('.topbar');
@@ -362,6 +371,22 @@ function applyLangVisibility(lang){
 
 function getTheme(){ return localStorage.getItem('theme') || 'dark'; }
 function getAccent(){ return localStorage.getItem('accent') || '#39ff14'; }
+function getTranslation(key, lang = getLang()){
+  return (i18n[lang] && i18n[lang][key]) || i18n.pl[key] || '';
+}
+
+function isAdminDeviceRemembered(){
+  return localStorage.getItem(adminDeviceStorageKey) === '1';
+}
+
+function setAdminDeviceRemembered(remembered){
+  if(remembered){
+    localStorage.setItem(adminDeviceStorageKey, '1');
+    return;
+  }
+
+  localStorage.removeItem(adminDeviceStorageKey);
+}
 
 function normalizeHexColor(value){
   if(typeof value !== 'string') return null;
@@ -462,6 +487,8 @@ function applyI18n(lang){
   qsa('[data-action="toggle-lang"]').forEach(langBtn=>{
     langBtn.textContent = lang === 'pl' ? 'PL' : 'EN';
   });
+
+  syncAdminShortcuts();
 
 }
 
@@ -618,6 +645,46 @@ function setupActions(){
       window.location.href = `mailto:${to}?subject=${subject}&body=${body}`;
     });
   }
+}
+
+function syncAdminShortcuts(){
+  qsa('[data-admin-shortcuts]').forEach(menu=>{
+    const shortcuts = menu.closest('.admin-shortcuts');
+    if(!shortcuts) return;
+
+    const isAuthenticated = menu.getAttribute('data-authenticated') === 'true';
+    if(!isAuthenticated){
+      shortcuts.hidden = !isAdminDeviceRemembered();
+      if(!isAdminDeviceRemembered()) shortcuts.removeAttribute('open');
+      return;
+    }
+
+    const rememberButton = qs('[data-action="toggle-device-login"]', menu);
+    if(!rememberButton) return;
+
+    const remembered = isAdminDeviceRemembered();
+    const label = qs('[data-device-remember-label]', rememberButton);
+    const labelKey = remembered ? 'admin_shortcut_forget_device' : 'admin_shortcut_remember_device';
+
+    rememberButton.classList.toggle('is-active', remembered);
+    rememberButton.setAttribute('aria-pressed', remembered ? 'true' : 'false');
+
+    if(label){
+      label.setAttribute('data-i18n', labelKey);
+      label.textContent = getTranslation(labelKey);
+    }
+  });
+}
+
+function setupAdminShortcuts(){
+  syncAdminShortcuts();
+
+  qsa('[data-action="toggle-device-login"]').forEach(button=>{
+    button.addEventListener('click', ()=>{
+      setAdminDeviceRemembered(!isAdminDeviceRemembered());
+      syncAdminShortcuts();
+    });
+  });
 }
 
 function setupCharacterCounters(){
@@ -944,6 +1011,7 @@ function init(){
   setAccent(getAccent());
   const lang = getLang();
   applyI18n(lang);
+  setupAdminShortcuts();
   setupActions();
   setupCharacterCounters();
   setupImagePreview();

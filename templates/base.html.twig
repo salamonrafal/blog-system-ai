@@ -93,8 +93,9 @@ Fullstack Developer</span>
     {% block body %}{% endblock %}
 </main>
 
-{% if app.user %}
-    <details class="admin-shortcuts">
+{% set is_login_route = app.request.attributes.get('_route') == 'app_login' %}
+{% if app.user or not is_login_route %}
+    <details class="admin-shortcuts"{% if not app.user %} hidden{% endif %}>
         <summary class="admin-shortcuts-toggle" aria-label="Admin shortcuts">
             <span class="admin-shortcuts-gear" aria-hidden="true">
                 <svg viewBox="0 0 32 32">
@@ -103,50 +104,78 @@ Fullstack Developer</span>
                 </svg>
             </span>
         </summary>
-        <nav class="admin-shortcuts-menu" aria-label="Admin shortcuts">
-            <a class="admin-shortcuts-link primary" href="{{ path('admin_article_new') }}">
-                <span class="admin-shortcuts-link-icon" aria-hidden="true">
-                    <svg viewBox="0 0 32 32">
-                        <path d="M16 6v20"></path>
-                        <path d="M6 16h20"></path>
-                    </svg>
-                </span>
-                <span data-i18n="admin_shortcut_new_article">Utwórz nowy artykuł</span>
-            </a>
-            <a class="admin-shortcuts-link" href="{{ path('admin_dashboard') }}">
-                <span class="admin-shortcuts-link-icon" aria-hidden="true">
-                    <svg viewBox="0 0 32 32">
-                        <rect x="5" y="5" width="9" height="9" rx="2"></rect>
-                        <rect x="18" y="5" width="9" height="6" rx="2"></rect>
-                        <rect x="18" y="14" width="9" height="13" rx="2"></rect>
-                        <rect x="5" y="18" width="9" height="9" rx="2"></rect>
-                    </svg>
-                </span>
-                <span data-i18n="admin_shortcut_dashboard">Panel główny</span>
-            </a>
-            <a class="admin-shortcuts-link" href="{{ path('admin_article_index') }}">
-                <span class="admin-shortcuts-link-icon" aria-hidden="true">
-                    <svg viewBox="0 0 32 32">
-                        <path d="M10 9h14"></path>
-                        <path d="M10 16h14"></path>
-                        <path d="M10 23h14"></path>
-                        <circle cx="7" cy="9" r="1.5"></circle>
-                        <circle cx="7" cy="16" r="1.5"></circle>
-                        <circle cx="7" cy="23" r="1.5"></circle>
-                    </svg>
-                </span>
-                <span data-i18n="admin_shortcut_articles">Lista artykułów</span>
-            </a>
-            <a class="admin-shortcuts-link" href="{{ path('app_logout') }}">
-                <span class="admin-shortcuts-link-icon" aria-hidden="true">
-                    <svg viewBox="0 0 32 32">
-                        <path d="M20 25h-9a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h9"></path>
-                        <path d="M17 16h10"></path>
-                        <path d="M23 11l5 5-5 5"></path>
-                    </svg>
-                </span>
-                <span data-i18n="admin_shortcut_logout">Wyloguj</span>
-            </a>
+        <nav class="admin-shortcuts-menu" aria-label="Admin shortcuts" data-admin-shortcuts data-authenticated="{{ app.user ? 'true' : 'false' }}">
+            {% if app.user %}
+                <div class="admin-shortcuts-section">
+                    <a class="admin-shortcuts-link primary" href="{{ path('admin_article_new') }}">
+                        <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                            <svg viewBox="0 0 32 32">
+                                <path d="M16 6v20"></path>
+                                <path d="M6 16h20"></path>
+                            </svg>
+                        </span>
+                        <span data-i18n="admin_shortcut_new_article">Utwórz nowy artykuł</span>
+                    </a>
+                    <a class="admin-shortcuts-link" href="{{ path('admin_dashboard') }}">
+                        <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                            <svg viewBox="0 0 32 32">
+                                <rect x="5" y="5" width="9" height="9" rx="2"></rect>
+                                <rect x="18" y="5" width="9" height="6" rx="2"></rect>
+                                <rect x="18" y="14" width="9" height="13" rx="2"></rect>
+                                <rect x="5" y="18" width="9" height="9" rx="2"></rect>
+                            </svg>
+                        </span>
+                        <span data-i18n="admin_shortcut_dashboard">Panel główny</span>
+                    </a>
+                    <a class="admin-shortcuts-link" href="{{ path('admin_article_index') }}">
+                        <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                            <svg viewBox="0 0 32 32">
+                                <path d="M10 9h14"></path>
+                                <path d="M10 16h14"></path>
+                                <path d="M10 23h14"></path>
+                                <circle cx="7" cy="9" r="1.5"></circle>
+                                <circle cx="7" cy="16" r="1.5"></circle>
+                                <circle cx="7" cy="23" r="1.5"></circle>
+                            </svg>
+                        </span>
+                        <span data-i18n="admin_shortcut_articles">Lista artykułów</span>
+                    </a>
+                    <a class="admin-shortcuts-link" href="{{ path('app_logout') }}">
+                        <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                            <svg viewBox="0 0 32 32">
+                                <path d="M20 25h-9a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h9"></path>
+                                <path d="M17 16h10"></path>
+                                <path d="M23 11l5 5-5 5"></path>
+                            </svg>
+                        </span>
+                        <span data-i18n="admin_shortcut_logout">Wyloguj</span>
+                    </a>
+                </div>
+                <section class="admin-shortcuts-section admin-shortcuts-settings" aria-label="Quick settings">
+                    <p class="admin-shortcuts-section-title" data-i18n="admin_shortcut_settings_title">Szybkie ustawienia</p>
+                    <button type="button" class="admin-shortcuts-link admin-shortcuts-button" data-action="toggle-device-login" aria-pressed="false">
+                        <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                            <svg viewBox="0 0 32 32">
+                                <rect x="8" y="5" width="16" height="22" rx="3"></rect>
+                                <path d="M12 9h8"></path>
+                                <circle cx="16" cy="23" r="1.4"></circle>
+                            </svg>
+                        </span>
+                        <span data-device-remember-label data-i18n="admin_shortcut_remember_device">Zapamiętaj urządzenie</span>
+                    </button>
+                </section>
+            {% else %}
+                <a class="admin-shortcuts-link primary" href="{{ path('app_login') }}">
+                    <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                        <svg viewBox="0 0 32 32">
+                            <path d="M20 25h-9a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h9"></path>
+                            <path d="M17 16h10"></path>
+                            <path d="M23 11l5 5-5 5"></path>
+                        </svg>
+                    </span>
+                    <span data-i18n="admin_shortcut_login_device">Zaloguj się</span>
+                </a>
+            {% endif %}
         </nav>
     </details>
 {% endif %}
