@@ -21,23 +21,23 @@ class Article
     #[ORM\Column]
     private ?int $id = null;
 
-    #[Assert\NotBlank]
-    #[Assert\Length(max: 255)]
+    #[Assert\NotBlank(message: 'validation_article_title_required')]
+    #[Assert\Length(max: 255, maxMessage: 'validation_article_title_too_long')]
     #[ORM\Column(length: 255)]
     private string $title = '';
 
     #[ORM\Column(enumType: ArticleLanguage::class)]
     private ArticleLanguage $language = ArticleLanguage::PL;
 
-    #[Assert\Length(max: 255)]
+    #[Assert\Length(max: 255, maxMessage: 'validation_article_slug_too_long')]
     #[ORM\Column(length: 255, unique: true)]
     private string $slug = '';
 
-    #[Assert\Length(max: 320)]
+    #[Assert\Length(max: 320, maxMessage: 'validation_article_excerpt_too_long')]
     #[ORM\Column(length: 320, nullable: true)]
     private ?string $excerpt = null;
 
-    #[Assert\NotBlank]
+    #[Assert\NotBlank(message: 'validation_article_content_required')]
     #[ORM\Column(type: Types::TEXT)]
     private string $content = '';
 

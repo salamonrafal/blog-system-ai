@@ -23,6 +23,7 @@ class ArticleType extends AbstractType
             ->add('title', TextType::class, [
                 'label' => 'Title',
                 'label_attr' => ['data-i18n' => 'form_title'],
+                'attr' => ['maxlength' => 255],
             ])
             ->add('language', EnumType::class, [
                 'class' => ArticleLanguage::class,
@@ -40,7 +41,7 @@ class ArticleType extends AbstractType
                 'label' => 'Short summary',
                 'label_attr' => ['data-i18n' => 'form_excerpt'],
                 'required' => false,
-                'attr' => ['rows' => 4],
+                'attr' => ['rows' => 4, 'maxlength' => 320],
             ])
             ->add('content', TextareaType::class, [
                 'label' => 'Content',
@@ -66,6 +67,7 @@ class ArticleType extends AbstractType
                 'required' => false,
                 'widget' => 'single_text',
                 'input' => 'datetime_immutable',
+                'invalid_message' => 'validation_article_published_at_invalid',
             ]);
     }
 

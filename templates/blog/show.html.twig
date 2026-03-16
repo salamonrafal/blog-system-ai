@@ -6,8 +6,8 @@
     <section class="section">
         <article class="card">
             <div class="card-header">
-                <span class="pill" data-i18n="blog_article_body">Treść artykułu</span>
-                <span class="meta">{{ article.publishedAt ? article.publishedAt|date('Y-m-d H:i') : article.createdAt|date('Y-m-d H:i') }}</span>
+                <span class="pill">blog://article-body</span>
+                <span class="pill">published://{{ article.publishedAt ? article.publishedAt|date('Y-m-d_H:i') : article.createdAt|date('Y-m-d_H:i') }}</span>
             </div>
 
             <div class="dashboard-feed-intro">

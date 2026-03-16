@@ -1,48 +1,122 @@
 {{ form_start(form, { attr: { class: 'article-editor-form' } }) }}
-    {% if not form.vars.valid %}
-        <div class="form-errors article-editor-errors">
-            {{ form_errors(form) }}
+    {% if form.vars.errors|length > 0 %}
+        <div class="form-errors article-editor-errors" role="alert">
+            {% for error in form.vars.errors %}
+                <p data-i18n="{{ error.message }}">{{ error.message }}</p>
+            {% endfor %}
         </div>
     {% endif %}
 
     <div class="article-editor-fields">
-        <div class="field article-editor-field">
+        {% set title_has_errors = form.title.vars.errors|length > 0 %}
+        {% set title_counter_id = form.title.vars.id ~ '-char-count' %}
+        {% set title_described_by = title_counter_id ~ (title_has_errors ? ' ' ~ form.title.vars.id ~ '-error' : '') %}
+        <div class="field article-editor-field{{ title_has_errors ? ' has-error' : '' }}">
             {{ form_label(form.title) }}
-            {{ form_widget(form.title, { attr: { class: 'article-editor-input', 'data-i18n-placeholder': 'form_placeholder_title', placeholder: 'Wpisz tytuł artykułu' } }) }}
-            {{ form_errors(form.title) }}
+            {{ form_widget(form.title, { attr: {
+                class: 'article-editor-input',
+                'data-i18n-placeholder': 'form_placeholder_title',
+                placeholder: 'Wpisz tytuł artykułu',
+                'data-character-count-input': 'true'
+            }|merge({'aria-describedby': title_described_by})|merge(title_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
+            <div class="article-editor-field-meta">
+                <span id="{{ title_counter_id }}" class="article-editor-character-count" data-character-count-target>{{ form.title.vars.value|default('')|length }} / {{ form.title.vars.attr.maxlength }}</span>
+            </div>
+            {% if title_has_errors %}
+                <div id="{{ form.title.vars.id }}-error" class="article-editor-error-message" role="alert">
+                    {% for error in form.title.vars.errors %}
+                        <p data-i18n="{{ error.message }}">{{ error.message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
 
         <div class="article-editor-grid">
-            <div class="field article-editor-field">
+            {% set language_has_errors = form.language.vars.errors|length > 0 %}
+            <div class="field article-editor-field{{ language_has_errors ? ' has-error' : '' }}">
                 {{ form_label(form.language) }}
-                {{ form_widget(form.language, { attr: { class: 'article-editor-input article-editor-select' } }) }}
-                {{ form_errors(form.language) }}
+                {{ form_widget(form.language, { attr: {
+                    class: 'article-editor-input article-editor-select'
+                }|merge(language_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.language.vars.id ~ '-error'} : {}) }) }}
+                {% if language_has_errors %}
+                    <div id="{{ form.language.vars.id }}-error" class="article-editor-error-message" role="alert">
+                        {% for error in form.language.vars.errors %}
+                            <p data-i18n="{{ error.message }}">{{ error.message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
 
-            <div class="field article-editor-field">
+            {% set status_has_errors = form.status.vars.errors|length > 0 %}
+            <div class="field article-editor-field{{ status_has_errors ? ' has-error' : '' }}">
                 {{ form_label(form.status) }}
-                {{ form_widget(form.status, { attr: { class: 'article-editor-input article-editor-select' } }) }}
-                {{ form_errors(form.status) }}
+                {{ form_widget(form.status, { attr: {
+                    class: 'article-editor-input article-editor-select'
+                }|merge(status_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.status.vars.id ~ '-error'} : {}) }) }}
+                {% if status_has_errors %}
+                    <div id="{{ form.status.vars.id }}-error" class="article-editor-error-message" role="alert">
+                        {% for error in form.status.vars.errors %}
+                            <p data-i18n="{{ error.message }}">{{ error.message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
         </div>
 
-        <div class="field article-editor-field">
+        {% set excerpt_has_errors = form.excerpt.vars.errors|length > 0 %}
+        {% set excerpt_counter_id = form.excerpt.vars.id ~ '-char-count' %}
+        {% set excerpt_described_by = excerpt_counter_id ~ (excerpt_has_errors ? ' ' ~ form.excerpt.vars.id ~ '-error' : '') %}
+        <div class="field article-editor-field{{ excerpt_has_errors ? ' has-error' : '' }}">
             {{ form_label(form.excerpt) }}
-            {{ form_widget(form.excerpt, { attr: { class: 'article-editor-input article-editor-textarea', 'data-i18n-placeholder': 'form_placeholder_excerpt', placeholder: 'Wpisz krótki opis do list i podglądów' } }) }}
-            {{ form_errors(form.excerpt) }}
+            {{ form_widget(form.excerpt, { attr: {
+                class: 'article-editor-input article-editor-textarea',
+                'data-i18n-placeholder': 'form_placeholder_excerpt',
+                placeholder: 'Wpisz krótki opis do list i podglądów',
+                'data-character-count-input': 'true'
+            }|merge({'aria-describedby': excerpt_described_by})|merge(excerpt_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
+            <div class="article-editor-field-meta">
+                <span id="{{ excerpt_counter_id }}" class="article-editor-character-count" data-character-count-target>{{ form.excerpt.vars.value|default('')|length }} / {{ form.excerpt.vars.attr.maxlength }}</span>
+            </div>
+            {% if excerpt_has_errors %}
+                <div id="{{ form.excerpt.vars.id }}-error" class="article-editor-error-message" role="alert">
+                    {% for error in form.excerpt.vars.errors %}
+                        <p data-i18n="{{ error.message }}">{{ error.message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
 
-        <div class="field article-editor-field">
+        {% set content_has_errors = form.content.vars.errors|length > 0 %}
+        <div class="field article-editor-field{{ content_has_errors ? ' has-error' : '' }}">
             {{ form_label(form.content) }}
-            {{ form_widget(form.content, { attr: { class: 'article-editor-input article-editor-textarea article-editor-textarea-lg', 'data-i18n-placeholder': 'form_placeholder_content', placeholder: 'Wpisz pełną treść artykułu' } }) }}
-            {{ form_errors(form.content) }}
+            {{ form_widget(form.content, { attr: {
+                class: 'article-editor-input article-editor-textarea article-editor-textarea-lg',
+                'data-i18n-placeholder': 'form_placeholder_content',
+                placeholder: 'Wpisz pełną treść artykułu'
+            }|merge(content_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.content.vars.id ~ '-error'} : {}) }) }}
+            {% if content_has_errors %}
+                <div id="{{ form.content.vars.id }}-error" class="article-editor-error-message" role="alert">
+                    {% for error in form.content.vars.errors %}
+                        <p data-i18n="{{ error.message }}">{{ error.message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
 
         <div class="article-editor-grid">
-            <div class="field article-editor-field">
+            {% set published_at_has_errors = form.publishedAt.vars.errors|length > 0 %}
+            <div class="field article-editor-field{{ published_at_has_errors ? ' has-error' : '' }}">
                 {{ form_label(form.publishedAt) }}
-                {{ form_widget(form.publishedAt, { attr: { class: 'article-editor-input' } }) }}
-                {{ form_errors(form.publishedAt) }}
+                {{ form_widget(form.publishedAt, { attr: {
+                    class: 'article-editor-input'
+                }|merge(published_at_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.publishedAt.vars.id ~ '-error'} : {}) }) }}
+                {% if published_at_has_errors %}
+                    <div id="{{ form.publishedAt.vars.id }}-error" class="article-editor-error-message" role="alert">
+                        {% for error in form.publishedAt.vars.errors %}
+                            <p data-i18n="{{ error.message }}">{{ error.message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>

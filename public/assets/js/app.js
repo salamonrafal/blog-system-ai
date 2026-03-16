@@ -157,6 +157,12 @@ const i18n = {
     article_status_draft: "Szkic",
     article_status_review: "W recenzji",
     article_status_published: "Opublikowany",
+    validation_article_title_required: "Tytuł artykułu jest wymagany.",
+    validation_article_title_too_long: "Tytuł artykułu może mieć maksymalnie 255 znaków.",
+    validation_article_slug_too_long: "Slug artykułu może mieć maksymalnie 255 znaków.",
+    validation_article_excerpt_too_long: "Krótki opis może mieć maksymalnie 320 znaków.",
+    validation_article_content_required: "Treść artykułu jest wymagana.",
+    validation_article_published_at_invalid: "Podaj prawidłową datę publikacji.",
 
     footer: "Tworzę rzeczy, które są czytelne, solidne i praktyczne."
   },
@@ -316,6 +322,12 @@ const i18n = {
     article_status_draft: "Draft",
     article_status_review: "In review",
     article_status_published: "Published",
+    validation_article_title_required: "Article title is required.",
+    validation_article_title_too_long: "Article title can be at most 255 characters long.",
+    validation_article_slug_too_long: "Article slug can be at most 255 characters long.",
+    validation_article_excerpt_too_long: "Short summary can be at most 320 characters long.",
+    validation_article_content_required: "Article content is required.",
+    validation_article_published_at_invalid: "Enter a valid publication date.",
 
     footer: "I build things that are clear, robust, and practical."
   }
@@ -511,10 +523,28 @@ async function typeTerminal(root, lines, renderId){
 }
 
 function setupNav(){
-  const path = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+  const currentPath = location.pathname.toLowerCase();
+  const currentOrigin = window.location.origin.toLowerCase();
   qsa('.nav a, .mobile-drawer a').forEach(a=>{
-    const href = (a.getAttribute('href')||'').toLowerCase();
-    if(href === path) a.classList.add('active');
+    const href = a.getAttribute('href') || '';
+    if(!href) return;
+
+    let targetUrl;
+    let targetPath = '';
+    try{
+      targetUrl = new URL(href, window.location.origin);
+      targetPath = targetUrl.pathname.toLowerCase();
+    }catch(err){
+      return;
+    }
+
+    const isSameOrigin = targetUrl.origin.toLowerCase() === currentOrigin;
+    const isBlogLink = targetPath === '/';
+    const isActive = isBlogLink
+      ? isSameOrigin && (currentPath === '/' || currentPath.startsWith('/article/'))
+      : isSameOrigin && targetPath === currentPath;
+
+    if(isActive) a.classList.add('active');
   });
 
   const burger = qs('[data-action="toggle-menu"]');
@@ -588,6 +618,23 @@ function setupActions(){
       window.location.href = `mailto:${to}?subject=${subject}&body=${body}`;
     });
   }
+}
+
+function setupCharacterCounters(){
+  qsa('[data-character-count-input]').forEach((input)=>{
+    const counter = qs('[data-character-count-target]', input.closest('.article-editor-field'));
+    if(!counter) return;
+
+    const maxLength = Number(input.getAttribute('maxlength'));
+    if(!Number.isFinite(maxLength) || maxLength <= 0) return;
+
+    const updateCount = ()=>{
+      counter.textContent = `${input.value.length} / ${maxLength}`;
+    };
+
+    updateCount();
+    input.addEventListener('input', updateCount);
+  });
 }
 
 function setupImagePreview(){
@@ -898,6 +945,7 @@ function init(){
   const lang = getLang();
   applyI18n(lang);
   setupActions();
+  setupCharacterCounters();
   setupImagePreview();
   setupPrivacyNotice();
   syncTopbarHeight();
