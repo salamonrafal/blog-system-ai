@@ -18,12 +18,12 @@
     <meta property="og:title" content="{% block og_title %}{% block title %}{{ app_name }}{% endblock %}{% endblock %}">
     <meta property="og:description" content="{% block og_description %}Portfolio Rafała Salamona: Senior PHP Developer / Fullstack Developer. Projekty, doświadczenie, narzędzia i kontakt.{% endblock %}">
     <meta property="og:url" content="{% block og_url %}https://www.salamonrafal.pl/{% endblock %}">
-    <meta property="og:image" content="https://www.salamonrafal.pl/assets/img/profile.jpg">
+    <meta property="og:image" content="{% block og_image %}https://www.salamonrafal.pl/assets/img/profile.jpg{% endblock %}">
 
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{% block twitter_title %}{{ block('og_title') }}{% endblock %}">
     <meta name="twitter:description" content="{% block twitter_description %}{{ block('og_description') }}{% endblock %}">
-    <meta name="twitter:image" content="https://www.salamonrafal.pl/assets/img/profile.jpg">
+    <meta name="twitter:image" content="{% block twitter_image %}{{ block('og_image') }}{% endblock %}">
 
     <title>{{ block('title') }}</title>
 </head>

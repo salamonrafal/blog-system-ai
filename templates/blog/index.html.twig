@@ -17,6 +17,11 @@
                 <div class="quick-links feed-panel-list">
                     {% for article in articles %}
                         <article class="big-link no-hover article-subpanel">
+                            {% if article.headlineImage %}
+                                <a class="article-subpanel-headline-link" href="{{ path('blog_show', {slug: article.slug}) }}" aria-label="{{ article.title }}">
+                                    <img src="{{ article.headlineImage }}" alt="{{ article.title }}" class="article-subpanel-headline-image" loading="lazy" decoding="async">
+                                </a>
+                            {% endif %}
                             <div class="article-subpanel-header">
                                 <h2 class="article-subpanel-title">
                                     <a class="article-subpanel-title-link" href="{{ path('blog_show', {slug: article.slug}) }}">{{ article.title }}</a>

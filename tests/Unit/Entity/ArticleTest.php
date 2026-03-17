@@ -20,6 +20,7 @@ final class ArticleTest extends TestCase
             ->setLanguage(ArticleLanguage::EN)
             ->setSlug('article-title')
             ->setExcerpt('Krotki opis')
+            ->setHeadlineImage('/assets/img/article-cover.jpg')
             ->setContent('Pelna tresc')
             ->setStatus(ArticleStatus::REVIEW)
             ->setPublishedAt($publishedAt);
@@ -28,6 +29,7 @@ final class ArticleTest extends TestCase
         $this->assertSame(ArticleLanguage::EN, $article->getLanguage());
         $this->assertSame('article-title', $article->getSlug());
         $this->assertSame('Krotki opis', $article->getExcerpt());
+        $this->assertSame('/assets/img/article-cover.jpg', $article->getHeadlineImage());
         $this->assertSame('Pelna tresc', $article->getContent());
         $this->assertSame(ArticleStatus::REVIEW, $article->getStatus());
         $this->assertSame($publishedAt, $article->getPublishedAt());

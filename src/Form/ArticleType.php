@@ -43,6 +43,12 @@ class ArticleType extends AbstractType
                 'required' => false,
                 'attr' => ['rows' => 4, 'maxlength' => 320],
             ])
+            ->add('headlineImage', TextType::class, [
+                'label' => 'Headline image',
+                'label_attr' => ['data-i18n' => 'form_headline_image'],
+                'required' => false,
+                'attr' => ['maxlength' => 500],
+            ])
             ->add('content', TextareaType::class, [
                 'label' => 'Content',
                 'label_attr' => ['data-i18n' => 'form_content'],

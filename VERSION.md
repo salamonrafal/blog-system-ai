@@ -36,3 +36,11 @@
 - Przebudowano układ edytora treści tak, aby toolbar i `textarea` tworzyły jedno spójne pole z jednym obramowaniem i bardziej narzędziowym wyglądem ikon.
 - Poprawiono czytelność okna pomocy formatowania, przenosząc przycisk zamknięcia do prawego górnego rogu i rozbijając opis na listę zasad oraz przykłady bloków.
 - Usprawniono zachowanie edytora po kliknięciu formatowania, zachowując zaznaczenie i pozycję przewinięcia `textarea`, aby użytkownik nie tracił orientacji w treści.
+- Dodano do artykułów opcjonalną grafikę nagłówkową z nowym polem w encji, formularzu, walidacją, tłumaczeniami oraz migracją bazy danych.
+- Rozszerzono publiczny widok bloga o prezentację grafiki nagłówkowej na liście artykułów i w widoku `blog_show`, a także o wykorzystanie tej grafiki w metadanych `og:image` i `twitter:image`.
+- Przebudowano hero artykułu na `blog_show`, nakładając tytuł na dolną część grafiki z półprzezroczystym tłem poprawiającym czytelność.
+- Usunięto krótki opis z widoku `blog_show`, pozostawiając go do wykorzystania w innych miejscach, takich jak listing i meta opis.
+- Dopracowano szczegóły układu widoku artykułu, w tym pełną szerokość belki tytułu na obrazku oraz odpowiedni górny odstęp sekcji z grafiką.
+- Uporządkowano metadane pól formularza artykułu tak, aby podpowiedzi były wyrównane do lewej, a liczniki znaków do prawej.
+- Dodano wyraźniejszy odstęp między polem `Grafika nagłówkowa` a polem `Treść`, poprawiając czytelność formularzy tworzenia i edycji.
+- Wzbogacono podpowiedź pola `Grafika nagłówkowa` o ikonę oraz subtelny akcent wizualny, jednocześnie zachowując spójny układ z licznikiem znaków.

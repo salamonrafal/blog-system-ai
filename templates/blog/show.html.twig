@@ -1,6 +1,11 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}{{ article.title }} | {{ app_name }}{% endblock %}
+{% block meta_description %}{{ article.excerpt ?: article.content|striptags|slice(0, 160) ~ (article.content|length > 160 ? '...' : '') }}{% endblock %}
+{% block og_description %}{{ block('meta_description') }}{% endblock %}
+{% block twitter_description %}{{ block('meta_description') }}{% endblock %}
+{% block og_image %}{% if article.headlineImage %}{{ article.headlineImage starts with 'http' ? article.headlineImage : 'https://www.salamonrafal.pl' ~ article.headlineImage }}{% else %}{{ parent() }}{% endif %}{% endblock %}
+{% block twitter_image %}{{ block('og_image') }}{% endblock %}
 
 {% block body %}
     <section class="section">
@@ -10,11 +15,25 @@
                 <span class="pill">published://{{ article.publishedAt ? article.publishedAt|date('Y-m-d_H:i') : article.createdAt|date('Y-m-d_H:i') }}</span>
             </div>
 
-            <div class="dashboard-feed-intro">
-                <h1>{{ article.title }}</h1>
-            </div>
-
             <div class="article-content-panel">
+                {% if article.headlineImage %}
+                    <figure class="article-headline-figure">
+                        <img
+                            src="{{ article.headlineImage }}"
+                            alt="{{ article.title }}"
+                            class="article-headline-image"
+                            loading="eager"
+                            decoding="async"
+                        >
+                        <figcaption class="article-headline-caption">
+                            <h1 class="article-headline-title">{{ article.title }}</h1>
+                        </figcaption>
+                    </figure>
+                {% else %}
+                    <div class="dashboard-feed-intro">
+                        <h1>{{ article.title }}</h1>
+                    </div>
+                {% endif %}
                 <div class="article-body">
                     {{ article.content|article_markup }}
                 </div>

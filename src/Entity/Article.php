@@ -37,6 +37,14 @@ class Article
     #[ORM\Column(length: 320, nullable: true)]
     private ?string $excerpt = null;
 
+    #[Assert\Length(max: 500, maxMessage: 'validation_article_headline_image_too_long')]
+    #[Assert\Regex(
+        pattern: '/^(https?:\/\/|\/).+/',
+        message: 'validation_article_headline_image_invalid'
+    )]
+    #[ORM\Column(length: 500, nullable: true)]
+    private ?string $headlineImage = null;
+
     #[Assert\NotBlank(message: 'validation_article_content_required')]
     #[ORM\Column(type: Types::TEXT)]
     private string $content = '';
@@ -109,6 +117,19 @@ class Article
     public function setExcerpt(?string $excerpt): self
     {
         $this->excerpt = $excerpt;
+
+        return $this;
+    }
+
+    public function getHeadlineImage(): ?string
+    {
+        return $this->headlineImage;
+    }
+
+    public function setHeadlineImage(?string $headlineImage): self
+    {
+        $headlineImage = null !== $headlineImage ? trim($headlineImage) : null;
+        $this->headlineImage = '' === $headlineImage ? null : $headlineImage;
 
         return $this;
     }
