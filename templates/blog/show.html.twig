@@ -16,7 +16,7 @@
 
             <div class="article-content-panel">
                 <div class="article-body">
-                    {{ article.content|nl2br }}
+                    {{ article.content|article_markup }}
                 </div>
                 <div class="actions article-content-actions">
                     <a class="button secondary" href="{{ path('blog_index') }}" data-i18n="blog_back_to_articles">Wróć do artykułów</a>

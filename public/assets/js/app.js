@@ -770,6 +770,83 @@ function setupCharacterCounters(){
   });
 }
 
+function setupArticleMarkupEditor(){
+  const editors = qsa('[data-markup-editor]');
+  if(!editors.length) return;
+
+  const wrapSelection = (textarea, before, after = before, fallback = '')=>{
+    const start = textarea.selectionStart ?? 0;
+    const end = textarea.selectionEnd ?? 0;
+    const selected = textarea.value.slice(start, end) || fallback;
+    const nextValue = `${textarea.value.slice(0, start)}${before}${selected}${after}${textarea.value.slice(end)}`;
+    textarea.value = nextValue;
+    const caretStart = start + before.length;
+    const caretEnd = caretStart + selected.length;
+    textarea.focus();
+    textarea.setSelectionRange(caretStart, caretEnd);
+    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+  };
+
+  const transformSelectedLines = (textarea, transform)=>{
+    const start = textarea.selectionStart ?? 0;
+    const end = textarea.selectionEnd ?? 0;
+    const blockStart = textarea.value.lastIndexOf('\n', Math.max(0, start - 1)) + 1;
+    const blockEndIndex = textarea.value.indexOf('\n', end);
+    const blockEnd = blockEndIndex === -1 ? textarea.value.length : blockEndIndex;
+    const selectedBlock = textarea.value.slice(blockStart, blockEnd);
+    const nextBlock = transform(selectedBlock || '');
+    textarea.value = `${textarea.value.slice(0, blockStart)}${nextBlock}${textarea.value.slice(blockEnd)}`;
+    textarea.focus();
+    textarea.setSelectionRange(blockStart, blockStart + nextBlock.length);
+    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+  };
+
+  editors.forEach((textarea)=>{
+    const field = textarea.closest('.article-editor-field');
+    const toolbar = qs('[data-markup-toolbar]', field);
+    if(!toolbar) return;
+
+    toolbar.addEventListener('click', (event)=>{
+      const button = event.target.closest('[data-markup-action]');
+      if(!button) return;
+
+      const action = button.getAttribute('data-markup-action');
+      if(!action) return;
+
+      if(action === 'bold') return wrapSelection(textarea, '**', '**', 'pogrubienie');
+      if(action === 'italic') return wrapSelection(textarea, '*', '*', 'kursywa');
+      if(action === 'underline') return wrapSelection(textarea, '++', '++', 'podkreslenie');
+      if(action === 'quote') return transformSelectedLines(textarea, (value)=> value.split('\n').map((line)=> `> ${line.replace(/^\s*>\s?/, '')}`).join('\n'));
+      if(action === 'bullet-list') return transformSelectedLines(textarea, (value)=> value.split('\n').map((line)=> `- ${line.replace(/^\s*[-*]\s+/, '').trim() || 'element listy'}`).join('\n'));
+      if(action === 'numbered-list') return transformSelectedLines(textarea, (value)=> value.split('\n').map((line, index)=> `${index + 1}. ${line.replace(/^\s*\d+\.\s+/, '').trim() || 'element listy'}`).join('\n'));
+      if(action === 'heading'){
+        const level = button.getAttribute('data-markup-level') || '1';
+        return transformSelectedLines(textarea, (value)=> {
+          const prefix = '#'.repeat(Number(level));
+          return `${prefix} ${value.replace(/^\s*#{1,7}\s+/, '').trim() || 'Naglowek'}`;
+        });
+      }
+      if(action === 'align'){
+        const align = button.getAttribute('data-markup-align') || 'left';
+        return transformSelectedLines(textarea, (value)=> `:::${align}\n${value.trim() || 'Wpisz tresc'}\n:::`);
+      }
+      if(action === 'code-block'){
+        return wrapSelection(textarea, "```\n", "\n```", "wpisz kod");
+      }
+      if(action === 'link'){
+        const url = window.prompt('Podaj adres URL linku:', 'https://');
+        if(!url) return;
+        return wrapSelection(textarea, '[', `](${url})`, 'tekst linku');
+      }
+      if(action === 'image'){
+        const url = window.prompt('Podaj adres URL obrazka:', 'https://');
+        if(!url) return;
+        return wrapSelection(textarea, '![', `](${url})`, 'opis obrazka');
+      }
+    });
+  });
+}
+
 function setupImagePreview(){
   const triggers = qsa('[data-action="open-image-preview"]');
   if(!triggers.length) return;
@@ -1176,6 +1253,7 @@ function init(){
   setupAdminShortcuts();
   setupActions();
   setupCharacterCounters();
+  setupArticleMarkupEditor();
   setupImagePreview();
   setupDeleteConfirmation();
   setupPrivacyNotice();

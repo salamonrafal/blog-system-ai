@@ -1825,6 +1825,40 @@ button.button {
   background: color-mix(in oklab, var(--danger) 22%, var(--panel-2));
 }
 
+[data-theme="light"] .button.button-danger,
+[data-theme="light"] .button.secondary.button-danger {
+  border-color: color-mix(in oklab, var(--danger) 52%, var(--border));
+  background: color-mix(in oklab, var(--danger) 18%, white 82%);
+  color:#8f1212;
+}
+
+[data-theme="light"] .button.button-danger:hover,
+[data-theme="light"] .button.button-danger:focus-visible,
+[data-theme="light"] .button.secondary.button-danger:hover,
+[data-theme="light"] .button.secondary.button-danger:focus-visible {
+  border-color: color-mix(in oklab, var(--danger) 68%, var(--border));
+  background: color-mix(in oklab, var(--danger) 24%, white 76%);
+  color:#741010;
+}
+
+.confirm-delete-actions .button.button-danger:hover,
+.confirm-delete-actions .button.button-danger:focus-visible,
+.confirm-delete-actions .button.secondary.button-danger:hover,
+.confirm-delete-actions .button.secondary.button-danger:focus-visible {
+  border-color: color-mix(in oklab, var(--danger) 38%, var(--border));
+  background: color-mix(in oklab, var(--danger) 16%, var(--panel-2));
+  color:#ffdede;
+}
+
+[data-theme="light"] .confirm-delete-actions .button.button-danger:hover,
+[data-theme="light"] .confirm-delete-actions .button.button-danger:focus-visible,
+[data-theme="light"] .confirm-delete-actions .button.secondary.button-danger:hover,
+[data-theme="light"] .confirm-delete-actions .button.secondary.button-danger:focus-visible {
+  border-color: color-mix(in oklab, var(--danger) 52%, var(--border));
+  background: color-mix(in oklab, var(--danger) 18%, white 82%);
+  color:#8f1212;
+}
+
 .confirm-delete-modal{
   position:fixed;
   inset:0;
@@ -1906,8 +1940,9 @@ button.button {
 
 .article-action-button.button.secondary,
 .article-action-button.button.secondary.button-danger{
-  border:none;
-  background:transparent;
+  border:none !important;
+  background:transparent !important;
+  box-shadow:none !important;
 }
 
 .article-action-button.button-danger{
@@ -1923,6 +1958,28 @@ button.button {
 .article-action-button.button-danger:hover,
 .article-action-button.button-danger:focus-visible{
   color:#ff7a7a;
+}
+
+.article-action-button.button-danger:hover,
+.article-action-button.button-danger:focus-visible{
+  border:none !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  transform:none !important;
+  color:var(--danger);
+}
+
+[data-theme="light"] .article-action-button.button-danger{
+  color:#b42318;
+}
+
+[data-theme="light"] .article-action-button.button-danger:hover,
+[data-theme="light"] .article-action-button.button-danger:focus-visible{
+  border:none !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  transform:none !important;
+  color:#b42318;
 }
 
 .article-action-icon{
@@ -2336,6 +2393,52 @@ select {
   min-height:320px;
 }
 
+.article-editor-toolbar{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-bottom:10px;
+}
+
+.article-editor-toolbar-button{
+  min-width:42px;
+  min-height:38px;
+  padding:8px 10px;
+  border:1px solid color-mix(in oklab, var(--accent-2) 22%, var(--border));
+  border-radius:12px;
+  background: color-mix(in oklab, var(--panel-2) 94%, transparent);
+  color:var(--text);
+  font:inherit;
+  font-weight:700;
+  line-height:1;
+  cursor:pointer;
+}
+
+.article-editor-toolbar-button:hover,
+.article-editor-toolbar-button:focus-visible{
+  border-color: color-mix(in oklab, var(--accent) 42%, var(--border));
+  background: color-mix(in oklab, var(--panel) 88%, var(--accent) 12%);
+  outline:none;
+}
+
+.article-editor-toolbar-underline{
+  text-decoration:underline;
+}
+
+.article-editor-format-hint{
+  margin:10px 0 0;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.6;
+}
+
+.article-editor-format-hint code{
+  padding:2px 6px;
+  border:1px solid var(--border);
+  border-radius:8px;
+  background: color-mix(in oklab, var(--panel-2) 90%, transparent);
+}
+
 .article-editor-actions {
   margin-top:20px;
   justify-content:flex-start;
@@ -2447,6 +2550,10 @@ select {
     width:100%;
   }
 
+  .article-editor-toolbar-button {
+    flex:1 1 calc(25% - 8px);
+  }
+
   .article-editor-field-meta {
     margin-top:7px;
   }
@@ -2505,6 +2612,110 @@ tbody tr:last-child td {
 .article-body {
   line-height:1.75;
   color:var(--text);
+}
+
+.article-body > * + *{
+  margin-top:1rem;
+}
+
+.article-body h1,
+.article-body h2,
+.article-body h3,
+.article-body h4,
+.article-body h5,
+.article-body h6,
+.article-body .article-heading-7{
+  margin:1.8rem 0 .8rem;
+  line-height:1.15;
+}
+
+.article-body h1{font-size:2.2rem;}
+.article-body h2{font-size:1.9rem;}
+.article-body h3{font-size:1.65rem;}
+.article-body h4{font-size:1.4rem;}
+.article-body h5{font-size:1.2rem;}
+.article-body h6{font-size:1.05rem; text-transform:uppercase; letter-spacing:.08em;}
+
+.article-body .article-heading-7{
+  font-size:.95rem;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.12em;
+  color:var(--muted);
+}
+
+.article-body p{
+  margin:0;
+}
+
+.article-body ul,
+.article-body ol{
+  margin:0;
+  padding-left:1.4rem;
+}
+
+.article-body li + li{
+  margin-top:.45rem;
+}
+
+.article-body blockquote{
+  margin:0;
+  padding:1rem 1.2rem;
+  border-left:4px solid color-mix(in oklab, var(--accent-2) 58%, var(--border));
+  border-radius:0 16px 16px 0;
+  background: color-mix(in oklab, var(--panel-2) 92%, transparent);
+  color:color-mix(in oklab, var(--text) 90%, var(--muted) 10%);
+}
+
+.article-body pre{
+  margin:0;
+  padding:1rem 1.1rem;
+  overflow-x:auto;
+  border:1px solid color-mix(in oklab, var(--accent-2) 18%, var(--border));
+  border-radius:16px;
+  background: color-mix(in oklab, var(--panel-2) 96%, transparent);
+}
+
+.article-body code{
+  padding:.15rem .42rem;
+  border-radius:8px;
+  background: color-mix(in oklab, var(--panel-2) 92%, transparent);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size:.95em;
+}
+
+.article-body pre code{
+  padding:0;
+  background:transparent;
+}
+
+.article-body a{
+  color:var(--link);
+}
+
+.article-body img{
+  display:block;
+  max-width:100%;
+  height:auto;
+  border-radius:18px;
+  border:1px solid var(--border);
+  box-shadow:var(--shadow);
+}
+
+.article-body .article-align-left{
+  text-align:left;
+}
+
+.article-body .article-align-center{
+  text-align:center;
+}
+
+.article-body .article-align-right{
+  text-align:right;
+}
+
+.article-body .article-align-justify{
+  text-align:justify;
 }
 
 .article-body p:last-child {

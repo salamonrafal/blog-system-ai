@@ -89,11 +89,35 @@
         {% set content_has_errors = form.content.vars.errors|length > 0 %}
         <div class="field article-editor-field{{ content_has_errors ? ' has-error' : '' }}">
             {{ form_label(form.content) }}
+            <div class="article-editor-toolbar" data-markup-toolbar>
+                <button type="button" class="article-editor-toolbar-button" data-markup-action="bold"><strong>B</strong></button>
+                <button type="button" class="article-editor-toolbar-button" data-markup-action="italic"><em>I</em></button>
+                <button type="button" class="article-editor-toolbar-button" data-markup-action="underline"><span class="article-editor-toolbar-underline">U</span></button>
+                <button type="button" class="article-editor-toolbar-button" data-markup-action="heading" data-markup-level="1">H1</button>
+                <button type="button" class="article-editor-toolbar-button" data-markup-action="heading" data-markup-level="2">H2</button>
+                <button type="button" class="article-editor-toolbar-button" data-markup-action="heading" data-markup-level="3">H3</button>
+                <button type="button" class="article-editor-toolbar-button" data-markup-action="heading" data-markup-level="4">H4</button>
+                <button type="button" class="article-editor-toolbar-button" data-markup-action="heading" data-markup-level="5">H5</button>
+                <button type="button" class="article-editor-toolbar-button" data-markup-action="heading" data-markup-level="6">H6</button>
+                <button type="button" class="article-editor-toolbar-button" data-markup-action="heading" data-markup-level="7">H7</button>
+                <button type="button" class="article-editor-toolbar-button" data-markup-action="align" data-markup-align="left">L</button>
+                <button type="button" class="article-editor-toolbar-button" data-markup-action="align" data-markup-align="center">C</button>
+                <button type="button" class="article-editor-toolbar-button" data-markup-action="align" data-markup-align="right">R</button>
+                <button type="button" class="article-editor-toolbar-button" data-markup-action="align" data-markup-align="justify">J</button>
+                <button type="button" class="article-editor-toolbar-button" data-markup-action="quote">"</button>
+                <button type="button" class="article-editor-toolbar-button" data-markup-action="code-block">{ }</button>
+                <button type="button" class="article-editor-toolbar-button" data-markup-action="link">Link</button>
+                <button type="button" class="article-editor-toolbar-button" data-markup-action="image">Obraz</button>
+                <button type="button" class="article-editor-toolbar-button" data-markup-action="bullet-list">Lista</button>
+                <button type="button" class="article-editor-toolbar-button" data-markup-action="numbered-list">1.</button>
+            </div>
             {{ form_widget(form.content, { attr: {
                 class: 'article-editor-input article-editor-textarea article-editor-textarea-lg',
                 'data-i18n-placeholder': 'form_placeholder_content',
-                placeholder: 'Wpisz pełną treść artykułu'
+                placeholder: 'Wpisz pełną treść artykułu',
+                'data-markup-editor': 'true'
             }|merge(content_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.content.vars.id ~ '-error'} : {}) }) }}
+            <p class="article-editor-format-hint">Formatowanie: `**pogrubienie**`, `*kursywa*`, `++podkreślenie++`, `#` do `#######`, `> cytat`, `- lista`, `1. lista`, `[tekst](https://...)`, `![alt](https://...)`, blok wyrównania `:::center ... :::`, blok kodu ` ``` `.</p>
             {% if content_has_errors %}
                 <div id="{{ form.content.vars.id }}-error" class="article-editor-error-message" role="alert">
                     {% for error in form.content.vars.errors %}
