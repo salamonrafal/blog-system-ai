@@ -774,6 +774,15 @@ function setupArticleMarkupEditor(){
   const editors = qsa('[data-markup-editor]');
   if(!editors.length) return;
 
+  const preserveEditorView = (textarea, selectionStart, selectionEnd)=>{
+    const { scrollTop, scrollLeft } = textarea;
+    textarea.focus({ preventScroll: true });
+    textarea.setSelectionRange(selectionStart, selectionEnd);
+    textarea.scrollTop = scrollTop;
+    textarea.scrollLeft = scrollLeft;
+    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+  };
+
   const wrapSelection = (textarea, before, after = before, fallback = '')=>{
     const start = textarea.selectionStart ?? 0;
     const end = textarea.selectionEnd ?? 0;
@@ -782,9 +791,7 @@ function setupArticleMarkupEditor(){
     textarea.value = nextValue;
     const caretStart = start + before.length;
     const caretEnd = caretStart + selected.length;
-    textarea.focus();
-    textarea.setSelectionRange(caretStart, caretEnd);
-    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    preserveEditorView(textarea, caretStart, caretEnd);
   };
 
   const transformSelectedLines = (textarea, transform)=>{
@@ -796,15 +803,44 @@ function setupArticleMarkupEditor(){
     const selectedBlock = textarea.value.slice(blockStart, blockEnd);
     const nextBlock = transform(selectedBlock || '');
     textarea.value = `${textarea.value.slice(0, blockStart)}${nextBlock}${textarea.value.slice(blockEnd)}`;
-    textarea.focus();
-    textarea.setSelectionRange(blockStart, blockStart + nextBlock.length);
-    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    preserveEditorView(textarea, blockStart, blockStart + nextBlock.length);
   };
 
   editors.forEach((textarea)=>{
     const field = textarea.closest('.article-editor-field');
     const toolbar = qs('[data-markup-toolbar]', field);
+    const helpModal = qs('[data-markup-help-modal]', field);
+    const helpDialog = qs('.article-editor-help-dialog', helpModal);
+    const helpClose = qs('[data-markup-help-close]', helpModal);
+    let lastHelpTrigger = null;
     if(!toolbar) return;
+
+    const closeHelpModal = ()=>{
+      if(!helpModal) return;
+      helpModal.setAttribute('hidden', '');
+      helpModal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      if(lastHelpTrigger) lastHelpTrigger.focus({ preventScroll: true });
+      lastHelpTrigger = null;
+    };
+
+    const openHelpModal = (trigger)=>{
+      if(!helpModal) return;
+      lastHelpTrigger = trigger;
+      helpModal.removeAttribute('hidden');
+      helpModal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      if(helpClose) helpClose.focus({ preventScroll: true });
+    };
+
+    toolbar.addEventListener('mousedown', (event)=>{
+      const button = event.target.closest('[data-markup-action]');
+      if(!button) return;
+      const action = button.getAttribute('data-markup-action');
+      if(action && action !== 'help'){
+        event.preventDefault();
+      }
+    });
 
     toolbar.addEventListener('click', (event)=>{
       const button = event.target.closest('[data-markup-action]');
@@ -813,6 +849,10 @@ function setupArticleMarkupEditor(){
       const action = button.getAttribute('data-markup-action');
       if(!action) return;
 
+      if(action === 'help'){
+        openHelpModal(button);
+        return;
+      }
       if(action === 'bold') return wrapSelection(textarea, '**', '**', 'pogrubienie');
       if(action === 'italic') return wrapSelection(textarea, '*', '*', 'kursywa');
       if(action === 'underline') return wrapSelection(textarea, '++', '++', 'podkreslenie');
@@ -842,6 +882,32 @@ function setupArticleMarkupEditor(){
         const url = window.prompt('Podaj adres URL obrazka:', 'https://');
         if(!url) return;
         return wrapSelection(textarea, '![', `](${url})`, 'opis obrazka');
+      }
+    });
+
+    if(helpClose){
+      helpClose.addEventListener('click', closeHelpModal);
+    }
+
+    if(helpModal){
+      helpModal.addEventListener('click', (event)=>{
+        if(event.target === helpModal){
+          closeHelpModal();
+        }
+      });
+    }
+
+    if(helpDialog){
+      helpDialog.addEventListener('click', (event)=>{
+        event.stopPropagation();
+      });
+    }
+
+    document.addEventListener('keydown', (event)=>{
+      if(!helpModal || helpModal.hasAttribute('hidden')) return;
+      if(event.key === 'Escape'){
+        event.preventDefault();
+        closeHelpModal();
       }
     });
   });
