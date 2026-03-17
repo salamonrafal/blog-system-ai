@@ -103,6 +103,33 @@ class ArticleController extends AbstractController
         return $this->redirectToRoute('admin_article_index');
     }
 
+    #[Route('/{id}/publish', name: 'admin_article_publish', methods: ['POST'])]
+    public function publish(
+        Article $article,
+        Request $request,
+        EntityManagerInterface $entityManager,
+        ArticlePublisher $articlePublisher,
+    ): Response {
+        if (!$this->isCsrfTokenValid('publish_article_'.$article->getId(), (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        if (ArticleStatus::PUBLISHED === $article->getStatus()) {
+            $this->addFlash('error', 'Article is already published.');
+
+            return $this->redirectToRoute('admin_article_index');
+        }
+
+        $article->setStatus(ArticleStatus::PUBLISHED);
+        $articlePublisher->prepareForSave($article);
+
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Article published.');
+
+        return $this->redirectToRoute('admin_article_index');
+    }
+
     #[Route('/{id}/delete', name: 'admin_article_delete', methods: ['POST'])]
     public function delete(
         Article $article,

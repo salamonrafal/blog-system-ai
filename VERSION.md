@@ -49,3 +49,8 @@
 - Ujednolicono listę artykułów na `blog_index`, przenosząc tytuł na obszar headline także dla wpisów bez własnej grafiki dzięki dekoracyjnemu wypełnieniu zastępczemu.
 - Dopracowano sekcję metadanych na ekranie edycji artykułu, wydzielając ją od formularza, a następnie upraszczając do czytelnego układu `etykieta -> wartość` bez efektu zagnieżdżonych paneli.
 - Zwiększono wizualną separację między sekcją metadanych a formularzem edycji artykułu, dodając większy odstęp przed częścią formularza.
+- Rozszerzono `admin_article_index` o akcję `Opublikuj` dostępną dla wszystkich wpisów poza już opublikowanymi oraz dodano obsługującą ją trasę `POST` w panelu administracyjnym.
+- Uproszczono tabelę na `admin_article_index`, usuwając kolumny `Język` i `Slug` oraz porządkując liczbę widocznych kolumn w stanie pustej listy.
+- Ustabilizowano układ listy artykułów w panelu admina, nadając kolumnie `Tytuł` stałą szerokość z zawijaniem dłuższych nazw wpisów.
+- Dopracowano wyrównanie tabeli `admin_article_index`, centrując nagłówki, wartości w kolumnach `Status` i `Aktualizacja` oraz pionowo wyrównując zawartość komórek.
+- Dodano subtelne wyróżnienie co drugiego wiersza na `admin_article_index`, dopasowane do jasnego i ciemnego motywu aplikacji.

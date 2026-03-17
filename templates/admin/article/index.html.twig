@@ -25,10 +25,8 @@
                 <table>
                     <thead>
                     <tr>
-                        <th data-i18n="admin_table_title">Tytuł</th>
-                        <th data-i18n="admin_table_language">Język</th>
+                        <th class="article-index-title-column" data-i18n="admin_table_title">Tytuł</th>
                         <th data-i18n="admin_table_status">Status</th>
-                        <th data-i18n="admin_table_slug">Slug</th>
                         <th data-i18n="admin_table_updated">Aktualizacja</th>
                         <th data-i18n="admin_table_action">Akcja</th>
                     </tr>
@@ -36,12 +34,8 @@
                     <tbody>
                     {% for article in articles %}
                         <tr>
-                            <td><a href="{{ path('blog_show', {slug: article.slug}) }}">{{ article.title }}</a></td>
-                            <td>
-                                <span data-lang="pl">{{ article.language.value == 'pl' ? 'Polski (PL)' : 'Angielski (EN)' }}</span>
-                                <span data-lang="en">{{ article.language.value == 'pl' ? 'Polski (PL)' : 'English (EN)' }}</span>
-                            </td>
-                            <td>
+                            <td class="article-index-title-cell"><a href="{{ path('blog_show', {slug: article.slug}) }}">{{ article.title }}</a></td>
+                            <td class="article-index-status-cell">
                                 <span data-lang="pl">
                                     {% if article.status.value == 'draft' %}Szkic{% elseif article.status.value == 'review' %}W recenzji{% elseif article.status.value == 'archived' %}Zarchiwizowany{% else %}Opublikowany{% endif %}
                                 </span>
@@ -49,8 +43,7 @@
                                     {% if article.status.value == 'draft' %}Draft{% elseif article.status.value == 'review' %}In review{% elseif article.status.value == 'archived' %}Archived{% else %}Published{% endif %}
                                 </span>
                             </td>
-                            <td><code>{{ article.slug }}</code></td>
-                            <td>{{ article.updatedAt|date('Y-m-d H:i') }}</td>
+                            <td class="article-index-updated-cell">{{ article.updatedAt|date('Y-m-d H:i') }}</td>
                             <td>
                                 <div class="actions">
                                     <a
@@ -62,6 +55,20 @@
                                     >
                                         <span class="article-action-icon is-edit" aria-hidden="true"></span>
                                     </a>
+                                    {% if article.status.value != 'published' %}
+                                        <form method="post" action="{{ path('admin_article_publish', {id: article.id}) }}">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('publish_article_' ~ article.id) }}">
+                                            <button
+                                                class="button secondary article-action-button"
+                                                type="submit"
+                                                data-i18n-tooltip="admin_table_publish"
+                                                data-tooltip="Opublikuj"
+                                                aria-label="Opublikuj"
+                                            >
+                                                <span class="article-action-icon is-publish" aria-hidden="true"></span>
+                                            </button>
+                                        </form>
+                                    {% endif %}
                                     {% if article.status.value == 'archived' %}
                                         <form method="post" action="{{ path('admin_article_delete', {id: article.id}) }}" data-delete-form>
                                             <input type="hidden" name="_token" value="{{ csrf_token('delete_article_' ~ article.id) }}">
@@ -96,7 +103,7 @@
                         </tr>
                     {% else %}
                         <tr>
-                            <td colspan="6" data-i18n="admin_table_no_articles">Nie znaleziono artykułów.</td>
+                            <td colspan="4" data-i18n="admin_table_no_articles">Nie znaleziono artykułów.</td>
                         </tr>
                     {% endfor %}
                     </tbody>
