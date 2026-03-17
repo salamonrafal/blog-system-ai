@@ -44,3 +44,8 @@
 - Uporządkowano metadane pól formularza artykułu tak, aby podpowiedzi były wyrównane do lewej, a liczniki znaków do prawej.
 - Dodano wyraźniejszy odstęp między polem `Grafika nagłówkowa` a polem `Treść`, poprawiając czytelność formularzy tworzenia i edycji.
 - Wzbogacono podpowiedź pola `Grafika nagłówkowa` o ikonę oraz subtelny akcent wizualny, jednocześnie zachowując spójny układ z licznikiem znaków.
+- Dodano przełącznik włączający i wyłączający grafikę nagłówkową artykułu wraz z nowym polem w encji, migracją oraz logiką domyślnej grafiki `/assets/img/default-headline-article-pixel-art.png` używanej, gdy opcja jest aktywna, a adres obrazka pozostaje pusty.
+- Połączono przełącznik grafiki nagłówkowej i pole adresu w jedną sekcję formularza oraz dodano dynamiczne ukrywanie całego panelu adresu, podpowiedzi i licznika znaków po wyłączeniu tej opcji.
+- Ujednolicono listę artykułów na `blog_index`, przenosząc tytuł na obszar headline także dla wpisów bez własnej grafiki dzięki dekoracyjnemu wypełnieniu zastępczemu.
+- Dopracowano sekcję metadanych na ekranie edycji artykułu, wydzielając ją od formularza, a następnie upraszczając do czytelnego układu `etykieta -> wartość` bez efektu zagnieżdżonych paneli.
+- Zwiększono wizualną separację między sekcją metadanych a formularzem edycji artykułu, dodając większy odstęp przed częścią formularza.

@@ -89,34 +89,61 @@
         {% set headline_image_has_errors = form.headlineImage.vars.errors|length > 0 %}
         {% set headline_image_counter_id = form.headlineImage.vars.id ~ '-char-count' %}
         {% set headline_image_described_by = headline_image_counter_id ~ (headline_image_has_errors ? ' ' ~ form.headlineImage.vars.id ~ '-error' : '') %}
-        <div class="field article-editor-field article-editor-field-headline-image{{ headline_image_has_errors ? ' has-error' : '' }}">
-            {{ form_label(form.headlineImage) }}
-            {{ form_widget(form.headlineImage, { attr: {
-                class: 'article-editor-input',
-                'data-i18n-placeholder': 'form_placeholder_headline_image',
-                placeholder: 'https://... lub /assets/img/...',
-                'data-character-count-input': 'true'
-            }|merge({'aria-describedby': headline_image_described_by})|merge(headline_image_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
-            <div class="article-editor-field-meta">
-                <span id="{{ headline_image_counter_id }}" class="article-editor-character-count" data-character-count-target>{{ form.headlineImage.vars.value|default('')|length }} / {{ form.headlineImage.vars.attr.maxlength }}</span>
-                <span class="article-editor-field-hint article-editor-field-hint-help" data-i18n="form_hint_headline_image">
-                    <span class="article-editor-field-hint-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24">
-                            <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
-                            <path d="M12 10.2v5.1" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/>
-                            <circle cx="12" cy="7.2" r="1" fill="currentColor"/>
-                        </svg>
-                    </span>
-                    <span class="article-editor-field-hint-text">Podaj pełny URL albo ścieżkę zaczynającą się od /, np. /assets/img/article-cover.jpg</span>
-                </span>
+        {% set headline_image_enabled_has_errors = form.headlineImageEnabled.vars.errors|length > 0 %}
+        <div class="field article-editor-field article-editor-field-headline-group{{ headline_image_enabled_has_errors or headline_image_has_errors ? ' has-error' : '' }}" data-headline-image-section>
+            <div class="article-editor-switch-row">
+                <div class="article-editor-switch-copy">
+                    {{ form_label(form.headlineImageEnabled, null, { label_attr: { class: 'article-editor-switch-label', 'data-i18n': 'form_headline_image_enabled' } }) }}
+                    <span class="article-editor-switch-hint" data-i18n="form_hint_headline_image_enabled">Gdy pole grafiki pozostanie puste, zostanie użyty domyślny obrazek systemowy.</span>
+                </div>
+                <label class="article-editor-switch" for="{{ form.headlineImageEnabled.vars.id }}">
+                    {{ form_widget(form.headlineImageEnabled, { attr: { class: 'article-editor-switch-input', 'data-headline-image-toggle': 'true', 'aria-controls': form.headlineImage.vars.id ~ '-wrapper' } }) }}
+                    <span class="article-editor-switch-slider" aria-hidden="true"></span>
+                </label>
             </div>
-            {% if headline_image_has_errors %}
-                <div id="{{ form.headlineImage.vars.id }}-error" class="article-editor-error-message" role="alert">
-                    {% for error in form.headlineImage.vars.errors %}
+            {% if headline_image_enabled_has_errors %}
+                <div id="{{ form.headlineImageEnabled.vars.id }}-error" class="article-editor-error-message" role="alert">
+                    {% for error in form.headlineImageEnabled.vars.errors %}
                         <p data-i18n="{{ error.message }}">{{ error.message }}</p>
                     {% endfor %}
                 </div>
             {% endif %}
+            <div
+                id="{{ form.headlineImage.vars.id }}-wrapper"
+                class="article-editor-headline-image-panel{{ not form.headlineImageEnabled.vars.checked ? ' is-hidden' : '' }}"
+                data-headline-image-panel
+                {{ not form.headlineImageEnabled.vars.checked ? 'hidden' }}
+            >
+                <div class="field article-editor-field article-editor-field-headline-image{{ headline_image_has_errors ? ' has-error' : '' }}">
+                    {{ form_label(form.headlineImage) }}
+                    {{ form_widget(form.headlineImage, { attr: {
+                        class: 'article-editor-input',
+                        'data-i18n-placeholder': 'form_placeholder_headline_image',
+                        placeholder: 'https://... lub /assets/img/...',
+                        'data-character-count-input': 'true'
+                    }|merge({'aria-describedby': headline_image_described_by})|merge(headline_image_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
+                    <div class="article-editor-field-meta">
+                        <span id="{{ headline_image_counter_id }}" class="article-editor-character-count" data-character-count-target>{{ form.headlineImage.vars.value|default('')|length }} / {{ form.headlineImage.vars.attr.maxlength }}</span>
+                        <span class="article-editor-field-hint article-editor-field-hint-help">
+                            <span class="article-editor-field-hint-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M12 10.2v5.1" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/>
+                                    <circle cx="12" cy="7.2" r="1" fill="currentColor"/>
+                                </svg>
+                            </span>
+                            <span class="article-editor-field-hint-text" data-i18n="form_hint_headline_image">Podaj pełny URL albo ścieżkę zaczynającą się od /, np. /assets/img/article-cover.jpg. Puste pole przy włączonym przełączniku użyje grafiki domyślnej.</span>
+                        </span>
+                    </div>
+                    {% if headline_image_has_errors %}
+                        <div id="{{ form.headlineImage.vars.id }}-error" class="article-editor-error-message" role="alert">
+                            {% for error in form.headlineImage.vars.errors %}
+                                <p data-i18n="{{ error.message }}">{{ error.message }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
 
         {% set content_has_errors = form.content.vars.errors|length > 0 %}

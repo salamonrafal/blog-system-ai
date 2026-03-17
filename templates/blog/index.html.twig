@@ -17,15 +17,17 @@
                 <div class="quick-links feed-panel-list">
                     {% for article in articles %}
                         <article class="big-link no-hover article-subpanel">
-                            {% if article.headlineImage %}
-                                <a class="article-subpanel-headline-link" href="{{ path('blog_show', {slug: article.slug}) }}" aria-label="{{ article.title }}">
-                                    <img src="{{ article.headlineImage }}" alt="{{ article.title }}" class="article-subpanel-headline-image" loading="lazy" decoding="async">
-                                </a>
-                            {% endif %}
+                            <a class="article-subpanel-headline-link{{ article.resolvedHeadlineImage ? '' : ' article-subpanel-headline-link-fallback' }}" href="{{ path('blog_show', {slug: article.slug}) }}" aria-label="{{ article.title }}">
+                                {% if article.resolvedHeadlineImage %}
+                                    <img src="{{ article.resolvedHeadlineImage }}" alt="{{ article.title }}" class="article-subpanel-headline-image" loading="lazy" decoding="async">
+                                {% else %}
+                                    <span class="article-subpanel-headline-image article-subpanel-headline-image-fallback" aria-hidden="true"></span>
+                                {% endif %}
+                                <span class="article-subpanel-headline-caption">
+                                    <span class="article-subpanel-headline-title">{{ article.title }}</span>
+                                </span>
+                            </a>
                             <div class="article-subpanel-header">
-                                <h2 class="article-subpanel-title">
-                                    <a class="article-subpanel-title-link" href="{{ path('blog_show', {slug: article.slug}) }}">{{ article.title }}</a>
-                                </h2>
                                 <div class="meta article-subpanel-meta">
                                     <span class="article-subpanel-meta-icon" aria-hidden="true"></span>
                                     {{ article.publishedAt ? article.publishedAt|date('Y-m-d H:i') : article.createdAt|date('Y-m-d H:i') }}

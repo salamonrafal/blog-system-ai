@@ -8,6 +8,7 @@ use App\Entity\Article;
 use App\Enum\ArticleLanguage;
 use App\Enum\ArticleStatus;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -42,6 +43,11 @@ class ArticleType extends AbstractType
                 'label_attr' => ['data-i18n' => 'form_excerpt'],
                 'required' => false,
                 'attr' => ['rows' => 4, 'maxlength' => 320],
+            ])
+            ->add('headlineImageEnabled', CheckboxType::class, [
+                'label' => 'Enable headline image',
+                'label_attr' => ['data-i18n' => 'form_headline_image_enabled'],
+                'required' => false,
             ])
             ->add('headlineImage', TextType::class, [
                 'label' => 'Headline image',

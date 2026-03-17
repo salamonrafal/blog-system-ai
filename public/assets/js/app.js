@@ -145,6 +145,7 @@ const i18n = {
     form_title: "Tytuł",
     form_language: "Język",
     form_excerpt: "Krótki opis",
+    form_headline_image_enabled: "Włącz grafikę nagłówkową",
     form_headline_image: "Grafika nagłówkowa",
     form_content: "Treść",
     form_status: "Status",
@@ -152,7 +153,8 @@ const i18n = {
     form_placeholder_title: "Wpisz tytuł artykułu",
     form_placeholder_excerpt: "Wpisz krótki opis do list i podglądów",
     form_placeholder_headline_image: "Wklej URL grafiki lub ścieżkę /assets/...",
-    form_hint_headline_image: "Podaj pełny URL albo ścieżkę zaczynającą się od /, np. /assets/img/article-cover.jpg",
+    form_hint_headline_image_enabled: "Gdy pole grafiki pozostanie puste, zostanie użyty domyślny obrazek systemowy.",
+    form_hint_headline_image: "Podaj pełny URL albo ścieżkę zaczynającą się od /, np. /assets/img/article-cover.jpg. Puste pole przy włączonym przełączniku użyje grafiki domyślnej.",
     form_placeholder_content: "Wpisz pełną treść artykułu",
     form_submit_create: "Utwórz artykuł",
     form_submit_update: "Zapisz zmiany",
@@ -326,6 +328,7 @@ const i18n = {
     form_title: "Title",
     form_language: "Language",
     form_excerpt: "Short summary",
+    form_headline_image_enabled: "Enable headline image",
     form_headline_image: "Headline image",
     form_content: "Content",
     form_status: "Status",
@@ -333,7 +336,8 @@ const i18n = {
     form_placeholder_title: "Enter article title",
     form_placeholder_excerpt: "Write a short summary for listings and previews",
     form_placeholder_headline_image: "Paste an image URL or a /assets/... path",
-    form_hint_headline_image: "Use a full URL or a path starting with /, for example /assets/img/article-cover.jpg",
+    form_hint_headline_image_enabled: "If the image field stays empty, the default system image will be used.",
+    form_hint_headline_image: "Use a full URL or a path starting with /, for example /assets/img/article-cover.jpg. Leaving it empty while enabled will use the default image.",
     form_placeholder_content: "Write the full article content here",
     form_submit_create: "Create article",
     form_submit_update: "Save changes",
@@ -777,6 +781,24 @@ function setupCharacterCounters(){
 
     updateCount();
     input.addEventListener('input', updateCount);
+  });
+}
+
+function setupHeadlineImageToggle(){
+  qsa('[data-headline-image-toggle]').forEach((toggle)=>{
+    const section = toggle.closest('[data-headline-image-section]');
+    const panel = section ? qs('[data-headline-image-panel]', section) : null;
+    if(!panel) return;
+
+    const syncVisibility = ()=>{
+      const isEnabled = !!toggle.checked;
+      panel.hidden = !isEnabled;
+      panel.classList.toggle('is-hidden', !isEnabled);
+      toggle.setAttribute('aria-expanded', isEnabled ? 'true' : 'false');
+    };
+
+    syncVisibility();
+    toggle.addEventListener('change', syncVisibility);
   });
 }
 
@@ -1329,6 +1351,7 @@ function init(){
   setupAdminShortcuts();
   setupActions();
   setupCharacterCounters();
+  setupHeadlineImageToggle();
   setupArticleMarkupEditor();
   setupImagePreview();
   setupDeleteConfirmation();

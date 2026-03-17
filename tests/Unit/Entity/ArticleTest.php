@@ -29,11 +29,25 @@ final class ArticleTest extends TestCase
         $this->assertSame(ArticleLanguage::EN, $article->getLanguage());
         $this->assertSame('article-title', $article->getSlug());
         $this->assertSame('Krotki opis', $article->getExcerpt());
+        $this->assertTrue($article->isHeadlineImageEnabled());
         $this->assertSame('/assets/img/article-cover.jpg', $article->getHeadlineImage());
+        $this->assertSame('/assets/img/article-cover.jpg', $article->getResolvedHeadlineImage());
         $this->assertSame('Pelna tresc', $article->getContent());
         $this->assertSame(ArticleStatus::REVIEW, $article->getStatus());
         $this->assertSame($publishedAt, $article->getPublishedAt());
         $this->assertFalse($article->isPublished());
+    }
+
+    public function testResolvedHeadlineImageFallsBackToDefaultWhenEnabledWithoutCustomImage(): void
+    {
+        $article = new Article();
+
+        $this->assertTrue($article->isHeadlineImageEnabled());
+        $this->assertSame(Article::DEFAULT_HEADLINE_IMAGE, $article->getResolvedHeadlineImage());
+
+        $article->setHeadlineImageEnabled(false);
+
+        $this->assertNull($article->getResolvedHeadlineImage());
     }
 
     public function testIsPublishedReturnsTrueOnlyForPublishedStatus(): void

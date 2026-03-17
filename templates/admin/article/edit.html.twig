@@ -16,27 +16,32 @@
                 <h1 data-i18n="admin_edit_article_title">Edytuj artykuł</h1>
                 <p class="lede" data-i18n="admin_edit_article_lede">Aktualizuj treść, metadane i stan publikacji, zachowując istniejący slug.</p>
 
-                <div class="stats">
-                    <div class="stat">
-                        <strong>{{ article.slug }}</strong>
-                        <span class="supporting-copy" data-i18n="admin_permanent_slug">Stały slug</span>
+                <section class="article-edit-meta-panel" aria-label="Article metadata">
+                    <div class="article-edit-meta-header">
+                        <span class="pill">admin://article-metadata</span>
                     </div>
-                    <div class="stat">
-                        <strong>
-                            <span data-lang="pl">
-                                {% if article.status.value == 'draft' %}Szkic{% elseif article.status.value == 'review' %}W recenzji{% elseif article.status.value == 'archived' %}Zarchiwizowany{% else %}Opublikowany{% endif %}
-                            </span>
-                            <span data-lang="en">
-                                {% if article.status.value == 'draft' %}Draft{% elseif article.status.value == 'review' %}In review{% elseif article.status.value == 'archived' %}Archived{% else %}Published{% endif %}
-                            </span>
-                        </strong>
-                        <span class="supporting-copy" data-i18n="admin_current_workflow_status">Bieżący status workflow</span>
-                    </div>
-                    <div class="stat">
-                        <strong>{{ article.updatedAt|date('Y-m-d H:i') }}</strong>
-                        <span class="supporting-copy" data-i18n="admin_last_update">Data ostatniej aktualizacji</span>
-                    </div>
-                </div>
+                    <dl class="article-edit-meta-list">
+                        <div class="article-edit-meta-item">
+                            <dt class="article-edit-meta-label" data-i18n="admin_permanent_slug">Stały slug</dt>
+                            <dd class="article-edit-meta-value">{{ article.slug }}</dd>
+                        </div>
+                        <div class="article-edit-meta-item">
+                            <dt class="article-edit-meta-label" data-i18n="admin_current_workflow_status">Bieżący status workflow</dt>
+                            <dd class="article-edit-meta-value">
+                                <span data-lang="pl">
+                                    {% if article.status.value == 'draft' %}Szkic{% elseif article.status.value == 'review' %}W recenzji{% elseif article.status.value == 'archived' %}Zarchiwizowany{% else %}Opublikowany{% endif %}
+                                </span>
+                                <span data-lang="en">
+                                    {% if article.status.value == 'draft' %}Draft{% elseif article.status.value == 'review' %}In review{% elseif article.status.value == 'archived' %}Archived{% else %}Published{% endif %}
+                                </span>
+                            </dd>
+                        </div>
+                        <div class="article-edit-meta-item">
+                            <dt class="article-edit-meta-label" data-i18n="admin_last_update">Data ostatniej aktualizacji</dt>
+                            <dd class="article-edit-meta-value">{{ article.updatedAt|date('Y-m-d H:i') }}</dd>
+                        </div>
+                    </dl>
+                </section>
             </div>
 
             {% include 'admin/article/_form.html.twig' with {

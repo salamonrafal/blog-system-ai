@@ -16,6 +16,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\HasLifecycleCallbacks]
 class Article
 {
+    public const DEFAULT_HEADLINE_IMAGE = '/assets/img/default-headline-article-pixel-art.png';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -44,6 +46,9 @@ class Article
     )]
     #[ORM\Column(length: 500, nullable: true)]
     private ?string $headlineImage = null;
+
+    #[ORM\Column(options: ['default' => true])]
+    private bool $headlineImageEnabled = true;
 
     #[Assert\NotBlank(message: 'validation_article_content_required')]
     #[ORM\Column(type: Types::TEXT)]
@@ -132,6 +137,27 @@ class Article
         $this->headlineImage = '' === $headlineImage ? null : $headlineImage;
 
         return $this;
+    }
+
+    public function isHeadlineImageEnabled(): bool
+    {
+        return $this->headlineImageEnabled;
+    }
+
+    public function setHeadlineImageEnabled(bool $headlineImageEnabled): self
+    {
+        $this->headlineImageEnabled = $headlineImageEnabled;
+
+        return $this;
+    }
+
+    public function getResolvedHeadlineImage(): ?string
+    {
+        if (!$this->headlineImageEnabled) {
+            return null;
+        }
+
+        return $this->headlineImage ?? self::DEFAULT_HEADLINE_IMAGE;
     }
 
     public function getContent(): string
