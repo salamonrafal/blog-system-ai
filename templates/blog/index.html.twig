@@ -36,7 +36,7 @@
                             <div class="article-subpanel-header">
                                 <div class="meta article-subpanel-meta">
                                     <span class="article-subpanel-meta-icon" aria-hidden="true"></span>
-                                    {{ article.publishedAt ? article.publishedAt|date('Y-m-d H:i') : article.createdAt|date('Y-m-d H:i') }}
+                                    {{ article.publishedAt ? article.publishedAt|user_date : article.createdAt|user_date }}
                                 </div>
                             </div>
                             <div class="big-link-copy">
@@ -48,6 +48,43 @@
                         </article>
                     {% endfor %}
                 </div>
+
+                {% if total_pages > 1 %}
+                    <nav class="blog-pagination" aria-label="Paginacja artykułów">
+                        {% set base_params = current_language ? { lang: current_language.value } : {} %}
+                        {% if current_page > 1 %}
+                            <a class="btn blog-pagination-link blog-pagination-link-icon" href="{{ path('blog_index', base_params|merge({ page: current_page - 1 })) }}" aria-label="Poprzednia strona">
+                                <span aria-hidden="true">&lsaquo;</span>
+                            </a>
+                        {% else %}
+                            <span class="btn blog-pagination-link blog-pagination-link-icon is-disabled" aria-disabled="true" aria-label="Poprzednia strona">
+                                <span aria-hidden="true">&lsaquo;</span>
+                            </span>
+                        {% endif %}
+
+                        <div class="blog-pagination-pages">
+                            {% for item in pagination_items %}
+                                {% if item == '...' %}
+                                    <span class="blog-pagination-ellipsis" aria-hidden="true">...</span>
+                                {% elseif item == current_page %}
+                                    <span class="btn blog-pagination-link is-current" aria-current="page">{{ item }}</span>
+                                {% else %}
+                                    <a class="btn blog-pagination-link" href="{{ path('blog_index', base_params|merge({ page: item })) }}">{{ item }}</a>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        {% if current_page < total_pages %}
+                            <a class="btn blog-pagination-link blog-pagination-link-icon" href="{{ path('blog_index', base_params|merge({ page: current_page + 1 })) }}" aria-label="Następna strona">
+                                <span aria-hidden="true">&rsaquo;</span>
+                            </a>
+                        {% else %}
+                            <span class="btn blog-pagination-link blog-pagination-link-icon is-disabled" aria-disabled="true" aria-label="Następna strona">
+                                <span aria-hidden="true">&rsaquo;</span>
+                            </span>
+                        {% endif %}
+                    </nav>
+                {% endif %}
             {% else %}
                 <p class="meta" data-i18n="blog_no_articles">Brak opublikowanych artykułów.</p>
                 {% if is_granted('ROLE_ADMIN') %}

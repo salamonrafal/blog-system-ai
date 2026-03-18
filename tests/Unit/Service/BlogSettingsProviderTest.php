@@ -40,5 +40,6 @@ final class BlogSettingsProviderTest extends TestCase
 
         $this->assertInstanceOf(BlogSettings::class, $settings);
         $this->assertSame(BlogSettings::DEFAULT_BLOG_TITLE, $settings->getBlogTitle());
+        $this->assertSame(BlogSettings::DEFAULT_ARTICLES_PER_PAGE, $settings->getArticlesPerPage());
     }
 }

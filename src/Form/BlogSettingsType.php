@@ -6,6 +6,7 @@ namespace App\Form;
 
 use App\Entity\BlogSettings;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -31,6 +32,14 @@ class BlogSettingsType extends AbstractType
             ->add('homepageSeoKeywords', TextareaType::class, [
                 'label' => 'Słowa kluczowe SEO',
                 'attr' => ['rows' => 3, 'maxlength' => 500],
+            ])
+            ->add('articlesPerPage', IntegerType::class, [
+                'label' => 'Ilość artykułów na stronę',
+                'attr' => [
+                    'min' => 1,
+                    'step' => 1,
+                    'inputmode' => 'numeric',
+                ],
             ]);
     }
 

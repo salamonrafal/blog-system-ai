@@ -17,6 +17,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 class Article
 {
     public const DEFAULT_HEADLINE_IMAGE = '/assets/img/default-headline-article-pixel-art.png';
+    private const STORAGE_TIMEZONE = 'UTC';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -68,7 +69,7 @@ class Article
 
     public function __construct()
     {
-        $now = new \DateTimeImmutable();
+        $now = self::utcNow();
         $this->createdAt = $now;
         $this->updatedAt = $now;
     }
@@ -191,7 +192,7 @@ class Article
 
     public function setPublishedAt(?\DateTimeImmutable $publishedAt): self
     {
-        $this->publishedAt = $publishedAt;
+        $this->publishedAt = self::normalizeToUtc($publishedAt);
 
         return $this;
     }
@@ -214,14 +215,30 @@ class Article
     #[ORM\PrePersist]
     public function onPrePersist(): void
     {
-        $now = new \DateTimeImmutable();
+        $now = self::utcNow();
         $this->createdAt = $now;
         $this->updatedAt = $now;
+        $this->publishedAt = self::normalizeToUtc($this->publishedAt);
     }
 
     #[ORM\PreUpdate]
     public function onPreUpdate(): void
     {
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->updatedAt = self::utcNow();
+        $this->publishedAt = self::normalizeToUtc($this->publishedAt);
+    }
+
+    private static function normalizeToUtc(?\DateTimeImmutable $dateTime): ?\DateTimeImmutable
+    {
+        if (null === $dateTime) {
+            return null;
+        }
+
+        return $dateTime->setTimezone(new \DateTimeZone(self::STORAGE_TIMEZONE));
+    }
+
+    private static function utcNow(): \DateTimeImmutable
+    {
+        return new \DateTimeImmutable('now', new \DateTimeZone(self::STORAGE_TIMEZONE));
     }
 }

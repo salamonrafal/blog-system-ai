@@ -80,6 +80,8 @@ class ArticleType extends AbstractType
                 'required' => false,
                 'widget' => 'single_text',
                 'input' => 'datetime_immutable',
+                'model_timezone' => 'UTC',
+                'view_timezone' => 'UTC',
                 'invalid_message' => 'validation_article_published_at_invalid',
             ]);
     }

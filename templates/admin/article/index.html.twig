@@ -43,7 +43,7 @@
                                     {% if article.status.value == 'draft' %}Draft{% elseif article.status.value == 'review' %}In review{% elseif article.status.value == 'archived' %}Archived{% else %}Published{% endif %}
                                 </span>
                             </td>
-                            <td class="article-index-updated-cell">{{ article.updatedAt|date('Y-m-d H:i') }}</td>
+                            <td class="article-index-updated-cell">{{ article.updatedAt|user_date }}</td>
                             <td>
                                 <div class="actions">
                                     <a

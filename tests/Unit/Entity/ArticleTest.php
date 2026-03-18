@@ -13,7 +13,7 @@ final class ArticleTest extends TestCase
 {
     public function testArticleExposesAssignedValues(): void
     {
-        $publishedAt = new \DateTimeImmutable('2026-03-16 10:00:00');
+        $publishedAt = new \DateTimeImmutable('2026-03-16 10:00:00', new \DateTimeZone('Europe/Warsaw'));
 
         $article = (new Article())
             ->setTitle('Tytul artykulu')
@@ -34,7 +34,8 @@ final class ArticleTest extends TestCase
         $this->assertSame('/assets/img/article-cover.jpg', $article->getResolvedHeadlineImage());
         $this->assertSame('Pelna tresc', $article->getContent());
         $this->assertSame(ArticleStatus::REVIEW, $article->getStatus());
-        $this->assertSame($publishedAt, $article->getPublishedAt());
+        $this->assertSame('2026-03-16 09:00:00', $article->getPublishedAt()?->format('Y-m-d H:i:s'));
+        $this->assertSame('UTC', $article->getPublishedAt()?->getTimezone()->getName());
         $this->assertFalse($article->isPublished());
     }
 
@@ -65,6 +66,9 @@ final class ArticleTest extends TestCase
     public function testLifecycleCallbacksRefreshTimestamps(): void
     {
         $article = new Article();
+        $this->assertSame('UTC', $article->getCreatedAt()->getTimezone()->getName());
+        $this->assertSame('UTC', $article->getUpdatedAt()->getTimezone()->getName());
+
         $originalCreatedAt = $article->getCreatedAt();
         $originalUpdatedAt = $article->getUpdatedAt();
 
@@ -73,6 +77,8 @@ final class ArticleTest extends TestCase
 
         $this->assertGreaterThanOrEqual($originalCreatedAt->getTimestamp(), $article->getCreatedAt()->getTimestamp());
         $this->assertGreaterThanOrEqual($originalUpdatedAt->getTimestamp(), $article->getUpdatedAt()->getTimestamp());
+        $this->assertSame('UTC', $article->getCreatedAt()->getTimezone()->getName());
+        $this->assertSame('UTC', $article->getUpdatedAt()->getTimezone()->getName());
 
         $updatedAtAfterPersist = $article->getUpdatedAt();
 
@@ -80,5 +86,17 @@ final class ArticleTest extends TestCase
         $article->onPreUpdate();
 
         $this->assertGreaterThanOrEqual($updatedAtAfterPersist->getTimestamp(), $article->getUpdatedAt()->getTimestamp());
+        $this->assertSame('UTC', $article->getUpdatedAt()->getTimezone()->getName());
+    }
+
+    public function testLifecycleCallbacksNormalizePublishedAtToUtc(): void
+    {
+        $article = (new Article())
+            ->setPublishedAt(new \DateTimeImmutable('2026-03-16 10:00:00', new \DateTimeZone('Europe/Warsaw')));
+
+        $article->onPrePersist();
+
+        $this->assertSame('2026-03-16 09:00:00', $article->getPublishedAt()?->format('Y-m-d H:i:s'));
+        $this->assertSame('UTC', $article->getPublishedAt()?->getTimezone()->getName());
     }
 }

@@ -8,98 +8,137 @@
     {% endif %}
 
     <div class="article-editor-fields">
-        {% set title_has_errors = form.blogTitle.vars.errors|length > 0 %}
-        {% set title_counter_id = form.blogTitle.vars.id ~ '-char-count' %}
-        {% set title_described_by = title_counter_id ~ (title_has_errors ? ' ' ~ form.blogTitle.vars.id ~ '-error' : '') %}
-        <div class="field article-editor-field{{ title_has_errors ? ' has-error' : '' }}">
-            {{ form_label(form.blogTitle) }}
-            {{ form_widget(form.blogTitle, { attr: {
-                class: 'article-editor-input',
-                placeholder: 'Np. Blog System AI',
-                'data-character-count-input': 'true',
-                'aria-describedby': title_described_by
-            }|merge(title_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
-            <div class="article-editor-field-meta">
-                <span id="{{ title_counter_id }}" class="article-editor-character-count" data-character-count-target>{{ form.blogTitle.vars.value|default('')|length }} / {{ form.blogTitle.vars.attr.maxlength }}</span>
+        <section class="blog-settings-subsection" aria-labelledby="blog-settings-section-general">
+            <div class="blog-settings-subsection-header">
+                <span class="pill">admin://identity-and-seo</span>
+                <h2 id="blog-settings-section-general" class="blog-settings-subsection-title">Tożsamość i SEO</h2>
+                <p class="blog-settings-subsection-lede">Ustawienia odpowiedzialne za nazwę bloga oraz metadane strony głównej.</p>
             </div>
-            {% if title_has_errors %}
-                <div id="{{ form.blogTitle.vars.id }}-error" class="article-editor-error-message" role="alert">
-                    {% for error in form.blogTitle.vars.errors %}
-                        <p>{{ error.message }}</p>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        </div>
 
-        {% set description_has_errors = form.homepageSeoDescription.vars.errors|length > 0 %}
-        {% set description_counter_id = form.homepageSeoDescription.vars.id ~ '-char-count' %}
-        {% set description_described_by = description_counter_id ~ (description_has_errors ? ' ' ~ form.homepageSeoDescription.vars.id ~ '-error' : '') %}
-        <div class="field article-editor-field{{ description_has_errors ? ' has-error' : '' }}">
-            {{ form_label(form.homepageSeoDescription) }}
-            {{ form_widget(form.homepageSeoDescription, { attr: {
-                class: 'article-editor-input article-editor-textarea',
-                placeholder: 'Krótki opis strony głównej bloga dla Google i innych wyszukiwarek',
-                'data-character-count-input': 'true',
-                'aria-describedby': description_described_by
-            }|merge(description_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
-            <div class="article-editor-field-meta">
-                <span id="{{ description_counter_id }}" class="article-editor-character-count" data-character-count-target>{{ form.homepageSeoDescription.vars.value|default('')|length }} / {{ form.homepageSeoDescription.vars.attr.maxlength }}</span>
-            </div>
-            {% if description_has_errors %}
-                <div id="{{ form.homepageSeoDescription.vars.id }}-error" class="article-editor-error-message" role="alert">
-                    {% for error in form.homepageSeoDescription.vars.errors %}
-                        <p>{{ error.message }}</p>
-                    {% endfor %}
+            {% set title_has_errors = form.blogTitle.vars.errors|length > 0 %}
+            {% set title_counter_id = form.blogTitle.vars.id ~ '-char-count' %}
+            {% set title_described_by = title_counter_id ~ (title_has_errors ? ' ' ~ form.blogTitle.vars.id ~ '-error' : '') %}
+            <div class="field article-editor-field{{ title_has_errors ? ' has-error' : '' }}">
+                {{ form_label(form.blogTitle) }}
+                {{ form_widget(form.blogTitle, { attr: {
+                    class: 'article-editor-input',
+                    placeholder: 'Np. Blog System AI',
+                    'data-character-count-input': 'true',
+                    'aria-describedby': title_described_by
+                }|merge(title_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
+                <div class="article-editor-field-meta">
+                    <span id="{{ title_counter_id }}" class="article-editor-character-count" data-character-count-target>{{ form.blogTitle.vars.value|default('')|length }} / {{ form.blogTitle.vars.attr.maxlength }}</span>
                 </div>
-            {% endif %}
-        </div>
+                {% if title_has_errors %}
+                    <div id="{{ form.blogTitle.vars.id }}-error" class="article-editor-error-message" role="alert">
+                        {% for error in form.blogTitle.vars.errors %}
+                            <p>{{ error.message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
 
-        {% set social_image_has_errors = form.homepageSocialImage.vars.errors|length > 0 %}
-        {% set social_image_counter_id = form.homepageSocialImage.vars.id ~ '-char-count' %}
-        {% set social_image_described_by = social_image_counter_id ~ (social_image_has_errors ? ' ' ~ form.homepageSocialImage.vars.id ~ '-error' : '') %}
-        <div class="field article-editor-field{{ social_image_has_errors ? ' has-error' : '' }}">
-            {{ form_label(form.homepageSocialImage) }}
-            {{ form_widget(form.homepageSocialImage, { attr: {
-                class: 'article-editor-input',
-                placeholder: 'https://... lub /assets/img/...',
-                'data-character-count-input': 'true',
-                'aria-describedby': social_image_described_by
-            }|merge(social_image_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
-            <div class="article-editor-field-meta">
-                <span id="{{ social_image_counter_id }}" class="article-editor-character-count" data-character-count-target>{{ form.homepageSocialImage.vars.value|default('')|length }} / {{ form.homepageSocialImage.vars.attr.maxlength }}</span>
-                <span class="article-editor-field-hint article-editor-field-hint-help">Podaj pełny URL albo ścieżkę zaczynającą się od <code>/</code>.</span>
-            </div>
-            {% if social_image_has_errors %}
-                <div id="{{ form.homepageSocialImage.vars.id }}-error" class="article-editor-error-message" role="alert">
-                    {% for error in form.homepageSocialImage.vars.errors %}
-                        <p>{{ error.message }}</p>
-                    {% endfor %}
+            {% set description_has_errors = form.homepageSeoDescription.vars.errors|length > 0 %}
+            {% set description_counter_id = form.homepageSeoDescription.vars.id ~ '-char-count' %}
+            {% set description_described_by = description_counter_id ~ (description_has_errors ? ' ' ~ form.homepageSeoDescription.vars.id ~ '-error' : '') %}
+            <div class="field article-editor-field{{ description_has_errors ? ' has-error' : '' }}">
+                {{ form_label(form.homepageSeoDescription) }}
+                {{ form_widget(form.homepageSeoDescription, { attr: {
+                    class: 'article-editor-input article-editor-textarea',
+                    placeholder: 'Krótki opis strony głównej bloga dla Google i innych wyszukiwarek',
+                    'data-character-count-input': 'true',
+                    'aria-describedby': description_described_by
+                }|merge(description_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
+                <div class="article-editor-field-meta">
+                    <span id="{{ description_counter_id }}" class="article-editor-character-count" data-character-count-target>{{ form.homepageSeoDescription.vars.value|default('')|length }} / {{ form.homepageSeoDescription.vars.attr.maxlength }}</span>
                 </div>
-            {% endif %}
-        </div>
+                {% if description_has_errors %}
+                    <div id="{{ form.homepageSeoDescription.vars.id }}-error" class="article-editor-error-message" role="alert">
+                        {% for error in form.homepageSeoDescription.vars.errors %}
+                            <p>{{ error.message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
 
-        {% set keywords_has_errors = form.homepageSeoKeywords.vars.errors|length > 0 %}
-        {% set keywords_counter_id = form.homepageSeoKeywords.vars.id ~ '-char-count' %}
-        {% set keywords_described_by = keywords_counter_id ~ (keywords_has_errors ? ' ' ~ form.homepageSeoKeywords.vars.id ~ '-error' : '') %}
-        <div class="field article-editor-field{{ keywords_has_errors ? ' has-error' : '' }}">
-            {{ form_label(form.homepageSeoKeywords) }}
-            {{ form_widget(form.homepageSeoKeywords, { attr: {
-                class: 'article-editor-input article-editor-textarea',
-                placeholder: 'Np. blog, php, programowanie, architektura aplikacji',
-                'data-character-count-input': 'true',
-                'aria-describedby': keywords_described_by
-            }|merge(keywords_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
-            <div class="article-editor-field-meta">
-                <span id="{{ keywords_counter_id }}" class="article-editor-character-count" data-character-count-target>{{ form.homepageSeoKeywords.vars.value|default('')|length }} / {{ form.homepageSeoKeywords.vars.attr.maxlength }}</span>
-            </div>
-            {% if keywords_has_errors %}
-                <div id="{{ form.homepageSeoKeywords.vars.id }}-error" class="article-editor-error-message" role="alert">
-                    {% for error in form.homepageSeoKeywords.vars.errors %}
-                        <p>{{ error.message }}</p>
-                    {% endfor %}
+            {% set social_image_has_errors = form.homepageSocialImage.vars.errors|length > 0 %}
+            {% set social_image_counter_id = form.homepageSocialImage.vars.id ~ '-char-count' %}
+            {% set social_image_described_by = social_image_counter_id ~ (social_image_has_errors ? ' ' ~ form.homepageSocialImage.vars.id ~ '-error' : '') %}
+            <div class="field article-editor-field{{ social_image_has_errors ? ' has-error' : '' }}">
+                {{ form_label(form.homepageSocialImage) }}
+                {{ form_widget(form.homepageSocialImage, { attr: {
+                    class: 'article-editor-input',
+                    placeholder: 'https://... lub /assets/img/...',
+                    'data-character-count-input': 'true',
+                    'aria-describedby': social_image_described_by
+                }|merge(social_image_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
+                <div class="article-editor-field-meta">
+                    <span id="{{ social_image_counter_id }}" class="article-editor-character-count" data-character-count-target>{{ form.homepageSocialImage.vars.value|default('')|length }} / {{ form.homepageSocialImage.vars.attr.maxlength }}</span>
+                    <span class="article-editor-field-hint article-editor-field-hint-help">Podaj pełny URL albo ścieżkę zaczynającą się od <code>/</code>.</span>
                 </div>
-            {% endif %}
-        </div>
+                {% if social_image_has_errors %}
+                    <div id="{{ form.homepageSocialImage.vars.id }}-error" class="article-editor-error-message" role="alert">
+                        {% for error in form.homepageSocialImage.vars.errors %}
+                            <p>{{ error.message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            {% set keywords_has_errors = form.homepageSeoKeywords.vars.errors|length > 0 %}
+            {% set keywords_counter_id = form.homepageSeoKeywords.vars.id ~ '-char-count' %}
+            {% set keywords_described_by = keywords_counter_id ~ (keywords_has_errors ? ' ' ~ form.homepageSeoKeywords.vars.id ~ '-error' : '') %}
+            <div class="field article-editor-field{{ keywords_has_errors ? ' has-error' : '' }}">
+                {{ form_label(form.homepageSeoKeywords) }}
+                {{ form_widget(form.homepageSeoKeywords, { attr: {
+                    class: 'article-editor-input article-editor-textarea',
+                    placeholder: 'Np. blog, php, programowanie, architektura aplikacji',
+                    'data-character-count-input': 'true',
+                    'aria-describedby': keywords_described_by
+                }|merge(keywords_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
+                <div class="article-editor-field-meta">
+                    <span id="{{ keywords_counter_id }}" class="article-editor-character-count" data-character-count-target>{{ form.homepageSeoKeywords.vars.value|default('')|length }} / {{ form.homepageSeoKeywords.vars.attr.maxlength }}</span>
+                </div>
+                {% if keywords_has_errors %}
+                    <div id="{{ form.homepageSeoKeywords.vars.id }}-error" class="article-editor-error-message" role="alert">
+                        {% for error in form.homepageSeoKeywords.vars.errors %}
+                            <p>{{ error.message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+
+        <section class="blog-settings-subsection" aria-labelledby="blog-settings-section-pagination">
+            <div class="blog-settings-subsection-header">
+                <span class="pill">admin://homepage-pagination</span>
+                <h2 id="blog-settings-section-pagination" class="blog-settings-subsection-title">Paginacja strony głównej</h2>
+                <p class="blog-settings-subsection-lede">Steruj tym, ile opublikowanych artykułów ma pojawiać się na jednej stronie listy.</p>
+            </div>
+
+            {% set articles_per_page_has_errors = form.articlesPerPage.vars.errors|length > 0 %}
+            {% set articles_per_page_error_id = form.articlesPerPage.vars.id ~ '-error' %}
+            {% set articles_per_page_hint_id = form.articlesPerPage.vars.id ~ '-hint' %}
+            {% set articles_per_page_described_by = articles_per_page_hint_id ~ (articles_per_page_has_errors ? ' ' ~ articles_per_page_error_id : '') %}
+            <div class="field article-editor-field{{ articles_per_page_has_errors ? ' has-error' : '' }}">
+                {{ form_label(form.articlesPerPage) }}
+                {{ form_widget(form.articlesPerPage, { attr: {
+                    class: 'article-editor-input blog-settings-number-input',
+                    placeholder: '5',
+                    'aria-describedby': articles_per_page_described_by
+                }|merge(articles_per_page_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
+                <div class="article-editor-field-meta">
+                    <span id="{{ articles_per_page_hint_id }}" class="article-editor-field-hint article-editor-field-hint-help">Domyślna wartość to <code>5</code>. Zmiana wpływa na publiczną listę artykułów na stronie głównej.</span>
+                </div>
+                {% if articles_per_page_has_errors %}
+                    <div id="{{ articles_per_page_error_id }}" class="article-editor-error-message" role="alert">
+                        {% for error in form.articlesPerPage.vars.errors %}
+                            <p>{{ error.message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </section>
     </div>
 
     <div class="actions article-editor-actions">

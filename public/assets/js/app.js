@@ -100,6 +100,8 @@ const i18n = {
     blog_publication_status: "Bieżący status publikacji",
     blog_public_date: "Główna data publiczna",
     blog_reader_slug: "Slug widoczny dla czytelnika",
+    blog_pagination_previous: "Poprzednia",
+    blog_pagination_next: "Następna",
     admin_shortcut_new_article: "Utwórz nowy artykuł",
     admin_shortcut_dashboard: "Panel główny",
     admin_shortcut_articles: "Lista artykułów",
@@ -287,6 +289,8 @@ const i18n = {
     blog_publication_status: "Current publication status",
     blog_public_date: "Primary public date",
     blog_reader_slug: "Reader-facing slug",
+    blog_pagination_previous: "Previous",
+    blog_pagination_next: "Next",
     admin_shortcut_new_article: "Create new article",
     admin_shortcut_dashboard: "Dashboard",
     admin_shortcut_articles: "Article list",
@@ -381,6 +385,8 @@ function qs(sel, root=document){ return root.querySelector(sel); }
 function qsa(sel, root=document){ return [...root.querySelectorAll(sel)]; }
 let terminalRenderId = 0;
 const adminDeviceStorageKey = 'admin_device_remembered';
+const userLanguageCookieName = 'user_language';
+const userTimezoneCookieName = 'user_timezone';
 
 function syncTopbarHeight(){
   const topbar = qs('.topbar');
@@ -396,7 +402,17 @@ function getLang(){
   return n.startsWith('pl') ? 'pl' : 'en';
 }
 
-function setLang(lang){ localStorage.setItem('lang', lang); applyI18n(lang); }
+function persistUserLanguage(lang){
+  const normalizedLang = lang === 'en' ? 'en' : 'pl';
+  const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+  document.cookie = `${userLanguageCookieName}=${encodeURIComponent(normalizedLang)}; Max-Age=31536000; Path=/; SameSite=Lax${secure}`;
+}
+
+function setLang(lang){
+  localStorage.setItem('lang', lang);
+  persistUserLanguage(lang);
+  applyI18n(lang);
+}
 
 function applyLangVisibility(lang){
   qsa('[data-lang]').forEach(el=>{
@@ -422,6 +438,23 @@ function setAdminDeviceRemembered(remembered){
   }
 
   localStorage.removeItem(adminDeviceStorageKey);
+}
+
+function getBrowserTimeZone(){
+  try{
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return typeof timeZone === 'string' && timeZone.trim() !== '' ? timeZone.trim() : null;
+  }catch(err){
+    return null;
+  }
+}
+
+function persistUserTimeZone(){
+  const timeZone = getBrowserTimeZone();
+  if(!timeZone) return;
+
+  const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+  document.cookie = `${userTimezoneCookieName}=${encodeURIComponent(timeZone)}; Max-Age=31536000; Path=/; SameSite=Lax${secure}`;
 }
 
 function normalizeHexColor(value){
@@ -1349,6 +1382,8 @@ function setupPrivacyNotice(){
 
 function init(){
   syncTopbarHeight();
+  persistUserLanguage(getLang());
+  persistUserTimeZone();
   setupNav();
   setupBackToTop();
   setTheme(getTheme());

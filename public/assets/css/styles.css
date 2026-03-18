@@ -2389,6 +2389,32 @@ select {
   gap:18px;
 }
 
+.blog-settings-subsection {
+  display:grid;
+  gap:16px;
+  padding:18px;
+  border:1px solid color-mix(in oklab, var(--accent-2) 18%, var(--border));
+  border-radius:18px;
+  background: color-mix(in oklab, var(--panel-2) 72%, transparent);
+}
+
+.blog-settings-subsection-header {
+  display:grid;
+  gap:8px;
+}
+
+.blog-settings-subsection-title {
+  margin:0;
+  font-size:1.05rem;
+  line-height:1.3;
+}
+
+.blog-settings-subsection-lede {
+  margin:0;
+  color:var(--muted);
+  line-height:1.6;
+}
+
 .article-editor-grid {
   display:grid;
   grid-template-columns:repeat(2, minmax(0, 1fr));
@@ -3371,6 +3397,58 @@ tbody tr:last-child td {
 
 .feed-panel-list > .article-subpanel:last-child:nth-child(odd) {
   grid-column:1 / -1;
+}
+
+.blog-pagination {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  flex-wrap:wrap;
+  margin:0 1.15rem 1.2rem;
+}
+
+.blog-pagination-pages {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  flex:1 1 220px;
+  flex-wrap:wrap;
+}
+
+.blog-pagination-link {
+  min-width:46px;
+  justify-content:center;
+}
+
+.blog-pagination-link-icon {
+  min-width:52px;
+  padding-inline:0;
+  font-size:1.35rem;
+  line-height:1;
+}
+
+.blog-pagination-link.is-current {
+  border-color: color-mix(in oklab, var(--accent) 70%, var(--border));
+  background: color-mix(in oklab, var(--accent) 16%, var(--panel) 84%);
+  color: color-mix(in oklab, var(--accent) 72%, white 28%);
+  cursor:default;
+}
+
+.blog-pagination-link.is-disabled {
+  opacity:.45;
+  pointer-events:none;
+}
+
+.blog-pagination-ellipsis {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:24px;
+  color:var(--muted);
+  font-size:1rem;
+  letter-spacing:.16em;
 }
 
 .article-subpanel-actions {

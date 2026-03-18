@@ -33,11 +33,12 @@ final class ArticlePublisherTest extends TestCase
 
         $this->assertSame('nowy-wpis-o-symfony-3', $article->getSlug());
         $this->assertInstanceOf(\DateTimeImmutable::class, $article->getPublishedAt());
+        $this->assertSame('UTC', $article->getPublishedAt()?->getTimezone()->getName());
     }
 
     public function testPrepareForSaveKeepsExistingSlugAndPublicationDate(): void
     {
-        $publishedAt = new \DateTimeImmutable('-1 day');
+        $publishedAt = new \DateTimeImmutable('2026-03-17 08:30:00', new \DateTimeZone('Europe/Warsaw'));
         $article = (new Article())
             ->setTitle('Nowy wpis o Symfony')
             ->setSlug('wlasny-slug')
@@ -53,7 +54,8 @@ final class ArticlePublisherTest extends TestCase
         $publisher->prepareForSave($article);
 
         $this->assertSame('wlasny-slug', $article->getSlug());
-        $this->assertSame($publishedAt, $article->getPublishedAt());
+        $this->assertSame('2026-03-17 07:30:00', $article->getPublishedAt()?->format('Y-m-d H:i:s'));
+        $this->assertSame('UTC', $article->getPublishedAt()?->getTimezone()->getName());
     }
 
     public function testPrepareForSaveClearsPublicationDateForNonPublishedArticle(): void

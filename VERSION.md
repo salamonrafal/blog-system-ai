@@ -64,3 +64,8 @@
 - Zaktualizowano stronę główną bloga i layout aplikacji tak, aby korzystały z konfigurowalnych metadanych SEO i podglądu linków dla portali społecznościowych.
 - Poprawiono migrację `Version20260318110000`, usuwając nieprawidłowy zapis komentarzy typu Doctrine w SQL dla SQLite, który powodował błąd `SQLSTATE[HY000]: General error: 1 incomplete input`.
 - Dodano testy jednostkowe dla nowej encji `BlogSettings`, providera `BlogSettingsProvider` oraz rozszerzenia Twig `AppGlobalsExtension`, potwierdzając poprawne wartości domyślne, normalizację danych, cache providera i eksport globali do widoków.
+- Dodano konfigurowalną paginację listy artykułów na stronie głównej, wraz z nowym ustawieniem `Ilość artykułów na stronę` w `admin_blog_settings`, domyślną wartością `5`, migracją bazy oraz uproszczonym pagerem z ikonami i skróconą listą numerów stron.
+- Ujednolicono zapis dat artykułów do strefy `UTC` dla pól `publishedAt`, `createdAt` i `updatedAt`, dopinając normalizację w encji `Article`, serwisie publikacji oraz testach jednostkowych.
+- Dodano zapis strefy czasowej użytkownika do cookie `user_timezone` przy wejściu na stronę oraz nowy resolver po stronie PHP, dzięki czemu daty artykułów mogą być renderowane w strefie czasowej użytkownika.
+- Dodano zapis języka użytkownika do cookie `user_language` oraz resolver języka po stronie PHP, aby logika formatowania dat była spójna między JavaScriptem a warstwą serwerową.
+- Wprowadzono wspólny filtr Twig `user_date` do formatowania dat w strefie użytkownika i formacie zależnym od języka (`pl` / `en`), upraszczając szablony bloga i panelu administracyjnego oraz rozszerzając zestaw testów jednostkowych dla resolverów i rozszerzeń Twig.
