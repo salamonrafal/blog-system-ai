@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ustawienia bloga | {{ app_name }}{% endblock %}
+
+{% block body %}
+    <section class="section">
+        <div class="card">
+            <div class="card-header">
+                <div class="window-dots" aria-hidden="true">
+                    <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                </div>
+                <span class="pill">admin://blog-settings</span>
+            </div>
+
+            <div class="dashboard-feed-intro">
+                <h1 data-i18n="admin_blog_settings_title">Ustawienia bloga</h1>
+                <p class="lede" data-i18n="admin_blog_settings_lede">Zarządzaj danymi, które wpływają na nazwę bloga i metadane strony głównej widoczne w wyszukiwarkach oraz po udostępnieniu linku.</p>
+
+                <section class="article-edit-meta-panel" aria-label="Blog settings preview">
+                    <div class="article-edit-meta-header">
+                        <span class="pill">admin://seo-preview</span>
+                    </div>
+                    <dl class="article-edit-meta-list">
+                        <div class="article-edit-meta-item">
+                            <dt class="article-edit-meta-label">Aktualny tytuł bloga</dt>
+                            <dd class="article-edit-meta-value">{{ settings.blogTitle }}</dd>
+                        </div>
+                        <div class="article-edit-meta-item">
+                            <dt class="article-edit-meta-label">Obrazek społecznościowy</dt>
+                            <dd class="article-edit-meta-value">{{ settings.homepageSocialImage }}</dd>
+                        </div>
+                        <div class="article-edit-meta-item">
+                            <dt class="article-edit-meta-label">Ostatnia aktualizacja</dt>
+                            <dd class="article-edit-meta-value">{{ settings.updatedAt|date('Y-m-d H:i') }}</dd>
+                        </div>
+                    </dl>
+                </section>
+            </div>
+
+            {% include 'admin/blog_settings/_form.html.twig' with { form: form } %}
+        </div>
+    </section>
+{% endblock %}

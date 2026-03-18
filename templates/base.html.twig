@@ -3,7 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="{% block meta_description %}Portfolio Rafała Salamona: Senior PHP Developer / Fullstack Developer. Projekty, doświadczenie, narzędzia i kontakt.{% endblock %}">
+    <meta name="description" content="{% block meta_description %}{{ blog_settings.homepageSeoDescription }}{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}{{ blog_settings.homepageSeoKeywords }}{% endblock %}">
     <meta name="robots" content="index,follow,max-image-preview:large">
     <meta name="author" content="Rafał Salamon">
     <meta name="theme-color" content="#0b0f12">
@@ -14,11 +15,11 @@
 
     <meta property="og:locale" content="pl_PL">
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="Rafał Salamon Portfolio">
+    <meta property="og:site_name" content="{{ app_name }}">
     <meta property="og:title" content="{% block og_title %}{% block title %}{{ app_name }}{% endblock %}{% endblock %}">
-    <meta property="og:description" content="{% block og_description %}Portfolio Rafała Salamona: Senior PHP Developer / Fullstack Developer. Projekty, doświadczenie, narzędzia i kontakt.{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}{{ block('meta_description') }}{% endblock %}">
     <meta property="og:url" content="{% block og_url %}https://www.salamonrafal.pl/{% endblock %}">
-    <meta property="og:image" content="{% block og_image %}https://www.salamonrafal.pl/assets/img/profile.jpg{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{{ blog_settings.homepageSocialImage }}{% endblock %}">
 
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{% block twitter_title %}{{ block('og_title') }}{% endblock %}">
@@ -163,6 +164,19 @@ Fullstack Developer</span>
                         </span>
                         <span data-device-remember-label data-i18n="admin_shortcut_remember_device">Zapamiętaj urządzenie</span>
                     </button>
+                    <a class="admin-shortcuts-link" href="{{ path('admin_blog_settings') }}">
+                        <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                            <svg viewBox="0 0 32 32">
+                                <path d="M7 11h18"></path>
+                                <path d="M7 21h18"></path>
+                                <path d="M11 7v8"></path>
+                                <path d="M21 17v8"></path>
+                                <circle cx="11" cy="17" r="2"></circle>
+                                <circle cx="21" cy="15" r="2"></circle>
+                            </svg>
+                        </span>
+                        <span data-i18n="admin_shortcut_blog_settings">Ustawienia bloga</span>
+                    </a>
                 </section>
             {% else %}
                 <a class="admin-shortcuts-link primary" href="{{ path('app_login') }}">

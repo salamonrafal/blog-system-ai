@@ -54,3 +54,13 @@
 - Ustabilizowano układ listy artykułów w panelu admina, nadając kolumnie `Tytuł` stałą szerokość z zawijaniem dłuższych nazw wpisów.
 - Dopracowano wyrównanie tabeli `admin_article_index`, centrując nagłówki, wartości w kolumnach `Status` i `Aktualizacja` oraz pionowo wyrównując zawartość komórek.
 - Dodano subtelne wyróżnienie co drugiego wiersza na `admin_article_index`, dopasowane do jasnego i ciemnego motywu aplikacji.
+
+## 2026-03-18
+
+- Dodano nowy moduł ustawień bloga w panelu administracyjnym pod trasą `/admin/settings/blog` z formularzem do zarządzania tytułem bloga, opisem SEO strony głównej, obrazkiem społecznościowym oraz słowami kluczowymi SEO.
+- Rozszerzono pływające menu `Szybkie akcje` w sekcji `Szybkie ustawienia`, dodając jako ostatni element odnośnik `Ustawienia bloga`.
+- Wprowadzono nową encję `BlogSettings`, repozytorium, provider, formularz oraz migrację bazy danych dla trwałego przechowywania ustawień bloga.
+- Podłączono ustawienia bloga do globalnych danych Twiga, dzięki czemu `app_name`, meta description, keywords oraz obrazy `og:image` i `twitter:image` są pobierane z konfiguracji zapisanej w bazie.
+- Zaktualizowano stronę główną bloga i layout aplikacji tak, aby korzystały z konfigurowalnych metadanych SEO i podglądu linków dla portali społecznościowych.
+- Poprawiono migrację `Version20260318110000`, usuwając nieprawidłowy zapis komentarzy typu Doctrine w SQL dla SQLite, który powodował błąd `SQLSTATE[HY000]: General error: 1 incomplete input`.
+- Dodano testy jednostkowe dla nowej encji `BlogSettings`, providera `BlogSettingsProvider` oraz rozszerzenia Twig `AppGlobalsExtension`, potwierdzając poprawne wartości domyślne, normalizację danych, cache providera i eksport globali do widoków.
