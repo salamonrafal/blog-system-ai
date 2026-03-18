@@ -69,3 +69,8 @@
 - Dodano zapis strefy czasowej użytkownika do cookie `user_timezone` przy wejściu na stronę oraz nowy resolver po stronie PHP, dzięki czemu daty artykułów mogą być renderowane w strefie czasowej użytkownika.
 - Dodano zapis języka użytkownika do cookie `user_language` oraz resolver języka po stronie PHP, aby logika formatowania dat była spójna między JavaScriptem a warstwą serwerową.
 - Wprowadzono wspólny filtr Twig `user_date` do formatowania dat w strefie użytkownika i formacie zależnym od języka (`pl` / `en`), upraszczając szablony bloga i panelu administracyjnego oraz rozszerzając zestaw testów jednostkowych dla resolverów i rozszerzeń Twig.
+- Rozszerzono parser i toolbar formatowania artykułów o `inline code`, wymuszoną nową linię, separator poziomy oraz tabele w stylu Markdown, a publiczny widok artykułu uzupełniono o stylowanie nowych elementów i testy jednostkowe renderera.
+- Dodano obsługę bloku preformatowanego `:::pre ... :::`, który zachowuje układ i wcięcia treści bez traktowania jej jako blok kodu, wraz z nowym przyciskiem w edytorze, stylami i testem parsera.
+- Poprawiono działanie przycisku `Blok preformatowany` w edytorze, aby opakowywał aktualnie zaznaczony blok treści zamiast zastępować go domyślnym przykładem.
+- Dopracowano odstępy separatora poziomego w publicznym widoku artykułu, nadając mu własny rytm pionowy niezależny od ogólnego spacingu bloków treści.
+- Przebudowano okno pomocy formatowania w formularzach tworzenia i edycji artykułu, dzieląc treść na zakładki `Podstawowe` i `Zaawansowane` oraz dodając przewijane wnętrze modala, dzięki czemu cała instrukcja mieści się w obrębie ekranu.

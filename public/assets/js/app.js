@@ -856,6 +856,15 @@ function setupArticleMarkupEditor(){
     textarea.dispatchEvent(new Event('input', { bubbles: true }));
   };
 
+  const insertText = (textarea, text, cursorOffset = text.length)=>{
+    const start = textarea.selectionStart ?? 0;
+    const end = textarea.selectionEnd ?? 0;
+    const nextValue = `${textarea.value.slice(0, start)}${text}${textarea.value.slice(end)}`;
+    textarea.value = nextValue;
+    const caret = start + cursorOffset;
+    preserveEditorView(textarea, caret, caret);
+  };
+
   const wrapSelection = (textarea, before, after = before, fallback = '')=>{
     const start = textarea.selectionStart ?? 0;
     const end = textarea.selectionEnd ?? 0;
@@ -885,8 +894,27 @@ function setupArticleMarkupEditor(){
     const helpModal = qs('[data-markup-help-modal]', field);
     const helpDialog = qs('.article-editor-help-dialog', helpModal);
     const helpClose = qs('[data-markup-help-close]', helpModal);
+    const helpTabs = qsa('[data-markup-help-tab]', helpModal);
+    const helpPanels = qsa('[data-markup-help-panel]', helpModal);
     let lastHelpTrigger = null;
     if(!toolbar) return;
+
+    const activateHelpTab = (name)=>{
+      if(!helpTabs.length || !helpPanels.length) return;
+
+      helpTabs.forEach((tab)=>{
+        const isActive = tab.getAttribute('data-markup-help-tab') === name;
+        tab.classList.toggle('is-active', isActive);
+        tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        tab.setAttribute('tabindex', isActive ? '0' : '-1');
+      });
+
+      helpPanels.forEach((panel)=>{
+        const isActive = panel.getAttribute('data-markup-help-panel') === name;
+        panel.classList.toggle('is-active', isActive);
+        panel.hidden = !isActive;
+      });
+    };
 
     const closeHelpModal = ()=>{
       if(!helpModal) return;
@@ -900,6 +928,7 @@ function setupArticleMarkupEditor(){
     const openHelpModal = (trigger)=>{
       if(!helpModal) return;
       lastHelpTrigger = trigger;
+      activateHelpTab('basic');
       helpModal.removeAttribute('hidden');
       helpModal.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
@@ -929,6 +958,13 @@ function setupArticleMarkupEditor(){
       if(action === 'bold') return wrapSelection(textarea, '**', '**', 'pogrubienie');
       if(action === 'italic') return wrapSelection(textarea, '*', '*', 'kursywa');
       if(action === 'underline') return wrapSelection(textarea, '++', '++', 'podkreslenie');
+      if(action === 'inline-code') return wrapSelection(textarea, '`', '`', 'kod');
+      if(action === 'line-break') return insertText(textarea, "\\\n");
+      if(action === 'separator') return insertText(textarea, "\n---\n");
+      if(action === 'table') return insertText(textarea, "| Kolumna A | Kolumna B |\n| --- | --- |\n| Wartosc 1 | Wartosc 2 |");
+      if(action === 'preformatted'){
+        return transformSelectedLines(textarea, (value)=> `:::pre\n${value || 'wpisz tekst zachowujacy uklad'}\n:::`);
+      }
       if(action === 'quote') return transformSelectedLines(textarea, (value)=> value.split('\n').map((line)=> `> ${line.replace(/^\s*>\s?/, '')}`).join('\n'));
       if(action === 'bullet-list') return transformSelectedLines(textarea, (value)=> value.split('\n').map((line)=> `- ${line.replace(/^\s*[-*]\s+/, '').trim() || 'element listy'}`).join('\n'));
       if(action === 'numbered-list') return transformSelectedLines(textarea, (value)=> value.split('\n').map((line, index)=> `${index + 1}. ${line.replace(/^\s*\d+\.\s+/, '').trim() || 'element listy'}`).join('\n'));
@@ -975,6 +1011,24 @@ function setupArticleMarkupEditor(){
         event.stopPropagation();
       });
     }
+
+    helpTabs.forEach((tab)=>{
+      tab.addEventListener('click', ()=>{
+        activateHelpTab(tab.getAttribute('data-markup-help-tab') || 'basic');
+      });
+
+      tab.addEventListener('keydown', (event)=>{
+        if(event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+        event.preventDefault();
+        const currentIndex = helpTabs.indexOf(tab);
+        const direction = event.key === 'ArrowRight' ? 1 : -1;
+        const nextIndex = (currentIndex + direction + helpTabs.length) % helpTabs.length;
+        const nextTab = helpTabs[nextIndex];
+        if(!nextTab) return;
+        activateHelpTab(nextTab.getAttribute('data-markup-help-tab') || 'basic');
+        nextTab.focus({ preventScroll: true });
+      });
+    });
 
     document.addEventListener('keydown', (event)=>{
       if(!helpModal || helpModal.hasAttribute('hidden')) return;

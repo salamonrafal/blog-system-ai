@@ -148,7 +148,7 @@
 
         {% set content_has_errors = form.content.vars.errors|length > 0 %}
         {% set format_hint_markup %}
-            Formatowanie: `**pogrubienie**`, `*kursywa*`, `++podkreślenie++`, `#` do `#######`, `> cytat`, `- lista`, `1. lista`, `[tekst](https://...)`, `![alt](https://...)`, blok wyrównania `:::center ... :::`, blok kodu ` ``` `.
+            Formatowanie: `**pogrubienie**`, `*kursywa*`, `++podkreślenie++`, `` `inline code` ``, `#` do `#######`, `> cytat`, `- lista`, `1. lista`, `[tekst](https://...)`, `![alt](https://...)`, `\` na końcu linii, `---`, tabela `| kolumna |`, blok `:::pre ... :::`, blok wyrównania `:::center ... :::`, blok kodu ` ``` `.
         {% endset %}
         <div class="field article-editor-field{{ content_has_errors ? ' has-error' : '' }}">
             {{ form_label(form.content) }}
@@ -157,6 +157,11 @@
                     <button type="button" class="article-editor-toolbar-button" data-markup-action="bold" aria-label="Pogrubienie" title="Pogrubienie"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5h5.5a3.5 3.5 0 0 1 0 7H8zm0 7h6.5a3.5 3.5 0 0 1 0 7H8z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
                     <button type="button" class="article-editor-toolbar-button" data-markup-action="italic" aria-label="Kursywa" title="Kursywa"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 5h5M5 19h5M14 5l-4 14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
                     <button type="button" class="article-editor-toolbar-button" data-markup-action="underline" aria-label="Podkreślenie" title="Podkreślenie"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v5a4 4 0 0 0 8 0V5M6 19h12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="inline-code" aria-label="Kod inline" title="Kod inline"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 8-4 4 4 4M15 8l4 4-4 4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><path d="M13 6l-2 12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="line-break" aria-label="Nowa linia" title="Nowa linia"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 7v4a3 3 0 0 0 3 3h8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><path d="m13 11 4 4-4 4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="separator" aria-label="Separator" title="Separator"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12h16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/><path d="M8 8h1M12 8h1M16 8h1M8 16h1M12 16h1M16 16h1" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="table" aria-label="Tabela" title="Tabela"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 10h16M10 6v12M16 6v12" fill="none" stroke="currentColor" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="preformatted" aria-label="Blok preformatowany" title="Blok preformatowany"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 6v12M17 6v12M10 9h4M10 12h4M10 15h4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
                     <button type="button" class="article-editor-toolbar-button" data-markup-action="heading" data-markup-level="1" aria-label="Nagłówek 1" title="Nagłówek 1"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6v12M10 6v12M4 12h6M16 8l2-2v12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
                     <button type="button" class="article-editor-toolbar-button" data-markup-action="heading" data-markup-level="2" aria-label="Nagłówek 2" title="Nagłówek 2"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 6v12M9 6v12M3 12h6M15 9a3 3 0 0 1 6 0c0 4-6 4-6 8h6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
                     <button type="button" class="article-editor-toolbar-button" data-markup-action="heading" data-markup-level="3" aria-label="Nagłówek 3" title="Nagłówek 3"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 6v12M9 6v12M3 12h6M16 8h2.5a2.5 2.5 0 1 1 0 5H16m0 0h2.5a2.5 2.5 0 1 1 0 5H16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
@@ -190,26 +195,48 @@
                     <h2 id="{{ form.content.vars.id }}-format-help-title" class="article-editor-help-title">Zasady formatowania</h2>
                     <div id="{{ form.content.vars.id }}-format-help-text" class="article-editor-help-content">
                         <p class="article-editor-help-intro">Edytor korzysta z prostego formatowania podobnego do Markdown. Najczęściej używane skróty:</p>
-                        <ul class="article-editor-help-list">
-                            <li><code>**tekst**</code> - pogrubienie</li>
-                            <li><code>*tekst*</code> - kursywa</li>
-                            <li><code>++tekst++</code> - podkreślenie</li>
-                            <li><code># Nagłówek</code> do <code>####### Mikro nagłówek</code> - poziomy nagłówków</li>
-                            <li><code>&gt; Cytat</code> - cytat blokowy</li>
-                            <li><code>- Element listy</code> - lista punktowana</li>
-                            <li><code>1. Element listy</code> - lista numerowana</li>
-                            <li><code>[tekst](https://...)</code> - link</li>
-                            <li><code>![alt](https://...)</code> - obraz</li>
-                        </ul>
-                        <div class="article-editor-help-blocks">
-                            <p><strong>Wyrównanie tekstu</strong></p>
-                            <pre><code>:::center
+                        <div class="article-editor-help-tabs" role="tablist" aria-label="Sekcje pomocy formatowania">
+                            <button type="button" class="article-editor-help-tab is-active" data-markup-help-tab="basic" role="tab" aria-selected="true" aria-controls="{{ form.content.vars.id }}-format-help-basic" id="{{ form.content.vars.id }}-format-help-basic-tab" tabindex="0">Podstawowe</button>
+                            <button type="button" class="article-editor-help-tab" data-markup-help-tab="advanced" role="tab" aria-selected="false" aria-controls="{{ form.content.vars.id }}-format-help-advanced" id="{{ form.content.vars.id }}-format-help-advanced-tab" tabindex="-1">Zaawansowane</button>
+                        </div>
+                        <div class="article-editor-help-panels">
+                            <section id="{{ form.content.vars.id }}-format-help-basic" class="article-editor-help-panel is-active" data-markup-help-panel="basic" role="tabpanel" aria-labelledby="{{ form.content.vars.id }}-format-help-basic-tab">
+                                <ul class="article-editor-help-list">
+                                    <li><code>**tekst**</code> - pogrubienie</li>
+                                    <li><code>*tekst*</code> - kursywa</li>
+                                    <li><code>++tekst++</code> - podkreślenie</li>
+                                    <li><code>`tekst`</code> - kod inline</li>
+                                    <li><code># Nagłówek</code> do <code>####### Mikro nagłówek</code> - poziomy nagłówków</li>
+                                    <li><code>&gt; Cytat</code> - cytat blokowy</li>
+                                    <li><code>- Element listy</code> - lista punktowana</li>
+                                    <li><code>1. Element listy</code> - lista numerowana</li>
+                                    <li><code>Linia 1\</code><br><code>Linia 2</code> - wymuszona nowa linia</li>
+                                    <li><code>---</code> - separator</li>
+                                    <li><code>[tekst](https://...)</code> - link</li>
+                                    <li><code>![alt](https://...)</code> - obraz</li>
+                                </ul>
+                            </section>
+                            <section id="{{ form.content.vars.id }}-format-help-advanced" class="article-editor-help-panel" data-markup-help-panel="advanced" role="tabpanel" aria-labelledby="{{ form.content.vars.id }}-format-help-advanced-tab" hidden>
+                                <div class="article-editor-help-blocks">
+                                    <p><strong>Tabela</strong></p>
+                                    <pre><code>| Kolumna A | Kolumna B |
+| --- | --- |
+| Wiersz 1 | Wiersz 2 |</code></pre>
+                                    <p><strong>Blok preformatowany</strong></p>
+                                    <pre><code>:::pre
+tekst z zachowanymi
+  wcieciami i ukladem
+:::</code></pre>
+                                    <p><strong>Wyrównanie tekstu</strong></p>
+                                    <pre><code>:::center
 Wyśrodkowana treść
 :::</code></pre>
-                            <p><strong>Blok kodu</strong></p>
-                            <pre><code>```
+                                    <p><strong>Blok kodu</strong></p>
+                                    <pre><code>```
 const message = 'Hello';
 ```</code></pre>
+                                </div>
+                            </section>
                         </div>
                     </div>
                 </div>

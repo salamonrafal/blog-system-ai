@@ -69,6 +69,41 @@ TEXT);
         $this->assertStringContainsString('<div class="article-align-center"><p>Wycentrowany akapit</p></div>', $html);
     }
 
+    public function testRendersPreformattedBlock(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+
+        $html = $renderer->render(<<<'TEXT'
+:::pre
+linia 1
+  linia 2
+<b>bez html</b>
+:::
+TEXT);
+
+        $this->assertStringContainsString("<pre class=\"article-preformatted\">linia 1\n  linia 2\n&lt;b&gt;bez html&lt;/b&gt;</pre>", $html);
+    }
+
+    public function testRendersForcedLineBreakSeparatorAndTable(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+
+        $html = $renderer->render(<<<'TEXT'
+Pierwsza linia\
+Druga linia
+
+---
+
+| Kolumna A | Kolumna B |
+| --- | --- |
+| `kod` | Wartosc |
+TEXT);
+
+        $this->assertStringContainsString('<p>Pierwsza linia<br>Druga linia</p>', $html);
+        $this->assertStringContainsString('<hr>', $html);
+        $this->assertStringContainsString('<div class="article-table-wrap"><table><thead><tr><th>Kolumna A</th><th>Kolumna B</th></tr></thead><tbody><tr><td><code>kod</code></td><td>Wartosc</td></tr></tbody></table></div>', $html);
+    }
+
     public function testEscapesRawHtml(): void
     {
         $renderer = new ArticleMarkupRenderer();

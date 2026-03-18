@@ -6,6 +6,8 @@ namespace App\Service;
 
 final class ArticleMarkupRenderer
 {
+    private const LINE_BREAK_TOKEN = '@@ARTICLE_LINE_BREAK@@';
+
     public function render(string $input): string
     {
         $normalized = str_replace(["\r\n", "\r"], "\n", trim($input));
@@ -21,15 +23,18 @@ final class ArticleMarkupRenderer
         $quote = [];
         $align = null;
         $alignLines = [];
+        $preformatted = false;
+        $preformattedLines = [];
         $code = null;
         $codeLines = [];
+        $table = [];
 
         $flushParagraph = static function () use (&$paragraph, &$blocks): void {
             if ([] === $paragraph) {
                 return;
             }
 
-            $blocks[] = '<p>'.self::renderInline(implode(' ', $paragraph)).'</p>';
+            $blocks[] = '<p>'.self::renderParagraphLines($paragraph).'</p>';
             $paragraph = [];
         };
 
@@ -118,12 +123,66 @@ final class ArticleMarkupRenderer
             $codeLines = [];
         };
 
-        foreach ($lines as $line) {
+        $flushPreformatted = static function () use (&$preformatted, &$preformattedLines, &$blocks): void {
+            if (!$preformatted) {
+                return;
+            }
+
+            $blocks[] = sprintf(
+                '<pre class="article-preformatted">%s</pre>',
+                htmlspecialchars(implode("\n", $preformattedLines), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
+            );
+
+            $preformatted = false;
+            $preformattedLines = [];
+        };
+
+        $flushTable = static function () use (&$table, &$blocks): void {
+            if ([] === $table) {
+                return;
+            }
+
+            $header = array_shift($table);
+            $headCells = array_map(
+                static fn (string $cell): string => '<th>'.self::renderInline($cell).'</th>',
+                $header,
+            );
+
+            $bodyRows = array_map(
+                static fn (array $row): string => '<tr>'.implode('', array_map(
+                    static fn (string $cell): string => '<td>'.self::renderInline($cell).'</td>',
+                    $row,
+                )).'</tr>',
+                $table,
+            );
+
+            $blocks[] = sprintf(
+                '<div class="article-table-wrap"><table><thead><tr>%s</tr></thead><tbody>%s</tbody></table></div>',
+                implode('', $headCells),
+                implode('', $bodyRows),
+            );
+
+            $table = [];
+        };
+
+        for ($index = 0, $lineCount = count($lines); $index < $lineCount; ++$index) {
+            $line = $lines[$index];
+
             if (null !== $code) {
                 if (preg_match('/^```/', $line)) {
                     $flushCode();
                 } else {
                     $codeLines[] = $line;
+                }
+
+                continue;
+            }
+
+            if ($preformatted) {
+                if (':::' === trim($line)) {
+                    $flushPreformatted();
+                } else {
+                    $preformattedLines[] = $line;
                 }
 
                 continue;
@@ -143,7 +202,19 @@ final class ArticleMarkupRenderer
                 $flushParagraph();
                 $flushList();
                 $flushQuote();
+                $flushTable();
+                $flushPreformatted();
                 $code = isset($matches[1]) ? strtolower($matches[1]) : '';
+
+                continue;
+            }
+
+            if (':::pre' === strtolower(trim($line))) {
+                $flushParagraph();
+                $flushList();
+                $flushQuote();
+                $flushTable();
+                $preformatted = true;
 
                 continue;
             }
@@ -152,6 +223,8 @@ final class ArticleMarkupRenderer
                 $flushParagraph();
                 $flushList();
                 $flushQuote();
+                $flushTable();
+                $flushPreformatted();
                 $align = strtolower($matches[1]);
 
                 continue;
@@ -161,6 +234,36 @@ final class ArticleMarkupRenderer
                 $flushParagraph();
                 $flushList();
                 $flushQuote();
+                $flushTable();
+                $flushPreformatted();
+
+                continue;
+            }
+
+            if (self::isTableStart($lines, $index)) {
+                $flushParagraph();
+                $flushList();
+                $flushQuote();
+
+                $table[] = self::parseTableRow($line);
+                ++$index;
+
+                while ($index + 1 < $lineCount && self::isTableRow($lines[$index + 1])) {
+                    ++$index;
+                    $table[] = self::parseTableRow($lines[$index]);
+                }
+
+                $flushTable();
+
+                continue;
+            }
+
+            if (preg_match('/^\s*([-*_])(?:\s*\1){2,}\s*$/', $line)) {
+                $flushParagraph();
+                $flushList();
+                $flushQuote();
+                $flushTable();
+                $blocks[] = '<hr>';
 
                 continue;
             }
@@ -169,6 +272,7 @@ final class ArticleMarkupRenderer
                 $flushParagraph();
                 $flushList();
                 $flushQuote();
+                $flushTable();
                 $level = strlen($matches[1]);
                 $content = self::renderInline(trim($matches[2]));
 
@@ -227,8 +331,31 @@ final class ArticleMarkupRenderer
         $flushQuote();
         $flushAlign();
         $flushCode();
+        $flushPreformatted();
+        $flushTable();
 
         return implode("\n", $blocks);
+    }
+
+    private static function renderParagraphLines(array $lines): string
+    {
+        $result = '';
+        $previousEndedWithBreak = false;
+
+        foreach ($lines as $line) {
+            $trimmed = trim($line);
+            $lineBreak = str_ends_with($trimmed, '\\');
+            $content = $lineBreak ? rtrim(substr($trimmed, 0, -1)) : $trimmed;
+
+            if ('' !== $result) {
+                $result .= $previousEndedWithBreak ? self::LINE_BREAK_TOKEN : ' ';
+            }
+
+            $result .= $content;
+            $previousEndedWithBreak = $lineBreak;
+        }
+
+        return self::renderInline($result);
     }
 
     private static function renderInline(string $text): string
@@ -266,6 +393,63 @@ final class ArticleMarkupRenderer
             $escaped = preg_replace($pattern, $replacement, $escaped) ?? $escaped;
         }
 
-        return $escaped;
+        return str_replace(self::LINE_BREAK_TOKEN, '<br>', $escaped);
+    }
+
+    private static function isTableStart(array $lines, int $index): bool
+    {
+        if (!isset($lines[$index + 1])) {
+            return false;
+        }
+
+        return self::isTableRow($lines[$index]) && self::isTableSeparator($lines[$index + 1]);
+    }
+
+    private static function isTableRow(string $line): bool
+    {
+        return str_contains($line, '|') && preg_match('/^\s*\|?.+\|.+\|?\s*$/', $line) === 1;
+    }
+
+    private static function isTableSeparator(string $line): bool
+    {
+        $cells = self::splitTableCells($line);
+
+        if ([] === $cells) {
+            return false;
+        }
+
+        foreach ($cells as $cell) {
+            if (preg_match('/^:?-{3,}:?$/', $cell) !== 1) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function parseTableRow(string $line): array
+    {
+        return self::splitTableCells($line);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function splitTableCells(string $line): array
+    {
+        $trimmed = trim($line);
+        $trimmed = trim($trimmed, '|');
+
+        if ('' === $trimmed) {
+            return [];
+        }
+
+        return array_map(
+            static fn (string $cell): string => trim($cell),
+            explode('|', $trimmed),
+        );
     }
 }
