@@ -21,6 +21,9 @@ jobs:
     
     - uses: actions/checkout@v4
 
+    - name: Prepare Env File
+      run: cp .env.template .env
+
     - name: Validate composer.json and composer.lock
       run: composer validate --strict
 
