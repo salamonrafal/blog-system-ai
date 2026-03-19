@@ -30,6 +30,9 @@
 /var/bootstrap.php.cache
 /bin/*
 !bin/console
+!bin/db-create.php
+!bin/dev-router.php
+!bin/dev-server.php
 !bin/symfony_requirements
 /vendor/
 
