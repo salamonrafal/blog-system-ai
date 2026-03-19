@@ -3263,7 +3263,7 @@ tbody tr:last-child td {
 }
 
 .article-body blockquote{
-  margin:0;
+  margin:1.8rem 0;
   padding:1rem 1.2rem;
   border-left:4px solid color-mix(in oklab, var(--accent-2) 58%, var(--border));
   border-radius:0 16px 16px 0;
@@ -3285,12 +3285,20 @@ tbody tr:last-child td {
 }
 
 .article-body pre{
-  margin:0;
+  margin:1.8rem 0;
   padding:1rem 1.1rem;
   overflow-x:auto;
   border:1px solid color-mix(in oklab, var(--accent-2) 18%, var(--border));
   border-radius:16px;
   background: color-mix(in oklab, var(--panel-2) 96%, transparent);
+}
+
+.article-body > :first-child:is(blockquote, pre){
+  margin-top:0;
+}
+
+.article-body > :last-child:is(blockquote, pre){
+  margin-bottom:0;
 }
 
 .article-body .article-preformatted{

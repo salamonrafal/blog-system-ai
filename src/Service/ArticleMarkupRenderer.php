@@ -253,8 +253,6 @@ final class ArticleMarkupRenderer
                     $table[] = self::parseTableRow($lines[$index]);
                 }
 
-                $flushTable();
-
                 continue;
             }
 
@@ -342,12 +340,12 @@ final class ArticleMarkupRenderer
         $result = '';
         $previousEndedWithBreak = false;
 
-        foreach ($lines as $line) {
+        foreach ($lines as $index => $line) {
             $trimmed = trim($line);
             $lineBreak = str_ends_with($trimmed, '\\');
             $content = $lineBreak ? rtrim(substr($trimmed, 0, -1)) : $trimmed;
 
-            if ('' !== $result) {
+            if ($index > 0) {
                 $result .= $previousEndedWithBreak ? self::LINE_BREAK_TOKEN : ' ';
             }
 

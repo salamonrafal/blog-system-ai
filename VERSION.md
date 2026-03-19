@@ -74,3 +74,9 @@
 - Poprawiono działanie przycisku `Blok preformatowany` w edytorze, aby opakowywał aktualnie zaznaczony blok treści zamiast zastępować go domyślnym przykładem.
 - Dopracowano odstępy separatora poziomego w publicznym widoku artykułu, nadając mu własny rytm pionowy niezależny od ogólnego spacingu bloków treści.
 - Przebudowano okno pomocy formatowania w formularzach tworzenia i edycji artykułu, dzieląc treść na zakładki `Podstawowe` i `Zaawansowane` oraz dodając przewijane wnętrze modala, dzięki czemu cała instrukcja mieści się w obrębie ekranu.
+
+## 2026-03-19
+
+- Poprawiono renderowanie treści bezpośrednio po tabelach, usuwając przedwczesne domykanie bloku tabeli i naprawiając obsługę wymuszonych nowych linii w akapicie następującym po tabeli.
+- Uzupełniono testy parsera formatowania o przypadki graniczne dla akapitów po tabeli, w tym zachowanie wielu początkowych nowych linii renderowanych jako `<br>`.
+- Dopracowano rytm pionowy bloków `blockquote` i `pre` na stronie artykułu, nadając im własne marginesy oraz zerując odstępy skrajne dla pierwszego i ostatniego elementu w treści.

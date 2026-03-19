@@ -104,6 +104,44 @@ TEXT);
         $this->assertStringContainsString('<div class="article-table-wrap"><table><thead><tr><th>Kolumna A</th><th>Kolumna B</th></tr></thead><tbody><tr><td><code>kod</code></td><td>Wartosc</td></tr></tbody></table></div>', $html);
     }
 
+    public function testRendersForcedLineBreakInParagraphImmediatelyAfterTable(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+
+        $html = $renderer->render(<<<'TEXT'
+| Kolumna A | Kolumna B |
+| --- | --- |
+| Wartosc 1 | Wartosc 2 |
+Po tabeli\
+Druga linia
+TEXT);
+
+        $this->assertStringContainsString('<div class="article-table-wrap"><table><thead><tr><th>Kolumna A</th><th>Kolumna B</th></tr></thead><tbody><tr><td>Wartosc 1</td><td>Wartosc 2</td></tr></tbody></table></div>', $html);
+        $this->assertStringContainsString('<p>Po tabeli<br>Druga linia</p>', $html);
+    }
+
+    public function testPreservesLeadingForcedLineBreaksAfterTable(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+
+        $html = $renderer->render(<<<'TEXT'
+| Cecha | Monolit | Mikroserwisy |
+| ------------ | --------- | -------------- |
+| Deployment | Jeden | Wiele |
+| Skalowanie | Całość | Per serwis |
+| Złożoność | Niska | Wysoka |
+| Wydajność | Wysoka | Niższa |
+
+\
+\
+\
+Architektura monolityczna.
+TEXT);
+
+        $this->assertStringContainsString('<div class="article-table-wrap"><table><thead><tr><th>Cecha</th><th>Monolit</th><th>Mikroserwisy</th></tr></thead><tbody><tr><td>Deployment</td><td>Jeden</td><td>Wiele</td></tr><tr><td>Skalowanie</td><td>Całość</td><td>Per serwis</td></tr><tr><td>Złożoność</td><td>Niska</td><td>Wysoka</td></tr><tr><td>Wydajność</td><td>Wysoka</td><td>Niższa</td></tr></tbody></table></div>', $html);
+        $this->assertStringContainsString('<p><br><br><br>Architektura monolityczna.</p>', $html);
+    }
+
     public function testEscapesRawHtml(): void
     {
         $renderer = new ArticleMarkupRenderer();
