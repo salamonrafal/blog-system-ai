@@ -151,3 +151,31 @@ Main security files:
 2. Split admin roles into editor and administrator.
 3. Add audit logging for content changes.
 4. Extend the domain with categories, tags, comments and media.
+
+
+## Docker Manual Command
+
+### Build image
+```bash
+docker image build -t salamonrafal/blog-system-ai:dev .
+```
+
+### Create develop container 
+```bash
+docker container run -d -p 8888:8888 -p 8080:80 \
+   -e APP_ENV=dev \
+   -e APP_DEBUG=1 \
+   -e APP_SECRET="test12345_deko1" \
+   -e DATABASE_URL="sqlite:///%kernel.project_dir%/var/data.db" \
+ --name blog-system-ai salamonrafal/blog-system-ai:dev
+```
+
+### Run command in container
+```bash
+docker container exec -it blog-system-ai bash
+```
+
+### Delete develop container 
+```bash
+docker container stop blog-system-ai && docker container rm blog-system-ai
+```

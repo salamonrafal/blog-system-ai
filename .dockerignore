@@ -1,0 +1,9 @@
+/vendor/
+/_ai_data/
+/var/cache/*
+!var/cache/.gitkeep
+/var/*
+/var/log/*
+!var/log/.gitkeep
+!var/log/
+!var/data.db
