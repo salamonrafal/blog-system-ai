@@ -1,0 +1,46 @@
+server {
+  listen	80;
+  server_name	_;
+  root		/var/www/app/public/;
+
+  access_log	/var/log/nginx/application-access.log;
+  error_log	/var/log/nginx/application-error.log error;
+  index		index.html index.htm index.php;
+
+  location / {
+    try_files $uri $uri/ /index.php$is_args$args;
+  }
+
+  location ~ \.php$ {
+    # Prevent arbitrary PHP execution in uploads directories
+    # This is a security check - only process PHP if the file exists
+    try_files $uri =404;
+
+    # Split path_info from the script filename
+    fastcgi_split_path_info ^(.+\.php)(/.+)$;
+
+    # Connect to PHP-FPM via Unix socket
+    fastcgi_pass  localhost:9000;
+
+    # Set standard FastCGI parameters
+    fastcgi_index index.php;
+    include fastcgi_params;
+
+    # Pass the script path to PHP
+    fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+    fastcgi_param DOCUMENT_ROOT $realpath_root;
+
+    # Optional: increase timeouts for long-running PHP scripts
+    fastcgi_read_timeout 300;
+  }
+
+  # Deny access to hidden files (.htaccess, .git, etc.)
+  location ~ /\. {
+    deny all;
+  }
+
+  # Deny access to PHP files in sensitive directories
+  location ~* /(?:uploads|files|media)/.*\.php$ {
+    deny all;
+  }
+}
