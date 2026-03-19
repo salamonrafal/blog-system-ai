@@ -13,6 +13,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+    - name: Setup PHP with pre-release PECL extension
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.4'
+        extensions: bz2 bcmath ctype curl iconv exif fileinfo gd gmp hash json intl mbstring opcache pdo_sqlite readline session tokenizer xml xmlreader xmlwriter xsl zip
+    
     - uses: actions/checkout@v4
 
     - name: Validate composer.json and composer.lock
