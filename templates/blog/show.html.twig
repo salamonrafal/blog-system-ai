@@ -1,8 +1,10 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}{{ article.title }} | {{ app_name }}{% endblock %}
+{% block canonical %}{{ absolute_url(path('blog_show', {slug: article.slug})) }}{% endblock %}
 {% block meta_description %}{{ article.excerpt ?: article.content|striptags|slice(0, 160) ~ (article.content|length > 160 ? '...' : '') }}{% endblock %}
 {% block og_description %}{{ block('meta_description') }}{% endblock %}
+{% block og_url %}{{ block('canonical') }}{% endblock %}
 {% block twitter_description %}{{ block('meta_description') }}{% endblock %}
 {% block og_image %}{% if article.resolvedHeadlineImage %}{{ article.resolvedHeadlineImage starts with 'http' ? article.resolvedHeadlineImage : 'https://www.salamonrafal.pl' ~ article.resolvedHeadlineImage }}{% else %}{{ parent() }}{% endif %}{% endblock %}
 {% block twitter_image %}{{ block('og_image') }}{% endblock %}
