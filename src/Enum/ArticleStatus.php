@@ -9,6 +9,7 @@ enum ArticleStatus: string
     case DRAFT = 'draft';
     case REVIEW = 'review';
     case PUBLISHED = 'published';
+    case ARCHIVED = 'archived';
 
     public function label(): string
     {
@@ -16,6 +17,7 @@ enum ArticleStatus: string
             self::DRAFT => 'Draft',
             self::REVIEW => 'In review',
             self::PUBLISHED => 'Published',
+            self::ARCHIVED => 'Archived',
         };
     }
 }

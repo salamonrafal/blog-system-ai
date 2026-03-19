@@ -1,31 +1,89 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}{{ article.title }} | {{ app_name }}{% endblock %}
+{% block canonical %}{{ absolute_url(path('blog_show', {slug: article.slug})) }}{% endblock %}
+{% block meta_description %}{{ article.excerpt ?: article.content|striptags|slice(0, 160) ~ (article.content|length > 160 ? '...' : '') }}{% endblock %}
+{% block og_description %}{{ block('meta_description') }}{% endblock %}
+{% block og_url %}{{ block('canonical') }}{% endblock %}
+{% block twitter_description %}{{ block('meta_description') }}{% endblock %}
+{% block og_image %}{% if article.resolvedHeadlineImage %}{{ article.resolvedHeadlineImage starts with 'http' ? article.resolvedHeadlineImage : 'https://www.salamonrafal.pl' ~ article.resolvedHeadlineImage }}{% else %}{{ parent() }}{% endif %}{% endblock %}
+{% block twitter_image %}{{ block('og_image') }}{% endblock %}
 
 {% block body %}
-    <article class="panel">
-        <p class="meta">
-            Language: {{ article.language.label() }} |
-            Status: {{ article.status.label() }}
-            {% if article.publishedAt %}
-                | Published: {{ article.publishedAt|date('Y-m-d H:i') }}
-            {% endif %}
-        </p>
-        <h1>{{ article.title }}</h1>
+    <section class="section">
+        <article class="card">
+            <div class="card-header">
+                <span class="pill">blog://article-body</span>
+                <span class="pill">published://{{ article.publishedAt ? article.publishedAt|user_date('stamp') : article.createdAt|user_date('stamp') }}</span>
+            </div>
 
-        {% if article.excerpt %}
-            <p><strong>{{ article.excerpt }}</strong></p>
-        {% endif %}
+            <div class="article-content-panel">
+                {% if article.resolvedHeadlineImage %}
+                    <figure class="article-headline-figure">
+                        <img
+                            src="{{ article.resolvedHeadlineImage }}"
+                            alt="{{ article.title }}"
+                            class="article-headline-image"
+                            loading="eager"
+                            decoding="async"
+                        >
+                        <figcaption class="article-headline-caption">
+                            <h1 class="article-headline-title">{{ article.title }}</h1>
+                        </figcaption>
+                    </figure>
+                {% else %}
+                    <div class="dashboard-feed-intro">
+                        <h1>{{ article.title }}</h1>
+                    </div>
+                {% endif %}
+                <div class="article-body">
+                    {{ article.content|article_markup }}
+                </div>
+                <div class="actions article-content-actions">
+                    <a class="button secondary" href="{{ path('blog_index') }}" data-i18n="blog_back_to_articles">Wróć do artykułów</a>
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <a class="button" href="{{ path('admin_article_edit', {id: article.id}) }}" data-i18n="blog_edit_in_admin">Edytuj w panelu admina</a>
+                    {% endif %}
+                </div>
+            </div>
+        </article>
+    </section>
 
-        <div>
-            {{ article.content|nl2br }}
-        </div>
-
-        <div class="actions">
-            <a class="button secondary" href="{{ path('blog_index') }}">Back to articles</a>
-            {% if is_granted('ROLE_ADMIN') %}
-                <a class="button" href="{{ path('admin_article_edit', {id: article.id}) }}">Edit in admin</a>
-            {% endif %}
-        </div>
-    </article>
+    {% if app.user %}
+        <section class="section">
+            <aside class="card article-metadata-card">
+                <div class="card-header">
+                    <span class="pill" data-i18n="blog_metadata">Metadane</span>
+                </div>
+                <div class="stats article-metadata-stats">
+                    <div class="stat article-metadata-stat">
+                        <strong>
+                            <span data-lang="pl">
+                                {% if article.status.value == 'draft' %}Szkic{% elseif article.status.value == 'review' %}W recenzji{% elseif article.status.value == 'archived' %}Zarchiwizowany{% else %}Opublikowany{% endif %}
+                            </span>
+                            <span data-lang="en">
+                                {% if article.status.value == 'draft' %}Draft{% elseif article.status.value == 'review' %}In review{% elseif article.status.value == 'archived' %}Archived{% else %}Published{% endif %}
+                            </span>
+                        </strong>
+                        <span class="supporting-copy" data-i18n="blog_publication_status">Bieżący status publikacji</span>
+                    </div>
+                    <div class="stat article-metadata-stat">
+                        <strong>{{ article.publishedAt ? article.publishedAt|user_date('date') : article.createdAt|user_date('date') }}</strong>
+                        <span class="supporting-copy" data-i18n="blog_public_date">Główna data publiczna</span>
+                    </div>
+                    <div class="stat article-metadata-stat">
+                        <strong>
+                            <span data-lang="pl">{{ article.language.value == 'pl' ? 'Polski (PL)' : 'Angielski (EN)' }}</span>
+                            <span data-lang="en">{{ article.language.value == 'pl' ? 'Polski (PL)' : 'English (EN)' }}</span>
+                        </strong>
+                        <span class="supporting-copy" data-i18n="blog_article_language">Język publikacji</span>
+                    </div>
+                    <div class="stat article-metadata-stat">
+                        <strong>{{ article.slug }}</strong>
+                        <span class="supporting-copy" data-i18n="blog_reader_slug">Slug widoczny dla czytelnika</span>
+                    </div>
+                </div>
+            </aside>
+        </section>
+    {% endif %}
 {% endblock %}

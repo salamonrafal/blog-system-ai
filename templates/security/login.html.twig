@@ -3,32 +3,36 @@
 {% block title %}Login | {{ app_name }}{% endblock %}
 
 {% block body %}
-    <section class="panel" style="max-width: 520px; margin: 0 auto;">
-        <p class="meta">Admin access</p>
-        <h1>Sign in to manage content</h1>
-        <p>Only users with administrator permissions can access the editorial panel.</p>
+    <section class="login-shell">
+        <div class="card login-panel">
+            <div class="login-panel-body">
+                <p class="eyebrow meta-pill" data-i18n="login_eyebrow">Dostęp administratora</p>
+                <h1 data-i18n="login_title">Zaloguj się, aby zarządzać treścią</h1>
+                <p class="lede" data-i18n="login_lede">Ten ekran logowania korzysta z tego samego języka wizualnego co reszta aplikacji.</p>
 
-        {% if error %}
-            <div class="flash error">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
-        {% endif %}
+                {% if error %}
+                    <div class="flash error">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+                {% endif %}
 
-        <form method="post">
-            <div>
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" value="{{ last_username }}" autocomplete="email" required autofocus>
+                <form method="post" class="form login-form">
+                    <div class="field">
+                        <label for="email" data-i18n="login_email">Email</label>
+                        <input type="email" id="email" name="email" value="{{ last_username }}" autocomplete="email" required autofocus>
+                    </div>
+
+                    <div class="field">
+                        <label for="password" data-i18n="login_password">Hasło</label>
+                        <input type="password" id="password" name="password" autocomplete="current-password" required>
+                    </div>
+
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+                    <div class="form-actions login-actions">
+                        <button type="submit" class="button" data-i18n="login_submit">Zaloguj się</button>
+                        <a class="button secondary" href="{{ path('blog_index') }}" data-i18n="login_back_to_blog">Wróć do bloga</a>
+                    </div>
+                </form>
             </div>
-
-            <div>
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" autocomplete="current-password" required>
-            </div>
-
-            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
-
-            <div class="actions">
-                <button type="submit">Login</button>
-                <a class="button secondary" href="{{ path('blog_index') }}">Back to blog</a>
-            </div>
-        </form>
+        </div>
     </section>
 {% endblock %}

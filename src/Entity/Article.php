@@ -16,28 +16,42 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\HasLifecycleCallbacks]
 class Article
 {
+    public const DEFAULT_HEADLINE_IMAGE = '/assets/img/default-headline-article-pixel-art.png';
+    private const STORAGE_TIMEZONE = 'UTC';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[Assert\NotBlank]
-    #[Assert\Length(max: 255)]
+    #[Assert\NotBlank(message: 'validation_article_title_required')]
+    #[Assert\Length(max: 255, maxMessage: 'validation_article_title_too_long')]
     #[ORM\Column(length: 255)]
     private string $title = '';
 
     #[ORM\Column(enumType: ArticleLanguage::class)]
     private ArticleLanguage $language = ArticleLanguage::PL;
 
-    #[Assert\Length(max: 255)]
+    #[Assert\Length(max: 255, maxMessage: 'validation_article_slug_too_long')]
     #[ORM\Column(length: 255, unique: true)]
     private string $slug = '';
 
-    #[Assert\Length(max: 320)]
+    #[Assert\Length(max: 320, maxMessage: 'validation_article_excerpt_too_long')]
     #[ORM\Column(length: 320, nullable: true)]
     private ?string $excerpt = null;
 
-    #[Assert\NotBlank]
+    #[Assert\Length(max: 500, maxMessage: 'validation_article_headline_image_too_long')]
+    #[Assert\Regex(
+        pattern: '/^(https?:\/\/|\/).+/',
+        message: 'validation_article_headline_image_invalid'
+    )]
+    #[ORM\Column(length: 500, nullable: true)]
+    private ?string $headlineImage = null;
+
+    #[ORM\Column(options: ['default' => true])]
+    private bool $headlineImageEnabled = true;
+
+    #[Assert\NotBlank(message: 'validation_article_content_required')]
     #[ORM\Column(type: Types::TEXT)]
     private string $content = '';
 
@@ -55,7 +69,7 @@ class Article
 
     public function __construct()
     {
-        $now = new \DateTimeImmutable();
+        $now = self::utcNow();
         $this->createdAt = $now;
         $this->updatedAt = $now;
     }
@@ -113,6 +127,40 @@ class Article
         return $this;
     }
 
+    public function getHeadlineImage(): ?string
+    {
+        return $this->headlineImage;
+    }
+
+    public function setHeadlineImage(?string $headlineImage): self
+    {
+        $headlineImage = null !== $headlineImage ? trim($headlineImage) : null;
+        $this->headlineImage = '' === $headlineImage ? null : $headlineImage;
+
+        return $this;
+    }
+
+    public function isHeadlineImageEnabled(): bool
+    {
+        return $this->headlineImageEnabled;
+    }
+
+    public function setHeadlineImageEnabled(bool $headlineImageEnabled): self
+    {
+        $this->headlineImageEnabled = $headlineImageEnabled;
+
+        return $this;
+    }
+
+    public function getResolvedHeadlineImage(): ?string
+    {
+        if (!$this->headlineImageEnabled) {
+            return null;
+        }
+
+        return $this->headlineImage ?? self::DEFAULT_HEADLINE_IMAGE;
+    }
+
     public function getContent(): string
     {
         return $this->content;
@@ -144,7 +192,7 @@ class Article
 
     public function setPublishedAt(?\DateTimeImmutable $publishedAt): self
     {
-        $this->publishedAt = $publishedAt;
+        $this->publishedAt = self::normalizeToUtc($publishedAt);
 
         return $this;
     }
@@ -167,14 +215,30 @@ class Article
     #[ORM\PrePersist]
     public function onPrePersist(): void
     {
-        $now = new \DateTimeImmutable();
+        $now = self::utcNow();
         $this->createdAt = $now;
         $this->updatedAt = $now;
+        $this->publishedAt = self::normalizeToUtc($this->publishedAt);
     }
 
     #[ORM\PreUpdate]
     public function onPreUpdate(): void
     {
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->updatedAt = self::utcNow();
+        $this->publishedAt = self::normalizeToUtc($this->publishedAt);
+    }
+
+    private static function normalizeToUtc(?\DateTimeImmutable $dateTime): ?\DateTimeImmutable
+    {
+        if (null === $dateTime) {
+            return null;
+        }
+
+        return $dateTime->setTimezone(new \DateTimeZone(self::STORAGE_TIMEZONE));
+    }
+
+    private static function utcNow(): \DateTimeImmutable
+    {
+        return new \DateTimeImmutable('now', new \DateTimeZone(self::STORAGE_TIMEZONE));
     }
 }

@@ -3,14 +3,58 @@
 {% block title %}Admin | {{ app_name }}{% endblock %}
 
 {% block body %}
-    <section class="panel">
-        <p class="meta">Admin area</p>
-        <h1>Content operations hub</h1>
-        <p>This dashboard is a lightweight starting point for editorial workflows, moderation and publishing tools.</p>
+    <section class="section">
+        <div class="card">
+            <div class="card-header">
+                <div class="window-dots" aria-hidden="true">
+                    <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                </div>
+                <span class="pill">blog://published-feed</span>
+            </div>
 
-        <div class="actions">
-            <a class="button" href="{{ path('admin_article_new') }}">Create article</a>
-            <a class="button secondary" href="{{ path('admin_article_index') }}">Browse articles</a>
+            <div class="dashboard-feed-intro">
+                <h1 data-i18n="admin_dashboard_title">Centrum operacji treści</h1>
+                <p class="lede" data-i18n="admin_dashboard_lede">Panel administracyjny dopasowany do układu aplikacji, gotowy na workflow redakcyjny, moderację i publikację.</p>
+
+                <div class="actions">
+                    <a class="button" href="{{ path('admin_article_new') }}" data-i18n="blog_create_article">Utwórz artykuł</a>
+                    <a class="button secondary" href="{{ path('admin_article_index') }}" data-i18n="admin_browse_articles">Przeglądaj artykuły</a>
+                </div>
+            </div>
+
+            {% if published_articles is not empty %}
+                <div class="quick-links feed-panel-list">
+                    {% for article in published_articles %}
+                        <article class="big-link no-hover article-subpanel">
+                            <div class="article-subpanel-header">
+                                <h2 class="article-subpanel-title">{{ article.title }}</h2>
+                                <div class="meta article-subpanel-meta">
+                                    {{ article.publishedAt ? article.publishedAt|user_date : article.createdAt|user_date }}
+                                    |
+                                    <span data-lang="pl">{{ article.language.value == 'pl' ? 'Polski (PL)' : 'Angielski (EN)' }}</span>
+                                    <span data-lang="en">{{ article.language.value == 'pl' ? 'Polski (PL)' : 'English (EN)' }}</span>
+                                    |
+                                    <span data-lang="pl">
+                                        {% if article.status.value == 'draft' %}Szkic{% elseif article.status.value == 'review' %}W recenzji{% elseif article.status.value == 'archived' %}Zarchiwizowany{% else %}Opublikowany{% endif %}
+                                    </span>
+                                    <span data-lang="en">
+                                        {% if article.status.value == 'draft' %}Draft{% elseif article.status.value == 'review' %}In review{% elseif article.status.value == 'archived' %}Archived{% else %}Published{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="big-link-copy">
+                                <span>{{ article.excerpt ?: article.content|slice(0, 180) ~ (article.content|length > 180 ? '...' : '') }}</span>
+                            </div>
+                            <div class="article-subpanel-actions">
+                                <a class="btn article-subpanel-button" href="{{ path('admin_article_edit', {id: article.id}) }}" data-i18n="admin_edit_article">Edytuj artykuł</a>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="meta" data-i18n="blog_no_articles">Brak opublikowanych artykułów.</p>
+            {% endif %}
         </div>
     </section>
+
 {% endblock %}

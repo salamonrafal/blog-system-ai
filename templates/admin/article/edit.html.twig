@@ -3,14 +3,51 @@
 {% block title %}Edit {{ article.title }} | {{ app_name }}{% endblock %}
 
 {% block body %}
-    <section class="panel">
-        <p class="meta">Admin area</p>
-        <h1>Edit article</h1>
-        <p>Slug: <code>{{ article.slug }}</code></p>
+    <section class="section">
+        <div class="card">
+            <div class="card-header">
+                <div class="window-dots" aria-hidden="true">
+                    <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                </div>
+                <span class="pill">admin://article-edit</span>
+            </div>
 
-        {% include 'admin/article/_form.html.twig' with {
-            form: form,
-            submit_label: 'Update article'
-        } %}
+            <div class="dashboard-feed-intro">
+                <h1 data-i18n="admin_edit_article_title">Edytuj artykuł</h1>
+                <p class="lede" data-i18n="admin_edit_article_lede">Aktualizuj treść, metadane i stan publikacji, zachowując istniejący slug.</p>
+
+                <section class="article-edit-meta-panel" aria-label="Article metadata">
+                    <div class="article-edit-meta-header">
+                        <span class="pill">admin://article-metadata</span>
+                    </div>
+                    <dl class="article-edit-meta-list">
+                        <div class="article-edit-meta-item">
+                            <dt class="article-edit-meta-label" data-i18n="admin_permanent_slug">Stały slug</dt>
+                            <dd class="article-edit-meta-value">{{ article.slug }}</dd>
+                        </div>
+                        <div class="article-edit-meta-item">
+                            <dt class="article-edit-meta-label" data-i18n="admin_current_workflow_status">Bieżący status workflow</dt>
+                            <dd class="article-edit-meta-value">
+                                <span data-lang="pl">
+                                    {% if article.status.value == 'draft' %}Szkic{% elseif article.status.value == 'review' %}W recenzji{% elseif article.status.value == 'archived' %}Zarchiwizowany{% else %}Opublikowany{% endif %}
+                                </span>
+                                <span data-lang="en">
+                                    {% if article.status.value == 'draft' %}Draft{% elseif article.status.value == 'review' %}In review{% elseif article.status.value == 'archived' %}Archived{% else %}Published{% endif %}
+                                </span>
+                            </dd>
+                        </div>
+                        <div class="article-edit-meta-item">
+                            <dt class="article-edit-meta-label" data-i18n="admin_last_update">Data ostatniej aktualizacji</dt>
+                            <dd class="article-edit-meta-value">{{ article.updatedAt|user_date }}</dd>
+                        </div>
+                    </dl>
+                </section>
+            </div>
+
+            {% include 'admin/article/_form.html.twig' with {
+                form: form,
+                submit_key: 'form_submit_update'
+            } %}
+        </div>
     </section>
 {% endblock %}

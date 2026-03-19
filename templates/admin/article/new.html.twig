@@ -3,14 +3,24 @@
 {% block title %}New Article | {{ app_name }}{% endblock %}
 
 {% block body %}
-    <section class="panel">
-        <p class="meta">Admin area</p>
-        <h1>Create article</h1>
-        <p>New entries start as draft by default and receive a unique slug automatically.</p>
+    <section class="section">
+        <div class="card">
+            <div class="card-header">
+                <div class="window-dots" aria-hidden="true">
+                    <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                </div>
+                <span class="pill">admin://article-new</span>
+            </div>
 
-        {% include 'admin/article/_form.html.twig' with {
-            form: form,
-            submit_label: 'Create article'
-        } %}
+            <div class="dashboard-feed-intro">
+                <h1 data-i18n="admin_new_article_title">Utwórz artykuł</h1>
+                <p class="lede" data-i18n="admin_new_article_lede">Nowe wpisy domyślnie zaczynają jako szkice i przed zapisaniem dostają unikalny slug.</p>
+            </div>
+
+            {% include 'admin/article/_form.html.twig' with {
+                form: form,
+                submit_key: 'form_submit_create'
+            } %}
+        </div>
     </section>
 {% endblock %}

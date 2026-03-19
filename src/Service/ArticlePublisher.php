@@ -10,6 +10,8 @@ use App\Repository\ArticleRepository;
 
 class ArticlePublisher
 {
+    private const STORAGE_TIMEZONE = 'UTC';
+
     public function __construct(
         private readonly ArticleRepository $articleRepository,
         private readonly ArticleSlugger $articleSlugger,
@@ -23,7 +25,7 @@ class ArticlePublisher
         }
 
         if (ArticleStatus::PUBLISHED === $article->getStatus() && null === $article->getPublishedAt()) {
-            $article->setPublishedAt(new \DateTimeImmutable());
+            $article->setPublishedAt(new \DateTimeImmutable('now', new \DateTimeZone(self::STORAGE_TIMEZONE)));
         }
 
         if (ArticleStatus::PUBLISHED !== $article->getStatus()) {

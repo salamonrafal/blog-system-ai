@@ -3,43 +3,112 @@
 {% block title %}Manage Articles | {{ app_name }}{% endblock %}
 
 {% block body %}
-    <section class="panel">
-        <p class="meta">Admin area</p>
-        <div class="actions" style="justify-content: space-between; margin-top: 0;">
-            <div>
-                <h1>Article management</h1>
-                <p>All articles in one place, regardless of publication status.</p>
+    <section class="section">
+        <div class="card">
+            <div class="card-header">
+                <div class="window-dots" aria-hidden="true">
+                    <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                </div>
+                <span class="pill">admin://article-index</span>
             </div>
-            <a class="button" href="{{ path('admin_article_new') }}">New article</a>
-        </div>
 
-        <table>
-            <thead>
-            <tr>
-                <th>Title</th>
-                <th>Language</th>
-                <th>Status</th>
-                <th>Slug</th>
-                <th>Updated</th>
-                <th></th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for article in articles %}
-                <tr>
-                    <td>{{ article.title }}</td>
-                    <td>{{ article.language.label() }}</td>
-                    <td>{{ article.status.label() }}</td>
-                    <td>{{ article.slug }}</td>
-                    <td>{{ article.updatedAt|date('Y-m-d H:i') }}</td>
-                    <td><a href="{{ path('admin_article_edit', {id: article.id}) }}">Edit</a></td>
-                </tr>
-            {% else %}
-                <tr>
-                    <td colspan="6">No articles found.</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+            <div class="dashboard-feed-intro">
+                <h1 data-i18n="admin_article_index_title">Zarządzanie artykułami</h1>
+                <p class="lede" data-i18n="admin_article_index_lede">Wszystkie artykuły w jednym miejscu, niezależnie od statusu. Tabela poniżej utrzymuje widok administracyjny w zwartej formie.</p>
+
+                <div class="actions">
+                    <a class="button" href="{{ path('admin_article_new') }}" data-i18n="admin_quick_new_article">Nowy artykuł</a>
+                </div>
+            </div>
+
+            <div class="table-wrap article-index-table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th class="article-index-title-column" data-i18n="admin_table_title">Tytuł</th>
+                        <th data-i18n="admin_table_status">Status</th>
+                        <th data-i18n="admin_table_updated">Aktualizacja</th>
+                        <th data-i18n="admin_table_action">Akcja</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for article in articles %}
+                        <tr>
+                            <td class="article-index-title-cell"><a href="{{ path('blog_show', {slug: article.slug}) }}">{{ article.title }}</a></td>
+                            <td class="article-index-status-cell">
+                                <span data-lang="pl">
+                                    {% if article.status.value == 'draft' %}Szkic{% elseif article.status.value == 'review' %}W recenzji{% elseif article.status.value == 'archived' %}Zarchiwizowany{% else %}Opublikowany{% endif %}
+                                </span>
+                                <span data-lang="en">
+                                    {% if article.status.value == 'draft' %}Draft{% elseif article.status.value == 'review' %}In review{% elseif article.status.value == 'archived' %}Archived{% else %}Published{% endif %}
+                                </span>
+                            </td>
+                            <td class="article-index-updated-cell">{{ article.updatedAt|user_date }}</td>
+                            <td>
+                                <div class="actions">
+                                    <a
+                                        class="button secondary article-action-button"
+                                        href="{{ path('admin_article_edit', {id: article.id}) }}"
+                                        data-i18n-tooltip="admin_table_edit"
+                                        data-tooltip="Edytuj"
+                                        aria-label="Edytuj"
+                                    >
+                                        <span class="article-action-icon is-edit" aria-hidden="true"></span>
+                                    </a>
+                                    {% if article.status.value != 'published' %}
+                                        <form method="post" action="{{ path('admin_article_publish', {id: article.id}) }}">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('publish_article_' ~ article.id) }}">
+                                            <button
+                                                class="button secondary article-action-button"
+                                                type="submit"
+                                                data-i18n-tooltip="admin_table_publish"
+                                                data-tooltip="Opublikuj"
+                                                aria-label="Opublikuj"
+                                            >
+                                                <span class="article-action-icon is-publish" aria-hidden="true"></span>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                    {% if article.status.value == 'archived' %}
+                                        <form method="post" action="{{ path('admin_article_delete', {id: article.id}) }}" data-delete-form>
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete_article_' ~ article.id) }}">
+                                            <button
+                                                class="button secondary button-danger article-action-button"
+                                                type="button"
+                                                data-action="confirm-delete-article"
+                                                data-article-title="{{ article.title }}"
+                                                data-i18n-tooltip="admin_table_delete"
+                                                data-tooltip="Usuń"
+                                                aria-label="Usuń"
+                                            >
+                                                <span class="article-action-icon is-delete" aria-hidden="true"></span>
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <form method="post" action="{{ path('admin_article_archive', {id: article.id}) }}">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('archive_article_' ~ article.id) }}">
+                                            <button
+                                                class="button secondary article-action-button"
+                                                type="submit"
+                                                data-i18n-tooltip="admin_table_archive"
+                                                data-tooltip="Archiwizuj"
+                                                aria-label="Archiwizuj"
+                                            >
+                                                <span class="article-action-icon is-archive" aria-hidden="true"></span>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="4" data-i18n="admin_table_no_articles">Nie znaleziono artykułów.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </section>
 {% endblock %}

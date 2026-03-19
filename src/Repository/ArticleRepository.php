@@ -8,6 +8,7 @@ use App\Entity\Article;
 use App\Enum\ArticleLanguage;
 use App\Enum\ArticleStatus;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -25,21 +26,29 @@ class ArticleRepository extends ServiceEntityRepository
      */
     public function findPublishedOrderedByDate(?ArticleLanguage $language = null): array
     {
-        $queryBuilder = $this->createQueryBuilder('article')
-            ->andWhere('article.status = :status')
-            ->setParameter('status', ArticleStatus::PUBLISHED)
-            ->orderBy('article.publishedAt', 'DESC')
-            ->addOrderBy('article.createdAt', 'DESC');
-
-        if (null !== $language) {
-            $queryBuilder
-                ->andWhere('article.language = :language')
-                ->setParameter('language', $language);
-        }
-
-        return $queryBuilder
+        return $this->createPublishedOrderedByDateQueryBuilder($language)
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * @return list<Article>
+     */
+    public function findPublishedPaginated(?ArticleLanguage $language, int $page, int $limit): array
+    {
+        return $this->createPublishedOrderedByDateQueryBuilder($language)
+            ->setFirstResult(max(0, ($page - 1) * $limit))
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countPublished(?ArticleLanguage $language = null): int
+    {
+        return (int) $this->createPublishedQueryBuilder($language)
+            ->select('COUNT(article.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     public function findOnePublishedBySlug(string $slug): ?Article
@@ -49,6 +58,16 @@ class ArticleRepository extends ServiceEntityRepository
             ->andWhere('article.status = :status')
             ->setParameter('slug', $slug)
             ->setParameter('status', ArticleStatus::PUBLISHED)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function findOneBySlug(string $slug): ?Article
+    {
+        return $this->createQueryBuilder('article')
+            ->andWhere('article.slug = :slug')
+            ->setParameter('slug', $slug)
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
@@ -70,5 +89,27 @@ class ArticleRepository extends ServiceEntityRepository
         return (int) $queryBuilder
             ->getQuery()
             ->getSingleScalarResult() > 0;
+    }
+
+    private function createPublishedOrderedByDateQueryBuilder(?ArticleLanguage $language): QueryBuilder
+    {
+        return $this->createPublishedQueryBuilder($language)
+            ->orderBy('article.publishedAt', 'DESC')
+            ->addOrderBy('article.createdAt', 'DESC');
+    }
+
+    private function createPublishedQueryBuilder(?ArticleLanguage $language): QueryBuilder
+    {
+        $queryBuilder = $this->createQueryBuilder('article')
+            ->andWhere('article.status = :status')
+            ->setParameter('status', ArticleStatus::PUBLISHED);
+
+        if (null !== $language) {
+            $queryBuilder
+                ->andWhere('article.language = :language')
+                ->setParameter('language', $language);
+        }
+
+        return $queryBuilder;
     }
 }

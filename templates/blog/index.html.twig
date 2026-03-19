@@ -1,37 +1,99 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}Articles | {{ app_name }}{% endblock %}
+{% block meta_description %}{{ blog_settings.homepageSeoDescription }}{% endblock %}
+{% block meta_keywords %}{{ blog_settings.homepageSeoKeywords }}{% endblock %}
+{% block og_description %}{{ blog_settings.homepageSeoDescription }}{% endblock %}
+{% block og_image %}{{ blog_settings.homepageSocialImage }}{% endblock %}
+{% block twitter_description %}{{ blog_settings.homepageSeoDescription }}{% endblock %}
+{% block twitter_image %}{{ blog_settings.homepageSocialImage }}{% endblock %}
 
 {% block body %}
-    <section class="panel hero">
-        <p class="meta">Public blog</p>
-        <h1>Articles ready for readers</h1>
-        <p>Use this list as the storefront for published content. Categories, tags and search can be added on top of this foundation.</p>
+    <section class="section">
+        <div class="card">
+            <div class="card-header">
+                <span class="pill">blog://published-feed</span>
+            </div>
+            <div class="dashboard-feed-intro">
+                <h1 data-i18n="blog_feed_title">Blog o programowaniu, technologii i praktyce tworzenia produktów</h1>
+                <p class="lede" data-i18n="blog_feed_lede">Znajdziesz tutaj artykuły o PHP, web developmencie, architekturze aplikacji, jakości kodu i codziennej pracy nad nowoczesnymi produktami cyfrowymi.</p>
+            </div>
 
-        <div class="actions">
-            <a class="button {{ current_language is null ? '' : 'secondary' }}" href="{{ path('blog_index') }}">All languages</a>
-            {% for language in language_options %}
-                <a class="button {{ current_language == language ? '' : 'secondary' }}" href="{{ path('blog_index', {lang: language.value}) }}">{{ language.label() }}</a>
-            {% endfor %}
+            {% if articles is not empty %}
+                <div class="quick-links feed-panel-list">
+                    {% for article in articles %}
+                        <article class="big-link no-hover article-subpanel">
+                            <a class="article-subpanel-headline-link{{ article.resolvedHeadlineImage ? '' : ' article-subpanel-headline-link-fallback' }}" href="{{ path('blog_show', {slug: article.slug}) }}" aria-label="{{ article.title }}">
+                                {% if article.resolvedHeadlineImage %}
+                                    <img src="{{ article.resolvedHeadlineImage }}" alt="{{ article.title }}" class="article-subpanel-headline-image" loading="lazy" decoding="async">
+                                {% else %}
+                                    <span class="article-subpanel-headline-image article-subpanel-headline-image-fallback" aria-hidden="true"></span>
+                                {% endif %}
+                                <span class="article-subpanel-headline-caption">
+                                    <span class="article-subpanel-headline-title">{{ article.title }}</span>
+                                </span>
+                            </a>
+                            <div class="article-subpanel-header">
+                                <div class="meta article-subpanel-meta">
+                                    <span class="article-subpanel-meta-icon" aria-hidden="true"></span>
+                                    {{ article.publishedAt ? article.publishedAt|user_date : article.createdAt|user_date }}
+                                </div>
+                            </div>
+                            <div class="big-link-copy">
+                                <span>{{ article.excerpt ?: article.content|slice(0, 230) ~ (article.content|length > 230 ? '...' : '') }}</span>
+                            </div>
+                            <div class="article-subpanel-actions">
+                                <a class="btn article-subpanel-button" href="{{ path('blog_show', {slug: article.slug}) }}" data-i18n="blog_read_article">Czytaj artykuł</a>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+
+                {% if total_pages > 1 %}
+                    <nav class="blog-pagination" aria-label="Paginacja artykułów">
+                        {% set base_params = current_language ? { lang: current_language.value } : {} %}
+                        {% if current_page > 1 %}
+                            <a class="btn blog-pagination-link blog-pagination-link-icon" href="{{ path('blog_index', base_params|merge({ page: current_page - 1 })) }}" aria-label="Poprzednia strona">
+                                <span aria-hidden="true">&lsaquo;</span>
+                            </a>
+                        {% else %}
+                            <span class="btn blog-pagination-link blog-pagination-link-icon is-disabled" aria-disabled="true" aria-label="Poprzednia strona">
+                                <span aria-hidden="true">&lsaquo;</span>
+                            </span>
+                        {% endif %}
+
+                        <div class="blog-pagination-pages">
+                            {% for item in pagination_items %}
+                                {% if item == '...' %}
+                                    <span class="blog-pagination-ellipsis" aria-hidden="true">...</span>
+                                {% elseif item == current_page %}
+                                    <span class="btn blog-pagination-link is-current" aria-current="page">{{ item }}</span>
+                                {% else %}
+                                    <a class="btn blog-pagination-link" href="{{ path('blog_index', base_params|merge({ page: item })) }}">{{ item }}</a>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        {% if current_page < total_pages %}
+                            <a class="btn blog-pagination-link blog-pagination-link-icon" href="{{ path('blog_index', base_params|merge({ page: current_page + 1 })) }}" aria-label="Następna strona">
+                                <span aria-hidden="true">&rsaquo;</span>
+                            </a>
+                        {% else %}
+                            <span class="btn blog-pagination-link blog-pagination-link-icon is-disabled" aria-disabled="true" aria-label="Następna strona">
+                                <span aria-hidden="true">&rsaquo;</span>
+                            </span>
+                        {% endif %}
+                    </nav>
+                {% endif %}
+            {% else %}
+                <p class="meta" data-i18n="blog_no_articles">Brak opublikowanych artykułów.</p>
+                {% if is_granted('ROLE_ADMIN') %}
+                    <div class="actions" style="margin-top: 1rem;">
+                        <a class="btn primary" href="{{ path('admin_article_new') }}" data-i18n="blog_create_first_article">Utwórz pierwszy artykuł</a>
+                    </div>
+                {% endif %}
+            {% endif %}
         </div>
     </section>
 
-    <section class="grid">
-        {% for article in articles %}
-            <article class="article-card">
-                <p class="meta">
-                    {{ article.language.label() }} |
-                    {{ article.publishedAt ? article.publishedAt|date('Y-m-d H:i') : article.createdAt|date('Y-m-d H:i') }}
-                </p>
-                <h2>{{ article.title }}</h2>
-                <p>{{ article.excerpt ?: article.content|slice(0, 180) ~ (article.content|length > 180 ? '...' : '') }}</p>
-                <a class="button secondary" href="{{ path('blog_show', {slug: article.slug}) }}">Read article</a>
-            </article>
-        {% else %}
-            <div class="panel">
-                <h2>No published articles yet</h2>
-                <p>Create the first entry in the admin panel to populate the homepage.</p>
-            </div>
-        {% endfor %}
-    </section>
 {% endblock %}

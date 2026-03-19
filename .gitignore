@@ -15,6 +15,7 @@
 !var/cache/.gitkeep
 !var/logs/.gitkeep
 !var/sessions/.gitkeep
+/var/dev-server.pid
 
 # Logs (Symfony4)
 /var/log/*
@@ -55,3 +56,6 @@
 
 # Environment variables file
 .env
+
+# AI data
+/_ai_data/

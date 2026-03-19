@@ -1,14 +1,283 @@
-{{ form_start(form) }}
-    {{ form_errors(form) }}
-    {{ form_row(form.title) }}
-    {{ form_row(form.language) }}
-    {{ form_row(form.excerpt) }}
-    {{ form_row(form.content) }}
-    {{ form_row(form.status) }}
-    {{ form_row(form.publishedAt) }}
+{{ form_start(form, { attr: { class: 'article-editor-form' } }) }}
+    {% if form.vars.errors|length > 0 %}
+        <div class="form-errors article-editor-errors" role="alert">
+            {% for error in form.vars.errors %}
+                <p data-i18n="{{ error.message }}">{{ error.message }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
 
-    <div class="actions">
-        <button type="submit">{{ submit_label|default('Save article') }}</button>
-        <a class="button secondary" href="{{ path('admin_article_index') }}">Cancel</a>
+    <div class="article-editor-fields">
+        {% set title_has_errors = form.title.vars.errors|length > 0 %}
+        {% set title_counter_id = form.title.vars.id ~ '-char-count' %}
+        {% set title_described_by = title_counter_id ~ (title_has_errors ? ' ' ~ form.title.vars.id ~ '-error' : '') %}
+        <div class="field article-editor-field{{ title_has_errors ? ' has-error' : '' }}">
+            {{ form_label(form.title) }}
+            {{ form_widget(form.title, { attr: {
+                class: 'article-editor-input',
+                'data-i18n-placeholder': 'form_placeholder_title',
+                placeholder: 'Wpisz tytuł artykułu',
+                'data-character-count-input': 'true'
+            }|merge({'aria-describedby': title_described_by})|merge(title_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
+            <div class="article-editor-field-meta">
+                <span id="{{ title_counter_id }}" class="article-editor-character-count" data-character-count-target>{{ form.title.vars.value|default('')|length }} / {{ form.title.vars.attr.maxlength }}</span>
+            </div>
+            {% if title_has_errors %}
+                <div id="{{ form.title.vars.id }}-error" class="article-editor-error-message" role="alert">
+                    {% for error in form.title.vars.errors %}
+                        <p data-i18n="{{ error.message }}">{{ error.message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="article-editor-grid">
+            {% set language_has_errors = form.language.vars.errors|length > 0 %}
+            <div class="field article-editor-field{{ language_has_errors ? ' has-error' : '' }}">
+                {{ form_label(form.language) }}
+                {{ form_widget(form.language, { attr: {
+                    class: 'article-editor-input article-editor-select'
+                }|merge(language_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.language.vars.id ~ '-error'} : {}) }) }}
+                {% if language_has_errors %}
+                    <div id="{{ form.language.vars.id }}-error" class="article-editor-error-message" role="alert">
+                        {% for error in form.language.vars.errors %}
+                            <p data-i18n="{{ error.message }}">{{ error.message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            {% set status_has_errors = form.status.vars.errors|length > 0 %}
+            <div class="field article-editor-field{{ status_has_errors ? ' has-error' : '' }}">
+                {{ form_label(form.status) }}
+                {{ form_widget(form.status, { attr: {
+                    class: 'article-editor-input article-editor-select'
+                }|merge(status_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.status.vars.id ~ '-error'} : {}) }) }}
+                {% if status_has_errors %}
+                    <div id="{{ form.status.vars.id }}-error" class="article-editor-error-message" role="alert">
+                        {% for error in form.status.vars.errors %}
+                            <p data-i18n="{{ error.message }}">{{ error.message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% set excerpt_has_errors = form.excerpt.vars.errors|length > 0 %}
+        {% set excerpt_counter_id = form.excerpt.vars.id ~ '-char-count' %}
+        {% set excerpt_described_by = excerpt_counter_id ~ (excerpt_has_errors ? ' ' ~ form.excerpt.vars.id ~ '-error' : '') %}
+        <div class="field article-editor-field{{ excerpt_has_errors ? ' has-error' : '' }}">
+            {{ form_label(form.excerpt) }}
+            {{ form_widget(form.excerpt, { attr: {
+                class: 'article-editor-input article-editor-textarea',
+                'data-i18n-placeholder': 'form_placeholder_excerpt',
+                placeholder: 'Wpisz krótki opis do list i podglądów',
+                'data-character-count-input': 'true'
+            }|merge({'aria-describedby': excerpt_described_by})|merge(excerpt_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
+            <div class="article-editor-field-meta">
+                <span id="{{ excerpt_counter_id }}" class="article-editor-character-count" data-character-count-target>{{ form.excerpt.vars.value|default('')|length }} / {{ form.excerpt.vars.attr.maxlength }}</span>
+            </div>
+            {% if excerpt_has_errors %}
+                <div id="{{ form.excerpt.vars.id }}-error" class="article-editor-error-message" role="alert">
+                    {% for error in form.excerpt.vars.errors %}
+                        <p data-i18n="{{ error.message }}">{{ error.message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        {% set headline_image_has_errors = form.headlineImage.vars.errors|length > 0 %}
+        {% set headline_image_counter_id = form.headlineImage.vars.id ~ '-char-count' %}
+        {% set headline_image_described_by = headline_image_counter_id ~ (headline_image_has_errors ? ' ' ~ form.headlineImage.vars.id ~ '-error' : '') %}
+        {% set headline_image_enabled_has_errors = form.headlineImageEnabled.vars.errors|length > 0 %}
+        <div class="field article-editor-field article-editor-field-headline-group{{ headline_image_enabled_has_errors or headline_image_has_errors ? ' has-error' : '' }}" data-headline-image-section>
+            <div class="article-editor-switch-row">
+                <div class="article-editor-switch-copy">
+                    {{ form_label(form.headlineImageEnabled, null, { label_attr: { class: 'article-editor-switch-label', 'data-i18n': 'form_headline_image_enabled' } }) }}
+                    <span class="article-editor-switch-hint" data-i18n="form_hint_headline_image_enabled">Gdy pole grafiki pozostanie puste, zostanie użyty domyślny obrazek systemowy.</span>
+                </div>
+                <label class="article-editor-switch" for="{{ form.headlineImageEnabled.vars.id }}">
+                    {{ form_widget(form.headlineImageEnabled, { attr: { class: 'article-editor-switch-input', 'data-headline-image-toggle': 'true', 'aria-controls': form.headlineImage.vars.id ~ '-wrapper' } }) }}
+                    <span class="article-editor-switch-slider" aria-hidden="true"></span>
+                </label>
+            </div>
+            {% if headline_image_enabled_has_errors %}
+                <div id="{{ form.headlineImageEnabled.vars.id }}-error" class="article-editor-error-message" role="alert">
+                    {% for error in form.headlineImageEnabled.vars.errors %}
+                        <p data-i18n="{{ error.message }}">{{ error.message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <div
+                id="{{ form.headlineImage.vars.id }}-wrapper"
+                class="article-editor-headline-image-panel{{ not form.headlineImageEnabled.vars.checked ? ' is-hidden' : '' }}"
+                data-headline-image-panel
+                {{ not form.headlineImageEnabled.vars.checked ? 'hidden' }}
+            >
+                <div class="field article-editor-field article-editor-field-headline-image{{ headline_image_has_errors ? ' has-error' : '' }}">
+                    {{ form_label(form.headlineImage) }}
+                    {{ form_widget(form.headlineImage, { attr: {
+                        class: 'article-editor-input',
+                        'data-i18n-placeholder': 'form_placeholder_headline_image',
+                        placeholder: 'https://... lub /assets/img/...',
+                        'data-character-count-input': 'true'
+                    }|merge({'aria-describedby': headline_image_described_by})|merge(headline_image_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
+                    <div class="article-editor-field-meta">
+                        <span id="{{ headline_image_counter_id }}" class="article-editor-character-count" data-character-count-target>{{ form.headlineImage.vars.value|default('')|length }} / {{ form.headlineImage.vars.attr.maxlength }}</span>
+                        <span class="article-editor-field-hint article-editor-field-hint-help">
+                            <span class="article-editor-field-hint-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M12 10.2v5.1" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/>
+                                    <circle cx="12" cy="7.2" r="1" fill="currentColor"/>
+                                </svg>
+                            </span>
+                            <span class="article-editor-field-hint-text" data-i18n="form_hint_headline_image">Podaj pełny URL albo ścieżkę zaczynającą się od /, np. /assets/img/article-cover.jpg. Puste pole przy włączonym przełączniku użyje grafiki domyślnej.</span>
+                        </span>
+                    </div>
+                    {% if headline_image_has_errors %}
+                        <div id="{{ form.headlineImage.vars.id }}-error" class="article-editor-error-message" role="alert">
+                            {% for error in form.headlineImage.vars.errors %}
+                                <p data-i18n="{{ error.message }}">{{ error.message }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {% set content_has_errors = form.content.vars.errors|length > 0 %}
+        {% set format_hint_markup %}
+            Formatowanie: `**pogrubienie**`, `*kursywa*`, `++podkreślenie++`, `` `inline code` ``, `#` do `#######`, `> cytat`, `- lista`, `1. lista`, `[tekst](https://...)`, `![alt](https://...)`, `\` na końcu linii, `---`, tabela `| kolumna |`, blok `:::pre ... :::`, blok wyrównania `:::center ... :::`, blok kodu ` ``` `.
+        {% endset %}
+        <div class="field article-editor-field{{ content_has_errors ? ' has-error' : '' }}">
+            {{ form_label(form.content) }}
+            <div class="article-editor-surface{{ content_has_errors ? ' has-error' : '' }}">
+                <div class="article-editor-toolbar" data-markup-toolbar>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="bold" aria-label="Pogrubienie" title="Pogrubienie"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5h5.5a3.5 3.5 0 0 1 0 7H8zm0 7h6.5a3.5 3.5 0 0 1 0 7H8z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="italic" aria-label="Kursywa" title="Kursywa"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 5h5M5 19h5M14 5l-4 14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="underline" aria-label="Podkreślenie" title="Podkreślenie"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v5a4 4 0 0 0 8 0V5M6 19h12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="inline-code" aria-label="Kod inline" title="Kod inline"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 8-4 4 4 4M15 8l4 4-4 4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><path d="M13 6l-2 12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="line-break" aria-label="Nowa linia" title="Nowa linia"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 7v4a3 3 0 0 0 3 3h8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><path d="m13 11 4 4-4 4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="separator" aria-label="Separator" title="Separator"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12h16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/><path d="M8 8h1M12 8h1M16 8h1M8 16h1M12 16h1M16 16h1" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="table" aria-label="Tabela" title="Tabela"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 10h16M10 6v12M16 6v12" fill="none" stroke="currentColor" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="preformatted" aria-label="Blok preformatowany" title="Blok preformatowany"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 6v12M17 6v12M10 9h4M10 12h4M10 15h4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="heading" data-markup-level="1" aria-label="Nagłówek 1" title="Nagłówek 1"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6v12M10 6v12M4 12h6M16 8l2-2v12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="heading" data-markup-level="2" aria-label="Nagłówek 2" title="Nagłówek 2"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 6v12M9 6v12M3 12h6M15 9a3 3 0 0 1 6 0c0 4-6 4-6 8h6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="heading" data-markup-level="3" aria-label="Nagłówek 3" title="Nagłówek 3"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 6v12M9 6v12M3 12h6M16 8h2.5a2.5 2.5 0 1 1 0 5H16m0 0h2.5a2.5 2.5 0 1 1 0 5H16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="heading" data-markup-level="4" aria-label="Nagłówek 4" title="Nagłówek 4"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 6v12M9 6v12M3 12h6M19 18V6l-5 8h7" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="heading" data-markup-level="5" aria-label="Nagłówek 5" title="Nagłówek 5"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 6v12M9 6v12M3 12h6M20 6h-5v5h3a3 3 0 1 1 0 6h-3" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="heading" data-markup-level="6" aria-label="Nagłówek 6" title="Nagłówek 6"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 6v12M9 6v12M3 12h6M20 8h-3a3 3 0 1 0 0 8h1a3 3 0 1 0 0-6h-4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="heading" data-markup-level="7" aria-label="Nagłówek 7" title="Nagłówek 7"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 6v12M9 6v12M3 12h6M15 7h6l-4 10" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="align" data-markup-align="left" aria-label="Wyrównaj do lewej" title="Wyrównaj do lewej"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 7h14M5 11h10M5 15h14M5 19h10" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="align" data-markup-align="center" aria-label="Wyśrodkuj" title="Wyśrodkuj"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 7h14M7 11h10M5 15h14M7 19h10" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="align" data-markup-align="right" aria-label="Wyrównaj do prawej" title="Wyrównaj do prawej"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 7h14M9 11h10M5 15h14M9 19h10" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="align" data-markup-align="justify" aria-label="Wyjustuj" title="Wyjustuj"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 7h14M5 11h14M5 15h14M5 19h14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="quote" aria-label="Cytat" title="Cytat"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 8H6a1 1 0 0 0-1 1v4a3 3 0 0 0 3 3h1V8Zm10 0h-3a1 1 0 0 0-1 1v4a3 3 0 0 0 3 3h1V8Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="code-block" aria-label="Blok kodu" title="Blok kodu"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 8-4 4 4 4M15 8l4 4-4 4M13 6l-2 12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="link" aria-label="Link" title="Link"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 14l4-4M8.5 16.5l-2 2a3 3 0 1 1-4-4l2-2M15.5 7.5l2-2a3 3 0 1 1 4 4l-2 2M9 15a3 3 0 0 1 0-4l2-2m4 6-2 2a3 3 0 0 1-4 0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="image" aria-label="Obraz" title="Obraz"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="10" r="1.5" fill="currentColor"/><path d="m20 16-4.5-4.5L8 19" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="bullet-list" aria-label="Lista punktowana" title="Lista punktowana"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 7h10M9 12h10M9 17h10" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/><circle cx="5" cy="7" r="1.3" fill="currentColor"/><circle cx="5" cy="12" r="1.3" fill="currentColor"/><circle cx="5" cy="17" r="1.3" fill="currentColor"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="numbered-list" aria-label="Lista numerowana" title="Lista numerowana"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 7h9M10 12h9M10 17h9" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/><path d="M4 7h1v3M4 12h2a1 1 0 0 1 0 2H4l2 2M4 17h2l-2 2h2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="help" aria-label="Pomoc formatowania" title="Pomoc formatowania" aria-haspopup="dialog" aria-controls="{{ form.content.vars.id }}-format-help-modal"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9.1 9a3 3 0 1 1 5.8 1c-.5 1.3-1.9 1.8-2.9 2.6-.7.6-1 1.1-1 2M12 17h.01" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/></svg></span></button>
+                </div>
+                {{ form_widget(form.content, { attr: {
+                    class: 'article-editor-input article-editor-textarea article-editor-textarea-lg',
+                    'data-i18n-placeholder': 'form_placeholder_content',
+                    placeholder: 'Wpisz pełną treść artykułu',
+                    'data-markup-editor': 'true'
+                }|merge(content_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.content.vars.id ~ '-error'} : {}) }) }}
+            </div>
+            <div class="article-editor-help-modal" data-markup-help-modal hidden aria-hidden="true">
+                <div id="{{ form.content.vars.id }}-format-help-modal" class="article-editor-help-dialog" role="dialog" aria-modal="true" aria-labelledby="{{ form.content.vars.id }}-format-help-title" aria-describedby="{{ form.content.vars.id }}-format-help-text">
+                    <button type="button" class="article-editor-help-close" data-markup-help-close aria-label="Zamknij pomoc formatowania" title="Zamknij"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg></span></button>
+                    <div class="article-editor-help-eyebrow">admin://format-help</div>
+                    <h2 id="{{ form.content.vars.id }}-format-help-title" class="article-editor-help-title">Zasady formatowania</h2>
+                    <div id="{{ form.content.vars.id }}-format-help-text" class="article-editor-help-content">
+                        <p class="article-editor-help-intro">Edytor korzysta z prostego formatowania podobnego do Markdown. Najczęściej używane skróty:</p>
+                        <div class="article-editor-help-tabs" role="tablist" aria-label="Sekcje pomocy formatowania">
+                            <button type="button" class="article-editor-help-tab is-active" data-markup-help-tab="basic" role="tab" aria-selected="true" aria-controls="{{ form.content.vars.id }}-format-help-basic" id="{{ form.content.vars.id }}-format-help-basic-tab" tabindex="0">Podstawowe</button>
+                            <button type="button" class="article-editor-help-tab" data-markup-help-tab="advanced" role="tab" aria-selected="false" aria-controls="{{ form.content.vars.id }}-format-help-advanced" id="{{ form.content.vars.id }}-format-help-advanced-tab" tabindex="-1">Zaawansowane</button>
+                        </div>
+                        <div class="article-editor-help-panels">
+                            <section id="{{ form.content.vars.id }}-format-help-basic" class="article-editor-help-panel is-active" data-markup-help-panel="basic" role="tabpanel" aria-labelledby="{{ form.content.vars.id }}-format-help-basic-tab">
+                                <ul class="article-editor-help-list">
+                                    <li><code>**tekst**</code> - pogrubienie</li>
+                                    <li><code>*tekst*</code> - kursywa</li>
+                                    <li><code>++tekst++</code> - podkreślenie</li>
+                                    <li><code>`tekst`</code> - kod inline</li>
+                                    <li><code># Nagłówek</code> do <code>####### Mikro nagłówek</code> - poziomy nagłówków</li>
+                                    <li><code>&gt; Cytat</code> - cytat blokowy</li>
+                                    <li><code>- Element listy</code> - lista punktowana</li>
+                                    <li><code>1. Element listy</code> - lista numerowana</li>
+                                    <li><code>Linia 1\</code><br><code>Linia 2</code> - wymuszona nowa linia</li>
+                                    <li><code>---</code> - separator</li>
+                                    <li><code>[tekst](https://...)</code> - link</li>
+                                    <li><code>![alt](https://...)</code> - obraz</li>
+                                </ul>
+                            </section>
+                            <section id="{{ form.content.vars.id }}-format-help-advanced" class="article-editor-help-panel" data-markup-help-panel="advanced" role="tabpanel" aria-labelledby="{{ form.content.vars.id }}-format-help-advanced-tab" hidden>
+                                <div class="article-editor-help-blocks">
+                                    <p><strong>Tabela</strong></p>
+                                    <pre><code>| Kolumna A | Kolumna B |
+| --- | --- |
+| Wiersz 1 | Wiersz 2 |</code></pre>
+                                    <p><strong>Blok preformatowany</strong></p>
+                                    <pre><code>:::pre
+tekst z zachowanymi
+  wcieciami i ukladem
+:::</code></pre>
+                                    <p><strong>Wyrównanie tekstu</strong></p>
+                                    <pre><code>:::center
+Wyśrodkowana treść
+:::</code></pre>
+                                    <p><strong>Blok kodu</strong></p>
+                                    <pre><code>```
+const message = 'Hello';
+```</code></pre>
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% if content_has_errors %}
+                <div id="{{ form.content.vars.id }}-error" class="article-editor-error-message" role="alert">
+                    {% for error in form.content.vars.errors %}
+                        <p data-i18n="{{ error.message }}">{{ error.message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="article-editor-grid">
+            {% set published_at_has_errors = form.publishedAt.vars.errors|length > 0 %}
+            <div class="field article-editor-field{{ published_at_has_errors ? ' has-error' : '' }}">
+                {{ form_label(form.publishedAt) }}
+                {{ form_widget(form.publishedAt, { attr: {
+                    class: 'article-editor-input'
+                }|merge(published_at_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.publishedAt.vars.id ~ '-error'} : {}) }) }}
+                {% if published_at_has_errors %}
+                    <div id="{{ form.publishedAt.vars.id }}-error" class="article-editor-error-message" role="alert">
+                        {% for error in form.publishedAt.vars.errors %}
+                            <p data-i18n="{{ error.message }}">{{ error.message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="actions article-editor-actions">
+        <button type="submit" class="button" data-i18n="{{ submit_key|default('form_submit_save') }}">
+            {% if submit_key|default('form_submit_save') == 'form_submit_create' %}
+                Utwórz artykuł
+            {% elseif submit_key|default('form_submit_save') == 'form_submit_update' %}
+                Zapisz zmiany
+            {% else %}
+                Zapisz artykuł
+            {% endif %}
+        </button>
+        <a class="button secondary" href="{{ path('admin_article_index') }}" data-i18n="form_cancel">Anuluj</a>
     </div>
 {{ form_end(form) }}
