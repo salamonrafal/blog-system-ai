@@ -80,3 +80,4 @@
 - Poprawiono renderowanie treści bezpośrednio po tabelach, usuwając przedwczesne domykanie bloku tabeli i naprawiając obsługę wymuszonych nowych linii w akapicie następującym po tabeli.
 - Uzupełniono testy parsera formatowania o przypadki graniczne dla akapitów po tabeli, w tym zachowanie wielu początkowych nowych linii renderowanych jako `<br>`.
 - Dopracowano rytm pionowy bloków `blockquote` i `pre` na stronie artykułu, nadając im własne marginesy oraz zerując odstępy skrajne dla pierwszego i ostatniego elementu w treści.
+- Naprawiono renderowanie linków i obrazów Markdown z adresami URL zawierającymi query string, eliminując podwójne encodowanie `&amp;` w atrybutach `href`, `src` i `alt`.

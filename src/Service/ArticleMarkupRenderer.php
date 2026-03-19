@@ -364,8 +364,8 @@ final class ArticleMarkupRenderer
             '/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/i',
             static fn (array $matches): string => sprintf(
                 '<img src="%s" alt="%s" loading="lazy">',
-                htmlspecialchars($matches[2], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
-                htmlspecialchars($matches[1], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
+                htmlspecialchars(htmlspecialchars_decode($matches[2], ENT_QUOTES), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
+                htmlspecialchars(htmlspecialchars_decode($matches[1], ENT_QUOTES), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
             ),
             $escaped,
         ) ?? $escaped;
@@ -374,7 +374,7 @@ final class ArticleMarkupRenderer
             '/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/i',
             static fn (array $matches): string => sprintf(
                 '<a href="%s" target="_blank" rel="noopener noreferrer">%s</a>',
-                htmlspecialchars($matches[2], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
+                htmlspecialchars(htmlspecialchars_decode($matches[2], ENT_QUOTES), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
                 $matches[1],
             ),
             $escaped,
