@@ -24,10 +24,10 @@ FROM install_dependencies AS install_php
     curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer;
 
 FROM install_php AS final
-    COPY ./docker/scripts/entrypoint.sh /var/scripts/entrypoint.sh
+    COPY ./docker/scripts/ /var/scripts/
     COPY ./docker/conf/nginx/sites-available/application /etc/nginx/sites-available/default
     COPY . /var/www/app/
-    RUN chmod +x /var/scripts/entrypoint.sh;
+    RUN chmod +x /var/scripts/*.sh;
     WORKDIR /var/www/app/
 
 ENTRYPOINT ["/var/scripts/entrypoint.sh"]

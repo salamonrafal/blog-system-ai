@@ -4,6 +4,9 @@
 !app/cache/.gitkeep
 !app/logs/.gitkeep
 
+# Secrets
+/config/secrets/*/*.decrypt.private.php
+
 # Email spool folder
 /app/spool/*
 

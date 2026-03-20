@@ -17,6 +17,9 @@ if [ ! -d "./var/log/" ] ; then
     chmod 777 ./var/log/
 fi
 
+echo "Create .env file..."
+/var/scripts/create-env.sh
+
 echo "Install app dependencies with composer..."
 composer install
 
