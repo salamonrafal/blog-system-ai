@@ -17,11 +17,14 @@ if [ ! -d "./var/log/" ] ; then
     chmod 777 ./var/log/
 fi
 
+echo "Create .env file..."
+/var/scripts/create-env.sh
+
 echo "Install app dependencies with composer..."
 composer install
 
 echo 'starting php-fpm in background'
-php-fpm &
+nohup php-fpm -D >/dev/null 2>&1 &
 
 echo 'starting nginx'
 nginx -g 'daemon off;'

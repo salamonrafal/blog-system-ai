@@ -7,3 +7,4 @@
 !var/log/.gitkeep
 !var/log/
 !var/data.db
+.env
