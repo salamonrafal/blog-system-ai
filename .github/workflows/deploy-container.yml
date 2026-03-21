@@ -22,6 +22,8 @@ on:
 env:
   IMAGE_NAME: blog-system-ai
   TAG_NAME: ${{ inputs.tagName }}
+  DEBUG_ENABLED: ${{ inputs.debugEnabled }}
+  ENV_NAME: ${{ inputs.envName }}
 
 jobs:
   deploy:
@@ -35,11 +37,10 @@ jobs:
         username: ${{ secrets.DEPLOY_SERVER_USERNAME }}
         key: ${{ secrets.DEPLOY_SERVER_KEY }}
         port: ${{ secrets.DEPLOY_SERVER_PORT }}
+        envs: IMAGE_NAME,TAG_NAME,DEBUG_ENABLED,ENV_NAME
         script: |
             IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
             IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-            ENV_NAME=${{ inputs.envName }}
-            DEBUG_ENABLED=${{ inputs.debugEnabled }}
 
             echo IMAGE_ID=$IMAGE_ID
             echo TAG_NAME=$TAG_NAME
