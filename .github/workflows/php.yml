@@ -1,5 +1,4 @@
-name: PHP Composer
-
+name: PHP Tests
 on:
   push:
     branches: [ "main" ]
@@ -10,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
     - name: Setup PHP with pre-release PECL extension
@@ -19,7 +18,7 @@ jobs:
         php-version: '8.4'
         extensions: bz2 bcmath ctype curl iconv exif fileinfo gd gmp hash json intl mbstring opcache pdo_sqlite readline session tokenizer xml xmlreader xmlwriter xsl zip
     
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Prepare Env File
       run: cp .env.template .env
@@ -38,9 +37,6 @@ jobs:
       
     - name: Install dependencies
       run: composer install --no-progress
-
-    # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
-    # Docs: https://getcomposer.org/doc/articles/scripts.md
 
     - name: Run test suite
       run: composer test
