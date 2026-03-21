@@ -8,3 +8,5 @@
 !var/log/
 !var/data.db
 .env
+.git
+.github
