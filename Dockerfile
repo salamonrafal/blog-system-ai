@@ -27,7 +27,7 @@ FROM install_php AS final
     COPY ./docker/scripts/ /var/scripts/
     COPY ./docker/conf/nginx/sites-available/application /etc/nginx/sites-available/default
     COPY . /var/www/app/
-    RUN chmod +x /var/scripts/*.sh;
+    RUN chmod 777 /var/scripts/*.sh;
     WORKDIR /var/www/app/
 
 ENTRYPOINT ["/var/scripts/entrypoint.sh"]
