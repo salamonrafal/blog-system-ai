@@ -1,0 +1,56 @@
+name: Deploy Image to Server
+
+on:
+  workflow_dispatch:
+    inputs:
+      tagName:
+        description: 'Tag name'
+        required: true
+        default: 'latest'
+        type: string
+      envName:
+        description: 'Environment name (prod, staging, dev)'
+        required: true
+        default: 'prod'
+        type: string
+      debugEnabled:
+        description: 'Enable debug mode (0/1)'
+        required: true
+        default: 0
+        type: number
+
+env:
+  IMAGE_NAME: blog-system-ai
+  TAG_NAME: ${{ inputs.tagName }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Execute remote SSH commands using SSH key
+      uses: appleboy/ssh-action@v1
+      with:
+        host: ${{ secrets.DEPLOY_SERVER_HOST }}
+        username: ${{ secrets.DEPLOY_SERVER_USERNAME }}
+        key: ${{ secrets.DEPLOY_SERVER_KEY }}
+        port: ${{ secrets.DEPLOY_SERVER_PORT }}
+        script: |
+            IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
+            IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+            ENV_NAME=${{ inputs.envName }}
+            DEBUG_ENABLED=${{ inputs.debugEnabled }}
+
+            echo IMAGE_ID=$IMAGE_ID
+            echo TAG_NAME=$TAG_NAME
+
+            echo "${{ secrets.GH_TOKEN_PACKG }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin;
+            docker container stop blog-system-ai && docker container rm blog-system-ai;
+            docker image rm $IMAGE_ID:$TAG_NAME;
+            docker container run -d -p 8888:8888 -p 8080:80 \
+                -v /var/data/blog-system-ai/:/var/www/app/var/data/ \
+                -e E_APP_ENV=$ENV_NAME \
+                -e E_APP_DEBUG=$DEBUG_ENABLED \
+                -e E_APP_SECRET="${{ secrets.APPLICATION_SECRET_WORD }}" \
+                -e E_DATABASE_URL="sqlite:///%kernel.project_dir%/var/data/data.db" \
+                --name blog-system-ai $IMAGE_ID:$TAG_NAME;
