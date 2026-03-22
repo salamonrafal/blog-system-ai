@@ -12,12 +12,18 @@ on:
         description: 'Environment name (prod, staging, dev)'
         required: true
         default: 'prod'
-        type: string
+        type: choice
+        options:
+            - prod
+            - dev
       debugEnabled:
         description: 'Enable debug mode (0/1)'
         required: true
-        default: 0
-        type: number
+        default: '0'
+        type: choice
+        options:
+            - '0'
+            - '1'
 
 env:
   IMAGE_NAME: blog-system-ai
