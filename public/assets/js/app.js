@@ -109,12 +109,26 @@ const i18n = {
     admin_shortcut_remember_device: "Zapamiętaj urządzenie",
     admin_shortcut_forget_device: "Nie zapamiętuj urządzenia",
     admin_shortcut_blog_settings: "Ustawienia bloga",
+    admin_shortcut_queue_status: "Stan kolejek",
     admin_shortcut_login_device: "Zaloguj się",
     admin_shortcut_logout: "Wyloguj",
     admin_dashboard_title: "Centrum operacji treści",
     admin_dashboard_lede: "Panel administracyjny dopasowany do układu aplikacji, gotowy na workflow redakcyjny, moderację i publikację.",
     admin_blog_settings_title: "Ustawienia bloga",
     admin_blog_settings_lede: "Zarządzaj danymi, które wpływają na nazwę bloga i metadane strony głównej widoczne w wyszukiwarkach oraz po udostępnieniu linku.",
+    admin_queue_status_title: "Stan kolejek",
+    admin_queue_status_lede: "Lista pokazuje elementy gotowe do przetworzenia przez zadanie w tle. Widoczne są tylko wpisy oczekujące w kolejce eksportu.",
+    admin_queue_table_id: "ID",
+    admin_queue_table_type: "Typ kolejki",
+    admin_queue_table_created: "Dodano",
+    admin_queue_type_article_export: "Eksport artykułu",
+    admin_queue_no_items: "Brak elementów oczekujących na przetworzenie.",
+    admin_queue_delete: "Usuń z kolejki",
+    admin_queue_clear: "Wyczyść kolejkę",
+    admin_queue_clear_popup_title: "Wyczyścić kolejkę?",
+    admin_queue_clear_popup_text: "Ta operacja usunie wszystkie oczekujące elementy kolejki. Upewnij się, że zadanie w tle nie będzie ich już potrzebowało.",
+    admin_queue_clear_popup_cancel: "Przerwij",
+    admin_queue_clear_popup_confirm: "Wyczyść kolejkę",
     admin_browse_articles: "Przeglądaj artykuły",
     admin_edit_article: "Edytuj artykuł",
     admin_quick_actions: "Szybkie akcje",
@@ -132,7 +146,9 @@ const i18n = {
     admin_table_slug: "Slug",
     admin_table_updated: "Aktualizacja",
     admin_table_action: "Akcja",
+    admin_close_alert: "Zamknij alert",
     admin_table_edit: "Edytuj",
+    admin_table_export: "Eksport",
     admin_table_publish: "Opublikuj",
     admin_table_archive: "Archiwizuj",
     admin_table_delete: "Usuń",
@@ -298,12 +314,26 @@ const i18n = {
     admin_shortcut_remember_device: "Remember this device",
     admin_shortcut_forget_device: "Forget this device",
     admin_shortcut_blog_settings: "Blog settings",
+    admin_shortcut_queue_status: "Queue status",
     admin_shortcut_login_device: "Login",
     admin_shortcut_logout: "Log out",
     admin_dashboard_title: "Content operations hub",
     admin_dashboard_lede: "An admin dashboard aligned with the app layout, ready for editorial workflows, moderation and publishing.",
     admin_blog_settings_title: "Blog settings",
     admin_blog_settings_lede: "Manage the data that controls the blog name and the homepage metadata shown in search engines and link previews.",
+    admin_queue_status_title: "Queue status",
+    admin_queue_status_lede: "This list shows items ready to be processed by a background job. Only pending export queue entries are visible.",
+    admin_queue_table_id: "ID",
+    admin_queue_table_type: "Queue type",
+    admin_queue_table_created: "Queued at",
+    admin_queue_type_article_export: "Article export",
+    admin_queue_no_items: "There are no items waiting to be processed.",
+    admin_queue_delete: "Remove from queue",
+    admin_queue_clear: "Clear queue",
+    admin_queue_clear_popup_title: "Clear the queue?",
+    admin_queue_clear_popup_text: "This operation will remove all pending queue items. Make sure the background job will no longer need them.",
+    admin_queue_clear_popup_cancel: "Cancel",
+    admin_queue_clear_popup_confirm: "Clear queue",
     admin_browse_articles: "Browse articles",
     admin_edit_article: "Edit article",
     admin_quick_actions: "Quick actions",
@@ -321,7 +351,9 @@ const i18n = {
     admin_table_slug: "Slug",
     admin_table_updated: "Updated",
     admin_table_action: "Action",
+    admin_close_alert: "Close alert",
     admin_table_edit: "Edit",
+    admin_table_export: "Export",
     admin_table_publish: "Publish",
     admin_table_archive: "Archive",
     admin_table_delete: "Delete",
@@ -1276,30 +1308,45 @@ function setupBackToTop(){
   toggleVisibility();
 }
 
-function setupDeleteConfirmation(){
-  const triggers = qsa('[data-action="confirm-delete-article"]');
+function setupFlashNotices(){
+  qsa('[data-action="dismiss-flash"]').forEach((button)=>{
+    button.addEventListener('click', ()=>{
+      const flash = button.closest('.flash');
+      if(!flash) return;
+      flash.setAttribute('hidden', '');
+    });
+  });
+}
+
+function setupDangerConfirmation(config){
+  const triggers = qsa(config.triggerSelector);
   if(!triggers.length) return;
 
-  const existingModal = qs('.confirm-delete-modal');
+  const existingModal = qs(`.${config.modalClass}`);
   if(existingModal){
     existingModal.remove();
   }
 
-  const titleId = 'confirm-delete-title';
-  const textId = 'confirm-delete-text';
+  const titleId = `${config.modalIdPrefix}-title`;
+  const textId = `${config.modalIdPrefix}-text`;
   const modal = document.createElement('div');
-  modal.className = 'confirm-delete-modal';
+  modal.className = `confirm-delete-modal ${config.modalClass}`;
   modal.setAttribute('hidden', '');
   modal.setAttribute('aria-hidden', 'true');
   modal.innerHTML = `
-    <div class="confirm-delete-dialog" role="dialog" aria-modal="true" aria-labelledby="${titleId}" aria-describedby="${textId}">
-      <div class="confirm-delete-eyebrow">admin://danger-zone</div>
-      <h2 id="${titleId}" class="confirm-delete-title" data-i18n="admin_delete_popup_title">Usunac artykul?</h2>
-      <p id="${textId}" class="confirm-delete-text" data-i18n="admin_delete_popup_text">Ta operacja jest nieodwracalna. Artykul zostanie trwale usuniety.</p>
-      <p class="confirm-delete-article-name"></p>
+    <div class="confirm-delete-dialog" role="alertdialog" aria-modal="false" aria-labelledby="${titleId}" aria-describedby="${textId}">
+      <div class="confirm-delete-topbar">
+        <div class="confirm-delete-eyebrow">admin://danger-zone</div>
+        <button type="button" class="confirm-delete-close" data-action="${config.closeAction}" data-i18n-aria="${config.closeI18n}" aria-label="${config.closeFallback}">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <h2 id="${titleId}" class="confirm-delete-title" data-i18n="${config.titleI18n}">${config.titleFallback}</h2>
+      <p id="${textId}" class="confirm-delete-text" data-i18n="${config.textI18n}">${config.textFallback}</p>
+      ${config.detailsClass ? `<p class="${config.detailsClass}"></p>` : ''}
       <div class="confirm-delete-actions">
-        <button type="button" class="button secondary" data-action="cancel-delete" data-i18n="admin_delete_popup_cancel">Przerwij</button>
-        <button type="button" class="button button-danger" data-action="submit-delete" data-i18n="admin_delete_popup_confirm">Usun</button>
+        <button type="button" class="button secondary" data-action="${config.cancelAction}" data-i18n="${config.cancelI18n}">${config.cancelFallback}</button>
+        <button type="button" class="button button-danger" data-action="${config.submitAction}" data-i18n="${config.submitI18n}">${config.submitFallback}</button>
       </div>
     </div>
   `;
@@ -1308,9 +1355,10 @@ function setupDeleteConfirmation(){
   applyI18n(getLang());
 
   const dialog = qs('.confirm-delete-dialog', modal);
-  const cancelButton = qs('[data-action="cancel-delete"]', modal);
-  const submitButton = qs('[data-action="submit-delete"]', modal);
-  const articleName = qs('.confirm-delete-article-name', modal);
+  const closeButton = qs(`[data-action="${config.closeAction}"]`, modal);
+  const cancelButton = qs(`[data-action="${config.cancelAction}"]`, modal);
+  const submitButton = qs(`[data-action="${config.submitAction}"]`, modal);
+  const details = config.detailsClass ? qs(`.${config.detailsClass}`, modal) : null;
   let activeForm = null;
   let lastTrigger = null;
 
@@ -1325,13 +1373,12 @@ function setupDeleteConfirmation(){
   const openModal = (trigger)=>{
     activeForm = trigger.closest('form');
     lastTrigger = trigger;
-    if(articleName){
-      articleName.textContent = trigger.getAttribute('data-article-title') || '';
+    if(details){
+      details.textContent = config.detailsText ? config.detailsText(trigger) : '';
     }
     modal.removeAttribute('hidden');
     modal.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
-    if(cancelButton) cancelButton.focus({ preventScroll: true });
+    if(closeButton) closeButton.focus({ preventScroll: true });
   };
 
   triggers.forEach((trigger)=>{
@@ -1339,6 +1386,10 @@ function setupDeleteConfirmation(){
       openModal(trigger);
     });
   });
+
+  if(closeButton){
+    closeButton.addEventListener('click', closeModal);
+  }
 
   if(cancelButton){
     cancelButton.addEventListener('click', closeModal);
@@ -1349,12 +1400,6 @@ function setupDeleteConfirmation(){
       if(activeForm) activeForm.submit();
     });
   }
-
-  modal.addEventListener('click', (event)=>{
-    if(event.target === modal){
-      closeModal();
-    }
-  });
 
   if(dialog){
     dialog.addEventListener('click', (event)=>{
@@ -1368,6 +1413,52 @@ function setupDeleteConfirmation(){
       event.preventDefault();
       closeModal();
     }
+  });
+}
+
+function setupDeleteConfirmation(){
+  setupDangerConfirmation({
+    triggerSelector: '[data-action="confirm-delete-article"]',
+    modalClass: 'confirm-delete-article-modal',
+    modalIdPrefix: 'confirm-delete-article',
+    titleI18n: 'admin_delete_popup_title',
+    titleFallback: 'Usunac artykul?',
+    textI18n: 'admin_delete_popup_text',
+    textFallback: 'Ta operacja jest nieodwracalna. Artykul zostanie trwale usuniety.',
+    detailsClass: 'confirm-delete-article-name',
+    detailsText: (trigger)=> trigger.getAttribute('data-article-title') || '',
+    cancelAction: 'cancel-delete',
+    submitAction: 'submit-delete',
+    closeAction: 'close-delete',
+    cancelI18n: 'admin_delete_popup_cancel',
+    cancelFallback: 'Przerwij',
+    submitI18n: 'admin_delete_popup_confirm',
+    submitFallback: 'Usun',
+    closeI18n: 'admin_close_alert',
+    closeFallback: 'Zamknij alert',
+  });
+}
+
+function setupQueueClearConfirmation(){
+  setupDangerConfirmation({
+    triggerSelector: '[data-action="confirm-clear-queue"]',
+    modalClass: 'confirm-clear-queue-modal',
+    modalIdPrefix: 'confirm-clear-queue',
+    titleI18n: 'admin_queue_clear_popup_title',
+    titleFallback: 'Wyczyscic kolejke?',
+    textI18n: 'admin_queue_clear_popup_text',
+    textFallback: 'Ta operacja usunie wszystkie oczekujace elementy kolejki. Upewnij sie, ze zadanie w tle nie bedzie ich juz potrzebowalo.',
+    detailsClass: null,
+    detailsText: null,
+    cancelAction: 'cancel-clear-queue',
+    submitAction: 'submit-clear-queue',
+    closeAction: 'close-clear-queue',
+    cancelI18n: 'admin_queue_clear_popup_cancel',
+    cancelFallback: 'Przerwij',
+    submitI18n: 'admin_queue_clear_popup_confirm',
+    submitFallback: 'Wyczyść kolejkę',
+    closeI18n: 'admin_close_alert',
+    closeFallback: 'Zamknij alert',
   });
 }
 
@@ -1445,6 +1536,7 @@ function init(){
   const lang = getLang();
   applyI18n(lang);
   setupTooltips();
+  setupFlashNotices();
   setupAdminShortcuts();
   setupActions();
   setupCharacterCounters();
@@ -1452,6 +1544,7 @@ function init(){
   setupArticleMarkupEditor();
   setupImagePreview();
   setupDeleteConfirmation();
+  setupQueueClearConfirmation();
   setupPrivacyNotice();
   syncTopbarHeight();
 

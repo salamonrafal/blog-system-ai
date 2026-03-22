@@ -91,3 +91,9 @@
 - Rozszerzono workflow `deploy-container` o uruchamianie kontenera z polityką restartu `unless-stopped` oraz dodano ignorowanie plików kopii zapasowych w katalogu `var/backup`.
 - Poprawiono pusty stan listy opublikowanych artykułów na `blog_index` i `admin_dashboard`, zachowując spójne marginesy względem reszty głównego bloku oraz nadając komunikatowi styl wyróżnionego komunikatu informacyjnego.
 - Doprecyzowano sortowanie listy opublikowanych artykułów na stronie głównej `blog_index`, tak aby wpisy były wyświetlane od najnowszej daty publikacji, z bezpiecznym fallbackiem do `createdAt`.
+- Dodano na `admin_article_index` akcję `Eksport`, która zapisuje artykuł do wewnętrznej kolejki opartej na nowej tabeli `article_export_queue`, wraz z encją, repozytorium, migracją i zabezpieczeniem przed duplikowaniem otwartych zleceń eksportu.
+- Rozszerzono pływające menu administracyjne w sekcji `Szybkie ustawienia` o przycisk `Stan kolejek` oraz dodano nową stronę `admin_queue_status`, pokazującą elementy oczekujące na przetworzenie przez zadanie w tle.
+- Rozbudowano ekran `admin_queue_status` o usuwanie pojedynczych wpisów z kolejki, zbiorczą akcję `Wyczyść kolejkę`, stałą szerokość kolumny tytułu z obcinaniem długich nazw oraz uproszczony zestaw kolumn bez `Slug`.
+- Ujednolicono komunikaty potwierdzające operacje niebezpieczne, przenosząc usuwanie artykułu i czyszczenie kolejki na wspólny komponent alertu z przyciskiem zamknięcia po prawej stronie, a następnie wyśrodkowując go na ekranie.
+- Przeprojektowano komunikaty `flash`, przenosząc je do pływającego stosu przy górnej krawędzi strony, dodając przycisk zamknięcia dla każdego wpisu oraz dopracowując ich wygląd tak, aby bardziej przypominały komunikaty systemowe.
+- Zmieniono ikonę akcji `Opublikuj` na liście artykułów, aby była wyraźnie odróżnialna od ikony używanej przez akcję `Eksport`.

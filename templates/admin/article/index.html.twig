@@ -55,6 +55,18 @@
                                     >
                                         <span class="article-action-icon is-edit" aria-hidden="true"></span>
                                     </a>
+                                    <form method="post" action="{{ path('admin_article_export', {id: article.id}) }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('export_article_' ~ article.id) }}">
+                                        <button
+                                            class="button secondary article-action-button"
+                                            type="submit"
+                                            data-i18n-tooltip="admin_table_export"
+                                            data-tooltip="Eksport"
+                                            aria-label="Eksport"
+                                        >
+                                            <span class="article-action-icon is-export" aria-hidden="true"></span>
+                                        </button>
+                                    </form>
                                     {% if article.status.value != 'published' %}
                                         <form method="post" action="{{ path('admin_article_publish', {id: article.id}) }}">
                                             <input type="hidden" name="_token" value="{{ csrf_token('publish_article_' ~ article.id) }}">

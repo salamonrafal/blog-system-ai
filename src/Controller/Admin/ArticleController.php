@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Entity\Article;
+use App\Entity\ArticleExportQueue;
+use App\Enum\ArticleExportQueueStatus;
 use App\Enum\ArticleStatus;
+use App\Repository\ArticleExportQueueRepository;
 use App\Form\ArticleType;
 use App\Repository\ArticleRepository;
 use App\Service\ArticlePublisher;
@@ -126,6 +129,34 @@ class ArticleController extends AbstractController
         $entityManager->flush();
 
         $this->addFlash('success', 'Article published.');
+
+        return $this->redirectToRoute('admin_article_index');
+    }
+
+    #[Route('/{id}/export', name: 'admin_article_export', methods: ['POST'])]
+    public function export(
+        Article $article,
+        Request $request,
+        EntityManagerInterface $entityManager,
+        ArticleExportQueueRepository $articleExportQueueRepository,
+    ): Response {
+        if (!$this->isCsrfTokenValid('export_article_'.$article->getId(), (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        if ($articleExportQueueRepository->hasOpenQueueItemForArticle($article)) {
+            $this->addFlash('success', 'Article export is already queued.');
+
+            return $this->redirectToRoute('admin_article_index');
+        }
+
+        $queueItem = (new ArticleExportQueue($article))
+            ->setStatus(ArticleExportQueueStatus::PENDING);
+
+        $entityManager->persist($queueItem);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Article export added to the queue.');
 
         return $this->redirectToRoute('admin_article_index');
     }
