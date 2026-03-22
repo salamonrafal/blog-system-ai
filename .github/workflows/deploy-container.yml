@@ -60,4 +60,5 @@ jobs:
                 -e E_APP_DEBUG=$DEBUG_ENABLED \
                 -e E_APP_SECRET="${{ secrets.APPLICATION_SECRET_WORD }}" \
                 -e E_DATABASE_URL="sqlite:///%kernel.project_dir%/var/data/data.db" \
+                --restart unless-stopped \
                 --name blog-system-ai $IMAGE_ID:$TAG_NAME;

@@ -19,6 +19,7 @@
 !var/logs/.gitkeep
 !var/sessions/.gitkeep
 /var/dev-server.pid
+/var/backup/*
 
 # Logs (Symfony4)
 /var/log/*

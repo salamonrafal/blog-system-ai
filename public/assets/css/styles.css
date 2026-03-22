@@ -3527,6 +3527,45 @@ tbody tr:last-child td {
   grid-column:1 / -1;
 }
 
+.blog-empty-state {
+  padding: .25rem 1.15rem 1rem;
+}
+
+.blog-empty-state .meta {
+  margin: 0;
+}
+
+.blog-empty-state-message {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .95rem 1rem;
+  border: 1px solid color-mix(in oklab, var(--accent-2) 24%, var(--border));
+  border-left: 3px solid color-mix(in oklab, var(--accent) 62%, var(--border));
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at top right, color-mix(in oklab, var(--accent) 10%, transparent), transparent 42%),
+    linear-gradient(180deg, color-mix(in oklab, var(--panel-2) 95%, transparent), color-mix(in oklab, var(--panel) 93%, transparent));
+  color: color-mix(in oklab, var(--text) 78%, var(--muted) 22%);
+  line-height: 1.5;
+}
+
+.blog-empty-state-message::before {
+  content: "";
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 1rem;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at center, color-mix(in oklab, var(--accent) 72%, white 28%) 0 36%, transparent 40%),
+    color-mix(in oklab, var(--accent-2) 68%, var(--panel) 32%);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent-2) 10%, transparent);
+}
+
+.blog-empty-state-actions {
+  margin-top: 1rem;
+}
+
 .blog-pagination {
   display:flex;
   align-items:center;

@@ -86,12 +86,14 @@
                     </nav>
                 {% endif %}
             {% else %}
-                <p class="meta" data-i18n="blog_no_articles">Brak opublikowanych artykułów.</p>
-                {% if is_granted('ROLE_ADMIN') %}
-                    <div class="actions" style="margin-top: 1rem;">
-                        <a class="btn primary" href="{{ path('admin_article_new') }}" data-i18n="blog_create_first_article">Utwórz pierwszy artykuł</a>
-                    </div>
-                {% endif %}
+                <div class="blog-empty-state">
+                    <p class="meta blog-empty-state-message" role="status" data-i18n="blog_no_articles">Brak opublikowanych artykułów.</p>
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <div class="actions blog-empty-state-actions">
+                            <a class="btn primary" href="{{ path('admin_article_new') }}" data-i18n="blog_create_first_article">Utwórz pierwszy artykuł</a>
+                        </div>
+                    {% endif %}
+                </div>
             {% endif %}
         </div>
     </section>
