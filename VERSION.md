@@ -97,3 +97,12 @@
 - Ujednolicono komunikaty potwierdzające operacje niebezpieczne, przenosząc usuwanie artykułu i czyszczenie kolejki na wspólny komponent alertu z przyciskiem zamknięcia po prawej stronie, a następnie wyśrodkowując go na ekranie.
 - Przeprojektowano komunikaty `flash`, przenosząc je do pływającego stosu przy górnej krawędzi strony, dodając przycisk zamknięcia dla każdego wpisu oraz dopracowując ich wygląd tak, aby bardziej przypominały komunikaty systemowe.
 - Zmieniono ikonę akcji `Opublikuj` na liście artykułów, aby była wyraźnie odróżnialna od ikony używanej przez akcję `Eksport`.
+- Dodano konsolowe zadanie `app:article-export:process-queue` wraz ze skrótem `composer article-export:process-queue`, które przetwarza kolejkę eksportów artykułów w tle i zapisuje rekordy wykonanych eksportów.
+- Wprowadzono nową tabelę `article_export` z encją, repozytorium, enumami statusu i typu oraz migracją, aby przechowywać historię wygenerowanych eksportów wraz z liczbą artykułów i ścieżką do pliku.
+- Dodano serwis generujący pliki eksportu JSON z kompletem danych artykułu, a format payloadu ujednolicono tak, aby pole `article` zawsze było tablicą i mogło w przyszłości obsłużyć wiele wpisów.
+- Zmieniono mechanizm eksportu tak, aby każdy wpis z `article_export_queue` tworzył osobny plik oraz osobny rekord w tabeli `article_export`, bez blokowania pozostałych pozycji kolejki przy błędzie pojedynczego eksportu.
+- Rozszerzono `README.md` o opis kolejki eksportów, ręczne uruchamianie konsumenta oraz obsługę eksportów z poziomu konsoli.
+- Dodano nowy ekran `admin_article_export_index` z listą eksportów, pobieraniem plików i odnośnikiem `Eksporty` w pływającym menu administracyjnym w sekcji `Szybkie ustawienia`.
+- Rozbudowano listę eksportów o stałą szerokość kolumny `Plik`, prezentację samej nazwy pliku, akcję usuwania pojedynczego eksportu z potwierdzeniem oraz zbiorczą akcję `Usuń wszystkie eksporty`, która usuwa wpisy i pliki z dysku.
+- Uzupełniono pobieranie eksportu tak, aby po kliknięciu `Pobierz` status zmieniał się z `Nowy` na `Pobrany`, a odpowiedź wymuszała `Content-Type: application/json` bez zależności od komponentu `symfony/mime`.
+- Przeniesiono katalog eksportów `var/exports` do konfiguracji YAML jako parametr `app.article_export_directory`, dzięki czemu lokalizację plików można zmienić bez modyfikowania kodu źródłowego.

@@ -145,6 +145,55 @@ Main security files:
 - [src/Controller/SecurityController.php](./src/Controller/SecurityController.php)
 - [templates/security/login.html.twig](./templates/security/login.html.twig)
 
+## Export queue
+
+The project includes an article export queue for preparing restorable export files in the background.
+
+Flow overview:
+- In the admin article list, exporting an article creates a pending record in `article_export_queue`
+- The console consumer collects all pending queue items and builds one JSON export file with article metadata and content
+- After processing, the consumer creates a record in `article_export` with status, type and file path
+- Generated files are stored in:
+  [`var/exports/`](./var/exports/)
+- The admin panel includes:
+  - queue view: `/admin/queues/status`
+  - export history and download list: `/admin/exports`
+
+Important files:
+- [src/Command/ProcessArticleExportQueueCommand.php](./src/Command/ProcessArticleExportQueueCommand.php)
+- [src/Service/ArticleExportFileWriter.php](./src/Service/ArticleExportFileWriter.php)
+- [src/Entity/ArticleExportQueue.php](./src/Entity/ArticleExportQueue.php)
+- [src/Entity/ArticleExport.php](./src/Entity/ArticleExport.php)
+- [src/Controller/Admin/ArticleExportController.php](./src/Controller/Admin/ArticleExportController.php)
+
+### Manual consumer run
+
+Before running the consumer manually, make sure the database exists and migrations are applied:
+
+1. Install dependencies:
+   `composer install`
+2. Create the SQLite database file:
+   `composer db:create`
+3. Run migrations:
+   `composer db:migrate`
+
+Run the queue consumer manually with one of these commands:
+
+- Composer shortcut:
+  `composer article-export:process-queue`
+- Direct Symfony command:
+  `php bin/console app:article-export:process-queue`
+
+What the manual run does:
+- reads pending entries from `article_export_queue`
+- sets them to `processing`
+- generates a JSON export file in `var/exports`
+- creates a new record in `article_export`
+- marks processed queue entries as `completed`
+
+If there are no pending entries, the command exits successfully and prints:
+`No queued article exports to process.`
+
 ## Next steps
 
 1. Add password reset and email verification.

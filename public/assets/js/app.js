@@ -110,6 +110,7 @@ const i18n = {
     admin_shortcut_forget_device: "Nie zapamiętuj urządzenia",
     admin_shortcut_blog_settings: "Ustawienia bloga",
     admin_shortcut_queue_status: "Stan kolejek",
+    admin_shortcut_exports: "Eksporty",
     admin_shortcut_login_device: "Zaloguj się",
     admin_shortcut_logout: "Wyloguj",
     admin_dashboard_title: "Centrum operacji treści",
@@ -129,6 +130,28 @@ const i18n = {
     admin_queue_clear_popup_text: "Ta operacja usunie wszystkie oczekujące elementy kolejki. Upewnij się, że zadanie w tle nie będzie ich już potrzebowało.",
     admin_queue_clear_popup_cancel: "Przerwij",
     admin_queue_clear_popup_confirm: "Wyczyść kolejkę",
+    admin_exports_title: "Eksporty",
+    admin_exports_lede: "Lista pokazuje gotowe paczki eksportu artykułów zapisane przez zadanie działające w tle. Każdy wpis zawiera plik gotowy do ponownego importu.",
+    admin_exports_table_id: "ID",
+    admin_exports_table_type: "Typ",
+    admin_exports_table_status: "Status",
+    admin_exports_table_articles: "Artykuły",
+    admin_exports_table_file: "Plik",
+    admin_exports_table_created: "Utworzono",
+    admin_exports_type_articles: "Eksport artykułów",
+    admin_exports_status_new: "Nowy",
+    admin_exports_status_downloaded: "Pobrany",
+    admin_exports_download: "Pobierz plik eksportu",
+    admin_exports_no_items: "Brak gotowych eksportów.",
+    admin_exports_clear: "Usuń wszystkie eksporty",
+    admin_exports_clear_popup_title: "Usunąć wszystkie eksporty?",
+    admin_exports_clear_popup_text: "Ta operacja usunie wszystkie rekordy eksportów oraz powiązane pliki z dysku.",
+    admin_exports_clear_popup_cancel: "Przerwij",
+    admin_exports_clear_popup_confirm: "Usuń wszystkie eksporty",
+    admin_exports_delete_popup_title: "Usunąć eksport?",
+    admin_exports_delete_popup_text: "Ta operacja usunie rekord eksportu i powiązany plik z dysku.",
+    admin_exports_delete_popup_cancel: "Przerwij",
+    admin_exports_delete_popup_confirm: "Usuń eksport",
     admin_browse_articles: "Przeglądaj artykuły",
     admin_edit_article: "Edytuj artykuł",
     admin_quick_actions: "Szybkie akcje",
@@ -315,6 +338,7 @@ const i18n = {
     admin_shortcut_forget_device: "Forget this device",
     admin_shortcut_blog_settings: "Blog settings",
     admin_shortcut_queue_status: "Queue status",
+    admin_shortcut_exports: "Exports",
     admin_shortcut_login_device: "Login",
     admin_shortcut_logout: "Log out",
     admin_dashboard_title: "Content operations hub",
@@ -334,6 +358,28 @@ const i18n = {
     admin_queue_clear_popup_text: "This operation will remove all pending queue items. Make sure the background job will no longer need them.",
     admin_queue_clear_popup_cancel: "Cancel",
     admin_queue_clear_popup_confirm: "Clear queue",
+    admin_exports_title: "Exports",
+    admin_exports_lede: "This list shows article export bundles produced by the background job. Each entry points to a file ready to be imported again.",
+    admin_exports_table_id: "ID",
+    admin_exports_table_type: "Type",
+    admin_exports_table_status: "Status",
+    admin_exports_table_articles: "Articles",
+    admin_exports_table_file: "File",
+    admin_exports_table_created: "Created",
+    admin_exports_type_articles: "Article export",
+    admin_exports_status_new: "New",
+    admin_exports_status_downloaded: "Downloaded",
+    admin_exports_download: "Download export file",
+    admin_exports_no_items: "No exports are available yet.",
+    admin_exports_clear: "Delete all exports",
+    admin_exports_clear_popup_title: "Delete all exports?",
+    admin_exports_clear_popup_text: "This action will remove all export records and their files from disk.",
+    admin_exports_clear_popup_cancel: "Cancel",
+    admin_exports_clear_popup_confirm: "Delete all exports",
+    admin_exports_delete_popup_title: "Delete export?",
+    admin_exports_delete_popup_text: "This action will remove the export record and its file from disk.",
+    admin_exports_delete_popup_cancel: "Cancel",
+    admin_exports_delete_popup_confirm: "Delete export",
     admin_browse_articles: "Browse articles",
     admin_edit_article: "Edit article",
     admin_quick_actions: "Quick actions",
@@ -1462,6 +1508,52 @@ function setupQueueClearConfirmation(){
   });
 }
 
+function setupExportDeleteConfirmation(){
+  setupDangerConfirmation({
+    triggerSelector: '[data-action="confirm-delete-export"]',
+    modalClass: 'confirm-delete-export-modal',
+    modalIdPrefix: 'confirm-delete-export',
+    titleI18n: 'admin_exports_delete_popup_title',
+    titleFallback: 'Usunac eksport?',
+    textI18n: 'admin_exports_delete_popup_text',
+    textFallback: 'Ta operacja usunie rekord eksportu i powiazany plik z dysku.',
+    detailsClass: 'confirm-delete-export-name',
+    detailsText: (trigger)=> trigger.getAttribute('data-export-file') || '',
+    cancelAction: 'cancel-delete-export',
+    submitAction: 'submit-delete-export',
+    closeAction: 'close-delete-export',
+    cancelI18n: 'admin_exports_delete_popup_cancel',
+    cancelFallback: 'Przerwij',
+    submitI18n: 'admin_exports_delete_popup_confirm',
+    submitFallback: 'Usun eksport',
+    closeI18n: 'admin_close_alert',
+    closeFallback: 'Zamknij alert',
+  });
+}
+
+function setupExportClearConfirmation(){
+  setupDangerConfirmation({
+    triggerSelector: '[data-action="confirm-clear-exports"]',
+    modalClass: 'confirm-clear-exports-modal',
+    modalIdPrefix: 'confirm-clear-exports',
+    titleI18n: 'admin_exports_clear_popup_title',
+    titleFallback: 'Usunac wszystkie eksporty?',
+    textI18n: 'admin_exports_clear_popup_text',
+    textFallback: 'Ta operacja usunie wszystkie rekordy eksportow oraz powiazane pliki z dysku.',
+    detailsClass: null,
+    detailsText: null,
+    cancelAction: 'cancel-clear-exports',
+    submitAction: 'submit-clear-exports',
+    closeAction: 'close-clear-exports',
+    cancelI18n: 'admin_exports_clear_popup_cancel',
+    cancelFallback: 'Przerwij',
+    submitI18n: 'admin_exports_clear_popup_confirm',
+    submitFallback: 'Usun wszystkie eksporty',
+    closeI18n: 'admin_close_alert',
+    closeFallback: 'Zamknij alert',
+  });
+}
+
 function setupPrivacyNotice(){
   const storageKey = 'privacy-consent';
   const acceptedValue = 'accepted';
@@ -1544,6 +1636,8 @@ function init(){
   setupArticleMarkupEditor();
   setupImagePreview();
   setupDeleteConfirmation();
+  setupExportDeleteConfirmation();
+  setupExportClearConfirmation();
   setupQueueClearConfirmation();
   setupPrivacyNotice();
   syncTopbarHeight();
