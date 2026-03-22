@@ -94,7 +94,8 @@ class ArticleRepository extends ServiceEntityRepository
     private function createPublishedOrderedByDateQueryBuilder(?ArticleLanguage $language): QueryBuilder
     {
         return $this->createPublishedQueryBuilder($language)
-            ->orderBy('article.publishedAt', 'DESC')
+            ->addSelect('COALESCE(article.publishedAt, article.createdAt) AS HIDDEN publicationOrderAt')
+            ->orderBy('publicationOrderAt', 'DESC')
             ->addOrderBy('article.createdAt', 'DESC');
     }
 

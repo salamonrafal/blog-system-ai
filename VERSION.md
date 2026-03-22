@@ -84,3 +84,10 @@
 - Dodano podstawową dockerizację projektu z obrazem opartym o `php:8.4-fpm`, konfiguracją `nginx`, skryptem startowym kontenera oraz `.dockerignore` ograniczającym zbędne pliki w buildzie.
 - Dostosowano uruchamianie aplikacji do środowiska kontenerowego, w tym nasłuch serwera developerskiego na `0.0.0.0` oraz domyślne wartości zmiennych środowiskowych w `.env.template`.
 - Uzupełniono `README.md` o ręczne komendy Dockera do budowania obrazu, uruchamiania kontenera developerskiego, wejścia do środka oraz jego zatrzymywania i usuwania.
+
+## 2026-03-22
+
+- Wydzielono kontenerowy etap sprawdzania i przygotowania katalogów `var/cache` oraz `var/log` do osobnego skryptu `docker/scripts/checking-tasks.sh`, upraszczając `docker/scripts/entrypoint.sh` i porządkując logi startowe usług.
+- Rozszerzono workflow `deploy-container` o uruchamianie kontenera z polityką restartu `unless-stopped` oraz dodano ignorowanie plików kopii zapasowych w katalogu `var/backup`.
+- Poprawiono pusty stan listy opublikowanych artykułów na `blog_index` i `admin_dashboard`, zachowując spójne marginesy względem reszty głównego bloku oraz nadając komunikatowi styl wyróżnionego komunikatu informacyjnego.
+- Doprecyzowano sortowanie listy opublikowanych artykułów na stronie głównej `blog_index`, tak aby wpisy były wyświetlane od najnowszej daty publikacji, z bezpiecznym fallbackiem do `createdAt`.

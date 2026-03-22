@@ -52,7 +52,9 @@
                     {% endfor %}
                 </div>
             {% else %}
-                <p class="meta" data-i18n="blog_no_articles">Brak opublikowanych artykułów.</p>
+                <div class="blog-empty-state">
+                    <p class="meta blog-empty-state-message" role="status" data-i18n="blog_no_articles">Brak opublikowanych artykułów.</p>
+                </div>
             {% endif %}
         </div>
     </section>
