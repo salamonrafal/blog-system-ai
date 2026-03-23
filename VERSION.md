@@ -127,3 +127,6 @@
 - Rozbudowano blok `Stan kolejek` o nowy widok carousel z zakładkami `Wszystkie`, `Kolejka importu` i `Kolejka eksportu`, prezentujący liczniki kolejek w kompaktowej formie bez dodatkowego wewnętrznego panelu.
 - Przebudowano blok `Ustawienia bloga`, zamieniając elementy listy na kafelki informacyjne, usuwając pole `Tryb konfiguracji` i przenosząc `Tytuł bloga` do osobnego kafelka.
 - Dodano testy jednostkowe `DashboardController`, obejmujące budowanie danych paneli `admin_dashboard`, sekcji podsumowania kolejek oraz fallbacków dla braku zapisanych ustawień bloga.
+- Uzupełniono górną sekcję `admin_dashboard` o podsumowanie zalogowanego użytkownika z adresem e-mail oraz czytelną etykietą roli wyliczaną po stronie `DashboardController`.
+- Skrócono i doprecyzowano tekst wprowadzający dashboard w obu wersjach językowych oraz uproszczono etykietę głównej akcji panelu artykułów z `Przeglądaj artykuły` do `Przeglądaj`.
+- Dopracowano styl `admin_dashboard`, dodając mocniejsze wyróżnienie wartości liczbowych i kafelków metadanych, zwiększając odstępy w sekcji intro oraz przechodząc na bardziej elastyczny, responsywny układ siatki paneli z szerszymi blokami dla `Stan kolejek` i `Ustawienia bloga`.

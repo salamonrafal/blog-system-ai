@@ -17,6 +17,7 @@ use App\Repository\BlogSettingsRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 class DashboardController extends AbstractController
 {
@@ -30,8 +31,13 @@ class DashboardController extends AbstractController
     ): Response
     {
         $settings = $blogSettingsRepository->findCurrent();
+        $user = $this->getUser();
 
         return $this->render('admin/dashboard/index.html.twig', [
+            'dashboard_user' => [
+                'email' => $user instanceof UserInterface ? $user->getUserIdentifier() : 'Nieznany użytkownik',
+                'role' => $this->resolveRoleLabel($user),
+            ],
             'dashboard_panels' => [
                 [
                     'label' => 'admin://articles',
@@ -61,7 +67,7 @@ class DashboardController extends AbstractController
                     ],
                     'meta' => [],
                     'primary_action' => [
-                        'label' => 'Przeglądaj artykuły',
+                        'label' => 'Przeglądaj',
                         'route' => 'admin_article_index',
                     ],
                     'secondary_action' => [
@@ -251,5 +257,24 @@ class DashboardController extends AbstractController
                 ],
             ],
         ]);
+    }
+
+    private function resolveRoleLabel(?UserInterface $user): string
+    {
+        if (!$user instanceof UserInterface) {
+            return 'Brak roli';
+        }
+
+        $roles = $user->getRoles();
+
+        if (\in_array('ROLE_ADMIN', $roles, true)) {
+            return 'Administrator';
+        }
+
+        if (\in_array('ROLE_USER', $roles, true)) {
+            return 'Użytkownik';
+        }
+
+        return 'Rola niestandardowa';
     }
 }

@@ -18,6 +18,7 @@
   --link-bg: rgba(57,255,20,.12);
   --footer-icon-contrast: color-mix(in oklab, var(--accent) 32%, white 68%);
   --shortcut-icon-contrast: color-mix(in oklab, var(--accent) 30%, white 70%);
+  --dashboard-metric-strong: color-mix(in oklab, var(--accent) 72%, white 28%);
   --scan: rgba(57,255,20,.06);
   --grid: rgba(0,212,255,.06);
   --focus: rgba(0,212,255,.45);
@@ -43,6 +44,7 @@
   --footer-icon-contrast: color-mix(in oklab, var(--accent) 62%, #0d1520 38%);
   --shortcut-icon-contrast: color-mix(in oklab, var(--accent) 64%, #0d1520 36%);
   --topbar-accent-strong: color-mix(in oklab, var(--accent) 58%, #0d1520 42%);
+  --dashboard-metric-strong: color-mix(in oklab, var(--accent) 52%, #0d1520 48%);
 }
 
 *{box-sizing:border-box;}
@@ -2444,7 +2446,7 @@ button.button {
 }
 
 .dashboard-feed-intro {
-  padding:22px 20px 8px;
+  padding:22px 20px 18px;
 }
 
 .dashboard-feed-intro h1 {
@@ -2455,6 +2457,37 @@ button.button {
   margin:0;
   color:var(--muted);
   line-height:1.6;
+}
+
+.dashboard-user-summary {
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0, 1fr));
+  gap:.85rem;
+  margin-top:1rem;
+}
+
+.dashboard-user-summary-item {
+  display:grid;
+  gap:.35rem;
+  padding:.9rem 1rem;
+  border:1px solid color-mix(in oklab, var(--accent-2) 18%, var(--border));
+  border-radius:14px;
+  background:color-mix(in oklab, var(--panel-2) 92%, transparent);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+.dashboard-user-summary-item span {
+  color:var(--muted);
+  font-size:.78rem;
+  line-height:1.35;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+
+.dashboard-user-summary-item strong {
+  color:var(--dashboard-metric-strong);
+  font-size:.98rem;
+  line-height:1.4;
 }
 
 .dashboard-feed-intro .actions {
@@ -2515,13 +2548,14 @@ button.button {
 
 .dashboard-overview-grid {
   display:grid;
-  grid-template-columns:repeat(2, minmax(0, 1fr));
+  grid-template-columns:repeat(6, minmax(0, 1fr));
   gap:1rem;
   padding:.25rem 1.15rem 1rem;
 }
 
 .dashboard-overview-panel {
   display:flex;
+  grid-column:span 2;
   flex-direction:column;
   min-width:0;
   min-height:100%;
@@ -2532,6 +2566,11 @@ button.button {
     radial-gradient(circle at top right, color-mix(in oklab, var(--accent) 10%, transparent), transparent 42%),
     linear-gradient(180deg, color-mix(in oklab, var(--panel-2) 95%, transparent), color-mix(in oklab, var(--panel) 93%, transparent));
   box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+.dashboard-overview-panel:nth-child(4),
+.dashboard-overview-panel:nth-child(5) {
+  grid-column:span 3;
 }
 
 .dashboard-overview-panel-header {
@@ -2571,7 +2610,8 @@ button.button {
 .dashboard-overview-stat strong {
   font-size:1.45rem;
   line-height:1;
-  color:color-mix(in oklab, var(--accent) 72%, white 28%);
+  color:var(--dashboard-metric-strong);
+  text-shadow:0 0 14px color-mix(in oklab, var(--accent) 14%, transparent);
 }
 
 .dashboard-overview-stat span {
@@ -2660,7 +2700,7 @@ button.button {
 }
 
 .dashboard-overview-meta-card strong {
-  color:var(--text);
+  color:var(--dashboard-metric-strong);
   font-size:.98rem;
   line-height:1.4;
 }
@@ -2699,6 +2739,18 @@ button.button {
   gap:.75rem;
   margin-top:auto;
   padding-top:1.2rem;
+}
+
+@media (max-width: 1120px) {
+  .dashboard-overview-grid {
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-overview-panel,
+  .dashboard-overview-panel:nth-child(4),
+  .dashboard-overview-panel:nth-child(5) {
+    grid-column:span 1;
+  }
 }
 
 .form-errors {
@@ -3549,7 +3601,11 @@ select {
   }
 
   .dashboard-feed-intro {
-    padding:18px 18px 6px;
+    padding:18px 18px 14px;
+  }
+
+  .dashboard-user-summary {
+    grid-template-columns:1fr;
   }
 
   .dashboard-overview-grid {

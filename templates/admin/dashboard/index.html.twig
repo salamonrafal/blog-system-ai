@@ -14,99 +14,110 @@
 
             <div class="dashboard-feed-intro">
                 <h1 data-i18n="admin_dashboard_title">Centrum operacji treści</h1>
-                <p class="lede" data-i18n="admin_dashboard_lede">Panel administracyjny dopasowany do układu aplikacji, gotowy na workflow redakcyjny, moderację i publikację.</p>
+                <p class="lede" data-i18n="admin_dashboard_lede">Jedno miejsce do zarządzania artykułami, importami, eksportami, kolejkami i ustawieniami bloga.</p>
+                <div class="dashboard-user-summary" aria-label="Informacje o zalogowanym użytkowniku">
+                    <div class="dashboard-user-summary-item">
+                        <span>Użytkownik</span>
+                        <strong>{{ dashboard_user.email }}</strong>
+                    </div>
+                    <div class="dashboard-user-summary-item">
+                        <span>Rola</span>
+                        <strong>{{ dashboard_user.role }}</strong>
+                    </div>
+                </div>
 
                 <div class="actions">
                     <a class="button" href="{{ path('admin_article_new') }}" data-i18n="blog_create_article">Utwórz artykuł</a>
                     <a class="button secondary" href="{{ path('admin_queue_status') }}">Sprawdź kolejki</a>
                 </div>
             </div>
-
-            <div class="dashboard-overview-grid">
-                {% for panel in dashboard_panels %}
-                    <article class="dashboard-overview-panel">
-                        <div class="dashboard-overview-panel-header">
-                            <span class="pill">{{ panel.label }}</span>
-                            <h2>{{ panel.title }}</h2>
-                        </div>
-                        <p class="dashboard-overview-panel-description">{{ panel.description }}</p>
-                        {% if panel.stats is defined %}
-                            <div class="dashboard-overview-stats" aria-label="Statystyki sekcji {{ panel.title }}">
-                                {% for stat in panel.stats %}
-                                    <div class="dashboard-overview-stat">
-                                        <strong>{{ stat.value }}</strong>
-                                        <span>{{ stat.label }}</span>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                        {% if panel.sections is defined %}
-                            <div class="dashboard-overview-carousel" data-dashboard-carousel>
-                                <div class="dashboard-overview-carousel-tabs" role="tablist" aria-label="Typy kolejek sekcji {{ panel.title }}">
-                                    {% for section in panel.sections %}
-                                        <button
-                                            type="button"
-                                            class="dashboard-overview-carousel-tab{{ loop.first ? ' is-active' : '' }}"
-                                            data-dashboard-carousel-tab="{{ section.key }}"
-                                            role="tab"
-                                            aria-selected="{{ loop.first ? 'true' : 'false' }}"
-                                            aria-controls="dashboard-carousel-panel-{{ loop.index }}"
-                                            id="dashboard-carousel-tab-{{ loop.index }}"
-                                            tabindex="{{ loop.first ? '0' : '-1' }}"
-                                        >
-                                            {{ section.title }}
-                                        </button>
-                                    {% endfor %}
-                                </div>
-
-                                {% for section in panel.sections %}
-                                    <section
-                                        id="dashboard-carousel-panel-{{ loop.index }}"
-                                        class="dashboard-overview-carousel-panel{{ loop.first ? ' is-active' : '' }}"
-                                        data-dashboard-carousel-panel="{{ section.key }}"
-                                        role="tabpanel"
-                                        aria-labelledby="dashboard-carousel-tab-{{ loop.index }}"
-                                        {{ loop.first ? '' : 'hidden' }}
-                                    >
-                                        <div class="dashboard-overview-stats">
-                                            {% for stat in section.stats %}
-                                                <div class="dashboard-overview-stat">
-                                                    <strong>{{ stat.value }}</strong>
-                                                    <span>{{ stat.label }}</span>
-                                                </div>
-                                            {% endfor %}
-                                        </div>
-                                    </section>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                        {% if panel.meta_cards is defined %}
-                            <div class="dashboard-overview-meta-cards" aria-label="Szczegóły sekcji {{ panel.title }}">
-                                {% for item in panel.meta_cards %}
-                                    <div class="dashboard-overview-meta-card">
-                                        <span>{{ item.label }}</span>
-                                        <strong>{{ item.value }}</strong>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                        {% if panel.meta is not empty %}
-                            <ul class="dashboard-overview-panel-meta">
-                                {% for item in panel.meta %}
-                                    <li>{{ item }}</li>
-                                {% endfor %}
-                            </ul>
-                        {% endif %}
-                        <div class="dashboard-overview-panel-actions">
-                            <a class="button" href="{{ path(panel.primary_action.route) }}">{{ panel.primary_action.label }}</a>
-                            {% if panel.secondary_action is defined %}
-                                <a class="button secondary" href="{{ path(panel.secondary_action.route) }}">{{ panel.secondary_action.label }}</a>
-                            {% endif %}
-                        </div>
-                    </article>
-                {% endfor %}
-            </div>
         </div>
     </section>
 
+    <section class="section">
+        <div class="dashboard-overview-grid">
+            {% for panel in dashboard_panels %}
+                <article class="dashboard-overview-panel">
+                    <div class="dashboard-overview-panel-header">
+                        <span class="pill">{{ panel.label }}</span>
+                        <h2>{{ panel.title }}</h2>
+                    </div>
+                    <p class="dashboard-overview-panel-description">{{ panel.description }}</p>
+                    {% if panel.stats is defined %}
+                        <div class="dashboard-overview-stats" aria-label="Statystyki sekcji {{ panel.title }}">
+                            {% for stat in panel.stats %}
+                                <div class="dashboard-overview-stat">
+                                    <strong>{{ stat.value }}</strong>
+                                    <span>{{ stat.label }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    {% if panel.sections is defined %}
+                        <div class="dashboard-overview-carousel" data-dashboard-carousel>
+                            <div class="dashboard-overview-carousel-tabs" role="tablist" aria-label="Typy kolejek sekcji {{ panel.title }}">
+                                {% for section in panel.sections %}
+                                    <button
+                                        type="button"
+                                        class="dashboard-overview-carousel-tab{{ loop.first ? ' is-active' : '' }}"
+                                        data-dashboard-carousel-tab="{{ section.key }}"
+                                        role="tab"
+                                        aria-selected="{{ loop.first ? 'true' : 'false' }}"
+                                        aria-controls="dashboard-carousel-panel-{{ loop.index }}"
+                                        id="dashboard-carousel-tab-{{ loop.index }}"
+                                        tabindex="{{ loop.first ? '0' : '-1' }}"
+                                    >
+                                        {{ section.title }}
+                                    </button>
+                                {% endfor %}
+                            </div>
+
+                            {% for section in panel.sections %}
+                                <section
+                                    id="dashboard-carousel-panel-{{ loop.index }}"
+                                    class="dashboard-overview-carousel-panel{{ loop.first ? ' is-active' : '' }}"
+                                    data-dashboard-carousel-panel="{{ section.key }}"
+                                    role="tabpanel"
+                                    aria-labelledby="dashboard-carousel-tab-{{ loop.index }}"
+                                    {{ loop.first ? '' : 'hidden' }}
+                                >
+                                    <div class="dashboard-overview-stats">
+                                        {% for stat in section.stats %}
+                                            <div class="dashboard-overview-stat">
+                                                <strong>{{ stat.value }}</strong>
+                                                <span>{{ stat.label }}</span>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </section>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    {% if panel.meta_cards is defined %}
+                        <div class="dashboard-overview-meta-cards" aria-label="Szczegóły sekcji {{ panel.title }}">
+                            {% for item in panel.meta_cards %}
+                                <div class="dashboard-overview-meta-card">
+                                    <span>{{ item.label }}</span>
+                                    <strong>{{ item.value }}</strong>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    {% if panel.meta is not empty %}
+                        <ul class="dashboard-overview-panel-meta">
+                            {% for item in panel.meta %}
+                                <li>{{ item }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                    <div class="dashboard-overview-panel-actions">
+                        <a class="button" href="{{ path(panel.primary_action.route) }}">{{ panel.primary_action.label }}</a>
+                        {% if panel.secondary_action is defined %}
+                            <a class="button secondary" href="{{ path(panel.secondary_action.route) }}">{{ panel.secondary_action.label }}</a>
+                        {% endif %}
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    </section>
 {% endblock %}
