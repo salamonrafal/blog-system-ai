@@ -163,6 +163,9 @@ const i18n = {
     admin_quick_open_blog_desc: "Wróć do widoku, który widzą już czytelnicy.",
     admin_article_index_title: "Zarządzanie artykułami",
     admin_article_index_lede: "Wszystkie artykuły w jednym miejscu, niezależnie od statusu. Tabela poniżej utrzymuje widok administracyjny w zwartej formie.",
+    admin_article_bulk_export: "Eksportuj zaznaczone",
+    admin_article_select: "Zaznacz artykuł",
+    admin_article_select_all: "Zaznacz wszystkie artykuły",
     admin_table_title: "Tytuł",
     admin_table_language: "Język",
     admin_table_status: "Status",
@@ -391,6 +394,9 @@ const i18n = {
     admin_quick_open_blog_desc: "Jump back to the view readers can already see.",
     admin_article_index_title: "Article management",
     admin_article_index_lede: "All articles in one place, regardless of status. The table below keeps the admin view compact.",
+    admin_article_bulk_export: "Export selected",
+    admin_article_select: "Select article",
+    admin_article_select_all: "Select all articles",
     admin_table_title: "Title",
     admin_table_language: "Language",
     admin_table_status: "Status",
@@ -919,6 +925,33 @@ function setupHeadlineImageToggle(){
     syncVisibility();
     toggle.addEventListener('change', syncVisibility);
   });
+}
+
+function setupArticleBulkExport(){
+  const selectAll = qs('[data-article-select-all]');
+  const submit = qs('[data-article-bulk-submit]');
+  const checkboxes = qsa('[data-article-select-item]');
+  if(!selectAll || !submit || !checkboxes.length) return;
+
+  const syncState = ()=>{
+    const checkedCount = checkboxes.filter((checkbox)=> checkbox.checked).length;
+    selectAll.checked = checkedCount === checkboxes.length;
+    selectAll.indeterminate = checkedCount > 0 && checkedCount < checkboxes.length;
+    submit.disabled = checkedCount === 0;
+  };
+
+  selectAll.addEventListener('change', ()=>{
+    checkboxes.forEach((checkbox)=>{
+      checkbox.checked = selectAll.checked;
+    });
+    syncState();
+  });
+
+  checkboxes.forEach((checkbox)=>{
+    checkbox.addEventListener('change', syncState);
+  });
+
+  syncState();
 }
 
 function setupArticleMarkupEditor(){
@@ -1633,6 +1666,7 @@ function init(){
   setupActions();
   setupCharacterCounters();
   setupHeadlineImageToggle();
+  setupArticleBulkExport();
   setupArticleMarkupEditor();
   setupImagePreview();
   setupDeleteConfirmation();

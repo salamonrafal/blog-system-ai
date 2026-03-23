@@ -2454,6 +2454,10 @@ select {
   margin:16px 20px 20px;
 }
 
+.article-index-bulk-form {
+  margin:0;
+}
+
 .article-index-table-wrap th,
 .article-index-table-wrap td {
   vertical-align:middle;
@@ -2472,6 +2476,21 @@ select {
   width:320px;
   min-width:320px;
   max-width:320px;
+}
+
+.article-index-select-column,
+.article-index-select-cell {
+  width:56px;
+  min-width:56px;
+  text-align:center;
+}
+
+.article-index-select-column input,
+.article-index-select-cell input {
+  width:18px;
+  height:18px;
+  accent-color:var(--accent);
+  cursor:pointer;
 }
 
 .article-index-title-cell a {

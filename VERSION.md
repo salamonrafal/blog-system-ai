@@ -106,3 +106,7 @@
 - Rozbudowano listę eksportów o stałą szerokość kolumny `Plik`, prezentację samej nazwy pliku, akcję usuwania pojedynczego eksportu z potwierdzeniem oraz zbiorczą akcję `Usuń wszystkie eksporty`, która usuwa wpisy i pliki z dysku.
 - Uzupełniono pobieranie eksportu tak, aby po kliknięciu `Pobierz` status zmieniał się z `Nowy` na `Pobrany`, a odpowiedź wymuszała `Content-Type: application/json` bez zależności od komponentu `symfony/mime`.
 - Przeniesiono katalog eksportów `var/exports` do konfiguracji YAML jako parametr `app.article_export_directory`, dzięki czemu lokalizację plików można zmienić bez modyfikowania kodu źródłowego.
+
+## 2026-03-23
+
+- Rozszerzono `admin_article_index` o możliwość zaznaczania wielu artykułów i zbiorczą akcję `Eksportuj zaznaczone`, która dodaje wybrane wpisy do kolejki eksportu z pominięciem pozycji już oczekujących.

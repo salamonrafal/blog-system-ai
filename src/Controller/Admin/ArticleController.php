@@ -144,19 +144,64 @@ class ArticleController extends AbstractController
             throw $this->createAccessDeniedException('Invalid CSRF token.');
         }
 
-        if ($articleExportQueueRepository->hasOpenQueueItemForArticle($article)) {
+        $result = $this->queueArticles([$article], $entityManager, $articleExportQueueRepository);
+
+        if (0 === $result['queued']) {
             $this->addFlash('success', 'Article export is already queued.');
 
             return $this->redirectToRoute('admin_article_index');
         }
 
-        $queueItem = (new ArticleExportQueue($article))
-            ->setStatus(ArticleExportQueueStatus::PENDING);
-
-        $entityManager->persist($queueItem);
-        $entityManager->flush();
-
         $this->addFlash('success', 'Article export added to the queue.');
+
+        return $this->redirectToRoute('admin_article_index');
+    }
+
+    #[Route('/export-selected', name: 'admin_article_export_selected', methods: ['POST'])]
+    public function exportSelected(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        ArticleRepository $articleRepository,
+        ArticleExportQueueRepository $articleExportQueueRepository,
+    ): Response {
+        if (!$this->isCsrfTokenValid('export_articles_bulk', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        $articleIds = array_values(array_unique(array_filter(
+            array_map('intval', $request->request->all('article_ids')),
+            static fn (int $articleId): bool => $articleId > 0,
+        )));
+
+        if ([] === $articleIds) {
+            $this->addFlash('error', 'Select at least one article to export.');
+
+            return $this->redirectToRoute('admin_article_index');
+        }
+
+        $articles = $articleRepository->findBy(['id' => $articleIds]);
+        $result = $this->queueArticles($articles, $entityManager, $articleExportQueueRepository);
+
+        if (0 === $result['queued']) {
+            $this->addFlash('success', 'Selected article exports are already queued.');
+
+            return $this->redirectToRoute('admin_article_index');
+        }
+
+        if (0 === $result['skipped']) {
+            $this->addFlash('success', sprintf('%d article export(s) added to the queue.', $result['queued']));
+
+            return $this->redirectToRoute('admin_article_index');
+        }
+
+        $this->addFlash(
+            'success',
+            sprintf(
+                '%d article export(s) added to the queue. %d already queued item(s) skipped.',
+                $result['queued'],
+                $result['skipped'],
+            )
+        );
 
         return $this->redirectToRoute('admin_article_index');
     }
@@ -183,5 +228,42 @@ class ArticleController extends AbstractController
         $this->addFlash('success', 'Article deleted.');
 
         return $this->redirectToRoute('admin_article_index');
+    }
+
+    /**
+     * @param list<Article> $articles
+     *
+     * @return array{queued: int, skipped: int}
+     */
+    private function queueArticles(
+        array $articles,
+        EntityManagerInterface $entityManager,
+        ArticleExportQueueRepository $articleExportQueueRepository,
+    ): array {
+        $queued = 0;
+        $skipped = 0;
+
+        foreach ($articles as $article) {
+            if ($articleExportQueueRepository->hasOpenQueueItemForArticle($article)) {
+                ++$skipped;
+
+                continue;
+            }
+
+            $queueItem = (new ArticleExportQueue($article))
+                ->setStatus(ArticleExportQueueStatus::PENDING);
+
+            $entityManager->persist($queueItem);
+            ++$queued;
+        }
+
+        if ($queued > 0) {
+            $entityManager->flush();
+        }
+
+        return [
+            'queued' => $queued,
+            'skipped' => $skipped,
+        ];
     }
 }
