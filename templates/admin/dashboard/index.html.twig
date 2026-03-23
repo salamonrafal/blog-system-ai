@@ -18,44 +18,94 @@
 
                 <div class="actions">
                     <a class="button" href="{{ path('admin_article_new') }}" data-i18n="blog_create_article">Utwórz artykuł</a>
-                    <a class="button secondary" href="{{ path('admin_article_index') }}" data-i18n="admin_browse_articles">Przeglądaj artykuły</a>
+                    <a class="button secondary" href="{{ path('admin_queue_status') }}">Sprawdź kolejki</a>
                 </div>
             </div>
 
-            {% if published_articles is not empty %}
-                <div class="quick-links feed-panel-list">
-                    {% for article in published_articles %}
-                        <article class="big-link no-hover article-subpanel">
-                            <div class="article-subpanel-header">
-                                <h2 class="article-subpanel-title">{{ article.title }}</h2>
-                                <div class="meta article-subpanel-meta">
-                                    {{ article.publishedAt ? article.publishedAt|user_date : article.createdAt|user_date }}
-                                    |
-                                    <span data-lang="pl">{{ article.language.value == 'pl' ? 'Polski (PL)' : 'Angielski (EN)' }}</span>
-                                    <span data-lang="en">{{ article.language.value == 'pl' ? 'Polski (PL)' : 'English (EN)' }}</span>
-                                    |
-                                    <span data-lang="pl">
-                                        {% if article.status.value == 'draft' %}Szkic{% elseif article.status.value == 'review' %}W recenzji{% elseif article.status.value == 'archived' %}Zarchiwizowany{% else %}Opublikowany{% endif %}
-                                    </span>
-                                    <span data-lang="en">
-                                        {% if article.status.value == 'draft' %}Draft{% elseif article.status.value == 'review' %}In review{% elseif article.status.value == 'archived' %}Archived{% else %}Published{% endif %}
-                                    </span>
+            <div class="dashboard-overview-grid">
+                {% for panel in dashboard_panels %}
+                    <article class="dashboard-overview-panel">
+                        <div class="dashboard-overview-panel-header">
+                            <span class="pill">{{ panel.label }}</span>
+                            <h2>{{ panel.title }}</h2>
+                        </div>
+                        <p class="dashboard-overview-panel-description">{{ panel.description }}</p>
+                        {% if panel.stats is defined %}
+                            <div class="dashboard-overview-stats" aria-label="Statystyki sekcji {{ panel.title }}">
+                                {% for stat in panel.stats %}
+                                    <div class="dashboard-overview-stat">
+                                        <strong>{{ stat.value }}</strong>
+                                        <span>{{ stat.label }}</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        {% if panel.sections is defined %}
+                            <div class="dashboard-overview-carousel" data-dashboard-carousel>
+                                <div class="dashboard-overview-carousel-tabs" role="tablist" aria-label="Typy kolejek sekcji {{ panel.title }}">
+                                    {% for section in panel.sections %}
+                                        <button
+                                            type="button"
+                                            class="dashboard-overview-carousel-tab{{ loop.first ? ' is-active' : '' }}"
+                                            data-dashboard-carousel-tab="{{ section.key }}"
+                                            role="tab"
+                                            aria-selected="{{ loop.first ? 'true' : 'false' }}"
+                                            aria-controls="dashboard-carousel-panel-{{ loop.index }}"
+                                            id="dashboard-carousel-tab-{{ loop.index }}"
+                                            tabindex="{{ loop.first ? '0' : '-1' }}"
+                                        >
+                                            {{ section.title }}
+                                        </button>
+                                    {% endfor %}
                                 </div>
+
+                                {% for section in panel.sections %}
+                                    <section
+                                        id="dashboard-carousel-panel-{{ loop.index }}"
+                                        class="dashboard-overview-carousel-panel{{ loop.first ? ' is-active' : '' }}"
+                                        data-dashboard-carousel-panel="{{ section.key }}"
+                                        role="tabpanel"
+                                        aria-labelledby="dashboard-carousel-tab-{{ loop.index }}"
+                                        {{ loop.first ? '' : 'hidden' }}
+                                    >
+                                        <div class="dashboard-overview-stats">
+                                            {% for stat in section.stats %}
+                                                <div class="dashboard-overview-stat">
+                                                    <strong>{{ stat.value }}</strong>
+                                                    <span>{{ stat.label }}</span>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </section>
+                                {% endfor %}
                             </div>
-                            <div class="big-link-copy">
-                                <span>{{ article.excerpt ?: article.content|slice(0, 180) ~ (article.content|length > 180 ? '...' : '') }}</span>
+                        {% endif %}
+                        {% if panel.meta_cards is defined %}
+                            <div class="dashboard-overview-meta-cards" aria-label="Szczegóły sekcji {{ panel.title }}">
+                                {% for item in panel.meta_cards %}
+                                    <div class="dashboard-overview-meta-card">
+                                        <span>{{ item.label }}</span>
+                                        <strong>{{ item.value }}</strong>
+                                    </div>
+                                {% endfor %}
                             </div>
-                            <div class="article-subpanel-actions">
-                                <a class="btn article-subpanel-button" href="{{ path('admin_article_edit', {id: article.id}) }}" data-i18n="admin_edit_article">Edytuj artykuł</a>
-                            </div>
-                        </article>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <div class="blog-empty-state">
-                    <p class="meta blog-empty-state-message" role="status" data-i18n="blog_no_articles">Brak opublikowanych artykułów.</p>
-                </div>
-            {% endif %}
+                        {% endif %}
+                        {% if panel.meta is not empty %}
+                            <ul class="dashboard-overview-panel-meta">
+                                {% for item in panel.meta %}
+                                    <li>{{ item }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                        <div class="dashboard-overview-panel-actions">
+                            <a class="button" href="{{ path(panel.primary_action.route) }}">{{ panel.primary_action.label }}</a>
+                            {% if panel.secondary_action is defined %}
+                                <a class="button secondary" href="{{ path(panel.secondary_action.route) }}">{{ panel.secondary_action.label }}</a>
+                            {% endif %}
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
         </div>
     </section>
 

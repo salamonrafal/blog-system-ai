@@ -1005,6 +1005,47 @@ function setupHeadlineImageToggle(){
   });
 }
 
+function setupDashboardCarousels(){
+  qsa('[data-dashboard-carousel]').forEach((carousel)=>{
+    const tabs = qsa('[data-dashboard-carousel-tab]', carousel);
+    const panels = qsa('[data-dashboard-carousel-panel]', carousel);
+    if(!tabs.length || !panels.length) return;
+
+    const activateTab = (name)=>{
+      tabs.forEach((tab)=>{
+        const isActive = tab.getAttribute('data-dashboard-carousel-tab') === name;
+        tab.classList.toggle('is-active', isActive);
+        tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        tab.setAttribute('tabindex', isActive ? '0' : '-1');
+      });
+
+      panels.forEach((panel)=>{
+        const isActive = panel.getAttribute('data-dashboard-carousel-panel') === name;
+        panel.classList.toggle('is-active', isActive);
+        panel.hidden = !isActive;
+      });
+    };
+
+    tabs.forEach((tab)=>{
+      tab.addEventListener('click', ()=>{
+        activateTab(tab.getAttribute('data-dashboard-carousel-tab') || '');
+      });
+
+      tab.addEventListener('keydown', (event)=>{
+        if(event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+        event.preventDefault();
+        const currentIndex = tabs.indexOf(tab);
+        const direction = event.key === 'ArrowRight' ? 1 : -1;
+        const nextIndex = (currentIndex + direction + tabs.length) % tabs.length;
+        const nextTab = tabs[nextIndex];
+        if(!nextTab) return;
+        activateTab(nextTab.getAttribute('data-dashboard-carousel-tab') || '');
+        nextTab.focus({ preventScroll: true });
+      });
+    });
+  });
+}
+
 function setupArticleBulkExport(){
   const selectAll = qs('[data-article-select-all]');
   const submit = qs('[data-article-bulk-submit]');
@@ -1790,6 +1831,7 @@ function init(){
   setupActions();
   setupCharacterCounters();
   setupHeadlineImageToggle();
+  setupDashboardCarousels();
   setupArticleBulkExport();
   setupArticleMarkupEditor();
   setupImagePreview();
