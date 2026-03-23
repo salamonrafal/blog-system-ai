@@ -2277,11 +2277,71 @@ button.button {
 
 .admin-shortcuts-button{
   cursor:pointer;
-  font:inherit;
+  font-family:inherit;
 }
 
 .admin-shortcuts-section .admin-shortcuts-link + .admin-shortcuts-link{
   border-top:1px solid color-mix(in oklab, var(--accent-2) 20%, var(--border));
+}
+
+.admin-shortcuts-section > .admin-shortcuts-link + .admin-shortcuts-submenu{
+  border-top:1px solid color-mix(in oklab, var(--accent-2) 20%, var(--border));
+}
+
+.admin-shortcuts-submenu{
+  position:relative;
+}
+
+.admin-shortcuts-submenu-trigger{
+  position:relative;
+}
+
+.admin-shortcuts-submenu-caret{
+  margin-left:auto;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:16px;
+  height:16px;
+  color:var(--muted);
+  transition:transform .18s ease, color .18s ease;
+}
+
+.admin-shortcuts-submenu-caret svg{
+  width:100%;
+  height:100%;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:2;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.admin-shortcuts-submenu-panel{
+  max-height:0;
+  overflow:hidden;
+  background: color-mix(in oklab, var(--panel) 90%, transparent);
+  opacity:0;
+  transition:max-height .22s ease, opacity .18s ease;
+}
+
+.admin-shortcuts-submenu.is-open .admin-shortcuts-submenu-panel{
+  max-height:220px;
+  opacity:1;
+}
+
+.admin-shortcuts-submenu.is-open .admin-shortcuts-submenu-caret{
+  color:var(--accent);
+  transform:rotate(180deg);
+}
+
+.admin-shortcuts-submenu-panel .admin-shortcuts-link + .admin-shortcuts-link{
+  border-top:1px solid color-mix(in oklab, var(--accent-2) 20%, var(--border));
+}
+
+.admin-shortcuts-sublink{
+  padding-left:38px;
+  background: color-mix(in oklab, var(--panel) 78%, var(--panel-2) 22%);
 }
 
 .admin-shortcuts-link-icon{

@@ -265,6 +265,327 @@ final class ArticleImportProcessorTest extends TestCase
         $processor->process($queueItem);
     }
 
+    public function testProcessThrowsReadableErrorWhenImportFileDoesNotExist(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+
+        $repository = $this->createRepositoryMock(null, []);
+        $processor = $this->createProcessor($entityManager, $repository);
+        $queueItem = $this->createQueueItemWithFilePath('var/imports/missing.json');
+
+        $this->expectException(ArticleImportException::class);
+        $this->expectExceptionMessage('Plik importu nie istnieje albo jest poza dozwolonym katalogiem.');
+
+        $processor->process($queueItem);
+    }
+
+    public function testProcessThrowsReadableErrorWhenImportFileIsOutsideAllowedDirectory(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+
+        $repository = $this->createRepositoryMock(null, []);
+        $processor = $this->createProcessor($entityManager, $repository);
+
+        $outsideFile = $this->projectDir.'/outside.json';
+        file_put_contents($outsideFile, '{}');
+
+        $queueItem = $this->createQueueItemWithFilePath('outside.json');
+
+        $this->expectException(ArticleImportException::class);
+        $this->expectExceptionMessage('Plik importu nie istnieje albo jest poza dozwolonym katalogiem.');
+
+        $processor->process($queueItem);
+    }
+
+    public function testProcessThrowsReadableErrorWhenImportFileContainsInvalidJson(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+
+        $repository = $this->createRepositoryMock(null, []);
+        $processor = $this->createProcessor($entityManager, $repository);
+        $queueItem = $this->createQueueItemWithRawContents('{invalid json');
+
+        $this->expectException(ArticleImportException::class);
+        $this->expectExceptionMessage('Plik importu nie zawiera poprawnego JSON.');
+
+        $processor->process($queueItem);
+    }
+
+    public function testProcessThrowsReadableErrorWhenFormatIsNotSupported(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+
+        $repository = $this->createRepositoryMock(null, []);
+        $processor = $this->createProcessor($entityManager, $repository);
+        $queueItem = $this->createQueueItemWithPayload([
+            'format' => 'unsupported',
+            'version' => 1,
+            'article' => [['slug' => 'test', 'title' => 'Test', 'language' => 'pl', 'content' => 'Tresc', 'status' => 'draft', 'headline_image_enabled' => true]],
+        ]);
+
+        $this->expectException(ArticleImportException::class);
+        $this->expectExceptionMessage('Nieobsługiwany format pliku importu.');
+
+        $processor->process($queueItem);
+    }
+
+    public function testProcessThrowsReadableErrorWhenVersionIsNotSupported(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+
+        $repository = $this->createRepositoryMock(null, []);
+        $processor = $this->createProcessor($entityManager, $repository);
+        $queueItem = $this->createQueueItemWithPayload([
+            'format' => 'article-export',
+            'version' => 2,
+            'article' => [['slug' => 'test', 'title' => 'Test', 'language' => 'pl', 'content' => 'Tresc', 'status' => 'draft', 'headline_image_enabled' => true]],
+        ]);
+
+        $this->expectException(ArticleImportException::class);
+        $this->expectExceptionMessage('Nieobsługiwana wersja pliku importu.');
+
+        $processor->process($queueItem);
+    }
+
+    public function testProcessThrowsReadableErrorWhenPayloadHasNoArticles(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+
+        $repository = $this->createRepositoryMock(null, []);
+        $processor = $this->createProcessor($entityManager, $repository);
+        $queueItem = $this->createQueueItemWithPayload([
+            'format' => 'article-export',
+            'version' => 1,
+            'article' => [],
+        ]);
+
+        $this->expectException(ArticleImportException::class);
+        $this->expectExceptionMessage('Plik importu nie zawiera żadnych artykułów.');
+
+        $processor->process($queueItem);
+    }
+
+    public function testProcessThrowsReadableErrorWhenPayloadContainsMoreThanOneArticle(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+
+        $repository = $this->createRepositoryMock(null, []);
+        $processor = $this->createProcessor($entityManager, $repository);
+        $queueItem = $this->createQueueItemWithPayload([
+            'format' => 'article-export',
+            'version' => 1,
+            'article' => [
+                ['slug' => 'test-1', 'title' => 'Test 1', 'language' => 'pl', 'content' => 'Tresc', 'status' => 'draft', 'headline_image_enabled' => true],
+                ['slug' => 'test-2', 'title' => 'Test 2', 'language' => 'pl', 'content' => 'Tresc', 'status' => 'draft', 'headline_image_enabled' => true],
+            ],
+        ]);
+
+        $this->expectException(ArticleImportException::class);
+        $this->expectExceptionMessage('Plik importu musi zawierać dokładnie jeden artykuł.');
+
+        $processor->process($queueItem);
+    }
+
+    public function testProcessThrowsReadableErrorWhenArticleEntryIsNotJsonObject(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+
+        $repository = $this->createRepositoryMock(null, []);
+        $processor = $this->createProcessor($entityManager, $repository);
+        $queueItem = $this->createQueueItemWithPayload([
+            'format' => 'article-export',
+            'version' => 1,
+            'article' => ['invalid'],
+        ]);
+
+        $this->expectException(ArticleImportException::class);
+        $this->expectExceptionMessage('Element article[0] musi być obiektem JSON.');
+
+        $processor->process($queueItem);
+    }
+
+    public function testProcessThrowsReadableErrorWhenExcerptHasInvalidType(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+
+        $repository = $this->createRepositoryMock(null, []);
+        $processor = $this->createProcessor($entityManager, $repository);
+        $queueItem = $this->createQueueItemWithPayload([
+            'format' => 'article-export',
+            'version' => 1,
+            'article' => [[
+                'title' => 'Tytul',
+                'language' => 'pl',
+                'slug' => 'testowy-slug',
+                'excerpt' => 123,
+                'headline_image' => null,
+                'headline_image_enabled' => true,
+                'content' => 'Tresc',
+                'status' => 'draft',
+                'published_at' => null,
+            ]],
+        ]);
+
+        $this->expectException(ArticleImportException::class);
+        $this->expectExceptionMessage('Pole excerpt musi być tekstem albo null.');
+
+        $processor->process($queueItem);
+    }
+
+    public function testProcessThrowsReadableErrorWhenHeadlineImageHasInvalidType(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+
+        $repository = $this->createRepositoryMock(null, []);
+        $processor = $this->createProcessor($entityManager, $repository);
+        $queueItem = $this->createQueueItemWithPayload([
+            'format' => 'article-export',
+            'version' => 1,
+            'article' => [[
+                'title' => 'Tytul',
+                'language' => 'pl',
+                'slug' => 'testowy-slug',
+                'excerpt' => null,
+                'headline_image' => ['invalid'],
+                'headline_image_enabled' => true,
+                'content' => 'Tresc',
+                'status' => 'draft',
+                'published_at' => null,
+            ]],
+        ]);
+
+        $this->expectException(ArticleImportException::class);
+        $this->expectExceptionMessage('Pole headline_image musi być tekstem albo null.');
+
+        $processor->process($queueItem);
+    }
+
+    public function testProcessThrowsReadableErrorWhenHeadlineImageEnabledIsNotBoolean(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+
+        $repository = $this->createRepositoryMock(null, []);
+        $processor = $this->createProcessor($entityManager, $repository);
+        $queueItem = $this->createQueueItemWithPayload([
+            'format' => 'article-export',
+            'version' => 1,
+            'article' => [[
+                'title' => 'Tytul',
+                'language' => 'pl',
+                'slug' => 'testowy-slug',
+                'excerpt' => null,
+                'headline_image' => null,
+                'headline_image_enabled' => 'yes',
+                'content' => 'Tresc',
+                'status' => 'draft',
+                'published_at' => null,
+            ]],
+        ]);
+
+        $this->expectException(ArticleImportException::class);
+        $this->expectExceptionMessage('Pole article[0].headline_image_enabled musi mieć wartość true albo false.');
+
+        $processor->process($queueItem);
+    }
+
+    public function testProcessThrowsReadableErrorWhenPublishedAtHasInvalidType(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+
+        $repository = $this->createRepositoryMock(null, []);
+        $processor = $this->createProcessor($entityManager, $repository);
+        $queueItem = $this->createQueueItemWithPayload([
+            'format' => 'article-export',
+            'version' => 1,
+            'article' => [[
+                'title' => 'Tytul',
+                'language' => 'pl',
+                'slug' => 'testowy-slug',
+                'excerpt' => null,
+                'headline_image' => null,
+                'headline_image_enabled' => true,
+                'content' => 'Tresc',
+                'status' => 'draft',
+                'published_at' => 123,
+            ]],
+        ]);
+
+        $this->expectException(ArticleImportException::class);
+        $this->expectExceptionMessage('Pole article[0].published_at musi być tekstem ISO-8601 albo null.');
+
+        $processor->process($queueItem);
+    }
+
+    public function testProcessThrowsReadableErrorWhenPublishedAtIsMalformed(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+
+        $repository = $this->createRepositoryMock(null, []);
+        $processor = $this->createProcessor($entityManager, $repository);
+        $queueItem = $this->createQueueItemWithPayload([
+            'format' => 'article-export',
+            'version' => 1,
+            'article' => [[
+                'title' => 'Tytul',
+                'language' => 'pl',
+                'slug' => 'testowy-slug',
+                'excerpt' => null,
+                'headline_image' => null,
+                'headline_image_enabled' => true,
+                'content' => 'Tresc',
+                'status' => 'draft',
+                'published_at' => 'not-a-date',
+            ]],
+        ]);
+
+        $this->expectException(ArticleImportException::class);
+        $this->expectExceptionMessage('Pole article[0].published_at nie zawiera poprawnej daty.');
+
+        $processor->process($queueItem);
+    }
+
+    public function testProcessThrowsReadableErrorWhenHeadlineImageFailsValidation(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+
+        $repository = $this->createRepositoryMock(null, []);
+        $processor = $this->createProcessor($entityManager, $repository);
+        $queueItem = $this->createQueueItemWithPayload([
+            'format' => 'article-export',
+            'version' => 1,
+            'article' => [[
+                'title' => 'Tytul',
+                'language' => 'pl',
+                'slug' => 'testowy-slug',
+                'excerpt' => null,
+                'headline_image' => 'ftp://example.com/image.png',
+                'headline_image_enabled' => true,
+                'content' => 'Tresc',
+                'status' => 'draft',
+                'published_at' => null,
+            ]],
+        ]);
+
+        $this->expectException(ArticleImportException::class);
+        $this->expectExceptionMessage('headlineImage: musi zaczynać się od http://, https:// albo /.');
+
+        $processor->process($queueItem);
+    }
+
     private function createProcessor(EntityManagerInterface $entityManager, ArticleRepository $repository): ArticleImportProcessor
     {
         return new ArticleImportProcessor(
@@ -298,6 +619,21 @@ final class ArticleImportProcessorTest extends TestCase
         return (new ArticleImportQueue())
             ->setOriginalFilename($fileName)
             ->setFilePath('var/imports/'.$fileName);
+    }
+
+    private function createQueueItemWithRawContents(string $contents): ArticleImportQueue
+    {
+        $fileName = 'import-'.bin2hex(random_bytes(4)).'.json';
+        file_put_contents($this->projectDir.'/var/imports/'.$fileName, $contents);
+
+        return $this->createQueueItemWithFilePath('var/imports/'.$fileName);
+    }
+
+    private function createQueueItemWithFilePath(string $filePath): ArticleImportQueue
+    {
+        return (new ArticleImportQueue())
+            ->setOriginalFilename(basename($filePath))
+            ->setFilePath($filePath);
     }
 
     /**

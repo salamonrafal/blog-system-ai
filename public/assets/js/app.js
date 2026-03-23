@@ -109,7 +109,9 @@ const i18n = {
     admin_shortcut_remember_device: "Zapamiętaj urządzenie",
     admin_shortcut_forget_device: "Nie zapamiętuj urządzenia",
     admin_shortcut_blog_settings: "Ustawienia bloga",
+    admin_shortcut_import_export_title: "Importy & Eksporty",
     admin_shortcut_queue_status: "Stan kolejek",
+    admin_shortcut_imports: "Importy",
     admin_shortcut_exports: "Eksporty",
     admin_shortcut_login_device: "Zaloguj się",
     admin_shortcut_logout: "Wyloguj",
@@ -904,10 +906,66 @@ function syncAdminShortcuts(){
 function setupAdminShortcuts(){
   syncAdminShortcuts();
 
+  const closeAdminSubmenu = (submenu)=>{
+    if(!submenu) return;
+    submenu.classList.remove('is-open');
+    const trigger = qs('[data-action="toggle-admin-submenu"]', submenu);
+    if(trigger){
+      trigger.setAttribute('aria-expanded', 'false');
+    }
+  };
+
+  const openAdminSubmenu = (submenu)=>{
+    if(!submenu) return;
+    submenu.classList.add('is-open');
+    const trigger = qs('[data-action="toggle-admin-submenu"]', submenu);
+    if(trigger){
+      trigger.setAttribute('aria-expanded', 'true');
+    }
+  };
+
+  qsa('[data-admin-shortcuts-submenu]').forEach((submenu)=>{
+    const trigger = qs('[data-action="toggle-admin-submenu"]', submenu);
+    if(!trigger) return;
+
+    trigger.addEventListener('click', (event)=>{
+      event.preventDefault();
+      const isOpen = submenu.classList.contains('is-open');
+
+      qsa('[data-admin-shortcuts-submenu].is-open').forEach((openSubmenu)=>{
+        if(openSubmenu !== submenu){
+          closeAdminSubmenu(openSubmenu);
+        }
+      });
+
+      if(isOpen){
+        closeAdminSubmenu(submenu);
+      } else {
+        openAdminSubmenu(submenu);
+      }
+    });
+  });
+
   qsa('[data-action="toggle-device-login"]').forEach(button=>{
     button.addEventListener('click', ()=>{
       setAdminDeviceRemembered(!isAdminDeviceRemembered());
       syncAdminShortcuts();
+    });
+  });
+
+  document.addEventListener('click', (event)=>{
+    qsa('[data-admin-shortcuts-submenu].is-open').forEach((submenu)=>{
+      if(!submenu.contains(event.target)){
+        closeAdminSubmenu(submenu);
+      }
+    });
+  });
+
+  document.addEventListener('keydown', (event)=>{
+    if(event.key !== 'Escape') return;
+
+    qsa('[data-admin-shortcuts-submenu].is-open').forEach((submenu)=>{
+      closeAdminSubmenu(submenu);
     });
   });
 }
