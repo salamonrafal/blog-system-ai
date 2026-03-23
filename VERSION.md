@@ -110,3 +110,10 @@
 ## 2026-03-23
 
 - Rozszerzono `admin_article_index` o możliwość zaznaczania wielu artykułów i zbiorczą akcję `Eksportuj zaznaczone`, która dodaje wybrane wpisy do kolejki eksportu z pominięciem pozycji już oczekujących.
+- Dodano nową stronę `admin_article_import_index` z formularzem przesyłania pliku JSON do importu, nową tabelę `article_import_queue` oraz odnośnik `Importy` w pływającym menu administracyjnym.
+- Rozszerzono ekran `admin_queue_status`, aby pokazywał oczekujące elementy kolejki importu obok eksportów i pozwalał usuwać oba typy wpisów.
+- Dodano konsolowe zadanie `app:article-import:process-queue` wraz ze skrótem `composer article-import:process-queue`, które importuje artykuł z pliku eksportu JSON, aktualizuje istniejący wpis po `slug` albo tworzy nowy oraz zapisuje komunikat błędu w kolejce przy statusie `FAILED`.
+- Uzupełniono `README.md` o nową sekcję `Import queue`, opis ręcznego uruchamiania importu artykułów oraz przykład użycia komendy importera w `crontab`.
+- Rozbudowano ekran `admin_article_import_index` o pobieranie i usuwanie pojedynczych plików importu, zbiorczą akcję `Usuń wszystko` z potwierdzeniem, przycisk `Odśwież` w górnej sekcji oraz dopracowany układ kolumny `Plik źródłowy` ze stałą szerokością i tooltipem pokazującym nazwę oryginalną oraz nazwę pliku na serwerze w osobnych liniach.
+- Dopracowano ekran `admin_article_export_index` oraz `admin_queue_status`, dodając przycisk `Odśwież` do górnej sekcji akcji i porządkując odstępy tak, aby układ był spójny zarówno dla pustych stanów, jak i dla list z danymi.
+- Uszczelniono proces importu artykułów, dodając jawne błędy dla pustych pól `title`, `slug` i `content`, dla nieobsługiwanych wartości `language` i `status`, zachowując identyfikację artykułu wyłącznie po `slug` oraz gwarantując, że przy aktualizacji wpisu pole `createdAt` nie jest nadpisywane.

@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Entity\ArticleExportQueue;
+use App\Entity\ArticleImportQueue;
 use App\Repository\ArticleExportQueueRepository;
+use App\Repository\ArticleImportQueueRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -16,10 +18,14 @@ use Symfony\Component\Routing\Attribute\Route;
 class QueueStatusController extends AbstractController
 {
     #[Route('/status', name: 'admin_queue_status', methods: ['GET'])]
-    public function index(ArticleExportQueueRepository $articleExportQueueRepository): Response
+    public function index(
+        ArticleExportQueueRepository $articleExportQueueRepository,
+        ArticleImportQueueRepository $articleImportQueueRepository,
+    ): Response
     {
         return $this->render('admin/queue_status/index.html.twig', [
-            'pending_queue_items' => $articleExportQueueRepository->findPendingOrderedByCreatedAt(),
+            'pending_export_queue_items' => $articleExportQueueRepository->findPendingOrderedByCreatedAt(),
+            'pending_import_queue_items' => $articleImportQueueRepository->findPendingOrderedByCreatedAt(),
         ]);
     }
 
@@ -27,6 +33,7 @@ class QueueStatusController extends AbstractController
     public function clear(
         Request $request,
         ArticleExportQueueRepository $articleExportQueueRepository,
+        ArticleImportQueueRepository $articleImportQueueRepository,
         EntityManagerInterface $entityManager,
     ): Response {
         if (!$this->isCsrfTokenValid('clear_queue_items', (string) $request->request->get('_token'))) {
@@ -37,6 +44,10 @@ class QueueStatusController extends AbstractController
             $entityManager->remove($queueItem);
         }
 
+        foreach ($articleImportQueueRepository->findPendingOrderedByCreatedAt() as $queueItem) {
+            $entityManager->remove($queueItem);
+        }
+
         $entityManager->flush();
 
         $this->addFlash('success', 'Kolejka oczekujacych elementow zostala wyczyszczona.');
@@ -44,13 +55,31 @@ class QueueStatusController extends AbstractController
         return $this->redirectToRoute('admin_queue_status');
     }
 
-    #[Route('/{id}/delete', name: 'admin_queue_status_delete', methods: ['POST'])]
-    public function delete(
+    #[Route('/exports/{id}/delete', name: 'admin_queue_status_export_delete', methods: ['POST'])]
+    public function deleteExport(
         ArticleExportQueue $queueItem,
         Request $request,
         EntityManagerInterface $entityManager,
     ): Response {
         if (!$this->isCsrfTokenValid('delete_queue_item_'.$queueItem->getId(), (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        $entityManager->remove($queueItem);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Element zostal usuniety z kolejki.');
+
+        return $this->redirectToRoute('admin_queue_status');
+    }
+
+    #[Route('/imports/{id}/delete', name: 'admin_queue_status_import_delete', methods: ['POST'])]
+    public function deleteImport(
+        ArticleImportQueue $queueItem,
+        Request $request,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        if (!$this->isCsrfTokenValid('delete_import_queue_item_'.$queueItem->getId(), (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Invalid CSRF token.');
         }
 

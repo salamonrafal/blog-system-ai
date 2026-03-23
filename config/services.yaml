@@ -1,5 +1,6 @@
 parameters:
     app.article_export_directory: 'var/exports'
+    app.article_import_directory: 'var/imports'
 
 services:
     _defaults:

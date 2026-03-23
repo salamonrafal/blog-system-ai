@@ -16,66 +16,125 @@
                 <div class="queue-status-intro-header">
                     <div class="queue-status-intro-copy">
                         <h1 data-i18n="admin_queue_status_title">Stan kolejek</h1>
-                        <p class="lede" data-i18n="admin_queue_status_lede">Lista pokazuje elementy gotowe do przetworzenia przez zadanie w tle. Widoczne są tylko wpisy oczekujące w kolejce eksportu.</p>
+                        <p class="lede" data-i18n="admin_queue_status_lede">Lista pokazuje elementy gotowe do przetworzenia przez zadanie w tle. Widoczne są tylko wpisy oczekujące w kolejkach eksportu i importu.</p>
                     </div>
-                    {% if pending_queue_items is not empty %}
-                        <form method="post" action="{{ path('admin_queue_status_clear') }}">
-                            <input type="hidden" name="_token" value="{{ csrf_token('clear_queue_items') }}">
-                            <button
-                                class="button secondary button-danger"
-                                type="button"
-                                data-action="confirm-clear-queue"
-                                data-i18n="admin_queue_clear"
-                            >
-                                Wyczyść kolejkę
-                            </button>
-                        </form>
-                    {% endif %}
+                    <div class="actions">
+                        <a class="button secondary" href="{{ path('admin_queue_status') }}">Odśwież</a>
+                        {% if pending_export_queue_items is not empty or pending_import_queue_items is not empty %}
+                            <form method="post" action="{{ path('admin_queue_status_clear') }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('clear_queue_items') }}">
+                                <button
+                                    class="button secondary button-danger"
+                                    type="button"
+                                    data-action="confirm-clear-queue"
+                                    data-i18n="admin_queue_clear"
+                                >
+                                    Wyczyść kolejkę
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
 
-            {% if pending_queue_items is not empty %}
-                <div class="table-wrap article-index-table-wrap">
-                    <table>
-                        <thead>
-                        <tr>
-                            <th data-i18n="admin_queue_table_id">ID</th>
-                            <th class="queue-status-title-column" data-i18n="admin_table_title">Tytuł</th>
-                            <th data-i18n="admin_queue_table_type">Typ kolejki</th>
-                            <th data-i18n="admin_queue_table_created">Dodano</th>
-                            <th data-i18n="admin_table_action">Akcja</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {% for queue_item in pending_queue_items %}
+            {% if pending_export_queue_items is not empty or pending_import_queue_items is not empty %}
+                {% if pending_export_queue_items is not empty %}
+                    <div class="dashboard-feed-intro">
+                        <div class="queue-status-intro-copy">
+                            <h2>Eksporty oczekujące</h2>
+                        </div>
+                    </div>
+                    <div class="table-wrap article-index-table-wrap">
+                        <table>
+                            <thead>
                             <tr>
-                                <td>{{ queue_item.id }}</td>
-                                <td class="queue-status-title-cell">
-                                    <a href="{{ path('admin_article_edit', {id: queue_item.article.id}) }}">{{ queue_item.article.title }}</a>
-                                </td>
-                                <td data-i18n="admin_queue_type_article_export">Eksport artykułu</td>
-                                <td>{{ queue_item.createdAt|user_date }}</td>
-                                <td>
-                                    <div class="actions">
-                                        <form method="post" action="{{ path('admin_queue_status_delete', {id: queue_item.id}) }}">
-                                            <input type="hidden" name="_token" value="{{ csrf_token('delete_queue_item_' ~ queue_item.id) }}">
-                                            <button
-                                                class="button secondary button-danger article-action-button"
-                                                type="submit"
-                                                data-i18n-tooltip="admin_queue_delete"
-                                                data-tooltip="Usuń z kolejki"
-                                                aria-label="Usuń z kolejki"
-                                            >
-                                                <span class="article-action-icon is-delete" aria-hidden="true"></span>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
+                                <th data-i18n="admin_queue_table_id">ID</th>
+                                <th class="queue-status-title-column" data-i18n="admin_table_title">Tytuł</th>
+                                <th data-i18n="admin_queue_table_type">Typ kolejki</th>
+                                <th data-i18n="admin_queue_table_created">Dodano</th>
+                                <th data-i18n="admin_table_action">Akcja</th>
                             </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                            {% for queue_item in pending_export_queue_items %}
+                                <tr>
+                                    <td>{{ queue_item.id }}</td>
+                                    <td class="queue-status-title-cell">
+                                        <a href="{{ path('admin_article_edit', {id: queue_item.article.id}) }}">{{ queue_item.article.title }}</a>
+                                    </td>
+                                    <td data-i18n="admin_queue_type_article_export">Eksport artykułu</td>
+                                    <td>{{ queue_item.createdAt|user_date }}</td>
+                                    <td>
+                                        <div class="actions">
+                                            <form method="post" action="{{ path('admin_queue_status_export_delete', {id: queue_item.id}) }}">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('delete_queue_item_' ~ queue_item.id) }}">
+                                                <button
+                                                    class="button secondary button-danger article-action-button"
+                                                    type="submit"
+                                                    data-i18n-tooltip="admin_queue_delete"
+                                                    data-tooltip="Usuń z kolejki"
+                                                    aria-label="Usuń z kolejki"
+                                                >
+                                                    <span class="article-action-icon is-delete" aria-hidden="true"></span>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+
+                {% if pending_import_queue_items is not empty %}
+                    <div class="dashboard-feed-intro">
+                        <div class="queue-status-intro-copy">
+                            <h2>Importy oczekujące</h2>
+                        </div>
+                    </div>
+                    <div class="table-wrap article-index-table-wrap">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th class="queue-status-title-column">Plik</th>
+                                <th>Typ kolejki</th>
+                                <th>Dodano</th>
+                                <th>Akcja</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for queue_item in pending_import_queue_items %}
+                                <tr>
+                                    <td>{{ queue_item.id }}</td>
+                                    <td class="queue-status-title-cell">
+                                        <strong>{{ queue_item.originalFilename }}</strong><br>
+                                        <span class="meta">{{ queue_item.filePath|split('/')|last }}</span>
+                                    </td>
+                                    <td>Import artykułu</td>
+                                    <td>{{ queue_item.createdAt|user_date }}</td>
+                                    <td>
+                                        <div class="actions">
+                                            <form method="post" action="{{ path('admin_queue_status_import_delete', {id: queue_item.id}) }}">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('delete_import_queue_item_' ~ queue_item.id) }}">
+                                                <button
+                                                    class="button secondary button-danger article-action-button"
+                                                    type="submit"
+                                                    data-tooltip="Usuń z kolejki"
+                                                    aria-label="Usuń z kolejki"
+                                                >
+                                                    <span class="article-action-icon is-delete" aria-hidden="true"></span>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
             {% else %}
                 <div class="blog-empty-state">
                     <p class="meta blog-empty-state-message" role="status" data-i18n="admin_queue_no_items">Brak elementów oczekujących na przetworzenie.</p>

@@ -148,6 +148,14 @@ const i18n = {
     admin_exports_clear_popup_text: "Ta operacja usunie wszystkie rekordy eksportów oraz powiązane pliki z dysku.",
     admin_exports_clear_popup_cancel: "Przerwij",
     admin_exports_clear_popup_confirm: "Usuń wszystkie eksporty",
+    admin_imports_clear_popup_title: "Usunac wszystkie importy?",
+    admin_imports_clear_popup_text: "Ta operacja usunie wszystkie rekordy importow oraz powiazane pliki z dysku.",
+    admin_imports_clear_popup_cancel: "Przerwij",
+    admin_imports_clear_popup_confirm: "Usun wszystkie importy",
+    admin_imports_delete_popup_title: "Usunac import?",
+    admin_imports_delete_popup_text: "Ta operacja usunie rekord importu i powiazany plik z dysku.",
+    admin_imports_delete_popup_cancel: "Przerwij",
+    admin_imports_delete_popup_confirm: "Usun import",
     admin_exports_delete_popup_title: "Usunąć eksport?",
     admin_exports_delete_popup_text: "Ta operacja usunie rekord eksportu i powiązany plik z dysku.",
     admin_exports_delete_popup_cancel: "Przerwij",
@@ -379,6 +387,14 @@ const i18n = {
     admin_exports_clear_popup_text: "This action will remove all export records and their files from disk.",
     admin_exports_clear_popup_cancel: "Cancel",
     admin_exports_clear_popup_confirm: "Delete all exports",
+    admin_imports_clear_popup_title: "Delete all imports?",
+    admin_imports_clear_popup_text: "This operation will remove all import records and related files from disk.",
+    admin_imports_clear_popup_cancel: "Cancel",
+    admin_imports_clear_popup_confirm: "Delete all imports",
+    admin_imports_delete_popup_title: "Delete import?",
+    admin_imports_delete_popup_text: "This operation will remove the import record and related file from disk.",
+    admin_imports_delete_popup_cancel: "Cancel",
+    admin_imports_delete_popup_confirm: "Delete import",
     admin_exports_delete_popup_title: "Delete export?",
     admin_exports_delete_popup_text: "This action will remove the export record and its file from disk.",
     admin_exports_delete_popup_cancel: "Cancel",
@@ -671,6 +687,8 @@ function setupTooltips(){
     const text = trigger.getAttribute('data-tooltip');
     if(!text) return;
     activeTrigger = trigger;
+    tooltip.classList.toggle('is-wide', trigger.getAttribute('data-tooltip-wide') === 'true');
+    tooltip.classList.toggle('is-multiline', trigger.getAttribute('data-tooltip-multiline') === 'true');
     tooltip.textContent = text;
     tooltip.removeAttribute('hidden');
     tooltip.setAttribute('aria-hidden', 'false');
@@ -680,6 +698,8 @@ function setupTooltips(){
   const hideTooltip = ()=>{
     tooltip.setAttribute('hidden', '');
     tooltip.setAttribute('aria-hidden', 'true');
+    tooltip.classList.remove('is-wide');
+    tooltip.classList.remove('is-multiline');
     activeTrigger = null;
   };
 
@@ -1587,6 +1607,52 @@ function setupExportClearConfirmation(){
   });
 }
 
+function setupImportClearConfirmation(){
+  setupDangerConfirmation({
+    triggerSelector: '[data-action="confirm-clear-imports"]',
+    modalClass: 'confirm-clear-imports-modal',
+    modalIdPrefix: 'confirm-clear-imports',
+    titleI18n: 'admin_imports_clear_popup_title',
+    titleFallback: 'Usunac wszystkie importy?',
+    textI18n: 'admin_imports_clear_popup_text',
+    textFallback: 'Ta operacja usunie wszystkie rekordy importow oraz powiazane pliki z dysku.',
+    detailsClass: null,
+    detailsText: null,
+    cancelAction: 'cancel-clear-imports',
+    submitAction: 'submit-clear-imports',
+    closeAction: 'close-clear-imports',
+    cancelI18n: 'admin_imports_clear_popup_cancel',
+    cancelFallback: 'Przerwij',
+    submitI18n: 'admin_imports_clear_popup_confirm',
+    submitFallback: 'Usun wszystko',
+    closeI18n: 'admin_close_alert',
+    closeFallback: 'Zamknij alert',
+  });
+}
+
+function setupImportDeleteConfirmation(){
+  setupDangerConfirmation({
+    triggerSelector: '[data-action="confirm-delete-import"]',
+    modalClass: 'confirm-delete-import-modal',
+    modalIdPrefix: 'confirm-delete-import',
+    titleI18n: 'admin_imports_delete_popup_title',
+    titleFallback: 'Usunac import?',
+    textI18n: 'admin_imports_delete_popup_text',
+    textFallback: 'Ta operacja usunie rekord importu i powiazany plik z dysku.',
+    detailsClass: 'confirm-delete-import-name',
+    detailsText: (trigger)=> trigger.getAttribute('data-import-file') || '',
+    cancelAction: 'cancel-delete-import',
+    submitAction: 'submit-delete-import',
+    closeAction: 'close-delete-import',
+    cancelI18n: 'admin_imports_delete_popup_cancel',
+    cancelFallback: 'Przerwij',
+    submitI18n: 'admin_imports_delete_popup_confirm',
+    submitFallback: 'Usun import',
+    closeI18n: 'admin_close_alert',
+    closeFallback: 'Zamknij alert',
+  });
+}
+
 function setupPrivacyNotice(){
   const storageKey = 'privacy-consent';
   const acceptedValue = 'accepted';
@@ -1672,6 +1738,8 @@ function init(){
   setupDeleteConfirmation();
   setupExportDeleteConfirmation();
   setupExportClearConfirmation();
+  setupImportDeleteConfirmation();
+  setupImportClearConfirmation();
   setupQueueClearConfirmation();
   setupPrivacyNotice();
   syncTopbarHeight();

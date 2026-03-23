@@ -562,6 +562,7 @@ main.container{flex:1;}
   top:0;
   left:0;
   z-index:140;
+  width:max-content;
   max-width:min(240px, calc(100vw - 24px));
   padding:6px 8px;
   border:1px solid color-mix(in oklab, var(--accent) 35%, var(--border));
@@ -573,6 +574,14 @@ main.container{flex:1;}
   white-space:nowrap;
   pointer-events:none;
   box-shadow:var(--shadow);
+}
+
+.app-tooltip.is-wide{
+  max-width:calc(100vw - 24px);
+}
+
+.app-tooltip.is-multiline{
+  white-space:pre;
 }
 
 .app-tooltip[hidden]{
@@ -2534,6 +2543,26 @@ select {
   white-space:nowrap;
 }
 
+.article-import-source-column,
+.article-import-source-cell {
+  width:320px;
+  min-width:320px;
+  max-width:320px;
+}
+
+.article-import-source-cell {
+  outline:none;
+}
+
+.article-import-source-primary,
+.article-import-source-secondary {
+  display:block;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
 .queue-status-intro-header {
   display:flex;
   align-items:flex-start;
@@ -3267,6 +3296,13 @@ select {
 
   .article-export-file-column,
   .article-export-file-cell {
+    width:220px;
+    min-width:220px;
+    max-width:220px;
+  }
+
+  .article-import-source-column,
+  .article-import-source-cell {
     width:220px;
     min-width:220px;
     max-width:220px;

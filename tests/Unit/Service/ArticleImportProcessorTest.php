@@ -1,0 +1,362 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Tests\Unit\Service;
+
+use App\Entity\Article;
+use App\Entity\ArticleImportQueue;
+use App\Enum\ArticleLanguage;
+use App\Enum\ArticleStatus;
+use App\Exception\ArticleImportException;
+use App\Repository\ArticleRepository;
+use App\Service\ArticleImportProcessor;
+use App\Service\ArticlePublisher;
+use App\Service\ArticleSlugger;
+use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
+use Symfony\Component\Validator\Validation;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+
+final class ArticleImportProcessorTest extends TestCase
+{
+    private string $projectDir;
+
+    protected function setUp(): void
+    {
+        $this->projectDir = sys_get_temp_dir().'/article-import-processor-'.bin2hex(random_bytes(4));
+        mkdir($this->projectDir.'/var/imports', 0775, true);
+    }
+
+    protected function tearDown(): void
+    {
+        $this->removeDirectory($this->projectDir);
+    }
+
+    public function testProcessCreatesNewArticleFromValidExport(): void
+    {
+        $capturedArticle = null;
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager
+            ->expects($this->once())
+            ->method('persist')
+            ->willReturnCallback(static function (Article $article) use (&$capturedArticle): void {
+                $capturedArticle = $article;
+            });
+
+        $repository = $this->createRepositoryMock(null, []);
+        $processor = $this->createProcessor($entityManager, $repository);
+        $queueItem = $this->createQueueItemWithPayload([
+            'format' => 'article-export',
+            'version' => 1,
+            'article' => [[
+                'title' => 'Importowany artykul',
+                'language' => 'en',
+                'slug' => 'importowany-artykul',
+                'excerpt' => 'Krotki opis',
+                'headline_image' => '/assets/img/example.png',
+                'headline_image_enabled' => true,
+                'content' => 'Pelna tresc',
+                'status' => 'published',
+                'published_at' => '2026-03-23T10:00:00+00:00',
+            ]],
+        ]);
+
+        $importedCount = $processor->process($queueItem);
+
+        $this->assertSame(1, $importedCount);
+        $this->assertInstanceOf(Article::class, $capturedArticle);
+        $this->assertSame('Importowany artykul', $capturedArticle->getTitle());
+        $this->assertSame(ArticleLanguage::EN, $capturedArticle->getLanguage());
+        $this->assertSame('importowany-artykul', $capturedArticle->getSlug());
+        $this->assertSame(ArticleStatus::PUBLISHED, $capturedArticle->getStatus());
+        $this->assertSame('2026-03-23 10:00:00', $capturedArticle->getPublishedAt()?->format('Y-m-d H:i:s'));
+    }
+
+    public function testProcessUpdatesExistingArticleMatchedBySlug(): void
+    {
+        $originalCreatedAt = new \DateTimeImmutable('2026-03-10 08:00:00', new \DateTimeZone('UTC'));
+        $existingArticle = (new Article())
+            ->setTitle('Stary tytul')
+            ->setSlug('importowany-artykul')
+            ->setContent('Stara tresc')
+            ->setStatus(ArticleStatus::DRAFT);
+        $this->setEntityId($existingArticle, 10);
+        $this->setArticleCreatedAt($existingArticle, $originalCreatedAt);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+
+        $repository = $this->createRepositoryMock($existingArticle, []);
+        $processor = $this->createProcessor($entityManager, $repository);
+        $queueItem = $this->createQueueItemWithPayload([
+            'format' => 'article-export',
+            'version' => 1,
+            'article' => [[
+                'title' => 'Nowy tytul',
+                'language' => 'pl',
+                'slug' => 'importowany-artykul',
+                'excerpt' => null,
+                'headline_image' => null,
+                'headline_image_enabled' => false,
+                'content' => 'Nowa tresc',
+                'status' => 'review',
+                'published_at' => null,
+            ]],
+        ]);
+
+        $importedCount = $processor->process($queueItem);
+
+        $this->assertSame(1, $importedCount);
+        $this->assertSame('Nowy tytul', $existingArticle->getTitle());
+        $this->assertSame(ArticleLanguage::PL, $existingArticle->getLanguage());
+        $this->assertSame('Nowa tresc', $existingArticle->getContent());
+        $this->assertSame(ArticleStatus::REVIEW, $existingArticle->getStatus());
+        $this->assertNull($existingArticle->getPublishedAt());
+        $this->assertSame(
+            $originalCreatedAt->format(\DateTimeInterface::ATOM),
+            $existingArticle->getCreatedAt()->format(\DateTimeInterface::ATOM)
+        );
+    }
+
+    public function testProcessThrowsReadableErrorWhenPayloadIsInvalid(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+
+        $repository = $this->createRepositoryMock(null, []);
+        $processor = $this->createProcessor($entityManager, $repository);
+        $queueItem = $this->createQueueItemWithPayload([
+            'format' => 'article-export',
+            'version' => 1,
+            'article' => [[
+                'title' => '',
+                'language' => 'pl',
+                'slug' => 'bledny-artykul',
+                'excerpt' => null,
+                'headline_image' => null,
+                'headline_image_enabled' => true,
+                'content' => 'Tresc',
+                'status' => 'draft',
+                'published_at' => null,
+            ]],
+        ]);
+
+        $this->expectException(ArticleImportException::class);
+        $this->expectExceptionMessage('title jest wymagane');
+
+        $processor->process($queueItem);
+    }
+
+    public function testProcessThrowsReadableErrorWhenLanguageIsNotSupported(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+
+        $repository = $this->createRepositoryMock(null, []);
+        $processor = $this->createProcessor($entityManager, $repository);
+        $queueItem = $this->createQueueItemWithPayload([
+            'format' => 'article-export',
+            'version' => 1,
+            'article' => [[
+                'title' => 'Tytul',
+                'language' => 'de',
+                'slug' => 'testowy-slug',
+                'excerpt' => null,
+                'headline_image' => null,
+                'headline_image_enabled' => true,
+                'content' => 'Tresc',
+                'status' => 'draft',
+                'published_at' => null,
+            ]],
+        ]);
+
+        $this->expectException(ArticleImportException::class);
+        $this->expectExceptionMessage('Dozwolone wartości: pl, en');
+
+        $processor->process($queueItem);
+    }
+
+    public function testProcessThrowsReadableErrorWhenSlugIsEmpty(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+
+        $repository = $this->createRepositoryMock(null, []);
+        $processor = $this->createProcessor($entityManager, $repository);
+        $queueItem = $this->createQueueItemWithPayload([
+            'format' => 'article-export',
+            'version' => 1,
+            'article' => [[
+                'title' => 'Tytul',
+                'language' => 'pl',
+                'slug' => '   ',
+                'excerpt' => null,
+                'headline_image' => null,
+                'headline_image_enabled' => true,
+                'content' => 'Tresc',
+                'status' => 'draft',
+                'published_at' => null,
+            ]],
+        ]);
+
+        $this->expectException(ArticleImportException::class);
+        $this->expectExceptionMessage('slug jest wymagane');
+
+        $processor->process($queueItem);
+    }
+
+    public function testProcessThrowsReadableErrorWhenStatusIsNotAllowed(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+
+        $repository = $this->createRepositoryMock(null, []);
+        $processor = $this->createProcessor($entityManager, $repository);
+        $queueItem = $this->createQueueItemWithPayload([
+            'format' => 'article-export',
+            'version' => 1,
+            'article' => [[
+                'title' => 'Tytul',
+                'language' => 'pl',
+                'slug' => 'testowy-slug',
+                'excerpt' => null,
+                'headline_image' => null,
+                'headline_image_enabled' => true,
+                'content' => 'Tresc',
+                'status' => 'invalid-status',
+                'published_at' => null,
+            ]],
+        ]);
+
+        $this->expectException(ArticleImportException::class);
+        $this->expectExceptionMessage('Dozwolone wartości: draft, review, published, archived');
+
+        $processor->process($queueItem);
+    }
+
+    public function testProcessThrowsReadableErrorWhenContentIsEmpty(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+
+        $repository = $this->createRepositoryMock(null, []);
+        $processor = $this->createProcessor($entityManager, $repository);
+        $queueItem = $this->createQueueItemWithPayload([
+            'format' => 'article-export',
+            'version' => 1,
+            'article' => [[
+                'title' => 'Tytul',
+                'language' => 'pl',
+                'slug' => 'testowy-slug',
+                'excerpt' => null,
+                'headline_image' => null,
+                'headline_image_enabled' => true,
+                'content' => '   ',
+                'status' => 'draft',
+                'published_at' => null,
+            ]],
+        ]);
+
+        $this->expectException(ArticleImportException::class);
+        $this->expectExceptionMessage('content jest wymagane');
+
+        $processor->process($queueItem);
+    }
+
+    private function createProcessor(EntityManagerInterface $entityManager, ArticleRepository $repository): ArticleImportProcessor
+    {
+        return new ArticleImportProcessor(
+            $this->projectDir,
+            'var/imports',
+            $repository,
+            new ArticlePublisher($repository, new ArticleSlugger()),
+            $this->createValidator(),
+            $entityManager,
+        );
+    }
+
+    private function createValidator(): ValidatorInterface
+    {
+        return Validation::createValidatorBuilder()
+            ->enableAttributeMapping()
+            ->getValidator();
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    private function createQueueItemWithPayload(array $payload): ArticleImportQueue
+    {
+        $fileName = 'import-'.bin2hex(random_bytes(4)).'.json';
+        file_put_contents(
+            $this->projectDir.'/var/imports/'.$fileName,
+            json_encode($payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+        );
+
+        return (new ArticleImportQueue())
+            ->setOriginalFilename($fileName)
+            ->setFilePath('var/imports/'.$fileName);
+    }
+
+    /**
+     * @param list<string> $existingSlugs
+     */
+    private function createRepositoryMock(?Article $existingArticle, array $existingSlugs): ArticleRepository
+    {
+        /** @var ArticleRepository&MockObject $repository */
+        $repository = $this->createMock(ArticleRepository::class);
+        $repository
+            ->method('findOneBySlug')
+            ->willReturnCallback(static fn (string $slug): ?Article => null !== $existingArticle && $existingArticle->getSlug() === $slug ? $existingArticle : null);
+        $repository
+            ->method('slugExists')
+            ->willReturnCallback(
+                static fn (string $slug, ?int $ignoreId = null): bool => in_array($slug, $existingSlugs, true)
+            );
+
+        return $repository;
+    }
+
+    private function removeDirectory(string $directory): void
+    {
+        if (!is_dir($directory)) {
+            return;
+        }
+
+        $entries = scandir($directory);
+        if (false === $entries) {
+            return;
+        }
+
+        foreach ($entries as $entry) {
+            if ('.' === $entry || '..' === $entry) {
+                continue;
+            }
+
+            $path = $directory.'/'.$entry;
+            if (is_dir($path)) {
+                $this->removeDirectory($path);
+
+                continue;
+            }
+
+            @unlink($path);
+        }
+
+        @rmdir($directory);
+    }
+
+    private function setEntityId(Article $article, int $id): void
+    {
+        $reflection = new \ReflectionProperty($article, 'id');
+        $reflection->setValue($article, $id);
+    }
+
+    private function setArticleCreatedAt(Article $article, \DateTimeImmutable $createdAt): void
+    {
+        $reflection = new \ReflectionProperty($article, 'createdAt');
+        $reflection->setValue($article, $createdAt);
+    }
+}
