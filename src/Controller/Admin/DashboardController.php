@@ -31,7 +31,7 @@ class DashboardController extends AbstractController
     ): Response
     {
         $settings = $blogSettingsRepository->findCurrent();
-        $user = $this->getUser();
+        $user = $this->resolveDashboardUser();
 
         return $this->render('admin/dashboard/index.html.twig', [
             'dashboard_user' => [
@@ -276,5 +276,16 @@ class DashboardController extends AbstractController
         }
 
         return 'Rola niestandardowa';
+    }
+
+    private function resolveDashboardUser(): ?UserInterface
+    {
+        if (!isset($this->container)) {
+            return null;
+        }
+
+        $user = $this->getUser();
+
+        return $user instanceof UserInterface ? $user : null;
     }
 }
