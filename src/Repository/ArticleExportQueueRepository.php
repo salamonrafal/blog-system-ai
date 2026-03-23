@@ -39,13 +39,37 @@ class ArticleExportQueueRepository extends ServiceEntityRepository
     /**
      * @return list<ArticleExportQueue>
      */
+    public function findPendingForArticle(Article $article): array
+    {
+        return $this->createQueryBuilder('queue_item')
+            ->andWhere('queue_item.article = :article')
+            ->andWhere('queue_item.status = :status')
+            ->setParameter('article', $article)
+            ->setParameter('status', ArticleExportQueueStatus::PENDING)
+            ->orderBy('queue_item.createdAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @return list<ArticleExportQueue>
+     */
     public function findPendingOrderedByCreatedAt(): array
     {
         return $this->createQueryBuilder('queue_item')
+            ->innerJoin('queue_item.article', 'article')
+            ->addSelect('article')
             ->andWhere('queue_item.status = :status')
             ->setParameter('status', ArticleExportQueueStatus::PENDING)
             ->orderBy('queue_item.createdAt', 'ASC')
             ->getQuery()
             ->getResult();
+    }
+
+    public function countPending(): int
+    {
+        return $this->count([
+            'status' => ArticleExportQueueStatus::PENDING,
+        ]);
     }
 }

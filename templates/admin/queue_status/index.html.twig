@@ -20,7 +20,7 @@
                     </div>
                     <div class="actions">
                         <a class="button secondary" href="{{ path('admin_queue_status') }}">Odśwież</a>
-                        {% if pending_export_queue_items is not empty or pending_import_queue_items is not empty %}
+                        {% if has_pending_queue_items %}
                             <form method="post" action="{{ path('admin_queue_status_clear') }}">
                                 <input type="hidden" name="_token" value="{{ csrf_token('clear_queue_items') }}">
                                 <button
@@ -135,6 +135,10 @@
                         </table>
                     </div>
                 {% endif %}
+            {% elseif has_pending_queue_items %}
+                <div class="blog-empty-state">
+                    <p class="meta blog-empty-state-message" role="status">W kolejce są ukryte lub osierocone wpisy. Użyj przycisku Wyczyść kolejkę, aby usunąć wszystkie oczekujące elementy.</p>
+                </div>
             {% else %}
                 <div class="blog-empty-state">
                     <p class="meta blog-empty-state-message" role="status" data-i18n="admin_queue_no_items">Brak elementów oczekujących na przetworzenie.</p>

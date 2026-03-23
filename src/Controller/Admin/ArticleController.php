@@ -211,6 +211,7 @@ class ArticleController extends AbstractController
         Article $article,
         Request $request,
         EntityManagerInterface $entityManager,
+        ArticleExportQueueRepository $articleExportQueueRepository,
     ): Response {
         if (!$this->isCsrfTokenValid('delete_article_'.$article->getId(), (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Invalid CSRF token.');
@@ -220,6 +221,10 @@ class ArticleController extends AbstractController
             $this->addFlash('error', 'Usunac mozna tylko zarchiwizowany artykul.');
 
             return $this->redirectToRoute('admin_article_index');
+        }
+
+        foreach ($articleExportQueueRepository->findPendingForArticle($article) as $queueItem) {
+            $entityManager->remove($queueItem);
         }
 
         $entityManager->remove($article);

@@ -164,6 +164,9 @@ Fullstack Developer</span>
                                 </svg>
                             </span>
                             <span data-i18n="admin_shortcut_import_export_title">Importy &amp; Eksporty</span>
+                            {% if admin_shortcut_badges.import_export > 0 %}
+                                <span class="admin-shortcuts-badge" aria-label="{{ admin_shortcut_badges.import_export }} oczekujących elementów">{{ admin_shortcut_badges.import_export }}</span>
+                            {% endif %}
                             <span class="admin-shortcuts-submenu-caret" aria-hidden="true">
                                 <svg viewBox="0 0 32 32">
                                     <path d="M10 13l6 6 6-6"></path>
@@ -183,6 +186,9 @@ Fullstack Developer</span>
                                     </svg>
                                 </span>
                                 <span data-i18n="admin_shortcut_queue_status">Stan kolejek</span>
+                                {% if admin_shortcut_badges.queue_status > 0 %}
+                                    <span class="admin-shortcuts-badge" aria-label="{{ admin_shortcut_badges.queue_status }} oczekujących elementów">{{ admin_shortcut_badges.queue_status }}</span>
+                                {% endif %}
                             </a>
                             <a class="admin-shortcuts-link admin-shortcuts-sublink" href="{{ path('admin_article_import_index') }}">
                                 <span class="admin-shortcuts-link-icon" aria-hidden="true">
@@ -194,6 +200,9 @@ Fullstack Developer</span>
                                     </svg>
                                 </span>
                                 <span data-i18n="admin_shortcut_imports">Importy</span>
+                                {% if admin_shortcut_badges.imports > 0 %}
+                                    <span class="admin-shortcuts-badge" aria-label="{{ admin_shortcut_badges.imports }} oczekujących importów">{{ admin_shortcut_badges.imports }}</span>
+                                {% endif %}
                             </a>
                             <a class="admin-shortcuts-link admin-shortcuts-sublink" href="{{ path('admin_article_export_index') }}">
                                 <span class="admin-shortcuts-link-icon" aria-hidden="true">
@@ -205,6 +214,9 @@ Fullstack Developer</span>
                                     </svg>
                                 </span>
                                 <span data-i18n="admin_shortcut_exports">Eksporty</span>
+                                {% if admin_shortcut_badges.exports > 0 %}
+                                    <span class="admin-shortcuts-badge" aria-label="{{ admin_shortcut_badges.exports }} nowych eksportów">{{ admin_shortcut_badges.exports }}</span>
+                                {% endif %}
                             </a>
                         </div>
                     </div>

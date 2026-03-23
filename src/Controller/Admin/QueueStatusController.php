@@ -6,6 +6,8 @@ namespace App\Controller\Admin;
 
 use App\Entity\ArticleExportQueue;
 use App\Entity\ArticleImportQueue;
+use App\Enum\ArticleExportQueueStatus;
+use App\Enum\ArticleImportQueueStatus;
 use App\Repository\ArticleExportQueueRepository;
 use App\Repository\ArticleImportQueueRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -23,9 +25,13 @@ class QueueStatusController extends AbstractController
         ArticleImportQueueRepository $articleImportQueueRepository,
     ): Response
     {
+        $pendingExportQueueItems = $articleExportQueueRepository->findPendingOrderedByCreatedAt();
+        $pendingImportQueueItems = $articleImportQueueRepository->findPendingOrderedByCreatedAt();
+
         return $this->render('admin/queue_status/index.html.twig', [
-            'pending_export_queue_items' => $articleExportQueueRepository->findPendingOrderedByCreatedAt(),
-            'pending_import_queue_items' => $articleImportQueueRepository->findPendingOrderedByCreatedAt(),
+            'pending_export_queue_items' => $pendingExportQueueItems,
+            'pending_import_queue_items' => $pendingImportQueueItems,
+            'has_pending_queue_items' => $articleExportQueueRepository->countPending() + $articleImportQueueRepository->countPending() > 0,
         ]);
     }
 
@@ -40,11 +46,11 @@ class QueueStatusController extends AbstractController
             throw $this->createAccessDeniedException('Invalid CSRF token.');
         }
 
-        foreach ($articleExportQueueRepository->findPendingOrderedByCreatedAt() as $queueItem) {
+        foreach ($articleExportQueueRepository->findBy(['status' => ArticleExportQueueStatus::PENDING]) as $queueItem) {
             $entityManager->remove($queueItem);
         }
 
-        foreach ($articleImportQueueRepository->findPendingOrderedByCreatedAt() as $queueItem) {
+        foreach ($articleImportQueueRepository->findBy(['status' => ArticleImportQueueStatus::PENDING]) as $queueItem) {
             $entityManager->remove($queueItem);
         }
 

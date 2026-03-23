@@ -31,4 +31,11 @@ class ArticleImportQueueRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function countPending(): int
+    {
+        return $this->count([
+            'status' => ArticleImportQueueStatus::PENDING,
+        ]);
+    }
 }

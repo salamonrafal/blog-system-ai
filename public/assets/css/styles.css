@@ -2307,6 +2307,27 @@ button.button {
   transition:transform .18s ease, color .18s ease;
 }
 
+.admin-shortcuts-badge{
+  margin-left:auto;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:22px;
+  height:22px;
+  padding:0 7px;
+  border-radius:999px;
+  background: color-mix(in oklab, var(--accent) 84%, var(--panel) 16%);
+  color:var(--accent-contrast);
+  font-size:11px;
+  font-weight:800;
+  line-height:1;
+  box-shadow:0 0 0 1px color-mix(in oklab, var(--accent) 28%, transparent);
+}
+
+.admin-shortcuts-link .admin-shortcuts-badge + .admin-shortcuts-submenu-caret{
+  margin-left:10px;
+}
+
 .admin-shortcuts-submenu-caret svg{
   width:100%;
   height:100%;
