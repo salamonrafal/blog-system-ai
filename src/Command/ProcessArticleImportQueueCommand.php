@@ -33,9 +33,9 @@ class ProcessArticleImportQueueCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $queueItems = $this->articleImportQueueRepository->findPendingOrderedByCreatedAt();
+        $queueItem = $this->articleImportQueueRepository->claimNextPending();
 
-        if ([] === $queueItems) {
+        if (null === $queueItem) {
             $io->success('No queued article imports to process.');
 
             return Command::SUCCESS;
@@ -44,12 +44,7 @@ class ProcessArticleImportQueueCommand extends Command
         $processedCount = 0;
         $failedCount = 0;
 
-        foreach ($queueItems as $queueItem) {
-            $queueItem
-                ->setStatus(ArticleImportQueueStatus::PROCESSING)
-                ->setErrorMessage(null);
-            $this->entityManager->flush();
-
+        while (null !== $queueItem) {
             try {
                 $importedArticles = $this->articleImportProcessor->process($queueItem);
 
@@ -79,6 +74,8 @@ class ProcessArticleImportQueueCommand extends Command
                     $exception->getMessage()
                 ));
             }
+
+            $queueItem = $this->articleImportQueueRepository->claimNextPending();
         }
 
         if (0 === $failedCount) {

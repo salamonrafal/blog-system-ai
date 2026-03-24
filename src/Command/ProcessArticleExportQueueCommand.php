@@ -36,9 +36,9 @@ class ProcessArticleExportQueueCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $queueItems = $this->articleExportQueueRepository->findPendingOrderedByCreatedAt();
+        $queueItem = $this->articleExportQueueRepository->claimNextPending();
 
-        if ([] === $queueItems) {
+        if (null === $queueItem) {
             $io->success('No queued article exports to process.');
 
             return Command::SUCCESS;
@@ -47,10 +47,7 @@ class ProcessArticleExportQueueCommand extends Command
         $processedCount = 0;
         $failedCount = 0;
 
-        foreach ($queueItems as $queueItem) {
-            $queueItem->setStatus(ArticleExportQueueStatus::PROCESSING);
-            $this->entityManager->flush();
-
+        while (null !== $queueItem) {
             try {
                 $filePath = $this->articleExportFileWriter->write($queueItem);
 
@@ -78,6 +75,8 @@ class ProcessArticleExportQueueCommand extends Command
                     $exception->getMessage()
                 ));
             }
+
+            $queueItem = $this->articleExportQueueRepository->claimNextPending();
         }
 
         if (0 === $failedCount) {

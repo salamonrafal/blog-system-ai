@@ -37,10 +37,11 @@ final class ProcessArticleImportQueueCommandTest extends TestCase
     {
         $queueItem = (new ArticleImportQueue())
             ->setOriginalFilename('article.json')
-            ->setFilePath('var/imports/article.json');
+            ->setFilePath('var/imports/article.json')
+            ->setStatus(ArticleImportQueueStatus::PROCESSING);
 
         $entityManager = $this->createMock(EntityManagerInterface::class);
-        $entityManager->expects($this->exactly(2))->method('flush');
+        $entityManager->expects($this->once())->method('flush');
 
         $queueRepository = $this->createQueueRepositoryMock([$queueItem]);
         $processor = $this->createMock(ArticleImportProcessor::class);
@@ -64,10 +65,11 @@ final class ProcessArticleImportQueueCommandTest extends TestCase
     {
         $queueItem = (new ArticleImportQueue())
             ->setOriginalFilename('article.json')
-            ->setFilePath('var/imports/article.json');
+            ->setFilePath('var/imports/article.json')
+            ->setStatus(ArticleImportQueueStatus::PROCESSING);
 
         $entityManager = $this->createMock(EntityManagerInterface::class);
-        $entityManager->expects($this->exactly(2))->method('flush');
+        $entityManager->expects($this->once())->method('flush');
 
         $queueRepository = $this->createQueueRepositoryMock([$queueItem]);
         $processor = $this->createMock(ArticleImportProcessor::class);
@@ -95,8 +97,9 @@ final class ProcessArticleImportQueueCommandTest extends TestCase
         /** @var ArticleImportQueueRepository&MockObject $repository */
         $repository = $this->createMock(ArticleImportQueueRepository::class);
         $repository
-            ->method('findPendingOrderedByCreatedAt')
-            ->willReturn($queueItems);
+            ->expects($this->exactly(\count($queueItems) + 1))
+            ->method('claimNextPending')
+            ->willReturnOnConsecutiveCalls(...[...$queueItems, null]);
 
         return $repository;
     }

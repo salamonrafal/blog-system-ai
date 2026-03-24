@@ -43,6 +43,8 @@ final class ProcessArticleExportQueueCommandTest extends TestCase
         $capturedExports = [];
         $queueItemOne = new ArticleExportQueue((new Article())->setTitle('Artykul 1')->setSlug('artykul-1'));
         $queueItemTwo = new ArticleExportQueue((new Article())->setTitle('Artykul 2')->setSlug('artykul-2'));
+        $queueItemOne->setStatus(ArticleExportQueueStatus::PROCESSING);
+        $queueItemTwo->setStatus(ArticleExportQueueStatus::PROCESSING);
 
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager
@@ -51,7 +53,7 @@ final class ProcessArticleExportQueueCommandTest extends TestCase
             ->willReturnCallback(static function (ArticleExport $articleExport) use (&$capturedExports): void {
                 $capturedExports[] = $articleExport;
             });
-        $entityManager->expects($this->exactly(4))->method('flush');
+        $entityManager->expects($this->exactly(2))->method('flush');
 
         $queueRepository = $this->createQueueRepositoryMock([$queueItemOne, $queueItemTwo]);
         $writer = $this->createMock(ArticleExportFileWriter::class);
@@ -85,6 +87,8 @@ final class ProcessArticleExportQueueCommandTest extends TestCase
         $capturedExports = [];
         $queueItemOne = new ArticleExportQueue((new Article())->setTitle('Artykul 1')->setSlug('artykul-1'));
         $queueItemTwo = new ArticleExportQueue((new Article())->setTitle('Artykul 2')->setSlug('artykul-2'));
+        $queueItemOne->setStatus(ArticleExportQueueStatus::PROCESSING);
+        $queueItemTwo->setStatus(ArticleExportQueueStatus::PROCESSING);
 
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager
@@ -93,7 +97,7 @@ final class ProcessArticleExportQueueCommandTest extends TestCase
             ->willReturnCallback(static function (ArticleExport $articleExport) use (&$capturedExports): void {
                 $capturedExports[] = $articleExport;
             });
-        $entityManager->expects($this->exactly(4))->method('flush');
+        $entityManager->expects($this->exactly(2))->method('flush');
 
         $queueRepository = $this->createQueueRepositoryMock([$queueItemOne, $queueItemTwo]);
         $writer = $this->createMock(ArticleExportFileWriter::class);
@@ -129,8 +133,9 @@ final class ProcessArticleExportQueueCommandTest extends TestCase
         /** @var ArticleExportQueueRepository&MockObject $repository */
         $repository = $this->createMock(ArticleExportQueueRepository::class);
         $repository
-            ->method('findPendingOrderedByCreatedAt')
-            ->willReturn($queueItems);
+            ->expects($this->exactly(\count($queueItems) + 1))
+            ->method('claimNextPending')
+            ->willReturnOnConsecutiveCalls(...[...$queueItems, null]);
 
         return $repository;
     }

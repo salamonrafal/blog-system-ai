@@ -7,6 +7,7 @@ namespace App\Repository;
 use App\Entity\Article;
 use App\Entity\ArticleExportQueue;
 use App\Enum\ArticleExportQueueStatus;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -64,6 +65,56 @@ class ArticleExportQueueRepository extends ServiceEntityRepository
             ->orderBy('queue_item.createdAt', 'ASC')
             ->getQuery()
             ->getResult();
+    }
+
+    public function claimNextPending(): ?ArticleExportQueue
+    {
+        $connection = $this->getEntityManager()->getConnection();
+        $updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+
+        while (true) {
+            $queueItemId = $connection->fetchOne(
+                'SELECT id
+                FROM article_export_queue
+                WHERE status = :pendingStatus
+                ORDER BY created_at ASC
+                LIMIT 1',
+                [
+                    'pendingStatus' => ArticleExportQueueStatus::PENDING->value,
+                ],
+            );
+
+            if (false === $queueItemId) {
+                return null;
+            }
+
+            $updatedRows = $connection->executeStatement(
+                'UPDATE article_export_queue
+                SET status = :processingStatus, updated_at = :updatedAt
+                WHERE id = :id AND status = :pendingStatus',
+                [
+                    'processingStatus' => ArticleExportQueueStatus::PROCESSING->value,
+                    'updatedAt' => $updatedAt,
+                    'id' => (int) $queueItemId,
+                    'pendingStatus' => ArticleExportQueueStatus::PENDING->value,
+                ],
+                [
+                    'updatedAt' => Types::DATETIME_IMMUTABLE,
+                ],
+            );
+
+            if (1 !== $updatedRows) {
+                continue;
+            }
+
+            return $this->createQueryBuilder('queue_item')
+                ->innerJoin('queue_item.article', 'article')
+                ->addSelect('article')
+                ->andWhere('queue_item.id = :id')
+                ->setParameter('id', (int) $queueItemId)
+                ->getQuery()
+                ->getOneOrNullResult();
+        }
     }
 
     public function countPending(): int
