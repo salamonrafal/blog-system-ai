@@ -8,6 +8,7 @@ use App\Enum\ArticleImportQueueStatus;
 use App\Repository\ArticleImportQueueRepository;
 use App\Service\ArticleImportProcessor;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -24,6 +25,7 @@ class ProcessArticleImportQueueCommand extends Command
 
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
+        private readonly ManagerRegistry $managerRegistry,
         private readonly ArticleImportQueueRepository $articleImportQueueRepository,
         private readonly ArticleImportProcessor $articleImportProcessor,
     ) {
@@ -62,10 +64,7 @@ class ProcessArticleImportQueueCommand extends Command
                     $queueItem->getId() ?? 0,
                 ));
             } catch (\Throwable $exception) {
-                $queueItem
-                    ->setStatus(ArticleImportQueueStatus::FAILED)
-                    ->setErrorMessage($exception->getMessage());
-                $this->entityManager->flush();
+                $this->markQueueItemAsFailed($queueItem, $exception->getMessage());
                 ++$failedCount;
 
                 $io->error(sprintf(
@@ -96,5 +95,39 @@ class ProcessArticleImportQueueCommand extends Command
     private function utcNow(): \DateTimeImmutable
     {
         return new \DateTimeImmutable('now', new \DateTimeZone(self::STORAGE_TIMEZONE));
+    }
+
+    private function markQueueItemAsFailed(\App\Entity\ArticleImportQueue $queueItem, string $errorMessage): void
+    {
+        if ($this->entityManager->isOpen()) {
+            $queueItem
+                ->setStatus(ArticleImportQueueStatus::FAILED)
+                ->setErrorMessage($errorMessage);
+
+            $this->entityManager->flush();
+
+            return;
+        }
+
+        $this->managerRegistry->resetManager();
+
+        $entityManager = $this->managerRegistry->getManagerForClass(\App\Entity\ArticleImportQueue::class);
+        if (!$entityManager instanceof EntityManagerInterface) {
+            throw new \RuntimeException('Entity manager for article import queue is not available.');
+        }
+
+        $managedQueueItem = $entityManager->find(\App\Entity\ArticleImportQueue::class, $queueItem->getId());
+        if (!$managedQueueItem instanceof \App\Entity\ArticleImportQueue) {
+            throw new \RuntimeException(sprintf(
+                'Unable to reload article import queue item %d after import failure.',
+                $queueItem->getId() ?? 0,
+            ));
+        }
+
+        $managedQueueItem
+            ->setStatus(ArticleImportQueueStatus::FAILED)
+            ->setErrorMessage($errorMessage);
+
+        $entityManager->flush();
     }
 }

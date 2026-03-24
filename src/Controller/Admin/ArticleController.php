@@ -13,6 +13,7 @@ use App\Repository\ArticleExportQueueRepository;
 use App\Form\ArticleType;
 use App\Repository\ArticleRepository;
 use App\Service\ArticlePublisher;
+use App\Service\UserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -165,6 +166,49 @@ class ArticleController extends AbstractController
         }
 
         $this->addFlash('success', 'Article export added to the queue.');
+
+        return $this->redirectToRoute('admin_article_index');
+    }
+
+    #[Route('/{id}/assign-to-me', name: 'admin_article_assign_to_me', methods: ['POST'])]
+    public function assignToMe(
+        Article $article,
+        Request $request,
+        EntityManagerInterface $entityManager,
+        UserLanguageResolver $userLanguageResolver,
+    ): Response {
+        if (!$this->isCsrfTokenValid('assign_article_to_me_'.$article->getId(), (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        $currentUser = $this->resolveAuthenticatedUser();
+        if (null === $currentUser) {
+            throw $this->createAccessDeniedException('User must be authenticated.');
+        }
+
+        if (null !== $article->getCreatedBy()) {
+            $this->addFlash(
+                'error',
+                'pl' === $userLanguageResolver->getLanguage()
+                    ? 'Artykuł ma już przypisanego autora.'
+                    : 'Article already has an author assigned.'
+            );
+
+            return $this->redirectToRoute('admin_article_index');
+        }
+
+        $article
+            ->setCreatedBy($currentUser)
+            ->setUpdatedBy($currentUser);
+
+        $entityManager->flush();
+
+        $this->addFlash(
+            'success',
+            'pl' === $userLanguageResolver->getLanguage()
+                ? 'Autor artykułu został przypisany.'
+                : 'Article author assigned.'
+        );
 
         return $this->redirectToRoute('admin_article_index');
     }

@@ -37,6 +37,11 @@
                                 <div class="meta article-subpanel-meta">
                                     <span class="article-subpanel-meta-icon" aria-hidden="true"></span>
                                     {{ article.publishedAt ? article.publishedAt|user_date : article.createdAt|user_date }}
+                                    {% if article.createdBy %}
+                                        <span class="article-subpanel-meta-separator" aria-hidden="true">•</span>
+                                        <span class="article-subpanel-meta-icon article-subpanel-meta-author-icon" aria-hidden="true"></span>
+                                        {{ article.createdBy.nickname ?: article.createdBy.fullName ?: article.createdBy.email }}
+                                    {% endif %}
                                 </div>
                             </div>
                             <div class="big-link-copy">

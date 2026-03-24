@@ -39,10 +39,71 @@
                 <div class="article-body">
                     {{ article.content|article_markup }}
                 </div>
+                {% set author = article.createdBy %}
+                {% if author %}
+                    {% set author_name = author.nickname ?: author.fullName ?: author.email %}
+                    {% set normalized_author_name = author_name|trim %}
+                    {% set author_name_parts = normalized_author_name|replace({'-': ' ', '_': ' ', '@': ' '})|split(' ') %}
+                    {% set author_first_initial = normalized_author_name|slice(0, 1)|upper %}
+                    {% set author_second_initial = author_name_parts|length > 1 ? author_name_parts[1]|slice(0, 1)|upper : normalized_author_name|slice(1, 1)|upper %}
+                    {% set author_initials = (author_first_initial ~ author_second_initial)|trim %}
+                    {% set author_badge_color = random(['#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#ec4899']) %}
+                    <aside class="article-author-panel" style="--author-accent: {{ author_badge_color }};">
+                        <div class="article-author-avatar">
+                            {% if author.avatar %}
+                                <img src="{{ author.avatar }}" alt="{{ author_name }}" class="article-author-avatar-image" loading="lazy" decoding="async">
+                            {% else %}
+                                <div class="article-author-avatar-fallback" aria-hidden="true">{{ author_initials }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="article-author-copy">
+                            <div class="article-author-eyebrow">
+                                <span data-lang="pl">Autor artykułu</span>
+                                <span data-lang="en">Article author</span>
+                            </div>
+                            <h2 class="article-author-name">{{ author_name }}</h2>
+                            <p class="article-author-bio">
+                                {% if author.shortBio %}
+                                    {{ author.shortBio }}
+                                {% else %}
+                                    <span data-lang="pl">Autor nie dodał jeszcze krótkiego opisu profilu.</span>
+                                    <span data-lang="en">The author has not added a short profile description yet.</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </aside>
+                {% endif %}
                 <div class="actions article-content-actions">
-                    <a class="button secondary" href="{{ path('blog_index') }}" data-i18n="blog_back_to_articles">Wróć do artykułów</a>
+                    <a
+                        class="button secondary article-action-button"
+                        href="{{ path('blog_index') }}"
+                        data-i18n-tooltip="blog_back_to_articles"
+                        data-tooltip="Wróć do artykułów"
+                        aria-label="Wróć do artykułów"
+                    >
+                        <span class="article-action-icon is-back" aria-hidden="true"></span>
+                    </a>
+                    <button
+                        class="button secondary article-action-button"
+                        type="button"
+                        data-action="copy-article-link"
+                        data-link="{{ absolute_url(path('blog_show', {slug: article.slug})) }}"
+                        data-i18n-tooltip="blog_copy_link"
+                        data-tooltip="Kopiuj link"
+                        aria-label="Kopiuj link"
+                    >
+                        <span class="article-action-icon is-copy" aria-hidden="true"></span>
+                    </button>
                     {% if is_granted('ROLE_ADMIN') %}
-                        <a class="button" href="{{ path('admin_article_edit', {id: article.id}) }}" data-i18n="blog_edit_in_admin">Edytuj w panelu admina</a>
+                        <a
+                            class="button secondary article-action-button"
+                            href="{{ path('admin_article_edit', {id: article.id}) }}"
+                            data-i18n-tooltip="blog_edit_in_admin"
+                            data-tooltip="Edytuj w panelu admina"
+                            aria-label="Edytuj w panelu admina"
+                        >
+                            <span class="article-action-icon is-edit" aria-hidden="true"></span>
+                        </a>
                     {% endif %}
                 </div>
             </div>

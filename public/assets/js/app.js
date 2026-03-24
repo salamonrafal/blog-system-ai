@@ -94,6 +94,8 @@ const i18n = {
     blog_article_label_suffix: "artykuł",
     blog_article_fallback_excerpt: "Strona opublikowanej treści wygenerowana z widoku bloga Twig.",
     blog_back_to_articles: "Wróć do artykułów",
+    blog_copy_link: "Kopiuj link",
+    blog_link_copied: "Skopiowano link!",
     blog_edit_in_admin: "Edytuj w panelu admina",
     blog_metadata: "Metadane",
     blog_article_language: "Język publikacji",
@@ -177,6 +179,7 @@ const i18n = {
     admin_article_select: "Zaznacz artykuł",
     admin_article_select_all: "Zaznacz wszystkie artykuły",
     admin_table_title: "Tytuł",
+    admin_table_author: "Autor",
     admin_table_language: "Język",
     admin_table_status: "Status",
     admin_table_slug: "Slug",
@@ -335,6 +338,8 @@ const i18n = {
     blog_article_label_suffix: "article",
     blog_article_fallback_excerpt: "Published content page generated from the Twig blog view.",
     blog_back_to_articles: "Back to articles",
+    blog_copy_link: "Copy link",
+    blog_link_copied: "Link copied!",
     blog_edit_in_admin: "Edit in admin",
     blog_metadata: "Metadata",
     blog_article_language: "Publication language",
@@ -416,6 +421,7 @@ const i18n = {
     admin_article_select: "Select article",
     admin_article_select_all: "Select all articles",
     admin_table_title: "Title",
+    admin_table_author: "Author",
     admin_table_language: "Language",
     admin_table_status: "Status",
     admin_table_slug: "Slug",
@@ -854,6 +860,43 @@ function setupActions(){
       }
     });
   }
+
+  qsa('[data-action="copy-article-link"]').forEach((copyLinkBtn)=>{
+    copyLinkBtn.addEventListener('click', async ()=>{
+      const link = copyLinkBtn.getAttribute('data-link');
+      const lang = getLang();
+      const defaultHint = i18n[lang].blog_copy_link;
+      const icon = copyLinkBtn.querySelector('.article-action-icon');
+      if(!link) {
+        copyLinkBtn.setAttribute('data-tooltip', defaultHint);
+        return;
+      }
+
+      const copied = await copyTextToClipboard(link);
+      copyLinkBtn.setAttribute('data-tooltip', copied ? i18n[lang].blog_link_copied : defaultHint);
+
+      if(copied && icon){
+        copyLinkBtn.classList.add('is-icon-transitioning');
+        setTimeout(()=>{
+          icon.classList.remove('is-copy');
+          icon.classList.add('is-check');
+          copyLinkBtn.classList.remove('is-icon-transitioning');
+        }, 110);
+
+        copyLinkBtn.classList.add('is-confirmed');
+        setTimeout(()=>{
+          copyLinkBtn.setAttribute('data-tooltip', i18n[getLang()].blog_copy_link);
+          copyLinkBtn.classList.add('is-icon-transitioning');
+          setTimeout(()=>{
+            icon.classList.remove('is-check');
+            icon.classList.add('is-copy');
+            copyLinkBtn.classList.remove('is-icon-transitioning');
+          }, 110);
+          copyLinkBtn.classList.remove('is-confirmed');
+        }, 1200);
+      }
+    });
+  });
 
   qsa('[data-action="accent-color"]').forEach(colorInput=>{
     colorInput.addEventListener('input', (e)=> setAccent(e.target.value));

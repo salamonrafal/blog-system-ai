@@ -10,6 +10,7 @@ use App\Enum\ArticleImportQueueStatus;
 use App\Repository\ArticleImportQueueRepository;
 use App\Service\ArticleImportProcessor;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Command\Command;
@@ -25,8 +26,10 @@ final class ProcessArticleImportQueueCommandTest extends TestCase
         $queueRepository = $this->createQueueRepositoryMock([]);
         $processor = $this->createMock(ArticleImportProcessor::class);
         $processor->expects($this->never())->method('process');
+        $managerRegistry = $this->createMock(ManagerRegistry::class);
+        $managerRegistry->expects($this->never())->method('resetManager');
 
-        $tester = new CommandTester(new ProcessArticleImportQueueCommand($entityManager, $queueRepository, $processor));
+        $tester = new CommandTester(new ProcessArticleImportQueueCommand($entityManager, $managerRegistry, $queueRepository, $processor));
         $exitCode = $tester->execute([]);
 
         $this->assertSame(Command::SUCCESS, $exitCode);
@@ -42,7 +45,6 @@ final class ProcessArticleImportQueueCommandTest extends TestCase
 
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects($this->once())->method('flush');
-
         $queueRepository = $this->createQueueRepositoryMock([$queueItem]);
         $processor = $this->createMock(ArticleImportProcessor::class);
         $processor
@@ -50,8 +52,10 @@ final class ProcessArticleImportQueueCommandTest extends TestCase
             ->method('process')
             ->with($queueItem)
             ->willReturn(1);
+        $managerRegistry = $this->createMock(ManagerRegistry::class);
+        $managerRegistry->expects($this->never())->method('resetManager');
 
-        $tester = new CommandTester(new ProcessArticleImportQueueCommand($entityManager, $queueRepository, $processor));
+        $tester = new CommandTester(new ProcessArticleImportQueueCommand($entityManager, $managerRegistry, $queueRepository, $processor));
         $exitCode = $tester->execute([]);
 
         $this->assertSame(Command::SUCCESS, $exitCode);
@@ -70,6 +74,10 @@ final class ProcessArticleImportQueueCommandTest extends TestCase
 
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects($this->once())->method('flush');
+        $entityManager
+            ->expects($this->once())
+            ->method('isOpen')
+            ->willReturn(true);
 
         $queueRepository = $this->createQueueRepositoryMock([$queueItem]);
         $processor = $this->createMock(ArticleImportProcessor::class);
@@ -78,8 +86,10 @@ final class ProcessArticleImportQueueCommandTest extends TestCase
             ->method('process')
             ->with($queueItem)
             ->willThrowException(new \RuntimeException('Pole title jest wymagane.'));
+        $managerRegistry = $this->createMock(ManagerRegistry::class);
+        $managerRegistry->expects($this->never())->method('resetManager');
 
-        $tester = new CommandTester(new ProcessArticleImportQueueCommand($entityManager, $queueRepository, $processor));
+        $tester = new CommandTester(new ProcessArticleImportQueueCommand($entityManager, $managerRegistry, $queueRepository, $processor));
         $exitCode = $tester->execute([]);
 
         $this->assertSame(Command::FAILURE, $exitCode);
@@ -87,6 +97,66 @@ final class ProcessArticleImportQueueCommandTest extends TestCase
         $this->assertSame('Pole title jest wymagane.', $queueItem->getErrorMessage());
         $this->assertNull($queueItem->getProcessedAt());
         $this->assertStringContainsString('Article import failed for queue item', $tester->getDisplay());
+    }
+
+    public function testExecuteResetsClosedEntityManagerBeforePersistingFailureState(): void
+    {
+        $queueItem = (new ArticleImportQueue())
+            ->setOriginalFilename('article.json')
+            ->setFilePath('var/imports/article.json')
+            ->setStatus(ArticleImportQueueStatus::PROCESSING);
+        $managedQueueItem = (new ArticleImportQueue())
+            ->setOriginalFilename('article.json')
+            ->setFilePath('var/imports/article.json')
+            ->setStatus(ArticleImportQueueStatus::PROCESSING);
+        $this->setEntityId($queueItem, 42);
+        $this->setEntityId($managedQueueItem, 42);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager
+            ->expects($this->once())
+            ->method('flush')
+            ->willThrowException(new \RuntimeException('Database write failed.'));
+        $entityManager
+            ->expects($this->once())
+            ->method('isOpen')
+            ->willReturn(false);
+
+        $recoveredEntityManager = $this->createMock(EntityManagerInterface::class);
+        $recoveredEntityManager
+            ->expects($this->once())
+            ->method('find')
+            ->with(ArticleImportQueue::class, 42)
+            ->willReturn($managedQueueItem);
+        $recoveredEntityManager
+            ->expects($this->once())
+            ->method('flush');
+
+        $managerRegistry = $this->createMock(ManagerRegistry::class);
+        $managerRegistry
+            ->expects($this->once())
+            ->method('resetManager');
+        $managerRegistry
+            ->expects($this->once())
+            ->method('getManagerForClass')
+            ->with(ArticleImportQueue::class)
+            ->willReturn($recoveredEntityManager);
+
+        $queueRepository = $this->createQueueRepositoryMock([$queueItem]);
+        $processor = $this->createMock(ArticleImportProcessor::class);
+        $processor
+            ->expects($this->once())
+            ->method('process')
+            ->with($queueItem)
+            ->willReturn(1);
+
+        $tester = new CommandTester(new ProcessArticleImportQueueCommand($entityManager, $managerRegistry, $queueRepository, $processor));
+        $exitCode = $tester->execute([]);
+
+        $this->assertSame(Command::FAILURE, $exitCode);
+        $this->assertSame(ArticleImportQueueStatus::FAILED, $managedQueueItem->getStatus());
+        $this->assertSame('Database write failed.', $managedQueueItem->getErrorMessage());
+        $this->assertStringContainsString('Article import failed for queue item 42: Database write failed.', $tester->getDisplay());
     }
 
     /**
@@ -102,5 +172,11 @@ final class ProcessArticleImportQueueCommandTest extends TestCase
             ->willReturnOnConsecutiveCalls(...[...$queueItems, null]);
 
         return $repository;
+    }
+
+    private function setEntityId(ArticleImportQueue $queueItem, int $id): void
+    {
+        $reflectionProperty = new \ReflectionProperty($queueItem, 'id');
+        $reflectionProperty->setValue($queueItem, $id);
     }
 }

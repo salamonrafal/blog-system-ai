@@ -49,6 +49,7 @@
                             {% endif %}
                         </th>
                         <th class="article-index-title-column" data-i18n="admin_table_title">Tytuł</th>
+                        <th data-i18n="admin_table_author">Autor</th>
                         <th data-i18n="admin_table_status">Status</th>
                         <th data-i18n="admin_table_updated">Aktualizacja</th>
                         <th data-i18n="admin_table_action">Akcja</th>
@@ -69,6 +70,19 @@
                                 >
                             </td>
                             <td class="article-index-title-cell"><a href="{{ path('blog_show', {slug: article.slug}) }}">{{ article.title }}</a></td>
+                            <td>
+                                {% if article.createdBy %}
+                                    {{ article.createdBy.displayName }}
+                                {% else %}
+                                    <form method="post" action="{{ path('admin_article_assign_to_me', {id: article.id}) }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('assign_article_to_me_' ~ article.id) }}">
+                                        <button class="button secondary" type="submit">
+                                            <span data-lang="pl">Przypisz do mnie</span>
+                                            <span data-lang="en">Assign to me</span>
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </td>
                             <td class="article-index-status-cell">
                                 <span data-lang="pl">
                                     {% if article.status.value == 'draft' %}Szkic{% elseif article.status.value == 'review' %}W recenzji{% elseif article.status.value == 'archived' %}Zarchiwizowany{% else %}Opublikowany{% endif %}
@@ -149,7 +163,7 @@
                         </tr>
                     {% else %}
                         <tr>
-                            <td colspan="5" data-i18n="admin_table_no_articles">Nie znaleziono artykułów.</td>
+                            <td colspan="6" data-i18n="admin_table_no_articles">Nie znaleziono artykułów.</td>
                         </tr>
                     {% endfor %}
                     </tbody>
