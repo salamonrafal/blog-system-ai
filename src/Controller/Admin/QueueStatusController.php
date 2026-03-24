@@ -104,8 +104,12 @@ class QueueStatusController extends AbstractController
             throw $this->createAccessDeniedException('Invalid CSRF token.');
         }
 
+        $absolutePath = $this->resolveImportPath($queueItem);
+
         $entityManager->remove($queueItem);
         $entityManager->flush();
+
+        $this->deleteImportFile($absolutePath);
 
         $this->addFlash('success', 'Element zostal usuniety z kolejki.');
 

@@ -153,3 +153,5 @@
 - Uszczelniono obsługę błędów w komendzie `app:article-export:process-queue`, tak aby po awarii `flush()` na zamkniętym `EntityManager` rekord kolejki eksportu był ponownie ładowany na świeżym managerze i poprawnie oznaczany jako `FAILED`, wraz z nowym testem regresyjnym.
 - Zabezpieczono generowanie nazw plików eksportu artykułów, sanitizując `slug` przed użyciem go w ścieżce pliku, dzięki czemu nietypowe wartości nie tworzą zagnieżdżonych katalogów ani nie blokują zapisu eksportu.
 - Rozszerzono czyszczenie `pending` importów na ekranie `admin_queue_status`, aby oprócz rekordów kolejki usuwało także odpowiadające im pliki z `var/imports`, zapobiegając pozostawianiu osieroconych payloadów na dysku.
+- Poprawiono migrację dodającą pola `created_by_id` i `updated_by_id` do `article`, dopinając klucze obce do `app_user` z `ON DELETE SET NULL`, tak aby integralność relacji autorów była egzekwowana również na poziomie bazy danych.
+- Uszczelniono pojedyncze usuwanie importu na ekranie `admin_queue_status`, tak aby oprócz rekordu kolejki kasowany był również odpowiadający mu plik z `var/imports`.

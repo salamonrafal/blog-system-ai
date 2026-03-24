@@ -16,8 +16,8 @@ final class Version20260324120000 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $this->addSql('ALTER TABLE article ADD created_by_id INTEGER DEFAULT NULL');
-        $this->addSql('ALTER TABLE article ADD updated_by_id INTEGER DEFAULT NULL');
+        $this->addSql('ALTER TABLE article ADD created_by_id INTEGER DEFAULT NULL REFERENCES app_user (id) ON DELETE SET NULL');
+        $this->addSql('ALTER TABLE article ADD updated_by_id INTEGER DEFAULT NULL REFERENCES app_user (id) ON DELETE SET NULL');
         $this->addSql('CREATE INDEX IDX_23A0E66DB03A8386 ON article (created_by_id)');
         $this->addSql('CREATE INDEX IDX_23A0E66D896DBBDE ON article (updated_by_id)');
     }
