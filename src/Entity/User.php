@@ -30,6 +30,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'json')]
     private array $roles = [];
 
+    #[Assert\Length(max: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $fullName = null;
+
+    #[Assert\Length(max: 120)]
+    #[ORM\Column(length: 120, nullable: true)]
+    private ?string $nickname = null;
+
+    #[Assert\Length(max: 500)]
+    #[ORM\Column(length: 500, nullable: true)]
+    private ?string $shortBio = null;
+
+    #[Assert\Length(max: 500)]
+    #[ORM\Column(length: 500, nullable: true)]
+    private ?string $avatar = null;
+
     #[ORM\Column(length: 255)]
     private string $password = '';
 
@@ -66,12 +82,65 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->email;
     }
 
+    public function getDisplayName(): string
+    {
+        return $this->fullName ?? $this->nickname ?? $this->email;
+    }
+
     public function getRoles(): array
     {
         $roles = $this->roles;
         $roles[] = 'ROLE_USER';
 
         return array_values(array_unique($roles));
+    }
+
+    public function getFullName(): ?string
+    {
+        return $this->fullName;
+    }
+
+    public function setFullName(?string $fullName): self
+    {
+        $this->fullName = $this->normalizeNullableText($fullName);
+
+        return $this;
+    }
+
+    public function getNickname(): ?string
+    {
+        return $this->nickname;
+    }
+
+    public function setNickname(?string $nickname): self
+    {
+        $this->nickname = $this->normalizeNullableText($nickname);
+
+        return $this;
+    }
+
+    public function getShortBio(): ?string
+    {
+        return $this->shortBio;
+    }
+
+    public function setShortBio(?string $shortBio): self
+    {
+        $this->shortBio = $this->normalizeNullableText($shortBio);
+
+        return $this;
+    }
+
+    public function getAvatar(): ?string
+    {
+        return $this->avatar;
+    }
+
+    public function setAvatar(?string $avatar): self
+    {
+        $this->avatar = $this->normalizeNullableText($avatar);
+
+        return $this;
     }
 
     public function setRoles(array $roles): self
@@ -112,5 +181,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function eraseCredentials(): void
     {
+    }
+
+    private function normalizeNullableText(?string $value): ?string
+    {
+        if (null === $value) {
+            return null;
+        }
+
+        $value = trim($value);
+
+        return '' === $value ? null : $value;
     }
 }

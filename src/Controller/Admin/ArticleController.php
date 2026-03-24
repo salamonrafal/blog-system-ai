@@ -6,6 +6,7 @@ namespace App\Controller\Admin;
 
 use App\Entity\Article;
 use App\Entity\ArticleExportQueue;
+use App\Entity\User;
 use App\Enum\ArticleExportQueueStatus;
 use App\Enum\ArticleStatus;
 use App\Repository\ArticleExportQueueRepository;
@@ -36,6 +37,7 @@ class ArticleController extends AbstractController
         ArticlePublisher $articlePublisher,
     ): Response {
         $article = new Article();
+        $currentUser = $this->resolveAuthenticatedUser();
         $form = $this->createForm(ArticleType::class, $article);
         $form->handleRequest($request);
 
@@ -44,6 +46,12 @@ class ArticleController extends AbstractController
         }
 
         if ($form->isSubmitted() && $form->isValid()) {
+            if (null !== $currentUser) {
+                $article
+                    ->setCreatedBy($currentUser)
+                    ->setUpdatedBy($currentUser);
+            }
+
             $entityManager->persist($article);
             $entityManager->flush();
 
@@ -64,6 +72,7 @@ class ArticleController extends AbstractController
         EntityManagerInterface $entityManager,
         ArticlePublisher $articlePublisher,
     ): Response {
+        $currentUser = $this->resolveAuthenticatedUser();
         $form = $this->createForm(ArticleType::class, $article);
         $form->handleRequest($request);
 
@@ -72,6 +81,7 @@ class ArticleController extends AbstractController
         }
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $article->setUpdatedBy($currentUser);
             $entityManager->flush();
 
             $this->addFlash('success', 'Article updated.');
@@ -97,7 +107,8 @@ class ArticleController extends AbstractController
 
         $article
             ->setStatus(ArticleStatus::ARCHIVED)
-            ->setPublishedAt(null);
+            ->setPublishedAt(null)
+            ->setUpdatedBy($this->resolveAuthenticatedUser());
 
         $entityManager->flush();
 
@@ -124,6 +135,7 @@ class ArticleController extends AbstractController
         }
 
         $article->setStatus(ArticleStatus::PUBLISHED);
+        $article->setUpdatedBy($this->resolveAuthenticatedUser());
         $articlePublisher->prepareForSave($article);
 
         $entityManager->flush();
@@ -270,5 +282,12 @@ class ArticleController extends AbstractController
             'queued' => $queued,
             'skipped' => $skipped,
         ];
+    }
+
+    private function resolveAuthenticatedUser(): ?User
+    {
+        $user = $this->getUser();
+
+        return $user instanceof User ? $user : null;
     }
 }

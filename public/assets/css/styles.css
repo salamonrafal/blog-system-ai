@@ -2546,6 +2546,45 @@ button.button {
   line-height: 1.4;
 }
 
+.article-edit-meta-panel-compact {
+  padding: 10px 14px;
+}
+
+.article-edit-meta-panel-compact .article-edit-meta-header {
+  margin-bottom: 8px;
+}
+
+.article-edit-meta-list-compact {
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.article-edit-meta-list-compact .article-edit-meta-item {
+  gap: 2px;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in oklab, var(--accent-2) 12%, var(--border));
+  border-radius: 14px;
+  background: color-mix(in oklab, var(--panel) 82%, transparent);
+}
+
+.article-edit-meta-list-compact .article-edit-meta-item:last-child {
+  padding-bottom: 8px;
+  border-bottom: 1px solid color-mix(in oklab, var(--accent-2) 12%, var(--border));
+}
+
+.article-edit-meta-list-compact .article-edit-meta-label {
+  font-size: 10px;
+}
+
+.article-edit-meta-list-compact .article-edit-meta-value {
+  font-size: 22px;
+  line-height: 1.15;
+}
+
+.article-edit-meta-list-compact .article-edit-meta-item-full-width {
+  grid-column: 1 / -1;
+}
+
 .dashboard-overview-grid {
   display:grid;
   grid-template-columns:repeat(6, minmax(0, 1fr));

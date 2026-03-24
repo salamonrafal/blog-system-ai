@@ -1,0 +1,160 @@
+{{ form_start(form, { attr: { class: 'article-editor-form' } }) }}
+    {% if form.vars.errors|length > 0 %}
+        <div class="form-errors article-editor-errors" role="alert">
+            {% for error in form.vars.errors %}
+                <p>{{ error.message }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="article-editor-fields">
+        {% set email_has_errors = form.email.vars.errors|length > 0 %}
+        <div class="field article-editor-field{{ email_has_errors ? ' has-error' : '' }}">
+            {{ form_label(form.email) }}
+            {{ form_widget(form.email, {
+                attr: form.email.vars.attr|merge(email_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.email.vars.id ~ '-error'} : {})
+            }) }}
+            {% if email_has_errors %}
+                <div id="{{ form.email.vars.id }}-error" class="article-editor-error-message" role="alert">
+                    {% for error in form.email.vars.errors %}
+                        <p>{{ error.message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="article-editor-grid">
+            {% set full_name_has_errors = form.fullName.vars.errors|length > 0 %}
+            <div class="field article-editor-field{{ full_name_has_errors ? ' has-error' : '' }}">
+                {{ form_label(form.fullName) }}
+                {{ form_widget(form.fullName, {
+                    attr: form.fullName.vars.attr|merge(full_name_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.fullName.vars.id ~ '-error'} : {})
+                }) }}
+                {% if full_name_has_errors %}
+                    <div id="{{ form.fullName.vars.id }}-error" class="article-editor-error-message" role="alert">
+                        {% for error in form.fullName.vars.errors %}
+                            <p>{{ error.message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            {% set nickname_has_errors = form.nickname.vars.errors|length > 0 %}
+            <div class="field article-editor-field{{ nickname_has_errors ? ' has-error' : '' }}">
+                {{ form_label(form.nickname) }}
+                {{ form_widget(form.nickname, {
+                    attr: form.nickname.vars.attr|merge(nickname_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.nickname.vars.id ~ '-error'} : {})
+                }) }}
+                {% if nickname_has_errors %}
+                    <div id="{{ form.nickname.vars.id }}-error" class="article-editor-error-message" role="alert">
+                        {% for error in form.nickname.vars.errors %}
+                            <p>{{ error.message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% set short_bio_has_errors = form.shortBio.vars.errors|length > 0 %}
+        <div class="field article-editor-field{{ short_bio_has_errors ? ' has-error' : '' }}">
+            {{ form_label(form.shortBio) }}
+            {{ form_widget(form.shortBio, {
+                attr: form.shortBio.vars.attr|merge(short_bio_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.shortBio.vars.id ~ '-error'} : {})
+            }) }}
+            {% if short_bio_has_errors %}
+                <div id="{{ form.shortBio.vars.id }}-error" class="article-editor-error-message" role="alert">
+                    {% for error in form.shortBio.vars.errors %}
+                        <p>{{ error.message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        {% set avatar_has_errors = form.avatar.vars.errors|length > 0 %}
+        <div class="field article-editor-field{{ avatar_has_errors ? ' has-error' : '' }}">
+            {{ form_label(form.avatar) }}
+            {{ form_widget(form.avatar, {
+                attr: form.avatar.vars.attr|merge(avatar_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.avatar.vars.id ~ '-error'} : {})
+            }) }}
+            <div class="article-editor-field-meta">
+                <span class="article-editor-field-hint">Moze to byc pelny URL albo nazwa pliku graficznego przechowywanego lokalnie.</span>
+            </div>
+            {% if avatar_has_errors %}
+                <div id="{{ form.avatar.vars.id }}-error" class="article-editor-error-message" role="alert">
+                    {% for error in form.avatar.vars.errors %}
+                        <p>{{ error.message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="article-editor-grid">
+            {% set is_admin_has_errors = form.isAdmin.vars.errors|length > 0 %}
+            <div class="field article-editor-field{{ is_admin_has_errors ? ' has-error' : '' }}">
+                <div class="article-editor-switch-row">
+                    <div class="article-editor-switch-copy">
+                        <span class="article-editor-switch-label">{{ form.isAdmin.vars.label }}</span>
+                        <span class="article-editor-switch-hint">Nadaje dostęp do całej sekcji `/admin`.</span>
+                    </div>
+                    <label class="article-editor-switch">
+                        {{ form_widget(form.isAdmin, { attr: { class: 'article-editor-switch-input' } }) }}
+                        <span class="article-editor-switch-slider" aria-hidden="true"></span>
+                    </label>
+                </div>
+                {% if is_admin_has_errors %}
+                    <div class="article-editor-error-message" role="alert">
+                        {% for error in form.isAdmin.vars.errors %}
+                            <p>{{ error.message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            {% set is_active_has_errors = form.isActive.vars.errors|length > 0 %}
+            <div class="field article-editor-field{{ is_active_has_errors ? ' has-error' : '' }}">
+                <div class="article-editor-switch-row">
+                    <div class="article-editor-switch-copy">
+                        <span class="article-editor-switch-label">{{ form.isActive.vars.label }}</span>
+                        <span class="article-editor-switch-hint">Nieaktywne konto nie przejdzie walidacji przy logowaniu.</span>
+                    </div>
+                    <label class="article-editor-switch">
+                        {{ form_widget(form.isActive, { attr: { class: 'article-editor-switch-input' } }) }}
+                        <span class="article-editor-switch-slider" aria-hidden="true"></span>
+                    </label>
+                </div>
+                {% if is_active_has_errors %}
+                    <div class="article-editor-error-message" role="alert">
+                        {% for error in form.isActive.vars.errors %}
+                            <p>{{ error.message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% set password_has_errors = form.plainPassword.vars.errors|length > 0 %}
+        <div class="field article-editor-field{{ password_has_errors ? ' has-error' : '' }}">
+            {{ form_label(form.plainPassword) }}
+            {{ form_widget(form.plainPassword, {
+                attr: form.plainPassword.vars.attr|merge(password_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.plainPassword.vars.id ~ '-error'} : {})
+            }) }}
+            <div class="article-editor-field-meta">
+                <span class="article-editor-field-hint">Hasło jest opcjonalne. Uzupełnij tylko wtedy, gdy chcesz je zmienić.</span>
+            </div>
+            {% if password_has_errors %}
+                <div id="{{ form.plainPassword.vars.id }}-error" class="article-editor-error-message" role="alert">
+                    {% for error in form.plainPassword.vars.errors %}
+                        <p>{{ error.message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {{ form_rest(form) }}
+
+    <div class="actions article-editor-actions">
+        <button class="button" type="submit">{{ submit_label|default('Zapisz użytkownika') }}</button>
+        <a class="button secondary" href="{{ path('admin_user_index') }}">Wróć do listy</a>
+    </div>
+{{ form_end(form) }}

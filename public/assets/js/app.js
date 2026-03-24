@@ -1637,6 +1637,29 @@ function setupDeleteConfirmation(){
   });
 }
 
+function setupUserDeleteConfirmation(){
+  setupDangerConfirmation({
+    triggerSelector: '[data-action="confirm-delete-user"]',
+    modalClass: 'confirm-delete-user-modal',
+    modalIdPrefix: 'confirm-delete-user',
+    titleI18n: 'admin_users_delete_popup_title',
+    titleFallback: 'Usunac uzytkownika?',
+    textI18n: 'admin_users_delete_popup_text',
+    textFallback: 'Ta operacja usunie konto uzytkownika z panelu administracyjnego.',
+    detailsClass: 'confirm-delete-user-name',
+    detailsText: (trigger)=> trigger.getAttribute('data-user-name') || '',
+    cancelAction: 'cancel-delete-user',
+    submitAction: 'submit-delete-user',
+    closeAction: 'close-delete-user',
+    cancelI18n: 'admin_users_delete_popup_cancel',
+    cancelFallback: 'Przerwij',
+    submitI18n: 'admin_users_delete_popup_confirm',
+    submitFallback: 'Usun uzytkownika',
+    closeI18n: 'admin_close_alert',
+    closeFallback: 'Zamknij alert',
+  });
+}
+
 function setupQueueClearConfirmation(){
   setupDangerConfirmation({
     triggerSelector: '[data-action="confirm-clear-queue"]',
@@ -1836,6 +1859,7 @@ function init(){
   setupArticleMarkupEditor();
   setupImagePreview();
   setupDeleteConfirmation();
+  setupUserDeleteConfirmation();
   setupExportDeleteConfirmation();
   setupExportClearConfirmation();
   setupImportDeleteConfirmation();

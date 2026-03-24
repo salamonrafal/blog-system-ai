@@ -155,6 +155,48 @@ Fullstack Developer</span>
                         <span data-i18n="admin_shortcut_articles">Lista artykułów</span>
                     </a>
                     <div class="admin-shortcuts-submenu" data-admin-shortcuts-submenu>
+                        <button type="button" class="admin-shortcuts-link admin-shortcuts-button admin-shortcuts-submenu-trigger" data-action="toggle-admin-submenu" aria-haspopup="true" aria-expanded="false" aria-controls="admin-shortcuts-users-panel">
+                            <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                                <svg viewBox="0 0 32 32">
+                                    <circle cx="12" cy="11" r="4"></circle>
+                                    <path d="M5 25c0-4 3.1-7 7-7"></path>
+                                    <circle cx="22" cy="13" r="3"></circle>
+                                    <path d="M17 25c.7-2.8 3.1-5 6-5 2.2 0 4.2 1.2 5 3"></path>
+                                </svg>
+                            </span>
+                            <span>Użytkownicy</span>
+                            <span class="admin-shortcuts-submenu-caret" aria-hidden="true">
+                                <svg viewBox="0 0 32 32">
+                                    <path d="M10 13l6 6 6-6"></path>
+                                </svg>
+                            </span>
+                        </button>
+                        <div class="admin-shortcuts-submenu-panel" id="admin-shortcuts-users-panel" aria-label="Użytkownicy">
+                            <a class="admin-shortcuts-link admin-shortcuts-sublink" href="{{ path('admin_user_new') }}">
+                                <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 32 32">
+                                        <circle cx="13" cy="11" r="4"></circle>
+                                        <path d="M6 25c0-4 3.1-7 7-7"></path>
+                                        <path d="M23 10v8"></path>
+                                        <path d="M19 14h8"></path>
+                                    </svg>
+                                </span>
+                                <span>Dodaj użytkownika</span>
+                            </a>
+                            <a class="admin-shortcuts-link admin-shortcuts-sublink" href="{{ path('admin_user_index') }}">
+                                <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 32 32">
+                                        <circle cx="12" cy="11" r="4"></circle>
+                                        <path d="M5 25c0-4 3.1-7 7-7"></path>
+                                        <circle cx="22" cy="13" r="3"></circle>
+                                        <path d="M17 25c.7-2.8 3.1-5 6-5 2.2 0 4.2 1.2 5 3"></path>
+                                    </svg>
+                                </span>
+                                <span>Zarządzanie użytkownikami</span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="admin-shortcuts-submenu" data-admin-shortcuts-submenu>
                         <button type="button" class="admin-shortcuts-link admin-shortcuts-button admin-shortcuts-submenu-trigger" data-action="toggle-admin-submenu" aria-haspopup="true" aria-expanded="false" aria-controls="admin-shortcuts-import-export-panel">
                             <span class="admin-shortcuts-link-icon" aria-hidden="true">
                                 <svg viewBox="0 0 32 32">

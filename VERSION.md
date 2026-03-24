@@ -130,3 +130,15 @@
 - Uzupełniono górną sekcję `admin_dashboard` o podsumowanie zalogowanego użytkownika z adresem e-mail oraz czytelną etykietą roli wyliczaną po stronie `DashboardController`.
 - Skrócono i doprecyzowano tekst wprowadzający dashboard w obu wersjach językowych oraz uproszczono etykietę głównej akcji panelu artykułów z `Przeglądaj artykuły` do `Przeglądaj`.
 - Dopracowano styl `admin_dashboard`, dodając mocniejsze wyróżnienie wartości liczbowych i kafelków metadanych, zwiększając odstępy w sekcji intro oraz przechodząc na bardziej elastyczny, responsywny układ siatki paneli z szerszymi blokami dla `Stan kolejek` i `Ustawienia bloga`.
+
+## 2026-03-24
+
+- Dodano nową sekcję `Użytkownicy` w panelu administracyjnym z ekranem listy `admin_user_index`, ekranem edycji `admin_user_edit`, osobnym formularzem administracyjnym użytkownika oraz integracją ze skrótami w dashboardzie i pływającym menu.
+- Rozszerzono dashboard administracyjny o panel `Użytkownicy`, pokazujący liczbę wszystkich kont, aktywnych, nieaktywnych oraz administratorów, a także dodano testy jednostkowe pokrywające nowe dane panelu.
+- Uproszczono panele `user overview` i `user metadata`, wprowadzając kompaktowy wariant kafelków statystyk i metadanych, a na ekranie edycji artykułu dodatkowo rozciągnięto kafelek `Slug` na pełną szerokość górnego wiersza.
+- Rozszerzono encję `User` oraz bazę danych o pola `Imię i nazwisko`, `Pseudonim`, `Krótki opis` i `Avatar`, a formularze i widoki użytkowników uzupełniono o możliwość ich edycji oraz prezentacji nazwy wyświetlanej.
+- Dodano funkcję `Dodaj użytkownika` z osobnym ekranem `admin_user_new`, obowiązkowym hasłem przy tworzeniu nowego konta oraz wejściami z listy użytkowników, dashboardu i skrótów administracyjnych.
+- Wprowadzono akcję usuwania użytkownika z listy wraz z modalem potwierdzenia, blokadą ukrywania i egzekwowania zakazu usunięcia pierwszego administratora oraz czyszczeniem powiązań użytkownika w artykułach przed skasowaniem konta.
+- Rozszerzono artykuły o informacje, który użytkownik je utworzył i kto ostatnio je aktualizował, dodając nowe relacje w encji `Article`, migrację bazy danych, automatyczne uzupełnianie tych pól w akcjach panelu admina oraz prezentację tych danych na `admin_article_edit`.
+- Przebudowano pływające menu administracyjne, dodając rozwijaną sekcję `Użytkownicy`, do której przeniesiono opcje `Dodaj użytkownika` i `Zarządzanie użytkownikami`, zachowując pierwszeństwo akcji dodawania nowego konta.
+- Uzupełniono testy jednostkowe encji `User` i `Article`, formularza użytkownika oraz kontrolera użytkowników o nowe pola profilu, nazwę wyświetlaną, obsługę tworzenia użytkownika i dodatkowe dane przekazywane do widoków.

@@ -16,6 +16,7 @@ use App\Repository\ArticleExportRepository;
 use App\Repository\ArticleImportQueueRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\BlogSettingsRepository;
+use App\Repository\UserRepository;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Response;
@@ -61,6 +62,12 @@ final class DashboardControllerTest extends TestCase
             ->expects($this->once())
             ->method('findCurrent')
             ->willReturn($settings);
+        $userRepository = $this->createUserRepositoryMock([
+            'all' => 4,
+            'active' => 3,
+            'inactive' => 1,
+            'admins' => 2,
+        ]);
 
         $controller = new TestDashboardController();
         $response = $controller->index(
@@ -69,6 +76,7 @@ final class DashboardControllerTest extends TestCase
             $articleExportRepository,
             $articleExportQueueRepository,
             $blogSettingsRepository,
+            $userRepository,
         );
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
@@ -76,7 +84,7 @@ final class DashboardControllerTest extends TestCase
 
         $panels = $controller->capturedParameters['dashboard_panels'] ?? null;
         $this->assertIsArray($panels);
-        $this->assertCount(5, $panels);
+        $this->assertCount(6, $panels);
 
         $this->assertSame('Artykuły', $panels[0]['title']);
         $this->assertSame([
@@ -116,12 +124,20 @@ final class DashboardControllerTest extends TestCase
             ['value' => 2, 'label' => 'Błędy'],
         ], $panels[3]['sections'][0]['stats']);
 
-        $this->assertSame('Ustawienia bloga', $panels[4]['title']);
+        $this->assertSame('Użytkownicy', $panels[4]['title']);
+        $this->assertSame([
+            ['value' => 4, 'label' => 'Wszystkie'],
+            ['value' => 3, 'label' => 'Aktywne'],
+            ['value' => 1, 'label' => 'Nieaktywne'],
+            ['value' => 2, 'label' => 'Administratorzy'],
+        ], $panels[4]['stats']);
+
+        $this->assertSame('Ustawienia bloga', $panels[5]['title']);
         $this->assertSame([
             ['label' => 'Tytuł bloga', 'value' => 'AI Ops Blog'],
             ['label' => 'Artykułów na stronę', 'value' => '9'],
             ['label' => 'Ostatnia aktualizacja', 'value' => $settings->getUpdatedAt()->format('Y-m-d H:i')],
-        ], $panels[4]['meta_cards']);
+        ], $panels[5]['meta_cards']);
     }
 
     public function testIndexUsesDefaultFallbackValuesWhenBlogSettingsAreMissing(): void
@@ -159,6 +175,12 @@ final class DashboardControllerTest extends TestCase
             ->expects($this->once())
             ->method('findCurrent')
             ->willReturn(null);
+        $userRepository = $this->createUserRepositoryMock([
+            'all' => 0,
+            'active' => 0,
+            'inactive' => 0,
+            'admins' => 0,
+        ]);
 
         $controller = new TestDashboardController();
         $controller->index(
@@ -167,10 +189,11 @@ final class DashboardControllerTest extends TestCase
             $articleExportRepository,
             $articleExportQueueRepository,
             $blogSettingsRepository,
+            $userRepository,
         );
 
         $panels = $controller->capturedParameters['dashboard_panels'];
-        $settingsPanel = $panels[4];
+        $settingsPanel = $panels[5];
 
         $this->assertSame([
             ['label' => 'Tytuł bloga', 'value' => BlogSettings::DEFAULT_BLOG_TITLE],
@@ -239,6 +262,29 @@ final class DashboardControllerTest extends TestCase
 
                 return $counts['status:'.$criteria['status']->value] ?? 0;
             });
+
+        return $repository;
+    }
+
+    /**
+     * @param array<string, int> $counts
+     */
+    private function createUserRepositoryMock(array $counts): UserRepository
+    {
+        /** @var UserRepository&MockObject $repository */
+        $repository = $this->createMock(UserRepository::class);
+        $repository
+            ->method('count')
+            ->willReturn($counts['all']);
+        $repository
+            ->method('countActive')
+            ->willReturn($counts['active']);
+        $repository
+            ->method('countInactive')
+            ->willReturn($counts['inactive']);
+        $repository
+            ->method('countAdministrators')
+            ->willReturn($counts['admins']);
 
         return $repository;
     }

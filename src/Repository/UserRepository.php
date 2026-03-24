@@ -22,4 +22,54 @@ class UserRepository extends ServiceEntityRepository
     {
         return $this->findOneBy(['email' => strtolower(trim($email))]);
     }
+
+    /**
+     * @return list<User>
+     */
+    public function findForAdminIndex(): array
+    {
+        /** @var list<User> $users */
+        $users = $this->createQueryBuilder('user')
+            ->orderBy('user.createdAt', 'DESC')
+            ->addOrderBy('user.email', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        return $users;
+    }
+
+    public function countActive(): int
+    {
+        return $this->count(['isActive' => true]);
+    }
+
+    public function countInactive(): int
+    {
+        return $this->count(['isActive' => false]);
+    }
+
+    public function countAdministrators(): int
+    {
+        return (int) $this->createQueryBuilder('user')
+            ->select('COUNT(user.id)')
+            ->where('user.roles LIKE :adminRole')
+            ->setParameter('adminRole', '%ROLE_ADMIN%')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function findFirstAdministrator(): ?User
+    {
+        /** @var ?User $user */
+        $user = $this->createQueryBuilder('user')
+            ->where('user.roles LIKE :adminRole')
+            ->setParameter('adminRole', '%ROLE_ADMIN%')
+            ->orderBy('user.createdAt', 'ASC')
+            ->addOrderBy('user.id', 'ASC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        return $user;
+    }
 }

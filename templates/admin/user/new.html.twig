@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dodaj użytkownika | {{ app_name }}{% endblock %}
+
+{% block body %}
+    <section class="section">
+        <div class="card">
+            <div class="card-header">
+                <div class="window-dots" aria-hidden="true">
+                    <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                </div>
+                <span class="pill">admin://user-new</span>
+            </div>
+
+            <div class="dashboard-feed-intro">
+                <h1>Dodaj użytkownika</h1>
+                <p class="lede">Utwórz nowe konto redakcyjne lub administracyjne i od razu ustaw podstawowe dane profilu.</p>
+            </div>
+
+            {% include 'admin/user/_form.html.twig' with {
+                form: form,
+                submit_label: 'Dodaj użytkownika'
+            } %}
+        </div>
+    </section>
+{% endblock %}

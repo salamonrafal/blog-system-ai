@@ -14,6 +14,7 @@ use App\Repository\ArticleExportQueueRepository;
 use App\Repository\ArticleImportQueueRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\BlogSettingsRepository;
+use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -28,6 +29,7 @@ class DashboardController extends AbstractController
         ArticleExportRepository $articleExportRepository,
         ArticleExportQueueRepository $articleExportQueueRepository,
         BlogSettingsRepository $blogSettingsRepository,
+        UserRepository $userRepository,
     ): Response
     {
         $settings = $blogSettingsRepository->findCurrent();
@@ -227,6 +229,38 @@ class DashboardController extends AbstractController
                     'primary_action' => [
                         'label' => 'Otwórz kolejki',
                         'route' => 'admin_queue_status',
+                    ],
+                ],
+                [
+                    'label' => 'admin://users',
+                    'title' => 'Użytkownicy',
+                    'description' => 'Zarządzanie dostępem do panelu, aktywnością kont i podstawowymi danymi logowania.',
+                    'stats' => [
+                        [
+                            'value' => $userRepository->count([]),
+                            'label' => 'Wszystkie',
+                        ],
+                        [
+                            'value' => $userRepository->countActive(),
+                            'label' => 'Aktywne',
+                        ],
+                        [
+                            'value' => $userRepository->countInactive(),
+                            'label' => 'Nieaktywne',
+                        ],
+                        [
+                            'value' => $userRepository->countAdministrators(),
+                            'label' => 'Administratorzy',
+                        ],
+                    ],
+                    'meta' => [],
+                    'primary_action' => [
+                        'label' => 'Otwórz użytkowników',
+                        'route' => 'admin_user_index',
+                    ],
+                    'secondary_action' => [
+                        'label' => 'Dodaj użytkownika',
+                        'route' => 'admin_user_new',
                     ],
                 ],
                 [
