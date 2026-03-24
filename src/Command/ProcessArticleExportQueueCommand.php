@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Entity\ArticleExport;
+use App\Entity\ArticleExportQueue;
 use App\Enum\ArticleExportQueueStatus;
 use App\Enum\ArticleExportStatus;
 use App\Enum\ArticleExportType;
 use App\Repository\ArticleExportQueueRepository;
 use App\Service\ArticleExportFileWriter;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -27,6 +29,7 @@ class ProcessArticleExportQueueCommand extends Command
 
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
+        private readonly ManagerRegistry $managerRegistry,
         private readonly ArticleExportQueueRepository $articleExportQueueRepository,
         private readonly ArticleExportFileWriter $articleExportFileWriter,
     ) {
@@ -65,8 +68,7 @@ class ProcessArticleExportQueueCommand extends Command
                 $this->entityManager->flush();
                 ++$processedCount;
             } catch (\Throwable $exception) {
-                $queueItem->setStatus(ArticleExportQueueStatus::FAILED);
-                $this->entityManager->flush();
+                $this->markQueueItemAsFailed($queueItem);
                 ++$failedCount;
 
                 $io->error(sprintf(
@@ -97,5 +99,35 @@ class ProcessArticleExportQueueCommand extends Command
     private function utcNow(): \DateTimeImmutable
     {
         return new \DateTimeImmutable('now', new \DateTimeZone(self::STORAGE_TIMEZONE));
+    }
+
+    private function markQueueItemAsFailed(ArticleExportQueue $queueItem): void
+    {
+        if ($this->entityManager->isOpen()) {
+            $queueItem->setStatus(ArticleExportQueueStatus::FAILED);
+
+            $this->entityManager->flush();
+
+            return;
+        }
+
+        $this->managerRegistry->resetManager();
+
+        $entityManager = $this->managerRegistry->getManagerForClass(ArticleExportQueue::class);
+        if (!$entityManager instanceof EntityManagerInterface) {
+            throw new \RuntimeException('Entity manager for article export queue is not available.');
+        }
+
+        $managedQueueItem = $entityManager->find(ArticleExportQueue::class, $queueItem->getId());
+        if (!$managedQueueItem instanceof ArticleExportQueue) {
+            throw new \RuntimeException(sprintf(
+                'Unable to reload article export queue item %d after export failure.',
+                $queueItem->getId() ?? 0,
+            ));
+        }
+
+        $managedQueueItem->setStatus(ArticleExportQueueStatus::FAILED);
+
+        $entityManager->flush();
     }
 }

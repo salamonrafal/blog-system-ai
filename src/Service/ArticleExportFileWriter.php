@@ -31,7 +31,7 @@ class ArticleExportFileWriter
         $article = $queueItem->getArticle();
         $fileName = sprintf(
             'article-%s-export-%s-%s.json',
-            $article->getSlug(),
+            $this->sanitizeSlugForFileName($article->getSlug()),
             $this->utcNow()->format('Ymd-His'),
             bin2hex(random_bytes(4))
         );
@@ -76,5 +76,13 @@ class ArticleExportFileWriter
     private function utcNow(): \DateTimeImmutable
     {
         return new \DateTimeImmutable('now', new \DateTimeZone(self::STORAGE_TIMEZONE));
+    }
+
+    private function sanitizeSlugForFileName(string $slug): string
+    {
+        $sanitizedSlug = preg_replace('/[^A-Za-z0-9._-]+/', '-', $slug);
+        $sanitizedSlug = trim((string) $sanitizedSlug, '.-_');
+
+        return '' !== $sanitizedSlug ? $sanitizedSlug : 'article';
     }
 }

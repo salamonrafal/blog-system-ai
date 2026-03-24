@@ -14,6 +14,7 @@ use App\Enum\ArticleExportType;
 use App\Repository\ArticleExportQueueRepository;
 use App\Service\ArticleExportFileWriter;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Command\Command;
@@ -26,12 +27,15 @@ final class ProcessArticleExportQueueCommandTest extends TestCase
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects($this->never())->method('flush');
         $entityManager->expects($this->never())->method('persist');
+        $entityManager->expects($this->never())->method('isOpen');
 
         $queueRepository = $this->createQueueRepositoryMock([]);
         $writer = $this->createMock(ArticleExportFileWriter::class);
         $writer->expects($this->never())->method('write');
+        $managerRegistry = $this->createMock(ManagerRegistry::class);
+        $managerRegistry->expects($this->never())->method('resetManager');
 
-        $tester = new CommandTester(new ProcessArticleExportQueueCommand($entityManager, $queueRepository, $writer));
+        $tester = new CommandTester(new ProcessArticleExportQueueCommand($entityManager, $managerRegistry, $queueRepository, $writer));
         $exitCode = $tester->execute([]);
 
         $this->assertSame(Command::SUCCESS, $exitCode);
@@ -54,6 +58,7 @@ final class ProcessArticleExportQueueCommandTest extends TestCase
                 $capturedExports[] = $articleExport;
             });
         $entityManager->expects($this->exactly(2))->method('flush');
+        $entityManager->expects($this->never())->method('isOpen');
 
         $queueRepository = $this->createQueueRepositoryMock([$queueItemOne, $queueItemTwo]);
         $writer = $this->createMock(ArticleExportFileWriter::class);
@@ -64,8 +69,10 @@ final class ProcessArticleExportQueueCommandTest extends TestCase
                 [$queueItemOne, 'var/exports/article-1-export.json'],
                 [$queueItemTwo, 'var/exports/article-2-export.json'],
             ]);
+        $managerRegistry = $this->createMock(ManagerRegistry::class);
+        $managerRegistry->expects($this->never())->method('resetManager');
 
-        $tester = new CommandTester(new ProcessArticleExportQueueCommand($entityManager, $queueRepository, $writer));
+        $tester = new CommandTester(new ProcessArticleExportQueueCommand($entityManager, $managerRegistry, $queueRepository, $writer));
         $exitCode = $tester->execute([]);
 
         $this->assertSame(Command::SUCCESS, $exitCode);
@@ -98,6 +105,10 @@ final class ProcessArticleExportQueueCommandTest extends TestCase
                 $capturedExports[] = $articleExport;
             });
         $entityManager->expects($this->exactly(2))->method('flush');
+        $entityManager
+            ->expects($this->once())
+            ->method('isOpen')
+            ->willReturn(true);
 
         $queueRepository = $this->createQueueRepositoryMock([$queueItemOne, $queueItemTwo]);
         $writer = $this->createMock(ArticleExportFileWriter::class);
@@ -111,8 +122,10 @@ final class ProcessArticleExportQueueCommandTest extends TestCase
 
                 throw new \RuntimeException('Disk is full');
             });
+        $managerRegistry = $this->createMock(ManagerRegistry::class);
+        $managerRegistry->expects($this->never())->method('resetManager');
 
-        $tester = new CommandTester(new ProcessArticleExportQueueCommand($entityManager, $queueRepository, $writer));
+        $tester = new CommandTester(new ProcessArticleExportQueueCommand($entityManager, $managerRegistry, $queueRepository, $writer));
         $exitCode = $tester->execute([]);
 
         $this->assertSame(Command::FAILURE, $exitCode);
@@ -123,6 +136,64 @@ final class ProcessArticleExportQueueCommandTest extends TestCase
         $this->assertNull($queueItemTwo->getProcessedAt());
         $this->assertStringContainsString('Article export failed for queue item', $tester->getDisplay());
         $this->assertStringContainsString('Processed 1 queued article(s), but 1 export(s) failed.', $tester->getDisplay());
+    }
+
+    public function testExecuteResetsClosedEntityManagerBeforePersistingFailureState(): void
+    {
+        $queueItem = new ArticleExportQueue((new Article())->setTitle('Artykul 1')->setSlug('artykul-1'));
+        $managedQueueItem = new ArticleExportQueue((new Article())->setTitle('Artykul 1')->setSlug('artykul-1'));
+        $queueItem->setStatus(ArticleExportQueueStatus::PROCESSING);
+        $managedQueueItem->setStatus(ArticleExportQueueStatus::PROCESSING);
+        $this->setEntityId($queueItem, 42);
+        $this->setEntityId($managedQueueItem, 42);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager
+            ->expects($this->once())
+            ->method('persist');
+        $entityManager
+            ->expects($this->once())
+            ->method('flush')
+            ->willThrowException(new \RuntimeException('Database write failed.'));
+        $entityManager
+            ->expects($this->once())
+            ->method('isOpen')
+            ->willReturn(false);
+
+        $recoveredEntityManager = $this->createMock(EntityManagerInterface::class);
+        $recoveredEntityManager
+            ->expects($this->once())
+            ->method('find')
+            ->with(ArticleExportQueue::class, 42)
+            ->willReturn($managedQueueItem);
+        $recoveredEntityManager
+            ->expects($this->once())
+            ->method('flush');
+
+        $managerRegistry = $this->createMock(ManagerRegistry::class);
+        $managerRegistry
+            ->expects($this->once())
+            ->method('resetManager');
+        $managerRegistry
+            ->expects($this->once())
+            ->method('getManagerForClass')
+            ->with(ArticleExportQueue::class)
+            ->willReturn($recoveredEntityManager);
+
+        $queueRepository = $this->createQueueRepositoryMock([$queueItem]);
+        $writer = $this->createMock(ArticleExportFileWriter::class);
+        $writer
+            ->expects($this->once())
+            ->method('write')
+            ->with($queueItem)
+            ->willReturn('var/exports/article-1-export.json');
+
+        $tester = new CommandTester(new ProcessArticleExportQueueCommand($entityManager, $managerRegistry, $queueRepository, $writer));
+        $exitCode = $tester->execute([]);
+
+        $this->assertSame(Command::FAILURE, $exitCode);
+        $this->assertSame(ArticleExportQueueStatus::FAILED, $managedQueueItem->getStatus());
+        $this->assertStringContainsString('Article export failed for queue item 42: Database write failed.', $tester->getDisplay());
     }
 
     /**
@@ -138,5 +209,11 @@ final class ProcessArticleExportQueueCommandTest extends TestCase
             ->willReturnOnConsecutiveCalls(...[...$queueItems, null]);
 
         return $repository;
+    }
+
+    private function setEntityId(ArticleExportQueue $queueItem, int $id): void
+    {
+        $reflectionProperty = new \ReflectionProperty($queueItem, 'id');
+        $reflectionProperty->setValue($queueItem, $id);
     }
 }

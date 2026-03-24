@@ -54,6 +54,38 @@ final class ArticleExportFileWriterTest extends TestCase
         }
     }
 
+    public function testWriteSanitizesSlugBeforeUsingItInExportFileName(): void
+    {
+        $projectDir = sys_get_temp_dir().'/article-export-writer-'.bin2hex(random_bytes(4));
+        mkdir($projectDir, 0775, true);
+
+        try {
+            $article = (new Article())
+                ->setTitle('Eksportowany artykul')
+                ->setLanguage(ArticleLanguage::EN)
+                ->setSlug('foo/bar baz')
+                ->setContent('Pelna tresc')
+                ->setStatus(ArticleStatus::DRAFT);
+
+            $queueItem = new ArticleExportQueue($article);
+            $writer = new ArticleExportFileWriter($projectDir, 'var/exports');
+
+            $relativePath = $writer->write($queueItem);
+            $absolutePath = $projectDir.'/'.$relativePath;
+
+            $this->assertFileExists($absolutePath);
+            $this->assertStringStartsWith('var/exports/article-foo-bar-baz-export-', $relativePath);
+            $this->assertStringNotContainsString('/bar', $relativePath);
+
+            /** @var array<string, mixed> $payload */
+            $payload = json_decode((string) file_get_contents($absolutePath), true, 512, JSON_THROW_ON_ERROR);
+
+            $this->assertSame('foo/bar baz', $payload['article'][0]['slug']);
+        } finally {
+            $this->removeDirectory($projectDir);
+        }
+    }
+
     private function removeDirectory(string $directory): void
     {
         if (!is_dir($directory)) {

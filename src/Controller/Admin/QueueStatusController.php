@@ -11,14 +11,23 @@ use App\Enum\ArticleImportQueueStatus;
 use App\Repository\ArticleExportQueueRepository;
 use App\Repository\ArticleImportQueueRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/admin/queues')]
 class QueueStatusController extends AbstractController
 {
+    public function __construct(
+        #[Autowire('%kernel.project_dir%')]
+        private readonly string $projectDir,
+        #[Autowire('%app.article_import_directory%')]
+        private readonly string $importDirectory,
+    ) {
+    }
+
     #[Route('/status', name: 'admin_queue_status', methods: ['GET'])]
     public function index(
         ArticleExportQueueRepository $articleExportQueueRepository,
@@ -50,11 +59,17 @@ class QueueStatusController extends AbstractController
             $entityManager->remove($queueItem);
         }
 
+        $pathsToDelete = [];
         foreach ($articleImportQueueRepository->findBy(['status' => ArticleImportQueueStatus::PENDING]) as $queueItem) {
+            $pathsToDelete[] = $this->resolveImportPath($queueItem);
             $entityManager->remove($queueItem);
         }
 
         $entityManager->flush();
+
+        foreach ($pathsToDelete as $path) {
+            $this->deleteImportFile($path);
+        }
 
         $this->addFlash('success', 'Kolejka oczekujacych elementow zostala wyczyszczona.');
 
@@ -95,5 +110,33 @@ class QueueStatusController extends AbstractController
         $this->addFlash('success', 'Element zostal usuniety z kolejki.');
 
         return $this->redirectToRoute('admin_queue_status');
+    }
+
+    private function resolveImportPath(ArticleImportQueue $articleImportQueue): ?string
+    {
+        $relativePath = ltrim($articleImportQueue->getFilePath(), '/');
+        $absolutePath = $this->projectDir.'/'.$relativePath;
+        $realProjectDir = realpath($this->projectDir);
+        $realPath = realpath($absolutePath);
+        $realImportDirectory = realpath($this->projectDir.'/'.trim($this->importDirectory, '/'));
+
+        if (false === $realProjectDir || false === $realPath || false === $realImportDirectory) {
+            return null;
+        }
+
+        $normalizedProjectDir = rtrim($realProjectDir, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
+        $normalizedImportDirectory = rtrim($realImportDirectory, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
+        if (!str_starts_with($realPath, $normalizedProjectDir) || !str_starts_with($realPath, $normalizedImportDirectory)) {
+            return null;
+        }
+
+        return $realPath;
+    }
+
+    private function deleteImportFile(?string $absolutePath): void
+    {
+        if (null !== $absolutePath && is_file($absolutePath)) {
+            @unlink($absolutePath);
+        }
     }
 }
