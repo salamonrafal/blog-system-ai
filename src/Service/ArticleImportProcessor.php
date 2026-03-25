@@ -105,6 +105,7 @@ class ArticleImportProcessor
      */
     private function hydrateArticle(Article $article, array $articleData, int $index): void
     {
+        $draftArticle = clone $article;
         $title = $this->requireString($articleData, 'title', $index, true);
         $language = $this->parseLanguage($articleData['language'] ?? null, $index);
         $status = $this->parseStatus($articleData['status'] ?? null, $index);
@@ -115,7 +116,7 @@ class ArticleImportProcessor
         $headlineImageEnabled = $this->parseBoolean($articleData['headline_image_enabled'] ?? null, 'headline_image_enabled', $index);
         $publishedAt = $this->parseNullableDateTime($articleData['published_at'] ?? null, 'published_at', $index);
 
-        $article
+        $draftArticle
             ->setTitle($title)
             ->setLanguage($language)
             ->setSlug($slug)
@@ -126,9 +127,9 @@ class ArticleImportProcessor
             ->setStatus($status)
             ->setPublishedAt($publishedAt);
 
-        $this->articlePublisher->prepareForSave($article);
+        $this->articlePublisher->prepareForSave($draftArticle);
 
-        $violations = $this->validator->validate($article);
+        $violations = $this->validator->validate($draftArticle);
         if (count($violations) > 0) {
             $messages = [];
             foreach ($violations as $violation) {
@@ -142,6 +143,17 @@ class ArticleImportProcessor
 
             throw new ArticleImportException(implode(' ', $messages));
         }
+
+        $article
+            ->setTitle($draftArticle->getTitle())
+            ->setLanguage($draftArticle->getLanguage())
+            ->setSlug($draftArticle->getSlug())
+            ->setExcerpt($draftArticle->getExcerpt())
+            ->setHeadlineImage($draftArticle->getHeadlineImage())
+            ->setHeadlineImageEnabled($draftArticle->isHeadlineImageEnabled())
+            ->setContent($draftArticle->getContent())
+            ->setStatus($draftArticle->getStatus())
+            ->setPublishedAt($draftArticle->getPublishedAt());
     }
 
     private function resolveImportPath(string $relativePath): ?string

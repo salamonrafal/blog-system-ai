@@ -155,3 +155,8 @@
 - Rozszerzono czyszczenie `pending` importów na ekranie `admin_queue_status`, aby oprócz rekordów kolejki usuwało także odpowiadające im pliki z `var/imports`, zapobiegając pozostawianiu osieroconych payloadów na dysku.
 - Poprawiono migrację dodającą pola `created_by_id` i `updated_by_id` do `article`, dopinając klucze obce do `app_user` z `ON DELETE SET NULL`, tak aby integralność relacji autorów była egzekwowana również na poziomie bazy danych.
 - Uszczelniono pojedyncze usuwanie importu na ekranie `admin_queue_status`, tak aby oprócz rekordu kolejki kasowany był również odpowiadający mu plik z `var/imports`.
+
+## 2026-03-25
+
+- Rozszerzono kontenerowy skrypt `docker/scripts/checking-tasks.sh`, aby w razie potrzeby tworzył katalog eksportów z właściwymi uprawnieniami jeszcze przed startem usług.
+- Uszczelniono import artykułów po błędzie walidacji, tak aby nieprawidłowy payload nie pozostawiał częściowo zaktualizowanej encji `Article` w pamięci Doctrine i nie mógł zostać przypadkowo zapisany przy późniejszym `flush()` oznaczającym element kolejki jako `FAILED`, wraz z nowym testem regresyjnym.

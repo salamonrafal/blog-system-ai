@@ -586,6 +586,58 @@ final class ArticleImportProcessorTest extends TestCase
         $processor->process($queueItem);
     }
 
+    public function testProcessDoesNotMutateExistingArticleWhenValidationFails(): void
+    {
+        $existingArticle = (new Article())
+            ->setTitle('Stary tytul')
+            ->setLanguage(ArticleLanguage::PL)
+            ->setSlug('importowany-artykul')
+            ->setExcerpt('Stary opis')
+            ->setHeadlineImage('/assets/img/old.png')
+            ->setHeadlineImageEnabled(true)
+            ->setContent('Stara tresc')
+            ->setStatus(ArticleStatus::DRAFT)
+            ->setPublishedAt(null);
+        $this->setEntityId($existingArticle, 10);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+
+        $repository = $this->createRepositoryMock($existingArticle, []);
+        $processor = $this->createProcessor($entityManager, $repository);
+        $queueItem = $this->createQueueItemWithPayload([
+            'format' => 'article-export',
+            'version' => 1,
+            'article' => [[
+                'title' => 'Nowy tytul',
+                'language' => 'en',
+                'slug' => 'importowany-artykul',
+                'excerpt' => 'Nowy opis',
+                'headline_image' => 'ftp://example.com/image.png',
+                'headline_image_enabled' => false,
+                'content' => 'Nowa tresc',
+                'status' => 'published',
+                'published_at' => '2026-03-23T10:00:00+00:00',
+            ]],
+        ]);
+
+        try {
+            $processor->process($queueItem);
+            self::fail('Expected import validation to fail.');
+        } catch (ArticleImportException $exception) {
+            $this->assertStringContainsString('headlineImage: musi zaczynać się od http://, https:// albo /.', $exception->getMessage());
+        }
+
+        $this->assertSame('Stary tytul', $existingArticle->getTitle());
+        $this->assertSame(ArticleLanguage::PL, $existingArticle->getLanguage());
+        $this->assertSame('Stary opis', $existingArticle->getExcerpt());
+        $this->assertSame('/assets/img/old.png', $existingArticle->getHeadlineImage());
+        $this->assertTrue($existingArticle->isHeadlineImageEnabled());
+        $this->assertSame('Stara tresc', $existingArticle->getContent());
+        $this->assertSame(ArticleStatus::DRAFT, $existingArticle->getStatus());
+        $this->assertNull($existingArticle->getPublishedAt());
+    }
+
     private function createProcessor(EntityManagerInterface $entityManager, ArticleRepository $repository): ArticleImportProcessor
     {
         return new ArticleImportProcessor(
