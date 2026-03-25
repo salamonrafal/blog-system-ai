@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Controller\Admin;
 use App\Controller\Admin\ArticleController;
 use App\Entity\Article;
 use App\Entity\User;
+use App\Repository\ArticleExportQueueRepository;
 use App\Service\UserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
@@ -88,6 +89,68 @@ final class ArticleControllerTest extends TestCase
         $this->assertSame('/admin/articles', $response->getTargetUrl());
         $this->assertSame($existingAuthor, $article->getCreatedBy());
         $this->assertSame([['error', 'Artykuł ma już przypisanego autora.']], $controller->flashes);
+    }
+
+    public function testExportAddsArticleToQueueWhenRepositoryEnqueuesIt(): void
+    {
+        $article = (new Article())
+            ->setTitle('Test article')
+            ->setSlug('test-article');
+        $this->setEntityId($article, 10);
+
+        $queueRepository = $this->createMock(ArticleExportQueueRepository::class);
+        $queueRepository
+            ->expects($this->once())
+            ->method('enqueuePending')
+            ->with($article)
+            ->willReturn(true);
+
+        $controller = new TestArticleController();
+        $controller->csrfTokenIsValid = true;
+
+        $request = new Request([], [
+            '_token' => 'valid-token',
+        ]);
+
+        $response = $controller->export($article, $request, $queueRepository);
+
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertSame('/admin/articles', $response->getTargetUrl());
+        $this->assertSame([['success', 'Article export added to the queue.']], $controller->flashes);
+    }
+
+    public function testExportReportsAlreadyQueuedWhenAtomicEnqueueRejectsDuplicate(): void
+    {
+        $article = (new Article())
+            ->setTitle('Test article')
+            ->setSlug('test-article');
+        $this->setEntityId($article, 10);
+
+        $queueRepository = $this->createMock(ArticleExportQueueRepository::class);
+        $queueRepository
+            ->expects($this->once())
+            ->method('enqueuePending')
+            ->with($article)
+            ->willReturn(false);
+
+        $controller = new TestArticleController();
+        $controller->csrfTokenIsValid = true;
+
+        $request = new Request([], [
+            '_token' => 'valid-token',
+        ]);
+
+        $response = $controller->export($article, $request, $queueRepository);
+
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertSame('/admin/articles', $response->getTargetUrl());
+        $this->assertSame([['success', 'Article export is already queued.']], $controller->flashes);
+    }
+
+    private function setEntityId(object $entity, int $id): void
+    {
+        $reflectionProperty = new \ReflectionProperty($entity, 'id');
+        $reflectionProperty->setValue($entity, $id);
     }
 }
 

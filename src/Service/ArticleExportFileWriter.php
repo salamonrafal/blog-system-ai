@@ -54,6 +54,19 @@ class ArticleExportFileWriter
         return $relativePath;
     }
 
+    public function delete(string $relativePath): void
+    {
+        $absolutePath = $this->projectDir.'/'.ltrim($relativePath, '/');
+
+        if (!is_file($absolutePath)) {
+            return;
+        }
+
+        if (!@unlink($absolutePath) && is_file($absolutePath)) {
+            throw new \RuntimeException(sprintf('Unable to delete export file "%s".', $absolutePath));
+        }
+    }
+
     private function normalizeArticle(Article $article, ArticleExportQueue $queueItem): array
     {
         return [

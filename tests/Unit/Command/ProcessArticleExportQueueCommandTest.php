@@ -122,6 +122,9 @@ final class ProcessArticleExportQueueCommandTest extends TestCase
 
                 throw new \RuntimeException('Disk is full');
             });
+        $writer
+            ->expects($this->never())
+            ->method('delete');
         $managerRegistry = $this->createMock(ManagerRegistry::class);
         $managerRegistry->expects($this->never())->method('resetManager');
 
@@ -187,12 +190,64 @@ final class ProcessArticleExportQueueCommandTest extends TestCase
             ->method('write')
             ->with($queueItem)
             ->willReturn('var/exports/article-1-export.json');
+        $writer
+            ->expects($this->once())
+            ->method('delete')
+            ->with('var/exports/article-1-export.json');
 
         $tester = new CommandTester(new ProcessArticleExportQueueCommand($entityManager, $managerRegistry, $queueRepository, $writer));
         $exitCode = $tester->execute([]);
 
         $this->assertSame(Command::FAILURE, $exitCode);
         $this->assertSame(ArticleExportQueueStatus::FAILED, $managedQueueItem->getStatus());
+        $this->assertStringContainsString('Article export failed for queue item 42: Database write failed.', $tester->getDisplay());
+    }
+
+    public function testExecuteDeletesWrittenFileWhenFlushFailsWithOpenEntityManager(): void
+    {
+        $queueItem = new ArticleExportQueue((new Article())->setTitle('Artykul 1')->setSlug('artykul-1'));
+        $queueItem->setStatus(ArticleExportQueueStatus::PROCESSING);
+        $this->setEntityId($queueItem, 42);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager
+            ->expects($this->once())
+            ->method('persist');
+        $entityManager
+            ->expects($this->exactly(2))
+            ->method('flush')
+            ->willReturnCallback(static function () use (&$flushCalls): void {
+                $flushCalls = ($flushCalls ?? 0) + 1;
+
+                if (1 === $flushCalls) {
+                    throw new \RuntimeException('Database write failed.');
+                }
+            });
+        $entityManager
+            ->expects($this->once())
+            ->method('isOpen')
+            ->willReturn(true);
+
+        $queueRepository = $this->createQueueRepositoryMock([$queueItem]);
+        $writer = $this->createMock(ArticleExportFileWriter::class);
+        $writer
+            ->expects($this->once())
+            ->method('write')
+            ->with($queueItem)
+            ->willReturn('var/exports/article-1-export.json');
+        $writer
+            ->expects($this->once())
+            ->method('delete')
+            ->with('var/exports/article-1-export.json');
+
+        $managerRegistry = $this->createMock(ManagerRegistry::class);
+        $managerRegistry->expects($this->never())->method('resetManager');
+
+        $tester = new CommandTester(new ProcessArticleExportQueueCommand($entityManager, $managerRegistry, $queueRepository, $writer));
+        $exitCode = $tester->execute([]);
+
+        $this->assertSame(Command::FAILURE, $exitCode);
+        $this->assertSame(ArticleExportQueueStatus::FAILED, $queueItem->getStatus());
         $this->assertStringContainsString('Article export failed for queue item 42: Database write failed.', $tester->getDisplay());
     }
 

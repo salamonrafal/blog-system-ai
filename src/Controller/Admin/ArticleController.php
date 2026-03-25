@@ -5,12 +5,10 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Entity\Article;
-use App\Entity\ArticleExportQueue;
 use App\Entity\User;
-use App\Enum\ArticleExportQueueStatus;
 use App\Enum\ArticleStatus;
-use App\Repository\ArticleExportQueueRepository;
 use App\Form\ArticleType;
+use App\Repository\ArticleExportQueueRepository;
 use App\Repository\ArticleRepository;
 use App\Service\ArticlePublisher;
 use App\Service\UserLanguageResolver;
@@ -150,14 +148,13 @@ class ArticleController extends AbstractController
     public function export(
         Article $article,
         Request $request,
-        EntityManagerInterface $entityManager,
         ArticleExportQueueRepository $articleExportQueueRepository,
     ): Response {
         if (!$this->isCsrfTokenValid('export_article_'.$article->getId(), (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Invalid CSRF token.');
         }
 
-        $result = $this->queueArticles([$article], $entityManager, $articleExportQueueRepository);
+        $result = $this->queueArticles([$article], $articleExportQueueRepository);
 
         if (0 === $result['queued']) {
             $this->addFlash('success', 'Article export is already queued.');
@@ -216,7 +213,6 @@ class ArticleController extends AbstractController
     #[Route('/export-selected', name: 'admin_article_export_selected', methods: ['POST'])]
     public function exportSelected(
         Request $request,
-        EntityManagerInterface $entityManager,
         ArticleRepository $articleRepository,
         ArticleExportQueueRepository $articleExportQueueRepository,
     ): Response {
@@ -236,7 +232,7 @@ class ArticleController extends AbstractController
         }
 
         $articles = $articleRepository->findBy(['id' => $articleIds]);
-        $result = $this->queueArticles($articles, $entityManager, $articleExportQueueRepository);
+        $result = $this->queueArticles($articles, $articleExportQueueRepository);
 
         if (0 === $result['queued']) {
             $this->addFlash('success', 'Selected article exports are already queued.');
@@ -298,28 +294,18 @@ class ArticleController extends AbstractController
      */
     private function queueArticles(
         array $articles,
-        EntityManagerInterface $entityManager,
         ArticleExportQueueRepository $articleExportQueueRepository,
     ): array {
         $queued = 0;
         $skipped = 0;
 
         foreach ($articles as $article) {
-            if ($articleExportQueueRepository->hasOpenQueueItemForArticle($article)) {
+            if (!$articleExportQueueRepository->enqueuePending($article)) {
                 ++$skipped;
 
                 continue;
             }
-
-            $queueItem = (new ArticleExportQueue($article))
-                ->setStatus(ArticleExportQueueStatus::PENDING);
-
-            $entityManager->persist($queueItem);
             ++$queued;
-        }
-
-        if ($queued > 0) {
-            $entityManager->flush();
         }
 
         return [

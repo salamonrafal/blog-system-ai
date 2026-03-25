@@ -35,7 +35,9 @@ class ProcessArticleImportQueueCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $queueItem = $this->articleImportQueueRepository->claimNextPending();
+        $entityManager = $this->entityManager;
+        $queueRepository = $this->articleImportQueueRepository;
+        $queueItem = $queueRepository->claimNextPending();
 
         if (null === $queueItem) {
             $io->success('No queued article imports to process.');
@@ -55,7 +57,7 @@ class ProcessArticleImportQueueCommand extends Command
                     ->setProcessedAt($this->utcNow())
                     ->setErrorMessage(null);
 
-                $this->entityManager->flush();
+                $entityManager->flush();
                 ++$processedCount;
 
                 $io->success(sprintf(
@@ -64,7 +66,12 @@ class ProcessArticleImportQueueCommand extends Command
                     $queueItem->getId() ?? 0,
                 ));
             } catch (\Throwable $exception) {
-                $this->markQueueItemAsFailed($queueItem, $exception->getMessage());
+                [$entityManager, $queueRepository] = $this->markQueueItemAsFailed(
+                    $queueItem,
+                    $exception->getMessage(),
+                    $entityManager,
+                    $queueRepository,
+                );
                 ++$failedCount;
 
                 $io->error(sprintf(
@@ -74,7 +81,7 @@ class ProcessArticleImportQueueCommand extends Command
                 ));
             }
 
-            $queueItem = $this->articleImportQueueRepository->claimNextPending();
+            $queueItem = $queueRepository->claimNextPending();
         }
 
         if (0 === $failedCount) {
@@ -97,16 +104,21 @@ class ProcessArticleImportQueueCommand extends Command
         return new \DateTimeImmutable('now', new \DateTimeZone(self::STORAGE_TIMEZONE));
     }
 
-    private function markQueueItemAsFailed(\App\Entity\ArticleImportQueue $queueItem, string $errorMessage): void
+    private function markQueueItemAsFailed(
+        \App\Entity\ArticleImportQueue $queueItem,
+        string $errorMessage,
+        EntityManagerInterface $entityManager,
+        ArticleImportQueueRepository $queueRepository,
+    ): array
     {
-        if ($this->entityManager->isOpen()) {
+        if ($entityManager->isOpen()) {
             $queueItem
                 ->setStatus(ArticleImportQueueStatus::FAILED)
                 ->setErrorMessage($errorMessage);
 
-            $this->entityManager->flush();
+            $entityManager->flush();
 
-            return;
+            return [$entityManager, $queueRepository];
         }
 
         $this->managerRegistry->resetManager();
@@ -129,5 +141,17 @@ class ProcessArticleImportQueueCommand extends Command
             ->setErrorMessage($errorMessage);
 
         $entityManager->flush();
+
+        return [$entityManager, $this->refreshQueueRepository()];
+    }
+
+    private function refreshQueueRepository(): ArticleImportQueueRepository
+    {
+        $repository = $this->managerRegistry->getRepository(\App\Entity\ArticleImportQueue::class);
+        if (!$repository instanceof ArticleImportQueueRepository) {
+            throw new \RuntimeException('Article import queue repository is not available.');
+        }
+
+        return $repository;
     }
 }

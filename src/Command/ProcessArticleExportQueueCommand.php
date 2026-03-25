@@ -51,6 +51,8 @@ class ProcessArticleExportQueueCommand extends Command
         $failedCount = 0;
 
         while (null !== $queueItem) {
+            $filePath = null;
+
             try {
                 $filePath = $this->articleExportFileWriter->write($queueItem);
 
@@ -68,6 +70,10 @@ class ProcessArticleExportQueueCommand extends Command
                 $this->entityManager->flush();
                 ++$processedCount;
             } catch (\Throwable $exception) {
+                if (is_string($filePath)) {
+                    $this->articleExportFileWriter->delete($filePath);
+                }
+
                 $this->markQueueItemAsFailed($queueItem);
                 ++$failedCount;
 
