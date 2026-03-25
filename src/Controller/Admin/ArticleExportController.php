@@ -141,7 +141,9 @@ class ArticleExportController extends AbstractController
     private function deleteExportFile(?string $absolutePath): void
     {
         if (null !== $absolutePath && is_file($absolutePath)) {
-            @unlink($absolutePath);
+            if (!unlink($absolutePath)) {
+                throw new \RuntimeException(sprintf('Failed to delete export file: %s', $absolutePath));
+            }
         }
     }
 }

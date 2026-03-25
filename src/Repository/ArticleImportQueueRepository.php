@@ -37,8 +37,10 @@ class ArticleImportQueueRepository extends ServiceEntityRepository
     {
         $connection = $this->getEntityManager()->getConnection();
         $updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+        $maxRetries = 100;
+        $attempt = 0;
 
-        while (true) {
+        while ($attempt++ < $maxRetries) {
             $queueItemId = $connection->fetchOne(
                 'SELECT id
                 FROM article_import_queue
@@ -75,6 +77,8 @@ class ArticleImportQueueRepository extends ServiceEntityRepository
 
             return $this->find((int) $queueItemId);
         }
+
+        return null;
     }
 
     public function countPending(): int

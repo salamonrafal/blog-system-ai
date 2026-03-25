@@ -163,7 +163,9 @@ class ArticleImportController extends AbstractController
     private function deleteImportFile(?string $absolutePath): void
     {
         if (null !== $absolutePath && is_file($absolutePath)) {
-            @unlink($absolutePath);
+            if (!unlink($absolutePath)) {
+                throw new \RuntimeException(sprintf('Failed to delete import file: %s', $absolutePath));
+            }
         }
     }
 }

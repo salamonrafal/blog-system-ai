@@ -58,11 +58,7 @@ class ArticleExportFileWriter
     {
         $absolutePath = $this->projectDir.'/'.ltrim($relativePath, '/');
 
-        if (!is_file($absolutePath)) {
-            return;
-        }
-
-        if (!@unlink($absolutePath) && is_file($absolutePath)) {
+        if (is_file($absolutePath) && !unlink($absolutePath)) {
             throw new \RuntimeException(sprintf('Unable to delete export file "%s".', $absolutePath));
         }
     }
