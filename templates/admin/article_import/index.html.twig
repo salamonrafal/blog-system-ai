@@ -1,0 +1,145 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Importy | {{ app_name }}{% endblock %}
+
+{% block body %}
+    <section class="section">
+        <div class="card">
+            <div class="card-header">
+                <div class="window-dots" aria-hidden="true">
+                    <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                </div>
+                <span class="pill">admin://imports</span>
+            </div>
+
+            <div class="dashboard-feed-intro">
+                <div class="queue-status-intro-header">
+                    <div class="queue-status-intro-copy">
+                        <h1>Importy</h1>
+                        <p class="lede">Prześlij plik eksportu JSON, aby dodać go do kolejki przetwarzanej przez zadanie działające w tle.</p>
+                    </div>
+                    <div class="actions">
+                        <a class="button secondary" href="{{ path('admin_article_import_index') }}">Odśwież</a>
+                        {% if imports is not empty %}
+                            <form method="post" action="{{ path('admin_article_import_clear') }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('clear_article_imports') }}">
+                                <button
+                                    class="button secondary button-danger"
+                                    type="button"
+                                    data-action="confirm-clear-imports"
+                                >
+                                    Usuń wszystko
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {{ form_start(form, { attr: { class: 'article-editor-form' } }) }}
+                {% if form.vars.errors|length > 0 %}
+                    <div class="form-errors article-editor-errors" role="alert">
+                        {% for error in form.vars.errors %}
+                            <p>{{ error.message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="article-editor-fields">
+                    {% set import_file_has_errors = form.importFile.vars.errors|length > 0 %}
+                    {% set import_file_error_id = form.importFile.vars.id ~ '-error' %}
+                    {% set import_file_hint_id = form.importFile.vars.id ~ '-hint' %}
+                    {% set import_file_described_by = import_file_hint_id ~ (import_file_has_errors ? ' ' ~ import_file_error_id : '') %}
+                    <div class="field article-editor-field{{ import_file_has_errors ? ' has-error' : '' }}">
+                        {{ form_label(form.importFile) }}
+                        {{ form_widget(form.importFile, { attr: {
+                            class: 'article-editor-input',
+                            'aria-describedby': import_file_described_by
+                        }|merge(import_file_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
+                        <div class="article-editor-field-meta">
+                            <span id="{{ import_file_hint_id }}" class="article-editor-field-hint article-editor-field-hint-help">Obsługiwany jest plik JSON wygenerowany przez moduł eksportu artykułów.</span>
+                        </div>
+                        {% if import_file_has_errors %}
+                            <div id="{{ import_file_error_id }}" class="article-editor-error-message" role="alert">
+                                {% for error in form.importFile.vars.errors %}
+                                    <p>{{ error.message }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="actions article-editor-actions">
+                    <button type="submit" class="button">Importuj</button>
+                    <a class="button secondary" href="{{ path('admin_queue_status') }}">Zobacz stan kolejek</a>
+                </div>
+            {{ form_end(form) }}
+
+            {% if imports is not empty %}
+                <div class="table-wrap article-index-table-wrap">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th class="article-import-source-column">Plik źródłowy</th>
+                            <th>Status</th>
+                            <th>Komunikat</th>
+                            <th>Dodano</th>
+                            <th>Akcje</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for import in imports %}
+                            <tr>
+                                <td>{{ import.id }}</td>
+                                <td
+                                    class="article-import-source-cell"
+                                    data-tooltip="{{ import.originalFilename }}&#10;{{ import.filePath|split('/')|last }}"
+                                    data-tooltip-wide="true"
+                                    data-tooltip-multiline="true"
+                                    tabindex="0"
+                                >
+                                    <strong class="article-import-source-primary">{{ import.originalFilename }}</strong>
+                                    <span class="meta article-import-source-secondary">{{ import.filePath|split('/')|last }}</span>
+                                </td>
+                                <td>{{ import.status.value }}</td>
+                                <td class="queue-status-title-cell">{{ import.errorMessage ?? 'Brak' }}</td>
+                                <td>{{ import.createdAt|user_date }}</td>
+                                <td>
+                                    <div class="actions">
+                                        <a
+                                            class="button secondary article-action-button"
+                                            href="{{ path('admin_article_import_download', {id: import.id}) }}"
+                                            data-tooltip="Pobierz plik importu"
+                                            aria-label="Pobierz plik importu"
+                                        >
+                                            <span class="article-action-icon is-export" aria-hidden="true"></span>
+                                        </a>
+                                        <form method="post" action="{{ path('admin_article_import_delete', {id: import.id}) }}">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete_article_import_' ~ import.id) }}">
+                                            <button
+                                                class="button secondary button-danger article-action-button"
+                                                type="button"
+                                                data-action="confirm-delete-import"
+                                                data-import-file="{{ import.originalFilename }}"
+                                                data-tooltip="Usuń"
+                                                aria-label="Usuń"
+                                            >
+                                                <span class="article-action-icon is-delete" aria-hidden="true"></span>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="blog-empty-state">
+                    <p class="meta blog-empty-state-message" role="status">Brak plików dodanych do kolejki importu.</p>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+{% endblock %}

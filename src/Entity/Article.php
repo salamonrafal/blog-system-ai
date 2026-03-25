@@ -61,6 +61,14 @@ class Article
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $publishedAt = null;
 
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?User $createdBy = null;
+
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?User $updatedBy = null;
+
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
@@ -202,9 +210,33 @@ class Article
         return $this->createdAt;
     }
 
+    public function getCreatedBy(): ?User
+    {
+        return $this->createdBy;
+    }
+
+    public function setCreatedBy(?User $createdBy): self
+    {
+        $this->createdBy = $createdBy;
+
+        return $this;
+    }
+
     public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
+    }
+
+    public function getUpdatedBy(): ?User
+    {
+        return $this->updatedBy;
+    }
+
+    public function setUpdatedBy(?User $updatedBy): self
+    {
+        $this->updatedBy = $updatedBy;
+
+        return $this;
     }
 
     public function isPublished(): bool

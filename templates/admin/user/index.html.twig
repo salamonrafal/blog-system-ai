@@ -1,0 +1,113 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Użytkownicy | {{ app_name }}{% endblock %}
+
+{% block body %}
+    <section class="section">
+        <div class="card">
+            <div class="card-header">
+                <div class="window-dots" aria-hidden="true">
+                    <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                </div>
+                <span class="pill">admin://users</span>
+            </div>
+
+            <div class="dashboard-feed-intro">
+                <h1>Zarządzanie użytkownikami</h1>
+                <p class="lede">Przeglądaj konta administracyjne i redakcyjne, aktualizuj ich dostęp oraz aktywność bez wychodzenia z panelu.</p>
+
+                <div class="actions">
+                    <a class="button" href="{{ path('admin_user_new') }}">Dodaj użytkownika</a>
+                </div>
+
+                <section class="article-edit-meta-panel article-edit-meta-panel-compact" aria-label="Podsumowanie użytkowników">
+                    <div class="article-edit-meta-header">
+                        <span class="pill">admin://user-overview</span>
+                    </div>
+                    <dl class="article-edit-meta-list article-edit-meta-list-compact">
+                        <div class="article-edit-meta-item">
+                            <dt class="article-edit-meta-label">Wszystkie konta</dt>
+                            <dd class="article-edit-meta-value">{{ user_stats.all }}</dd>
+                        </div>
+                        <div class="article-edit-meta-item">
+                            <dt class="article-edit-meta-label">Aktywne</dt>
+                            <dd class="article-edit-meta-value">{{ user_stats.active }}</dd>
+                        </div>
+                        <div class="article-edit-meta-item">
+                            <dt class="article-edit-meta-label">Nieaktywne</dt>
+                            <dd class="article-edit-meta-value">{{ user_stats.inactive }}</dd>
+                        </div>
+                        <div class="article-edit-meta-item">
+                            <dt class="article-edit-meta-label">Administratorzy</dt>
+                            <dd class="article-edit-meta-value">{{ user_stats.admins }}</dd>
+                        </div>
+                    </dl>
+                </section>
+            </div>
+
+            <div class="table-wrap article-index-table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th class="user-index-email-column">Email</th>
+                        <th>Status</th>
+                        <th>Uprawnienia</th>
+                        <th>Utworzono</th>
+                        <th>Akcja</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for user in users %}
+                        <tr>
+                            <td class="user-index-email-cell">
+                                <strong>{{ user.fullName ?? user.nickname ?? user.email }}</strong><br>
+                                <span>{{ user.email }}</span>
+                            </td>
+                            <td class="article-index-status-cell">
+                                {% if user.isActive %}
+                                    <span>Aktywne</span>
+                                {% else %}
+                                    <span>Nieaktywne</span>
+                                {% endif %}
+                            </td>
+                            <td class="article-index-status-cell">
+                                {% if 'ROLE_ADMIN' in user.roles %}
+                                    <span>Administrator</span>
+                                {% else %}
+                                    <span>Użytkownik</span>
+                                {% endif %}
+                            </td>
+                            <td class="article-index-updated-cell">{{ user.createdAt|user_date }}</td>
+                            <td>
+                                <div class="actions">
+                                    <a class="button secondary article-action-button" href="{{ path('admin_user_edit', {id: user.id}) }}" aria-label="Edytuj użytkownika">
+                                        <span class="article-action-icon is-edit" aria-hidden="true"></span>
+                                    </a>
+                                    {% if user.id != first_admin_id %}
+                                        <form method="post" action="{{ path('admin_user_delete', {id: user.id}) }}" data-delete-form>
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete_user_' ~ user.id) }}">
+                                            <button
+                                                class="button secondary button-danger article-action-button"
+                                                type="button"
+                                                data-action="confirm-delete-user"
+                                                data-user-name="{{ user.displayName }}"
+                                                aria-label="Usuń użytkownika"
+                                            >
+                                                <span class="article-action-icon is-delete" aria-hidden="true"></span>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="5">Nie znaleziono użytkowników.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+{% endblock %}

@@ -1,0 +1,110 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Eksporty | {{ app_name }}{% endblock %}
+
+{% block body %}
+    <section class="section">
+        <div class="card">
+            <div class="card-header">
+                <div class="window-dots" aria-hidden="true">
+                    <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                </div>
+                <span class="pill">admin://exports</span>
+            </div>
+
+            <div class="dashboard-feed-intro">
+                <div class="queue-status-intro-header">
+                    <div class="queue-status-intro-copy">
+                        <h1 data-i18n="admin_exports_title">Eksporty</h1>
+                        <p class="lede" data-i18n="admin_exports_lede">Lista pokazuje gotowe paczki eksportu artykułów zapisane przez zadanie działające w tle. Każdy wpis zawiera plik gotowy do ponownego importu.</p>
+                    </div>
+                    <div class="actions">
+                        <a class="button secondary" href="{{ path('admin_article_export_index') }}">Odśwież</a>
+                        {% if exports is not empty %}
+                            <form method="post" action="{{ path('admin_article_export_clear') }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('clear_article_exports') }}">
+                                <button
+                                    class="button secondary button-danger"
+                                    type="button"
+                                    data-action="confirm-clear-exports"
+                                    data-i18n="admin_exports_clear"
+                                >
+                                    Usuń wszystkie eksporty
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {% if exports is not empty %}
+                <div class="table-wrap article-index-table-wrap">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th data-i18n="admin_exports_table_id">ID</th>
+                            <th data-i18n="admin_exports_table_type">Typ</th>
+                            <th data-i18n="admin_exports_table_status">Status</th>
+                            <th data-i18n="admin_exports_table_articles">Artykuły</th>
+                            <th class="article-export-file-column" data-i18n="admin_exports_table_file">Plik</th>
+                            <th data-i18n="admin_exports_table_created">Utworzono</th>
+                            <th data-i18n="admin_table_action">Akcja</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for export in exports %}
+                            <tr>
+                                <td>{{ export.id }}</td>
+                                <td>
+                                    <span data-i18n="admin_exports_type_articles">Eksport artykułów</span>
+                                </td>
+                                <td>
+                                    {% if export.status.value == 'downloaded' %}
+                                        <span data-i18n="admin_exports_status_downloaded">Pobrany</span>
+                                    {% else %}
+                                        <span data-i18n="admin_exports_status_new">Nowy</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ export.articleCount }}</td>
+                                <td class="article-export-file-cell">{{ export.filePath|split('/')|last }}</td>
+                                <td>{{ export.createdAt|user_date }}</td>
+                                <td>
+                                    <div class="actions">
+                                        <a
+                                            class="button secondary article-action-button"
+                                            href="{{ path('admin_article_export_download', {id: export.id}) }}"
+                                            data-i18n-tooltip="admin_exports_download"
+                                            data-tooltip="Pobierz plik eksportu"
+                                            aria-label="Pobierz plik eksportu"
+                                        >
+                                            <span class="article-action-icon is-export" aria-hidden="true"></span>
+                                        </a>
+                                        <form method="post" action="{{ path('admin_article_export_delete', {id: export.id}) }}">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete_article_export_' ~ export.id) }}">
+                                            <button
+                                                class="button secondary button-danger article-action-button"
+                                                type="button"
+                                                data-action="confirm-delete-export"
+                                                data-export-file="{{ export.filePath }}"
+                                                data-i18n-tooltip="admin_table_delete"
+                                                data-tooltip="Usuń"
+                                                aria-label="Usuń"
+                                            >
+                                                <span class="article-action-icon is-delete" aria-hidden="true"></span>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="blog-empty-state">
+                    <p class="meta blog-empty-state-message" role="status" data-i18n="admin_exports_no_items">Brak gotowych eksportów.</p>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+{% endblock %}

@@ -58,6 +58,12 @@
         "user:create-admin": [
             "@php bin/console app:user:create-admin"
         ],
+        "article-export:process-queue": [
+            "@php bin/console app:article-export:process-queue"
+        ],
+        "article-import:process-queue": [
+            "@php bin/console app:article-import:process-queue"
+        ],
         "serve:debug": [
             "@php bin/dev-server.php restart"
         ],

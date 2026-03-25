@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Entity\Article;
+use App\Entity\User;
 use App\Enum\ArticleStatus;
 use App\Form\ArticleType;
+use App\Repository\ArticleExportQueueRepository;
 use App\Repository\ArticleRepository;
 use App\Service\ArticlePublisher;
+use App\Service\UserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -33,6 +36,7 @@ class ArticleController extends AbstractController
         ArticlePublisher $articlePublisher,
     ): Response {
         $article = new Article();
+        $currentUser = $this->resolveAuthenticatedUser();
         $form = $this->createForm(ArticleType::class, $article);
         $form->handleRequest($request);
 
@@ -41,6 +45,12 @@ class ArticleController extends AbstractController
         }
 
         if ($form->isSubmitted() && $form->isValid()) {
+            if (null !== $currentUser) {
+                $article
+                    ->setCreatedBy($currentUser)
+                    ->setUpdatedBy($currentUser);
+            }
+
             $entityManager->persist($article);
             $entityManager->flush();
 
@@ -61,6 +71,7 @@ class ArticleController extends AbstractController
         EntityManagerInterface $entityManager,
         ArticlePublisher $articlePublisher,
     ): Response {
+        $currentUser = $this->resolveAuthenticatedUser();
         $form = $this->createForm(ArticleType::class, $article);
         $form->handleRequest($request);
 
@@ -69,6 +80,7 @@ class ArticleController extends AbstractController
         }
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $article->setUpdatedBy($currentUser);
             $entityManager->flush();
 
             $this->addFlash('success', 'Article updated.');
@@ -94,7 +106,8 @@ class ArticleController extends AbstractController
 
         $article
             ->setStatus(ArticleStatus::ARCHIVED)
-            ->setPublishedAt(null);
+            ->setPublishedAt(null)
+            ->setUpdatedBy($this->resolveAuthenticatedUser());
 
         $entityManager->flush();
 
@@ -121,6 +134,7 @@ class ArticleController extends AbstractController
         }
 
         $article->setStatus(ArticleStatus::PUBLISHED);
+        $article->setUpdatedBy($this->resolveAuthenticatedUser());
         $articlePublisher->prepareForSave($article);
 
         $entityManager->flush();
@@ -130,20 +144,139 @@ class ArticleController extends AbstractController
         return $this->redirectToRoute('admin_article_index');
     }
 
+    #[Route('/{id}/export', name: 'admin_article_export', methods: ['POST'])]
+    public function export(
+        Article $article,
+        Request $request,
+        ArticleExportQueueRepository $articleExportQueueRepository,
+    ): Response {
+        if (!$this->isCsrfTokenValid('export_article_'.$article->getId(), (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        $result = $this->queueArticles([$article], $articleExportQueueRepository);
+
+        if (0 === $result['queued']) {
+            $this->addFlash('success', 'Article export is already queued.');
+
+            return $this->redirectToRoute('admin_article_index');
+        }
+
+        $this->addFlash('success', 'Article export added to the queue.');
+
+        return $this->redirectToRoute('admin_article_index');
+    }
+
+    #[Route('/{id}/assign-to-me', name: 'admin_article_assign_to_me', methods: ['POST'])]
+    public function assignToMe(
+        Article $article,
+        Request $request,
+        EntityManagerInterface $entityManager,
+        UserLanguageResolver $userLanguageResolver,
+    ): Response {
+        if (!$this->isCsrfTokenValid('assign_article_to_me_'.$article->getId(), (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        $currentUser = $this->resolveAuthenticatedUser();
+        if (null === $currentUser) {
+            throw $this->createAccessDeniedException('User must be authenticated.');
+        }
+
+        if (null !== $article->getCreatedBy()) {
+            $this->addFlash(
+                'error',
+                'pl' === $userLanguageResolver->getLanguage()
+                    ? 'Artykuł ma już przypisanego autora.'
+                    : 'Article already has an author assigned.'
+            );
+
+            return $this->redirectToRoute('admin_article_index');
+        }
+
+        $article
+            ->setCreatedBy($currentUser)
+            ->setUpdatedBy($currentUser);
+
+        $entityManager->flush();
+
+        $this->addFlash(
+            'success',
+            'pl' === $userLanguageResolver->getLanguage()
+                ? 'Autor artykułu został przypisany.'
+                : 'Article author assigned.'
+        );
+
+        return $this->redirectToRoute('admin_article_index');
+    }
+
+    #[Route('/export-selected', name: 'admin_article_export_selected', methods: ['POST'])]
+    public function exportSelected(
+        Request $request,
+        ArticleRepository $articleRepository,
+        ArticleExportQueueRepository $articleExportQueueRepository,
+    ): Response {
+        if (!$this->isCsrfTokenValid('export_articles_bulk', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        $articleIds = array_values(array_unique(array_filter(
+            array_map('intval', $request->request->all('article_ids')),
+            static fn (int $articleId): bool => $articleId > 0,
+        )));
+
+        if ([] === $articleIds) {
+            $this->addFlash('error', 'Select at least one article to export.');
+
+            return $this->redirectToRoute('admin_article_index');
+        }
+
+        $articles = $articleRepository->findBy(['id' => $articleIds]);
+        $result = $this->queueArticles($articles, $articleExportQueueRepository);
+
+        if (0 === $result['queued']) {
+            $this->addFlash('success', 'Selected article exports are already queued.');
+
+            return $this->redirectToRoute('admin_article_index');
+        }
+
+        if (0 === $result['skipped']) {
+            $this->addFlash('success', sprintf('%d article export(s) added to the queue.', $result['queued']));
+
+            return $this->redirectToRoute('admin_article_index');
+        }
+
+        $this->addFlash(
+            'success',
+            sprintf(
+                '%d article export(s) added to the queue. %d already queued item(s) skipped.',
+                $result['queued'],
+                $result['skipped'],
+            )
+        );
+
+        return $this->redirectToRoute('admin_article_index');
+    }
+
     #[Route('/{id}/delete', name: 'admin_article_delete', methods: ['POST'])]
     public function delete(
         Article $article,
         Request $request,
         EntityManagerInterface $entityManager,
+        ArticleExportQueueRepository $articleExportQueueRepository,
     ): Response {
         if (!$this->isCsrfTokenValid('delete_article_'.$article->getId(), (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Invalid CSRF token.');
         }
 
         if (ArticleStatus::ARCHIVED !== $article->getStatus()) {
-            $this->addFlash('error', 'Usunac mozna tylko zarchiwizowany artykul.');
+            $this->addFlash('error', 'Usunąć można tylko zarchiwizowany artykuł.');
 
             return $this->redirectToRoute('admin_article_index');
+        }
+
+        foreach ($articleExportQueueRepository->findPendingForArticle($article) as $queueItem) {
+            $entityManager->remove($queueItem);
         }
 
         $entityManager->remove($article);
@@ -152,5 +285,39 @@ class ArticleController extends AbstractController
         $this->addFlash('success', 'Article deleted.');
 
         return $this->redirectToRoute('admin_article_index');
+    }
+
+    /**
+     * @param list<Article> $articles
+     *
+     * @return array{queued: int, skipped: int}
+     */
+    private function queueArticles(
+        array $articles,
+        ArticleExportQueueRepository $articleExportQueueRepository,
+    ): array {
+        $queued = 0;
+        $skipped = 0;
+
+        foreach ($articles as $article) {
+            if (!$articleExportQueueRepository->enqueuePending($article)) {
+                ++$skipped;
+
+                continue;
+            }
+            ++$queued;
+        }
+
+        return [
+            'queued' => $queued,
+            'skipped' => $skipped,
+        ];
+    }
+
+    private function resolveAuthenticatedUser(): ?User
+    {
+        $user = $this->getUser();
+
+        return $user instanceof User ? $user : null;
     }
 }

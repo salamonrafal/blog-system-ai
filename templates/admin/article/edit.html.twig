@@ -16,16 +16,16 @@
                 <h1 data-i18n="admin_edit_article_title">Edytuj artykuł</h1>
                 <p class="lede" data-i18n="admin_edit_article_lede">Aktualizuj treść, metadane i stan publikacji, zachowując istniejący slug.</p>
 
-                <section class="article-edit-meta-panel" aria-label="Article metadata">
+                <section class="article-edit-meta-panel article-edit-meta-panel-compact" aria-label="Article metadata">
                     <div class="article-edit-meta-header">
                         <span class="pill">admin://article-metadata</span>
                     </div>
-                    <dl class="article-edit-meta-list">
-                        <div class="article-edit-meta-item">
+                    <dl class="article-edit-meta-list article-edit-meta-list-compact">
+                        <div class="article-edit-meta-item article-edit-meta-item-full-width">
                             <dt class="article-edit-meta-label" data-i18n="admin_permanent_slug">Stały slug</dt>
                             <dd class="article-edit-meta-value">{{ article.slug }}</dd>
                         </div>
-                        <div class="article-edit-meta-item">
+                        <div class="article-edit-meta-item article-edit-meta-item-status">
                             <dt class="article-edit-meta-label" data-i18n="admin_current_workflow_status">Bieżący status workflow</dt>
                             <dd class="article-edit-meta-value">
                                 <span data-lang="pl">
@@ -39,6 +39,14 @@
                         <div class="article-edit-meta-item">
                             <dt class="article-edit-meta-label" data-i18n="admin_last_update">Data ostatniej aktualizacji</dt>
                             <dd class="article-edit-meta-value">{{ article.updatedAt|user_date }}</dd>
+                        </div>
+                        <div class="article-edit-meta-item">
+                            <dt class="article-edit-meta-label">Utworzyl</dt>
+                            <dd class="article-edit-meta-value">{{ article.createdBy ? article.createdBy.displayName : 'Brak danych' }}</dd>
+                        </div>
+                        <div class="article-edit-meta-item">
+                            <dt class="article-edit-meta-label">Ostatnio aktualizowal</dt>
+                            <dd class="article-edit-meta-value">{{ article.updatedBy ? article.updatedBy.displayName : 'Brak danych' }}</dd>
                         </div>
                     </dl>
                 </section>

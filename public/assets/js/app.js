@@ -94,6 +94,8 @@ const i18n = {
     blog_article_label_suffix: "artykuł",
     blog_article_fallback_excerpt: "Strona opublikowanej treści wygenerowana z widoku bloga Twig.",
     blog_back_to_articles: "Wróć do artykułów",
+    blog_copy_link: "Kopiuj link",
+    blog_link_copied: "Skopiowano link!",
     blog_edit_in_admin: "Edytuj w panelu admina",
     blog_metadata: "Metadane",
     blog_article_language: "Język publikacji",
@@ -109,12 +111,59 @@ const i18n = {
     admin_shortcut_remember_device: "Zapamiętaj urządzenie",
     admin_shortcut_forget_device: "Nie zapamiętuj urządzenia",
     admin_shortcut_blog_settings: "Ustawienia bloga",
+    admin_shortcut_import_export_title: "Importy & Eksporty",
+    admin_shortcut_queue_status: "Stan kolejek",
+    admin_shortcut_imports: "Importy",
+    admin_shortcut_exports: "Eksporty",
     admin_shortcut_login_device: "Zaloguj się",
     admin_shortcut_logout: "Wyloguj",
     admin_dashboard_title: "Centrum operacji treści",
-    admin_dashboard_lede: "Panel administracyjny dopasowany do układu aplikacji, gotowy na workflow redakcyjny, moderację i publikację.",
+    admin_dashboard_lede: "Jedno miejsce do zarządzania artykułami, importami, eksportami, kolejkami i ustawieniami bloga.",
     admin_blog_settings_title: "Ustawienia bloga",
     admin_blog_settings_lede: "Zarządzaj danymi, które wpływają na nazwę bloga i metadane strony głównej widoczne w wyszukiwarkach oraz po udostępnieniu linku.",
+    admin_queue_status_title: "Stan kolejek",
+    admin_queue_status_lede: "Lista pokazuje elementy gotowe do przetworzenia przez zadanie w tle. Widoczne są tylko wpisy oczekujące w kolejce eksportu.",
+    admin_queue_table_id: "ID",
+    admin_queue_table_type: "Typ kolejki",
+    admin_queue_table_created: "Dodano",
+    admin_queue_type_article_export: "Eksport artykułu",
+    admin_queue_no_items: "Brak elementów oczekujących na przetworzenie.",
+    admin_queue_delete: "Usuń z kolejki",
+    admin_queue_clear: "Wyczyść kolejkę",
+    admin_queue_clear_popup_title: "Wyczyścić kolejkę?",
+    admin_queue_clear_popup_text: "Ta operacja usunie wszystkie oczekujące elementy kolejki. Upewnij się, że zadanie w tle nie będzie ich już potrzebowało.",
+    admin_queue_clear_popup_cancel: "Przerwij",
+    admin_queue_clear_popup_confirm: "Wyczyść kolejkę",
+    admin_exports_title: "Eksporty",
+    admin_exports_lede: "Lista pokazuje gotowe paczki eksportu artykułów zapisane przez zadanie działające w tle. Każdy wpis zawiera plik gotowy do ponownego importu.",
+    admin_exports_table_id: "ID",
+    admin_exports_table_type: "Typ",
+    admin_exports_table_status: "Status",
+    admin_exports_table_articles: "Artykuły",
+    admin_exports_table_file: "Plik",
+    admin_exports_table_created: "Utworzono",
+    admin_exports_type_articles: "Eksport artykułów",
+    admin_exports_status_new: "Nowy",
+    admin_exports_status_downloaded: "Pobrany",
+    admin_exports_download: "Pobierz plik eksportu",
+    admin_exports_no_items: "Brak gotowych eksportów.",
+    admin_exports_clear: "Usuń wszystkie eksporty",
+    admin_exports_clear_popup_title: "Usunąć wszystkie eksporty?",
+    admin_exports_clear_popup_text: "Ta operacja usunie wszystkie rekordy eksportów oraz powiązane pliki z dysku.",
+    admin_exports_clear_popup_cancel: "Przerwij",
+    admin_exports_clear_popup_confirm: "Usuń wszystkie eksporty",
+    admin_imports_clear_popup_title: "Usunąć wszystkie importy?",
+    admin_imports_clear_popup_text: "Ta operacja usunie wszystkie rekordy importów oraz powiązane pliki z dysku.",
+    admin_imports_clear_popup_cancel: "Przerwij",
+    admin_imports_clear_popup_confirm: "Usuń wszystkie importy",
+    admin_imports_delete_popup_title: "Usunąć import?",
+    admin_imports_delete_popup_text: "Ta operacja usunie rekord importu i powiązany plik z dysku.",
+    admin_imports_delete_popup_cancel: "Przerwij",
+    admin_imports_delete_popup_confirm: "Usuń import",
+    admin_exports_delete_popup_title: "Usunąć eksport?",
+    admin_exports_delete_popup_text: "Ta operacja usunie rekord eksportu i powiązany plik z dysku.",
+    admin_exports_delete_popup_cancel: "Przerwij",
+    admin_exports_delete_popup_confirm: "Usuń eksport",
     admin_browse_articles: "Przeglądaj artykuły",
     admin_edit_article: "Edytuj artykuł",
     admin_quick_actions: "Szybkie akcje",
@@ -126,13 +175,19 @@ const i18n = {
     admin_quick_open_blog_desc: "Wróć do widoku, który widzą już czytelnicy.",
     admin_article_index_title: "Zarządzanie artykułami",
     admin_article_index_lede: "Wszystkie artykuły w jednym miejscu, niezależnie od statusu. Tabela poniżej utrzymuje widok administracyjny w zwartej formie.",
+    admin_article_bulk_export: "Eksportuj zaznaczone",
+    admin_article_select: "Zaznacz artykuł",
+    admin_article_select_all: "Zaznacz wszystkie artykuły",
     admin_table_title: "Tytuł",
+    admin_table_author: "Autor",
     admin_table_language: "Język",
     admin_table_status: "Status",
     admin_table_slug: "Slug",
     admin_table_updated: "Aktualizacja",
     admin_table_action: "Akcja",
+    admin_close_alert: "Zamknij alert",
     admin_table_edit: "Edytuj",
+    admin_table_export: "Eksport",
     admin_table_publish: "Opublikuj",
     admin_table_archive: "Archiwizuj",
     admin_table_delete: "Usuń",
@@ -283,6 +338,8 @@ const i18n = {
     blog_article_label_suffix: "article",
     blog_article_fallback_excerpt: "Published content page generated from the Twig blog view.",
     blog_back_to_articles: "Back to articles",
+    blog_copy_link: "Copy link",
+    blog_link_copied: "Link copied!",
     blog_edit_in_admin: "Edit in admin",
     blog_metadata: "Metadata",
     blog_article_language: "Publication language",
@@ -298,12 +355,57 @@ const i18n = {
     admin_shortcut_remember_device: "Remember this device",
     admin_shortcut_forget_device: "Forget this device",
     admin_shortcut_blog_settings: "Blog settings",
+    admin_shortcut_queue_status: "Queue status",
+    admin_shortcut_exports: "Exports",
     admin_shortcut_login_device: "Login",
     admin_shortcut_logout: "Log out",
     admin_dashboard_title: "Content operations hub",
-    admin_dashboard_lede: "An admin dashboard aligned with the app layout, ready for editorial workflows, moderation and publishing.",
+    admin_dashboard_lede: "One place to manage articles, imports, exports, queues, and blog settings.",
     admin_blog_settings_title: "Blog settings",
     admin_blog_settings_lede: "Manage the data that controls the blog name and the homepage metadata shown in search engines and link previews.",
+    admin_queue_status_title: "Queue status",
+    admin_queue_status_lede: "This list shows items ready to be processed by a background job. Only pending export queue entries are visible.",
+    admin_queue_table_id: "ID",
+    admin_queue_table_type: "Queue type",
+    admin_queue_table_created: "Queued at",
+    admin_queue_type_article_export: "Article export",
+    admin_queue_no_items: "There are no items waiting to be processed.",
+    admin_queue_delete: "Remove from queue",
+    admin_queue_clear: "Clear queue",
+    admin_queue_clear_popup_title: "Clear the queue?",
+    admin_queue_clear_popup_text: "This operation will remove all pending queue items. Make sure the background job will no longer need them.",
+    admin_queue_clear_popup_cancel: "Cancel",
+    admin_queue_clear_popup_confirm: "Clear queue",
+    admin_exports_title: "Exports",
+    admin_exports_lede: "This list shows article export bundles produced by the background job. Each entry points to a file ready to be imported again.",
+    admin_exports_table_id: "ID",
+    admin_exports_table_type: "Type",
+    admin_exports_table_status: "Status",
+    admin_exports_table_articles: "Articles",
+    admin_exports_table_file: "File",
+    admin_exports_table_created: "Created",
+    admin_exports_type_articles: "Article export",
+    admin_exports_status_new: "New",
+    admin_exports_status_downloaded: "Downloaded",
+    admin_exports_download: "Download export file",
+    admin_exports_no_items: "No exports are available yet.",
+    admin_exports_clear: "Delete all exports",
+    admin_exports_clear_popup_title: "Delete all exports?",
+    admin_exports_clear_popup_text: "This action will remove all export records and their files from disk.",
+    admin_exports_clear_popup_cancel: "Cancel",
+    admin_exports_clear_popup_confirm: "Delete all exports",
+    admin_imports_clear_popup_title: "Delete all imports?",
+    admin_imports_clear_popup_text: "This operation will remove all import records and related files from disk.",
+    admin_imports_clear_popup_cancel: "Cancel",
+    admin_imports_clear_popup_confirm: "Delete all imports",
+    admin_imports_delete_popup_title: "Delete import?",
+    admin_imports_delete_popup_text: "This operation will remove the import record and related file from disk.",
+    admin_imports_delete_popup_cancel: "Cancel",
+    admin_imports_delete_popup_confirm: "Delete import",
+    admin_exports_delete_popup_title: "Delete export?",
+    admin_exports_delete_popup_text: "This action will remove the export record and its file from disk.",
+    admin_exports_delete_popup_cancel: "Cancel",
+    admin_exports_delete_popup_confirm: "Delete export",
     admin_browse_articles: "Browse articles",
     admin_edit_article: "Edit article",
     admin_quick_actions: "Quick actions",
@@ -315,13 +417,19 @@ const i18n = {
     admin_quick_open_blog_desc: "Jump back to the view readers can already see.",
     admin_article_index_title: "Article management",
     admin_article_index_lede: "All articles in one place, regardless of status. The table below keeps the admin view compact.",
+    admin_article_bulk_export: "Export selected",
+    admin_article_select: "Select article",
+    admin_article_select_all: "Select all articles",
     admin_table_title: "Title",
+    admin_table_author: "Author",
     admin_table_language: "Language",
     admin_table_status: "Status",
     admin_table_slug: "Slug",
     admin_table_updated: "Updated",
     admin_table_action: "Action",
+    admin_close_alert: "Close alert",
     admin_table_edit: "Edit",
+    admin_table_export: "Export",
     admin_table_publish: "Publish",
     admin_table_archive: "Archive",
     admin_table_delete: "Delete",
@@ -587,6 +695,8 @@ function setupTooltips(){
     const text = trigger.getAttribute('data-tooltip');
     if(!text) return;
     activeTrigger = trigger;
+    tooltip.classList.toggle('is-wide', trigger.getAttribute('data-tooltip-wide') === 'true');
+    tooltip.classList.toggle('is-multiline', trigger.getAttribute('data-tooltip-multiline') === 'true');
     tooltip.textContent = text;
     tooltip.removeAttribute('hidden');
     tooltip.setAttribute('aria-hidden', 'false');
@@ -596,6 +706,8 @@ function setupTooltips(){
   const hideTooltip = ()=>{
     tooltip.setAttribute('hidden', '');
     tooltip.setAttribute('aria-hidden', 'true');
+    tooltip.classList.remove('is-wide');
+    tooltip.classList.remove('is-multiline');
     activeTrigger = null;
   };
 
@@ -749,6 +861,43 @@ function setupActions(){
     });
   }
 
+  qsa('[data-action="copy-article-link"]').forEach((copyLinkBtn)=>{
+    copyLinkBtn.addEventListener('click', async ()=>{
+      const link = copyLinkBtn.getAttribute('data-link');
+      const lang = getLang();
+      const defaultHint = i18n[lang].blog_copy_link;
+      const icon = copyLinkBtn.querySelector('.article-action-icon');
+      if(!link) {
+        copyLinkBtn.setAttribute('data-tooltip', defaultHint);
+        return;
+      }
+
+      const copied = await copyTextToClipboard(link);
+      copyLinkBtn.setAttribute('data-tooltip', copied ? i18n[lang].blog_link_copied : defaultHint);
+
+      if(copied && icon){
+        copyLinkBtn.classList.add('is-icon-transitioning');
+        setTimeout(()=>{
+          icon.classList.remove('is-copy');
+          icon.classList.add('is-check');
+          copyLinkBtn.classList.remove('is-icon-transitioning');
+        }, 110);
+
+        copyLinkBtn.classList.add('is-confirmed');
+        setTimeout(()=>{
+          copyLinkBtn.setAttribute('data-tooltip', i18n[getLang()].blog_copy_link);
+          copyLinkBtn.classList.add('is-icon-transitioning');
+          setTimeout(()=>{
+            icon.classList.remove('is-check');
+            icon.classList.add('is-copy');
+            copyLinkBtn.classList.remove('is-icon-transitioning');
+          }, 110);
+          copyLinkBtn.classList.remove('is-confirmed');
+        }, 1200);
+      }
+    });
+  });
+
   qsa('[data-action="accent-color"]').forEach(colorInput=>{
     colorInput.addEventListener('input', (e)=> setAccent(e.target.value));
   });
@@ -800,10 +949,66 @@ function syncAdminShortcuts(){
 function setupAdminShortcuts(){
   syncAdminShortcuts();
 
+  const closeAdminSubmenu = (submenu)=>{
+    if(!submenu) return;
+    submenu.classList.remove('is-open');
+    const trigger = qs('[data-action="toggle-admin-submenu"]', submenu);
+    if(trigger){
+      trigger.setAttribute('aria-expanded', 'false');
+    }
+  };
+
+  const openAdminSubmenu = (submenu)=>{
+    if(!submenu) return;
+    submenu.classList.add('is-open');
+    const trigger = qs('[data-action="toggle-admin-submenu"]', submenu);
+    if(trigger){
+      trigger.setAttribute('aria-expanded', 'true');
+    }
+  };
+
+  qsa('[data-admin-shortcuts-submenu]').forEach((submenu)=>{
+    const trigger = qs('[data-action="toggle-admin-submenu"]', submenu);
+    if(!trigger) return;
+
+    trigger.addEventListener('click', (event)=>{
+      event.preventDefault();
+      const isOpen = submenu.classList.contains('is-open');
+
+      qsa('[data-admin-shortcuts-submenu].is-open').forEach((openSubmenu)=>{
+        if(openSubmenu !== submenu){
+          closeAdminSubmenu(openSubmenu);
+        }
+      });
+
+      if(isOpen){
+        closeAdminSubmenu(submenu);
+      } else {
+        openAdminSubmenu(submenu);
+      }
+    });
+  });
+
   qsa('[data-action="toggle-device-login"]').forEach(button=>{
     button.addEventListener('click', ()=>{
       setAdminDeviceRemembered(!isAdminDeviceRemembered());
       syncAdminShortcuts();
+    });
+  });
+
+  document.addEventListener('click', (event)=>{
+    qsa('[data-admin-shortcuts-submenu].is-open').forEach((submenu)=>{
+      if(!submenu.contains(event.target)){
+        closeAdminSubmenu(submenu);
+      }
+    });
+  });
+
+  document.addEventListener('keydown', (event)=>{
+    if(event.key !== 'Escape') return;
+
+    qsa('[data-admin-shortcuts-submenu].is-open').forEach((submenu)=>{
+      closeAdminSubmenu(submenu);
     });
   });
 }
@@ -841,6 +1046,74 @@ function setupHeadlineImageToggle(){
     syncVisibility();
     toggle.addEventListener('change', syncVisibility);
   });
+}
+
+function setupDashboardCarousels(){
+  qsa('[data-dashboard-carousel]').forEach((carousel)=>{
+    const tabs = qsa('[data-dashboard-carousel-tab]', carousel);
+    const panels = qsa('[data-dashboard-carousel-panel]', carousel);
+    if(!tabs.length || !panels.length) return;
+
+    const activateTab = (name)=>{
+      tabs.forEach((tab)=>{
+        const isActive = tab.getAttribute('data-dashboard-carousel-tab') === name;
+        tab.classList.toggle('is-active', isActive);
+        tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        tab.setAttribute('tabindex', isActive ? '0' : '-1');
+      });
+
+      panels.forEach((panel)=>{
+        const isActive = panel.getAttribute('data-dashboard-carousel-panel') === name;
+        panel.classList.toggle('is-active', isActive);
+        panel.hidden = !isActive;
+      });
+    };
+
+    tabs.forEach((tab)=>{
+      tab.addEventListener('click', ()=>{
+        activateTab(tab.getAttribute('data-dashboard-carousel-tab') || '');
+      });
+
+      tab.addEventListener('keydown', (event)=>{
+        if(event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+        event.preventDefault();
+        const currentIndex = tabs.indexOf(tab);
+        const direction = event.key === 'ArrowRight' ? 1 : -1;
+        const nextIndex = (currentIndex + direction + tabs.length) % tabs.length;
+        const nextTab = tabs[nextIndex];
+        if(!nextTab) return;
+        activateTab(nextTab.getAttribute('data-dashboard-carousel-tab') || '');
+        nextTab.focus({ preventScroll: true });
+      });
+    });
+  });
+}
+
+function setupArticleBulkExport(){
+  const selectAll = qs('[data-article-select-all]');
+  const submit = qs('[data-article-bulk-submit]');
+  const checkboxes = qsa('[data-article-select-item]');
+  if(!selectAll || !submit || !checkboxes.length) return;
+
+  const syncState = ()=>{
+    const checkedCount = checkboxes.filter((checkbox)=> checkbox.checked).length;
+    selectAll.checked = checkedCount === checkboxes.length;
+    selectAll.indeterminate = checkedCount > 0 && checkedCount < checkboxes.length;
+    submit.disabled = checkedCount === 0;
+  };
+
+  selectAll.addEventListener('change', ()=>{
+    checkboxes.forEach((checkbox)=>{
+      checkbox.checked = selectAll.checked;
+    });
+    syncState();
+  });
+
+  checkboxes.forEach((checkbox)=>{
+    checkbox.addEventListener('change', syncState);
+  });
+
+  syncState();
 }
 
 function setupArticleMarkupEditor(){
@@ -1276,30 +1549,45 @@ function setupBackToTop(){
   toggleVisibility();
 }
 
-function setupDeleteConfirmation(){
-  const triggers = qsa('[data-action="confirm-delete-article"]');
+function setupFlashNotices(){
+  qsa('[data-action="dismiss-flash"]').forEach((button)=>{
+    button.addEventListener('click', ()=>{
+      const flash = button.closest('.flash');
+      if(!flash) return;
+      flash.setAttribute('hidden', '');
+    });
+  });
+}
+
+function setupDangerConfirmation(config){
+  const triggers = qsa(config.triggerSelector);
   if(!triggers.length) return;
 
-  const existingModal = qs('.confirm-delete-modal');
+  const existingModal = qs(`.${config.modalClass}`);
   if(existingModal){
     existingModal.remove();
   }
 
-  const titleId = 'confirm-delete-title';
-  const textId = 'confirm-delete-text';
+  const titleId = `${config.modalIdPrefix}-title`;
+  const textId = `${config.modalIdPrefix}-text`;
   const modal = document.createElement('div');
-  modal.className = 'confirm-delete-modal';
+  modal.className = `confirm-delete-modal ${config.modalClass}`;
   modal.setAttribute('hidden', '');
   modal.setAttribute('aria-hidden', 'true');
   modal.innerHTML = `
-    <div class="confirm-delete-dialog" role="dialog" aria-modal="true" aria-labelledby="${titleId}" aria-describedby="${textId}">
-      <div class="confirm-delete-eyebrow">admin://danger-zone</div>
-      <h2 id="${titleId}" class="confirm-delete-title" data-i18n="admin_delete_popup_title">Usunac artykul?</h2>
-      <p id="${textId}" class="confirm-delete-text" data-i18n="admin_delete_popup_text">Ta operacja jest nieodwracalna. Artykul zostanie trwale usuniety.</p>
-      <p class="confirm-delete-article-name"></p>
+    <div class="confirm-delete-dialog" role="alertdialog" aria-modal="false" aria-labelledby="${titleId}" aria-describedby="${textId}">
+      <div class="confirm-delete-topbar">
+        <div class="confirm-delete-eyebrow">admin://danger-zone</div>
+        <button type="button" class="confirm-delete-close" data-action="${config.closeAction}" data-i18n-aria="${config.closeI18n}" aria-label="${config.closeFallback}">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <h2 id="${titleId}" class="confirm-delete-title" data-i18n="${config.titleI18n}">${config.titleFallback}</h2>
+      <p id="${textId}" class="confirm-delete-text" data-i18n="${config.textI18n}">${config.textFallback}</p>
+      ${config.detailsClass ? `<p class="${config.detailsClass}"></p>` : ''}
       <div class="confirm-delete-actions">
-        <button type="button" class="button secondary" data-action="cancel-delete" data-i18n="admin_delete_popup_cancel">Przerwij</button>
-        <button type="button" class="button button-danger" data-action="submit-delete" data-i18n="admin_delete_popup_confirm">Usun</button>
+        <button type="button" class="button secondary" data-action="${config.cancelAction}" data-i18n="${config.cancelI18n}">${config.cancelFallback}</button>
+        <button type="button" class="button button-danger" data-action="${config.submitAction}" data-i18n="${config.submitI18n}">${config.submitFallback}</button>
       </div>
     </div>
   `;
@@ -1308,9 +1596,10 @@ function setupDeleteConfirmation(){
   applyI18n(getLang());
 
   const dialog = qs('.confirm-delete-dialog', modal);
-  const cancelButton = qs('[data-action="cancel-delete"]', modal);
-  const submitButton = qs('[data-action="submit-delete"]', modal);
-  const articleName = qs('.confirm-delete-article-name', modal);
+  const closeButton = qs(`[data-action="${config.closeAction}"]`, modal);
+  const cancelButton = qs(`[data-action="${config.cancelAction}"]`, modal);
+  const submitButton = qs(`[data-action="${config.submitAction}"]`, modal);
+  const details = config.detailsClass ? qs(`.${config.detailsClass}`, modal) : null;
   let activeForm = null;
   let lastTrigger = null;
 
@@ -1325,13 +1614,12 @@ function setupDeleteConfirmation(){
   const openModal = (trigger)=>{
     activeForm = trigger.closest('form');
     lastTrigger = trigger;
-    if(articleName){
-      articleName.textContent = trigger.getAttribute('data-article-title') || '';
+    if(details){
+      details.textContent = config.detailsText ? config.detailsText(trigger) : '';
     }
     modal.removeAttribute('hidden');
     modal.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
-    if(cancelButton) cancelButton.focus({ preventScroll: true });
+    if(closeButton) closeButton.focus({ preventScroll: true });
   };
 
   triggers.forEach((trigger)=>{
@@ -1339,6 +1627,10 @@ function setupDeleteConfirmation(){
       openModal(trigger);
     });
   });
+
+  if(closeButton){
+    closeButton.addEventListener('click', closeModal);
+  }
 
   if(cancelButton){
     cancelButton.addEventListener('click', closeModal);
@@ -1349,12 +1641,6 @@ function setupDeleteConfirmation(){
       if(activeForm) activeForm.submit();
     });
   }
-
-  modal.addEventListener('click', (event)=>{
-    if(event.target === modal){
-      closeModal();
-    }
-  });
 
   if(dialog){
     dialog.addEventListener('click', (event)=>{
@@ -1368,6 +1654,167 @@ function setupDeleteConfirmation(){
       event.preventDefault();
       closeModal();
     }
+  });
+}
+
+function setupDeleteConfirmation(){
+  setupDangerConfirmation({
+    triggerSelector: '[data-action="confirm-delete-article"]',
+    modalClass: 'confirm-delete-article-modal',
+    modalIdPrefix: 'confirm-delete-article',
+    titleI18n: 'admin_delete_popup_title',
+    titleFallback: 'Usunąć artykuł?',
+    textI18n: 'admin_delete_popup_text',
+    textFallback: 'Ta operacja jest nieodwracalna. Artykuł zostanie trwale usunięty.',
+    detailsClass: 'confirm-delete-article-name',
+    detailsText: (trigger)=> trigger.getAttribute('data-article-title') || '',
+    cancelAction: 'cancel-delete',
+    submitAction: 'submit-delete',
+    closeAction: 'close-delete',
+    cancelI18n: 'admin_delete_popup_cancel',
+    cancelFallback: 'Przerwij',
+    submitI18n: 'admin_delete_popup_confirm',
+    submitFallback: 'Usuń',
+    closeI18n: 'admin_close_alert',
+    closeFallback: 'Zamknij alert',
+  });
+}
+
+function setupUserDeleteConfirmation(){
+  setupDangerConfirmation({
+    triggerSelector: '[data-action="confirm-delete-user"]',
+    modalClass: 'confirm-delete-user-modal',
+    modalIdPrefix: 'confirm-delete-user',
+    titleI18n: 'admin_users_delete_popup_title',
+    titleFallback: 'Usunąć użytkownika?',
+    textI18n: 'admin_users_delete_popup_text',
+    textFallback: 'Ta operacja usunie konto użytkownika z panelu administracyjnego.',
+    detailsClass: 'confirm-delete-user-name',
+    detailsText: (trigger)=> trigger.getAttribute('data-user-name') || '',
+    cancelAction: 'cancel-delete-user',
+    submitAction: 'submit-delete-user',
+    closeAction: 'close-delete-user',
+    cancelI18n: 'admin_users_delete_popup_cancel',
+    cancelFallback: 'Przerwij',
+    submitI18n: 'admin_users_delete_popup_confirm',
+    submitFallback: 'Usuń użytkownika',
+    closeI18n: 'admin_close_alert',
+    closeFallback: 'Zamknij alert',
+  });
+}
+
+function setupQueueClearConfirmation(){
+  setupDangerConfirmation({
+    triggerSelector: '[data-action="confirm-clear-queue"]',
+    modalClass: 'confirm-clear-queue-modal',
+    modalIdPrefix: 'confirm-clear-queue',
+    titleI18n: 'admin_queue_clear_popup_title',
+    titleFallback: 'Wyczyścić kolejkę?',
+    textI18n: 'admin_queue_clear_popup_text',
+    textFallback: 'Ta operacja usunie wszystkie oczekujące elementy kolejki. Upewnij się, że zadanie w tle nie będzie ich już potrzebowało.',
+    detailsClass: null,
+    detailsText: null,
+    cancelAction: 'cancel-clear-queue',
+    submitAction: 'submit-clear-queue',
+    closeAction: 'close-clear-queue',
+    cancelI18n: 'admin_queue_clear_popup_cancel',
+    cancelFallback: 'Przerwij',
+    submitI18n: 'admin_queue_clear_popup_confirm',
+    submitFallback: 'Wyczyść kolejkę',
+    closeI18n: 'admin_close_alert',
+    closeFallback: 'Zamknij alert',
+  });
+}
+
+function setupExportDeleteConfirmation(){
+  setupDangerConfirmation({
+    triggerSelector: '[data-action="confirm-delete-export"]',
+    modalClass: 'confirm-delete-export-modal',
+    modalIdPrefix: 'confirm-delete-export',
+    titleI18n: 'admin_exports_delete_popup_title',
+    titleFallback: 'Usunąć eksport?',
+    textI18n: 'admin_exports_delete_popup_text',
+    textFallback: 'Ta operacja usunie rekord eksportu i powiązany plik z dysku.',
+    detailsClass: 'confirm-delete-export-name',
+    detailsText: (trigger)=> trigger.getAttribute('data-export-file') || '',
+    cancelAction: 'cancel-delete-export',
+    submitAction: 'submit-delete-export',
+    closeAction: 'close-delete-export',
+    cancelI18n: 'admin_exports_delete_popup_cancel',
+    cancelFallback: 'Przerwij',
+    submitI18n: 'admin_exports_delete_popup_confirm',
+    submitFallback: 'Usuń eksport',
+    closeI18n: 'admin_close_alert',
+    closeFallback: 'Zamknij alert',
+  });
+}
+
+function setupExportClearConfirmation(){
+  setupDangerConfirmation({
+    triggerSelector: '[data-action="confirm-clear-exports"]',
+    modalClass: 'confirm-clear-exports-modal',
+    modalIdPrefix: 'confirm-clear-exports',
+    titleI18n: 'admin_exports_clear_popup_title',
+    titleFallback: 'Usunąć wszystkie eksporty?',
+    textI18n: 'admin_exports_clear_popup_text',
+    textFallback: 'Ta operacja usunie wszystkie rekordy eksportów oraz powiązane pliki z dysku.',
+    detailsClass: null,
+    detailsText: null,
+    cancelAction: 'cancel-clear-exports',
+    submitAction: 'submit-clear-exports',
+    closeAction: 'close-clear-exports',
+    cancelI18n: 'admin_exports_clear_popup_cancel',
+    cancelFallback: 'Przerwij',
+    submitI18n: 'admin_exports_clear_popup_confirm',
+    submitFallback: 'Usuń wszystkie eksporty',
+    closeI18n: 'admin_close_alert',
+    closeFallback: 'Zamknij alert',
+  });
+}
+
+function setupImportClearConfirmation(){
+  setupDangerConfirmation({
+    triggerSelector: '[data-action="confirm-clear-imports"]',
+    modalClass: 'confirm-clear-imports-modal',
+    modalIdPrefix: 'confirm-clear-imports',
+    titleI18n: 'admin_imports_clear_popup_title',
+    titleFallback: 'Usunąć wszystkie importy?',
+    textI18n: 'admin_imports_clear_popup_text',
+    textFallback: 'Ta operacja usunie wszystkie rekordy importów oraz powiązane pliki z dysku.',
+    detailsClass: null,
+    detailsText: null,
+    cancelAction: 'cancel-clear-imports',
+    submitAction: 'submit-clear-imports',
+    closeAction: 'close-clear-imports',
+    cancelI18n: 'admin_imports_clear_popup_cancel',
+    cancelFallback: 'Przerwij',
+    submitI18n: 'admin_imports_clear_popup_confirm',
+    submitFallback: 'Usuń wszystko',
+    closeI18n: 'admin_close_alert',
+    closeFallback: 'Zamknij alert',
+  });
+}
+
+function setupImportDeleteConfirmation(){
+  setupDangerConfirmation({
+    triggerSelector: '[data-action="confirm-delete-import"]',
+    modalClass: 'confirm-delete-import-modal',
+    modalIdPrefix: 'confirm-delete-import',
+    titleI18n: 'admin_imports_delete_popup_title',
+    titleFallback: 'Usunąć import?',
+    textI18n: 'admin_imports_delete_popup_text',
+    textFallback: 'Ta operacja usunie rekord importu i powiązany plik z dysku.',
+    detailsClass: 'confirm-delete-import-name',
+    detailsText: (trigger)=> trigger.getAttribute('data-import-file') || '',
+    cancelAction: 'cancel-delete-import',
+    submitAction: 'submit-delete-import',
+    closeAction: 'close-delete-import',
+    cancelI18n: 'admin_imports_delete_popup_cancel',
+    cancelFallback: 'Przerwij',
+    submitI18n: 'admin_imports_delete_popup_confirm',
+    submitFallback: 'Usuń import',
+    closeI18n: 'admin_close_alert',
+    closeFallback: 'Zamknij alert',
   });
 }
 
@@ -1445,13 +1892,22 @@ function init(){
   const lang = getLang();
   applyI18n(lang);
   setupTooltips();
+  setupFlashNotices();
   setupAdminShortcuts();
   setupActions();
   setupCharacterCounters();
   setupHeadlineImageToggle();
+  setupDashboardCarousels();
+  setupArticleBulkExport();
   setupArticleMarkupEditor();
   setupImagePreview();
   setupDeleteConfirmation();
+  setupUserDeleteConfirmation();
+  setupExportDeleteConfirmation();
+  setupExportClearConfirmation();
+  setupImportDeleteConfirmation();
+  setupImportClearConfirmation();
+  setupQueueClearConfirmation();
   setupPrivacyNotice();
   syncTopbarHeight();
 

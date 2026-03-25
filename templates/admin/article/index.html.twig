@@ -18,6 +18,19 @@
 
                 <div class="actions">
                     <a class="button" href="{{ path('admin_article_new') }}" data-i18n="admin_quick_new_article">Nowy artykuł</a>
+                    {% if articles is not empty %}
+                        <form id="article-bulk-export-form" method="post" action="{{ path('admin_article_export_selected') }}" class="article-index-bulk-form">
+                            <input type="hidden" name="_token" value="{{ csrf_token('export_articles_bulk') }}">
+                            <button
+                                class="button secondary"
+                                type="submit"
+                                data-article-bulk-submit
+                                data-i18n="admin_article_bulk_export"
+                            >
+                                Eksportuj zaznaczone
+                            </button>
+                        </form>
+                    {% endif %}
                 </div>
             </div>
 
@@ -25,7 +38,18 @@
                 <table>
                     <thead>
                     <tr>
+                        <th class="article-index-select-column">
+                            {% if articles is not empty %}
+                                <input
+                                    type="checkbox"
+                                    data-article-select-all
+                                    data-i18n-aria="admin_article_select_all"
+                                    aria-label="Zaznacz wszystkie artykuły"
+                                >
+                            {% endif %}
+                        </th>
                         <th class="article-index-title-column" data-i18n="admin_table_title">Tytuł</th>
+                        <th data-i18n="admin_table_author">Autor</th>
                         <th data-i18n="admin_table_status">Status</th>
                         <th data-i18n="admin_table_updated">Aktualizacja</th>
                         <th data-i18n="admin_table_action">Akcja</th>
@@ -34,7 +58,31 @@
                     <tbody>
                     {% for article in articles %}
                         <tr>
+                            <td class="article-index-select-cell">
+                                <input
+                                    type="checkbox"
+                                    name="article_ids[]"
+                                    value="{{ article.id }}"
+                                    form="article-bulk-export-form"
+                                    data-article-select-item
+                                    data-i18n-aria="admin_article_select"
+                                    aria-label="Zaznacz artykuł"
+                                >
+                            </td>
                             <td class="article-index-title-cell"><a href="{{ path('blog_show', {slug: article.slug}) }}">{{ article.title }}</a></td>
+                            <td>
+                                {% if article.createdBy %}
+                                    {{ article.createdBy.displayName }}
+                                {% else %}
+                                    <form method="post" action="{{ path('admin_article_assign_to_me', {id: article.id}) }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('assign_article_to_me_' ~ article.id) }}">
+                                        <button class="button secondary" type="submit">
+                                            <span data-lang="pl">Przypisz do mnie</span>
+                                            <span data-lang="en">Assign to me</span>
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </td>
                             <td class="article-index-status-cell">
                                 <span data-lang="pl">
                                     {% if article.status.value == 'draft' %}Szkic{% elseif article.status.value == 'review' %}W recenzji{% elseif article.status.value == 'archived' %}Zarchiwizowany{% else %}Opublikowany{% endif %}
@@ -55,6 +103,18 @@
                                     >
                                         <span class="article-action-icon is-edit" aria-hidden="true"></span>
                                     </a>
+                                    <form method="post" action="{{ path('admin_article_export', {id: article.id}) }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('export_article_' ~ article.id) }}">
+                                        <button
+                                            class="button secondary article-action-button"
+                                            type="submit"
+                                            data-i18n-tooltip="admin_table_export"
+                                            data-tooltip="Eksport"
+                                            aria-label="Eksport"
+                                        >
+                                            <span class="article-action-icon is-export" aria-hidden="true"></span>
+                                        </button>
+                                    </form>
                                     {% if article.status.value != 'published' %}
                                         <form method="post" action="{{ path('admin_article_publish', {id: article.id}) }}">
                                             <input type="hidden" name="_token" value="{{ csrf_token('publish_article_' ~ article.id) }}">
@@ -103,7 +163,7 @@
                         </tr>
                     {% else %}
                         <tr>
-                            <td colspan="4" data-i18n="admin_table_no_articles">Nie znaleziono artykułów.</td>
+                            <td colspan="6" data-i18n="admin_table_no_articles">Nie znaleziono artykułów.</td>
                         </tr>
                     {% endfor %}
                     </tbody>

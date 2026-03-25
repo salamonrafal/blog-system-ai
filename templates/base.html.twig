@@ -82,14 +82,27 @@ Fullstack Developer</span>
     </div>
 </div>
 
-<main class="container">
+<div class="flash-stack" aria-live="polite" aria-atomic="true">
     {% for message in app.flashes('success') %}
-        <div class="flash">{{ message }}</div>
+        <div class="flash" role="status">
+            <span class="flash-message">{{ message }}</span>
+            <button type="button" class="flash-close" data-action="dismiss-flash" data-i18n-aria="admin_close_alert" aria-label="Zamknij alert">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
     {% endfor %}
 
     {% for message in app.flashes('error') %}
-        <div class="flash error">{{ message }}</div>
+        <div class="flash error" role="alert">
+            <span class="flash-message">{{ message }}</span>
+            <button type="button" class="flash-close" data-action="dismiss-flash" data-i18n-aria="admin_close_alert" aria-label="Zamknij alert">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
     {% endfor %}
+</div>
+
+<main class="container">
 
     {% block body %}{% endblock %}
 </main>
@@ -141,6 +154,114 @@ Fullstack Developer</span>
                         </span>
                         <span data-i18n="admin_shortcut_articles">Lista artykułów</span>
                     </a>
+                    <div class="admin-shortcuts-submenu" data-admin-shortcuts-submenu>
+                        <button type="button" class="admin-shortcuts-link admin-shortcuts-button admin-shortcuts-submenu-trigger" data-action="toggle-admin-submenu" aria-haspopup="true" aria-expanded="false" aria-controls="admin-shortcuts-users-panel">
+                            <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                                <svg viewBox="0 0 32 32">
+                                    <circle cx="12" cy="11" r="4"></circle>
+                                    <path d="M5 25c0-4 3.1-7 7-7"></path>
+                                    <circle cx="22" cy="13" r="3"></circle>
+                                    <path d="M17 25c.7-2.8 3.1-5 6-5 2.2 0 4.2 1.2 5 3"></path>
+                                </svg>
+                            </span>
+                            <span>Użytkownicy</span>
+                            <span class="admin-shortcuts-submenu-caret" aria-hidden="true">
+                                <svg viewBox="0 0 32 32">
+                                    <path d="M10 13l6 6 6-6"></path>
+                                </svg>
+                            </span>
+                        </button>
+                        <div class="admin-shortcuts-submenu-panel" id="admin-shortcuts-users-panel" aria-label="Użytkownicy">
+                            <a class="admin-shortcuts-link admin-shortcuts-sublink" href="{{ path('admin_user_new') }}">
+                                <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 32 32">
+                                        <circle cx="13" cy="11" r="4"></circle>
+                                        <path d="M6 25c0-4 3.1-7 7-7"></path>
+                                        <path d="M23 10v8"></path>
+                                        <path d="M19 14h8"></path>
+                                    </svg>
+                                </span>
+                                <span>Dodaj użytkownika</span>
+                            </a>
+                            <a class="admin-shortcuts-link admin-shortcuts-sublink" href="{{ path('admin_user_index') }}">
+                                <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 32 32">
+                                        <circle cx="12" cy="11" r="4"></circle>
+                                        <path d="M5 25c0-4 3.1-7 7-7"></path>
+                                        <circle cx="22" cy="13" r="3"></circle>
+                                        <path d="M17 25c.7-2.8 3.1-5 6-5 2.2 0 4.2 1.2 5 3"></path>
+                                    </svg>
+                                </span>
+                                <span>Zarządzanie użytkownikami</span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="admin-shortcuts-submenu" data-admin-shortcuts-submenu>
+                        <button type="button" class="admin-shortcuts-link admin-shortcuts-button admin-shortcuts-submenu-trigger" data-action="toggle-admin-submenu" aria-haspopup="true" aria-expanded="false" aria-controls="admin-shortcuts-import-export-panel">
+                            <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                                <svg viewBox="0 0 32 32">
+                                    <path d="M10 11h12"></path>
+                                    <path d="M10 16h12"></path>
+                                    <path d="M10 21h8"></path>
+                                </svg>
+                            </span>
+                            <span data-i18n="admin_shortcut_import_export_title">Importy &amp; Eksporty</span>
+                            {% if admin_shortcut_badges.import_export > 0 %}
+                                <span class="admin-shortcuts-badge" aria-label="{{ admin_shortcut_badges.import_export }} oczekujących elementów">{{ admin_shortcut_badges.import_export }}</span>
+                            {% endif %}
+                            <span class="admin-shortcuts-submenu-caret" aria-hidden="true">
+                                <svg viewBox="0 0 32 32">
+                                    <path d="M10 13l6 6 6-6"></path>
+                                </svg>
+                            </span>
+                        </button>
+                        <div class="admin-shortcuts-submenu-panel" id="admin-shortcuts-import-export-panel" aria-label="Importy i eksporty">
+                            <a class="admin-shortcuts-link admin-shortcuts-sublink" href="{{ path('admin_queue_status') }}">
+                                <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 32 32">
+                                        <rect x="6" y="7" width="20" height="5" rx="1.5"></rect>
+                                        <rect x="6" y="14" width="20" height="5" rx="1.5"></rect>
+                                        <rect x="6" y="21" width="20" height="5" rx="1.5"></rect>
+                                        <path d="M11 9.5h.01"></path>
+                                        <path d="M11 16.5h.01"></path>
+                                        <path d="M11 23.5h.01"></path>
+                                    </svg>
+                                </span>
+                                <span data-i18n="admin_shortcut_queue_status">Stan kolejek</span>
+                                {% if admin_shortcut_badges.queue_status > 0 %}
+                                    <span class="admin-shortcuts-badge" aria-label="{{ admin_shortcut_badges.queue_status }} oczekujących elementów">{{ admin_shortcut_badges.queue_status }}</span>
+                                {% endif %}
+                            </a>
+                            <a class="admin-shortcuts-link admin-shortcuts-sublink" href="{{ path('admin_article_import_index') }}">
+                                <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 32 32">
+                                        <path d="M16 7v13"></path>
+                                        <path d="M11 12l5-5 5 5"></path>
+                                        <path d="M7 25h18"></path>
+                                        <rect x="6" y="24" width="20" height="2" rx="1"></rect>
+                                    </svg>
+                                </span>
+                                <span data-i18n="admin_shortcut_imports">Importy</span>
+                                {% if admin_shortcut_badges.imports > 0 %}
+                                    <span class="admin-shortcuts-badge" aria-label="{{ admin_shortcut_badges.imports }} oczekujących importów">{{ admin_shortcut_badges.imports }}</span>
+                                {% endif %}
+                            </a>
+                            <a class="admin-shortcuts-link admin-shortcuts-sublink" href="{{ path('admin_article_export_index') }}">
+                                <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 32 32">
+                                        <path d="M16 6v13"></path>
+                                        <path d="M11 15l5 5 5-5"></path>
+                                        <path d="M7 24h18"></path>
+                                        <rect x="6" y="24" width="20" height="2" rx="1"></rect>
+                                    </svg>
+                                </span>
+                                <span data-i18n="admin_shortcut_exports">Eksporty</span>
+                                {% if admin_shortcut_badges.exports > 0 %}
+                                    <span class="admin-shortcuts-badge" aria-label="{{ admin_shortcut_badges.exports }} nowych eksportów">{{ admin_shortcut_badges.exports }}</span>
+                                {% endif %}
+                            </a>
+                        </div>
+                    </div>
                     <a class="admin-shortcuts-link" href="{{ path('app_logout') }}">
                         <span class="admin-shortcuts-link-icon" aria-hidden="true">
                             <svg viewBox="0 0 32 32">

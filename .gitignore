@@ -25,6 +25,14 @@
 /var/log/*
 !var/log/.gitkeep
 
+# Exports
+/var/exports/*
+!var/exports/.gitkeep
+
+# Imports
+/var/imports/*
+!var/imports/.gitkeep
+
 # Parameters
 /app/config/parameters.yml
 /app/config/parameters.ini

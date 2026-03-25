@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Twig;
 
 use App\Entity\BlogSettings;
+use App\Repository\ArticleExportQueueRepository;
+use App\Repository\ArticleExportRepository;
+use App\Repository\ArticleImportQueueRepository;
 use App\Service\BlogSettingsProvider;
 use App\Service\UserLanguageResolver;
 use App\Service\UserTimeZoneResolver;
@@ -35,12 +38,43 @@ final class AppGlobalsExtensionTest extends TestCase
             ->method('getTimeZone')
             ->willReturn('Europe/Warsaw');
 
-        $extension = new AppGlobalsExtension($provider, $languageResolver, $timeZoneResolver);
+        $importQueueRepository = $this->createMock(ArticleImportQueueRepository::class);
+        $importQueueRepository
+            ->expects($this->once())
+            ->method('countPending')
+            ->willReturn(2);
+
+        $exportQueueRepository = $this->createMock(ArticleExportQueueRepository::class);
+        $exportQueueRepository
+            ->expects($this->once())
+            ->method('countPending')
+            ->willReturn(3);
+
+        $exportRepository = $this->createMock(ArticleExportRepository::class);
+        $exportRepository
+            ->expects($this->once())
+            ->method('countNew')
+            ->willReturn(4);
+
+        $extension = new AppGlobalsExtension(
+            $provider,
+            $languageResolver,
+            $timeZoneResolver,
+            $importQueueRepository,
+            $exportQueueRepository,
+            $exportRepository,
+        );
         $globals = $extension->getGlobals();
 
         $this->assertSame('Blog testowy', $globals['app_name']);
         $this->assertSame($settings, $globals['blog_settings']);
         $this->assertSame('en', $globals['user_language']);
         $this->assertSame('Europe/Warsaw', $globals['user_timezone']);
+        $this->assertSame([
+            'queue_status' => 5,
+            'imports' => 2,
+            'exports' => 4,
+            'import_export' => 9,
+        ], $globals['admin_shortcut_badges']);
     }
 }

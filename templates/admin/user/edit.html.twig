@@ -1,0 +1,50 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edytuj użytkownika | {{ app_name }}{% endblock %}
+
+{% block body %}
+    <section class="section">
+        <div class="card">
+            <div class="card-header">
+                <div class="window-dots" aria-hidden="true">
+                    <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                </div>
+                <span class="pill">admin://user-edit</span>
+            </div>
+
+            <div class="dashboard-feed-intro">
+                <h1>Edytuj użytkownika</h1>
+                <p class="lede">Zmieniaj adres e-mail, zakres dostępu i stan konta. Hasło aktualizuj tylko wtedy, gdy jest to potrzebne.</p>
+
+                <section class="article-edit-meta-panel article-edit-meta-panel-compact" aria-label="Metadane użytkownika">
+                    <div class="article-edit-meta-header">
+                        <span class="pill">admin://user-metadata</span>
+                    </div>
+                    <dl class="article-edit-meta-list article-edit-meta-list-compact">
+                        <div class="article-edit-meta-item">
+                            <dt class="article-edit-meta-label">Identyfikator</dt>
+                            <dd class="article-edit-meta-value">#{{ managed_user.id }}</dd>
+                        </div>
+                        <div class="article-edit-meta-item">
+                            <dt class="article-edit-meta-label">Aktualny login</dt>
+                            <dd class="article-edit-meta-value">{{ managed_user.email }}</dd>
+                        </div>
+                        <div class="article-edit-meta-item">
+                            <dt class="article-edit-meta-label">Nazwa wyswietlana</dt>
+                            <dd class="article-edit-meta-value">{{ managed_user.fullName ?? managed_user.nickname ?? 'Brak' }}</dd>
+                        </div>
+                        <div class="article-edit-meta-item">
+                            <dt class="article-edit-meta-label">Utworzono</dt>
+                            <dd class="article-edit-meta-value">{{ managed_user.createdAt|user_date }}</dd>
+                        </div>
+                    </dl>
+                </section>
+            </div>
+
+            {% include 'admin/user/_form.html.twig' with {
+                form: form,
+                submit_label: 'Zapisz użytkownika'
+            } %}
+        </div>
+    </section>
+{% endblock %}
