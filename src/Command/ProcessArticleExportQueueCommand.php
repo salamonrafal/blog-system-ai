@@ -13,6 +13,7 @@ use App\Repository\ArticleExportQueueRepository;
 use App\Service\ArticleExportFileWriter;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -32,6 +33,7 @@ class ProcessArticleExportQueueCommand extends Command
         private readonly ManagerRegistry $managerRegistry,
         private readonly ArticleExportQueueRepository $articleExportQueueRepository,
         private readonly ArticleExportFileWriter $articleExportFileWriter,
+        private readonly LoggerInterface $logger,
     ) {
         parent::__construct();
     }
@@ -71,8 +73,15 @@ class ProcessArticleExportQueueCommand extends Command
                 ++$processedCount;
             } catch (\Throwable $exception) {
                 if (is_string($filePath)) {
-                    $this->articleExportFileWriter->delete($filePath);
+                    $this->deleteWrittenExportFile($filePath, $queueItem);
                 }
+
+                $this->logger->error('Article export failed while processing queue item.', [
+                    'queue_item_id' => $queueItem->getId(),
+                    'article_id' => $queueItem->getArticle()->getId(),
+                    'file_path' => $filePath,
+                    'exception' => $exception,
+                ]);
 
                 $this->markQueueItemAsFailed($queueItem);
                 ++$failedCount;
@@ -135,5 +144,19 @@ class ProcessArticleExportQueueCommand extends Command
         $managedQueueItem->setStatus(ArticleExportQueueStatus::FAILED);
 
         $entityManager->flush();
+    }
+
+    private function deleteWrittenExportFile(string $filePath, ArticleExportQueue $queueItem): void
+    {
+        try {
+            $this->articleExportFileWriter->delete($filePath);
+        } catch (\Throwable $cleanupException) {
+            $this->logger->warning('Failed to delete written export file after queue processing error.', [
+                'queue_item_id' => $queueItem->getId(),
+                'article_id' => $queueItem->getArticle()->getId(),
+                'file_path' => $filePath,
+                'exception' => $cleanupException,
+            ]);
+        }
     }
 }

@@ -10,9 +10,9 @@ use App\Enum\ArticleExportQueueStatus;
 use App\Enum\ArticleImportQueueStatus;
 use App\Repository\ArticleExportQueueRepository;
 use App\Repository\ArticleImportQueueRepository;
+use App\Service\ManagedFilePathResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -21,10 +21,7 @@ use Symfony\Component\Routing\Attribute\Route;
 class QueueStatusController extends AbstractController
 {
     public function __construct(
-        #[Autowire('%kernel.project_dir%')]
-        private readonly string $projectDir,
-        #[Autowire('%app.article_import_directory%')]
-        private readonly string $importDirectory,
+        private readonly ManagedFilePathResolver $managedFilePathResolver,
     ) {
     }
 
@@ -59,17 +56,21 @@ class QueueStatusController extends AbstractController
             $entityManager->remove($queueItem);
         }
 
+        $pendingImportQueueItems = $articleImportQueueRepository->findBy(['status' => ArticleImportQueueStatus::PENDING]);
         $pathsToDelete = [];
-        foreach ($articleImportQueueRepository->findBy(['status' => ArticleImportQueueStatus::PENDING]) as $queueItem) {
-            $pathsToDelete[] = $this->resolveImportPath($queueItem);
-            $entityManager->remove($queueItem);
+        foreach ($pendingImportQueueItems as $queueItem) {
+            $pathsToDelete[] = $this->managedFilePathResolver->resolveImportPath($queueItem->getFilePath());
         }
-
-        $entityManager->flush();
 
         foreach ($pathsToDelete as $path) {
             $this->deleteImportFile($path);
         }
+
+        foreach ($pendingImportQueueItems as $queueItem) {
+            $entityManager->remove($queueItem);
+        }
+
+        $entityManager->flush();
 
         $this->addFlash('success', 'Kolejka oczekujacych elementow zostala wyczyszczona.');
 
@@ -104,37 +105,14 @@ class QueueStatusController extends AbstractController
             throw $this->createAccessDeniedException('Invalid CSRF token.');
         }
 
-        $absolutePath = $this->resolveImportPath($queueItem);
-
+        $absolutePath = $this->managedFilePathResolver->resolveImportPath($queueItem->getFilePath());
+        $this->deleteImportFile($absolutePath);
         $entityManager->remove($queueItem);
         $entityManager->flush();
-
-        $this->deleteImportFile($absolutePath);
 
         $this->addFlash('success', 'Element zostal usuniety z kolejki.');
 
         return $this->redirectToRoute('admin_queue_status');
-    }
-
-    private function resolveImportPath(ArticleImportQueue $articleImportQueue): ?string
-    {
-        $relativePath = ltrim($articleImportQueue->getFilePath(), '/');
-        $absolutePath = $this->projectDir.'/'.$relativePath;
-        $realProjectDir = realpath($this->projectDir);
-        $realPath = realpath($absolutePath);
-        $realImportDirectory = realpath($this->projectDir.'/'.trim($this->importDirectory, '/'));
-
-        if (false === $realProjectDir || false === $realPath || false === $realImportDirectory) {
-            return null;
-        }
-
-        $normalizedProjectDir = rtrim($realProjectDir, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
-        $normalizedImportDirectory = rtrim($realImportDirectory, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
-        if (!str_starts_with($realPath, $normalizedProjectDir) || !str_starts_with($realPath, $normalizedImportDirectory)) {
-            return null;
-        }
-
-        return $realPath;
     }
 
     private function deleteImportFile(?string $absolutePath): void

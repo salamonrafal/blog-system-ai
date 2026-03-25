@@ -9,6 +9,7 @@ use App\Repository\ArticleImportQueueRepository;
 use App\Service\ArticleImportProcessor;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -28,6 +29,7 @@ class ProcessArticleImportQueueCommand extends Command
         private readonly ManagerRegistry $managerRegistry,
         private readonly ArticleImportQueueRepository $articleImportQueueRepository,
         private readonly ArticleImportProcessor $articleImportProcessor,
+        private readonly LoggerInterface $logger,
     ) {
         parent::__construct();
     }
@@ -66,6 +68,12 @@ class ProcessArticleImportQueueCommand extends Command
                     $queueItem->getId() ?? 0,
                 ));
             } catch (\Throwable $exception) {
+                $this->logger->error('Article import failed while processing queue item.', [
+                    'queue_item_id' => $queueItem->getId(),
+                    'file_path' => $queueItem->getFilePath(),
+                    'exception' => $exception,
+                ]);
+
                 [$entityManager, $queueRepository] = $this->markQueueItemAsFailed(
                     $queueItem,
                     $exception->getMessage(),

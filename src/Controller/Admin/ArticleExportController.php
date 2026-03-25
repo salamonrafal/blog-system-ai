@@ -7,9 +7,9 @@ namespace App\Controller\Admin;
 use App\Entity\ArticleExport;
 use App\Enum\ArticleExportStatus;
 use App\Repository\ArticleExportRepository;
+use App\Service\ManagedFilePathResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,10 +20,7 @@ use Symfony\Component\Routing\Attribute\Route;
 class ArticleExportController extends AbstractController
 {
     public function __construct(
-        #[Autowire('%kernel.project_dir%')]
-        private readonly string $projectDir,
-        #[Autowire('%app.article_export_directory%')]
-        private readonly string $exportDirectory,
+        private readonly ManagedFilePathResolver $managedFilePathResolver,
     ) {
     }
 
@@ -38,7 +35,7 @@ class ArticleExportController extends AbstractController
     #[Route('/{id}/download', name: 'admin_article_export_download', methods: ['GET'])]
     public function download(ArticleExport $articleExport, EntityManagerInterface $entityManager): Response
     {
-        $absolutePath = $this->resolveExportPath($articleExport);
+        $absolutePath = $this->managedFilePathResolver->resolveExportPath($articleExport->getFilePath());
         if (null === $absolutePath || !is_file($absolutePath)) {
             $this->addFlash('error', 'Plik eksportu nie jest dostępny do pobrania.');
 
@@ -78,12 +75,10 @@ class ArticleExportController extends AbstractController
             throw $this->createAccessDeniedException('Invalid CSRF token.');
         }
 
-        $absolutePath = $this->resolveExportPath($articleExport);
-
+        $absolutePath = $this->managedFilePathResolver->resolveExportPath($articleExport->getFilePath());
+        $this->deleteExportFile($absolutePath);
         $entityManager->remove($articleExport);
         $entityManager->flush();
-
-        $this->deleteExportFile($absolutePath);
 
         $this->addFlash('success', 'Eksport został usunięty.');
 
@@ -100,42 +95,25 @@ class ArticleExportController extends AbstractController
             throw $this->createAccessDeniedException('Invalid CSRF token.');
         }
 
+        $articleExports = $articleExportRepository->findBy([]);
         $pathsToDelete = [];
-        foreach ($articleExportRepository->findBy([]) as $articleExport) {
-            $pathsToDelete[] = $this->resolveExportPath($articleExport);
-            $entityManager->remove($articleExport);
+        foreach ($articleExports as $articleExport) {
+            $pathsToDelete[] = $this->managedFilePathResolver->resolveExportPath($articleExport->getFilePath());
         }
-
-        $entityManager->flush();
 
         foreach ($pathsToDelete as $path) {
             $this->deleteExportFile($path);
         }
 
+        foreach ($articleExports as $articleExport) {
+            $entityManager->remove($articleExport);
+        }
+
+        $entityManager->flush();
+
         $this->addFlash('success', 'Wszystkie eksporty zostały usunięte.');
 
         return $this->redirectToRoute('admin_article_export_index');
-    }
-
-    private function resolveExportPath(ArticleExport $articleExport): ?string
-    {
-        $relativePath = ltrim($articleExport->getFilePath(), '/');
-        $absolutePath = $this->projectDir.'/'.$relativePath;
-        $realProjectDir = realpath($this->projectDir);
-        $realPath = realpath($absolutePath);
-        $realExportDirectory = realpath($this->projectDir.'/'.trim($this->exportDirectory, '/'));
-
-        if (false === $realProjectDir || false === $realPath || false === $realExportDirectory) {
-            return null;
-        }
-
-        $normalizedProjectDir = rtrim($realProjectDir, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
-        $normalizedExportDirectory = rtrim($realExportDirectory, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
-        if (!str_starts_with($realPath, $normalizedProjectDir) || !str_starts_with($realPath, $normalizedExportDirectory)) {
-            return null;
-        }
-
-        return $realPath;
     }
 
     private function deleteExportFile(?string $absolutePath): void

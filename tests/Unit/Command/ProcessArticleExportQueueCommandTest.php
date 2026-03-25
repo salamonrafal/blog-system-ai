@@ -17,6 +17,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
 
@@ -34,8 +35,11 @@ final class ProcessArticleExportQueueCommandTest extends TestCase
         $writer->expects($this->never())->method('write');
         $managerRegistry = $this->createMock(ManagerRegistry::class);
         $managerRegistry->expects($this->never())->method('resetManager');
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->never())->method('error');
+        $logger->expects($this->never())->method('warning');
 
-        $tester = new CommandTester(new ProcessArticleExportQueueCommand($entityManager, $managerRegistry, $queueRepository, $writer));
+        $tester = new CommandTester(new ProcessArticleExportQueueCommand($entityManager, $managerRegistry, $queueRepository, $writer, $logger));
         $exitCode = $tester->execute([]);
 
         $this->assertSame(Command::SUCCESS, $exitCode);
@@ -71,8 +75,11 @@ final class ProcessArticleExportQueueCommandTest extends TestCase
             ]);
         $managerRegistry = $this->createMock(ManagerRegistry::class);
         $managerRegistry->expects($this->never())->method('resetManager');
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->never())->method('error');
+        $logger->expects($this->never())->method('warning');
 
-        $tester = new CommandTester(new ProcessArticleExportQueueCommand($entityManager, $managerRegistry, $queueRepository, $writer));
+        $tester = new CommandTester(new ProcessArticleExportQueueCommand($entityManager, $managerRegistry, $queueRepository, $writer, $logger));
         $exitCode = $tester->execute([]);
 
         $this->assertSame(Command::SUCCESS, $exitCode);
@@ -127,8 +134,11 @@ final class ProcessArticleExportQueueCommandTest extends TestCase
             ->method('delete');
         $managerRegistry = $this->createMock(ManagerRegistry::class);
         $managerRegistry->expects($this->never())->method('resetManager');
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())->method('error');
+        $logger->expects($this->never())->method('warning');
 
-        $tester = new CommandTester(new ProcessArticleExportQueueCommand($entityManager, $managerRegistry, $queueRepository, $writer));
+        $tester = new CommandTester(new ProcessArticleExportQueueCommand($entityManager, $managerRegistry, $queueRepository, $writer, $logger));
         $exitCode = $tester->execute([]);
 
         $this->assertSame(Command::FAILURE, $exitCode);
@@ -194,8 +204,11 @@ final class ProcessArticleExportQueueCommandTest extends TestCase
             ->expects($this->once())
             ->method('delete')
             ->with('var/exports/article-1-export.json');
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())->method('error');
+        $logger->expects($this->never())->method('warning');
 
-        $tester = new CommandTester(new ProcessArticleExportQueueCommand($entityManager, $managerRegistry, $queueRepository, $writer));
+        $tester = new CommandTester(new ProcessArticleExportQueueCommand($entityManager, $managerRegistry, $queueRepository, $writer, $logger));
         $exitCode = $tester->execute([]);
 
         $this->assertSame(Command::FAILURE, $exitCode);
@@ -242,8 +255,11 @@ final class ProcessArticleExportQueueCommandTest extends TestCase
 
         $managerRegistry = $this->createMock(ManagerRegistry::class);
         $managerRegistry->expects($this->never())->method('resetManager');
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())->method('error');
+        $logger->expects($this->never())->method('warning');
 
-        $tester = new CommandTester(new ProcessArticleExportQueueCommand($entityManager, $managerRegistry, $queueRepository, $writer));
+        $tester = new CommandTester(new ProcessArticleExportQueueCommand($entityManager, $managerRegistry, $queueRepository, $writer, $logger));
         $exitCode = $tester->execute([]);
 
         $this->assertSame(Command::FAILURE, $exitCode);

@@ -11,20 +11,16 @@ use App\Enum\ArticleStatus;
 use App\Exception\ArticleImportException;
 use App\Repository\ArticleRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class ArticleImportProcessor
 {
     public function __construct(
-        #[Autowire('%kernel.project_dir%')]
-        private readonly string $projectDir,
-        #[Autowire('%app.article_import_directory%')]
-        private readonly string $importDirectory,
         private readonly ArticleRepository $articleRepository,
         private readonly ArticlePublisher $articlePublisher,
         private readonly ValidatorInterface $validator,
         private readonly EntityManagerInterface $entityManager,
+        private readonly ManagedFilePathResolver $managedFilePathResolver,
     ) {
     }
 
@@ -58,7 +54,7 @@ class ArticleImportProcessor
      */
     private function readPayload(ArticleImportQueue $queueItem): array
     {
-        $absolutePath = $this->resolveImportPath($queueItem->getFilePath());
+        $absolutePath = $this->managedFilePathResolver->resolveImportPath($queueItem->getFilePath());
         if (null === $absolutePath || !is_file($absolutePath)) {
             throw new ArticleImportException('Plik importu nie istnieje albo jest poza dozwolonym katalogiem.');
         }
@@ -155,29 +151,6 @@ class ArticleImportProcessor
             ->setStatus($draftArticle->getStatus())
             ->setPublishedAt($draftArticle->getPublishedAt());
     }
-
-    private function resolveImportPath(string $relativePath): ?string
-    {
-        $relativePath = ltrim(trim($relativePath), '/');
-        $absolutePath = $this->projectDir.'/'.$relativePath;
-        $realProjectDir = realpath($this->projectDir);
-        $realImportDirectory = realpath($this->projectDir.'/'.trim($this->importDirectory, '/'));
-        $realPath = realpath($absolutePath);
-
-        if (false === $realProjectDir || false === $realImportDirectory || false === $realPath) {
-            return null;
-        }
-
-        $normalizedProjectDir = rtrim($realProjectDir, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
-        $normalizedImportDirectory = rtrim($realImportDirectory, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
-
-        if (!str_starts_with($realPath, $normalizedProjectDir) || !str_starts_with($realPath, $normalizedImportDirectory)) {
-            return null;
-        }
-
-        return $realPath;
-    }
-
     /**
      * @param array<string, mixed> $articleData
      */

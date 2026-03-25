@@ -11,6 +11,7 @@ use App\Enum\ArticleStatus;
 use App\Exception\ArticleImportException;
 use App\Repository\ArticleRepository;
 use App\Service\ArticleImportProcessor;
+use App\Service\ManagedFilePathResolver;
 use App\Service\ArticlePublisher;
 use App\Service\ArticleSlugger;
 use Doctrine\ORM\EntityManagerInterface;
@@ -641,12 +642,11 @@ final class ArticleImportProcessorTest extends TestCase
     private function createProcessor(EntityManagerInterface $entityManager, ArticleRepository $repository): ArticleImportProcessor
     {
         return new ArticleImportProcessor(
-            $this->projectDir,
-            'var/imports',
             $repository,
             new ArticlePublisher($repository, new ArticleSlugger()),
             $this->createValidator(),
             $entityManager,
+            new ManagedFilePathResolver($this->projectDir, 'var/exports', 'var/imports'),
         );
     }
 

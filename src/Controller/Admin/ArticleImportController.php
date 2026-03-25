@@ -8,9 +8,9 @@ use App\Entity\ArticleImportQueue;
 use App\Form\ArticleImportType;
 use App\Repository\ArticleImportQueueRepository;
 use App\Service\ArticleImportStorage;
+use App\Service\ManagedFilePathResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,10 +22,7 @@ use Symfony\Component\Routing\Attribute\Route;
 class ArticleImportController extends AbstractController
 {
     public function __construct(
-        #[Autowire('%kernel.project_dir%')]
-        private readonly string $projectDir,
-        #[Autowire('%app.article_import_directory%')]
-        private readonly string $importDirectory,
+        private readonly ManagedFilePathResolver $managedFilePathResolver,
     ) {
     }
 
@@ -65,7 +62,7 @@ class ArticleImportController extends AbstractController
     #[Route('/{id}/download', name: 'admin_article_import_download', methods: ['GET'])]
     public function download(ArticleImportQueue $articleImportQueue): Response
     {
-        $absolutePath = $this->resolveImportPath($articleImportQueue);
+        $absolutePath = $this->managedFilePathResolver->resolveImportPath($articleImportQueue->getFilePath());
         if (null === $absolutePath || !is_file($absolutePath)) {
             $this->addFlash('error', 'Plik importu nie jest dostępny do pobrania.');
 
@@ -100,12 +97,10 @@ class ArticleImportController extends AbstractController
             throw $this->createAccessDeniedException('Invalid CSRF token.');
         }
 
-        $absolutePath = $this->resolveImportPath($articleImportQueue);
-
+        $absolutePath = $this->managedFilePathResolver->resolveImportPath($articleImportQueue->getFilePath());
+        $this->deleteImportFile($absolutePath);
         $entityManager->remove($articleImportQueue);
         $entityManager->flush();
-
-        $this->deleteImportFile($absolutePath);
 
         $this->addFlash('success', 'Import został usunięty.');
 
@@ -122,42 +117,25 @@ class ArticleImportController extends AbstractController
             throw $this->createAccessDeniedException('Invalid CSRF token.');
         }
 
+        $articleImports = $articleImportQueueRepository->findBy([]);
         $pathsToDelete = [];
-        foreach ($articleImportQueueRepository->findBy([]) as $articleImport) {
-            $pathsToDelete[] = $this->resolveImportPath($articleImport);
-            $entityManager->remove($articleImport);
+        foreach ($articleImports as $articleImport) {
+            $pathsToDelete[] = $this->managedFilePathResolver->resolveImportPath($articleImport->getFilePath());
         }
-
-        $entityManager->flush();
 
         foreach ($pathsToDelete as $path) {
             $this->deleteImportFile($path);
         }
 
+        foreach ($articleImports as $articleImport) {
+            $entityManager->remove($articleImport);
+        }
+
+        $entityManager->flush();
+
         $this->addFlash('success', 'Wszystkie importy zostały usunięte.');
 
         return $this->redirectToRoute('admin_article_import_index');
-    }
-
-    private function resolveImportPath(ArticleImportQueue $articleImportQueue): ?string
-    {
-        $relativePath = ltrim($articleImportQueue->getFilePath(), '/');
-        $absolutePath = $this->projectDir.'/'.$relativePath;
-        $realProjectDir = realpath($this->projectDir);
-        $realPath = realpath($absolutePath);
-        $realImportDirectory = realpath($this->projectDir.'/'.trim($this->importDirectory, '/'));
-
-        if (false === $realProjectDir || false === $realPath || false === $realImportDirectory) {
-            return null;
-        }
-
-        $normalizedProjectDir = rtrim($realProjectDir, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
-        $normalizedImportDirectory = rtrim($realImportDirectory, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
-        if (!str_starts_with($realPath, $normalizedProjectDir) || !str_starts_with($realPath, $normalizedImportDirectory)) {
-            return null;
-        }
-
-        return $realPath;
     }
 
     private function deleteImportFile(?string $absolutePath): void

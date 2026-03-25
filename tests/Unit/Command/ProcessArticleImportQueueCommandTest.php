@@ -13,6 +13,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
 
@@ -28,8 +29,10 @@ final class ProcessArticleImportQueueCommandTest extends TestCase
         $processor->expects($this->never())->method('process');
         $managerRegistry = $this->createMock(ManagerRegistry::class);
         $managerRegistry->expects($this->never())->method('resetManager');
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->never())->method('error');
 
-        $tester = new CommandTester(new ProcessArticleImportQueueCommand($entityManager, $managerRegistry, $queueRepository, $processor));
+        $tester = new CommandTester(new ProcessArticleImportQueueCommand($entityManager, $managerRegistry, $queueRepository, $processor, $logger));
         $exitCode = $tester->execute([]);
 
         $this->assertSame(Command::SUCCESS, $exitCode);
@@ -54,8 +57,10 @@ final class ProcessArticleImportQueueCommandTest extends TestCase
             ->willReturn(1);
         $managerRegistry = $this->createMock(ManagerRegistry::class);
         $managerRegistry->expects($this->never())->method('resetManager');
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->never())->method('error');
 
-        $tester = new CommandTester(new ProcessArticleImportQueueCommand($entityManager, $managerRegistry, $queueRepository, $processor));
+        $tester = new CommandTester(new ProcessArticleImportQueueCommand($entityManager, $managerRegistry, $queueRepository, $processor, $logger));
         $exitCode = $tester->execute([]);
 
         $this->assertSame(Command::SUCCESS, $exitCode);
@@ -88,8 +93,10 @@ final class ProcessArticleImportQueueCommandTest extends TestCase
             ->willThrowException(new \RuntimeException('Pole title jest wymagane.'));
         $managerRegistry = $this->createMock(ManagerRegistry::class);
         $managerRegistry->expects($this->never())->method('resetManager');
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())->method('error');
 
-        $tester = new CommandTester(new ProcessArticleImportQueueCommand($entityManager, $managerRegistry, $queueRepository, $processor));
+        $tester = new CommandTester(new ProcessArticleImportQueueCommand($entityManager, $managerRegistry, $queueRepository, $processor, $logger));
         $exitCode = $tester->execute([]);
 
         $this->assertSame(Command::FAILURE, $exitCode);
@@ -160,8 +167,10 @@ final class ProcessArticleImportQueueCommandTest extends TestCase
             ->method('process')
             ->with($queueItem)
             ->willReturn(1);
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())->method('error');
 
-        $tester = new CommandTester(new ProcessArticleImportQueueCommand($entityManager, $managerRegistry, $queueRepository, $processor));
+        $tester = new CommandTester(new ProcessArticleImportQueueCommand($entityManager, $managerRegistry, $queueRepository, $processor, $logger));
         $exitCode = $tester->execute([]);
 
         $this->assertSame(Command::FAILURE, $exitCode);
@@ -246,8 +255,10 @@ final class ProcessArticleImportQueueCommandTest extends TestCase
             ->method('getRepository')
             ->with(ArticleImportQueue::class)
             ->willReturn($freshQueueRepository);
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())->method('error');
 
-        $tester = new CommandTester(new ProcessArticleImportQueueCommand($entityManager, $managerRegistry, $staleQueueRepository, $processor));
+        $tester = new CommandTester(new ProcessArticleImportQueueCommand($entityManager, $managerRegistry, $staleQueueRepository, $processor, $logger));
         $exitCode = $tester->execute([]);
 
         $this->assertSame(Command::FAILURE, $exitCode);
