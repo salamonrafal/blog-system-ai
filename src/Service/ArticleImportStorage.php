@@ -23,7 +23,7 @@ class ArticleImportStorage
     public function store(UploadedFile $uploadedFile): array
     {
         $targetDirectory = $this->projectDir.'/'.trim($this->importDirectory, '/');
-        if (!is_dir($targetDirectory) && !@mkdir($targetDirectory, 0775, true) && !is_dir($targetDirectory)) {
+        if (!is_dir($targetDirectory) && !mkdir($targetDirectory, 0775, true) && !is_dir($targetDirectory)) {
             throw new \RuntimeException(sprintf('Import directory "%s" could not be created.', $targetDirectory));
         }
 
