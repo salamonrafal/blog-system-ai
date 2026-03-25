@@ -10,6 +10,7 @@ use App\Enum\ArticleExportQueueStatus;
 use App\Enum\ArticleImportQueueStatus;
 use App\Repository\ArticleExportQueueRepository;
 use App\Repository\ArticleImportQueueRepository;
+use App\Service\ManagedFileDeleter;
 use App\Service\ManagedFilePathResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,6 +23,7 @@ class QueueStatusController extends AbstractController
 {
     public function __construct(
         private readonly ManagedFilePathResolver $managedFilePathResolver,
+        private readonly ManagedFileDeleter $managedFileDeleter,
     ) {
     }
 
@@ -63,7 +65,7 @@ class QueueStatusController extends AbstractController
         }
 
         foreach ($pathsToDelete as $path) {
-            $this->deleteImportFile($path);
+            $this->managedFileDeleter->delete($path, 'import');
         }
 
         foreach ($pendingImportQueueItems as $queueItem) {
@@ -72,7 +74,7 @@ class QueueStatusController extends AbstractController
 
         $entityManager->flush();
 
-        $this->addFlash('success', 'Kolejka oczekujacych elementow zostala wyczyszczona.');
+        $this->addFlash('success', 'Kolejka oczekujących elementów została wyczyszczona.');
 
         return $this->redirectToRoute('admin_queue_status');
     }
@@ -90,7 +92,7 @@ class QueueStatusController extends AbstractController
         $entityManager->remove($queueItem);
         $entityManager->flush();
 
-        $this->addFlash('success', 'Element zostal usuniety z kolejki.');
+        $this->addFlash('success', 'Element został usunięty z kolejki.');
 
         return $this->redirectToRoute('admin_queue_status');
     }
@@ -106,21 +108,12 @@ class QueueStatusController extends AbstractController
         }
 
         $absolutePath = $this->managedFilePathResolver->resolveImportPath($queueItem->getFilePath());
-        $this->deleteImportFile($absolutePath);
+        $this->managedFileDeleter->delete($absolutePath, 'import');
         $entityManager->remove($queueItem);
         $entityManager->flush();
 
-        $this->addFlash('success', 'Element zostal usuniety z kolejki.');
+        $this->addFlash('success', 'Element został usunięty z kolejki.');
 
         return $this->redirectToRoute('admin_queue_status');
-    }
-
-    private function deleteImportFile(?string $absolutePath): void
-    {
-        if (null !== $absolutePath && is_file($absolutePath)) {
-            if (!unlink($absolutePath)) {
-                throw new \RuntimeException(sprintf('Failed to delete import file: %s', $absolutePath));
-            }
-        }
     }
 }

@@ -270,7 +270,7 @@ class ArticleController extends AbstractController
         }
 
         if (ArticleStatus::ARCHIVED !== $article->getStatus()) {
-            $this->addFlash('error', 'Usunac mozna tylko zarchiwizowany artykul.');
+            $this->addFlash('error', 'Usunąć można tylko zarchiwizowany artykuł.');
 
             return $this->redirectToRoute('admin_article_index');
         }

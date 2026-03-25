@@ -7,6 +7,7 @@ namespace App\Controller\Admin;
 use App\Entity\ArticleExport;
 use App\Enum\ArticleExportStatus;
 use App\Repository\ArticleExportRepository;
+use App\Service\ArticleExportFileWriter;
 use App\Service\ManagedFilePathResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -21,6 +22,7 @@ class ArticleExportController extends AbstractController
 {
     public function __construct(
         private readonly ManagedFilePathResolver $managedFilePathResolver,
+        private readonly ArticleExportFileWriter $articleExportFileWriter,
     ) {
     }
 
@@ -75,8 +77,7 @@ class ArticleExportController extends AbstractController
             throw $this->createAccessDeniedException('Invalid CSRF token.');
         }
 
-        $absolutePath = $this->managedFilePathResolver->resolveExportPath($articleExport->getFilePath());
-        $this->deleteExportFile($absolutePath);
+        $this->articleExportFileWriter->delete($articleExport->getFilePath());
         $entityManager->remove($articleExport);
         $entityManager->flush();
 
@@ -96,13 +97,8 @@ class ArticleExportController extends AbstractController
         }
 
         $articleExports = $articleExportRepository->findBy([]);
-        $pathsToDelete = [];
         foreach ($articleExports as $articleExport) {
-            $pathsToDelete[] = $this->managedFilePathResolver->resolveExportPath($articleExport->getFilePath());
-        }
-
-        foreach ($pathsToDelete as $path) {
-            $this->deleteExportFile($path);
+            $this->articleExportFileWriter->delete($articleExport->getFilePath());
         }
 
         foreach ($articleExports as $articleExport) {
@@ -114,14 +110,5 @@ class ArticleExportController extends AbstractController
         $this->addFlash('success', 'Wszystkie eksporty zostały usunięte.');
 
         return $this->redirectToRoute('admin_article_export_index');
-    }
-
-    private function deleteExportFile(?string $absolutePath): void
-    {
-        if (null !== $absolutePath && is_file($absolutePath)) {
-            if (!unlink($absolutePath)) {
-                throw new \RuntimeException(sprintf('Failed to delete export file: %s', $absolutePath));
-            }
-        }
     }
 }

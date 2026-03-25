@@ -8,6 +8,7 @@ use App\Entity\ArticleImportQueue;
 use App\Form\ArticleImportType;
 use App\Repository\ArticleImportQueueRepository;
 use App\Service\ArticleImportStorage;
+use App\Service\ManagedFileDeleter;
 use App\Service\ManagedFilePathResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -23,6 +24,7 @@ class ArticleImportController extends AbstractController
 {
     public function __construct(
         private readonly ManagedFilePathResolver $managedFilePathResolver,
+        private readonly ManagedFileDeleter $managedFileDeleter,
     ) {
     }
 
@@ -98,7 +100,7 @@ class ArticleImportController extends AbstractController
         }
 
         $absolutePath = $this->managedFilePathResolver->resolveImportPath($articleImportQueue->getFilePath());
-        $this->deleteImportFile($absolutePath);
+        $this->managedFileDeleter->delete($absolutePath, 'import');
         $entityManager->remove($articleImportQueue);
         $entityManager->flush();
 
@@ -124,7 +126,7 @@ class ArticleImportController extends AbstractController
         }
 
         foreach ($pathsToDelete as $path) {
-            $this->deleteImportFile($path);
+            $this->managedFileDeleter->delete($path, 'import');
         }
 
         foreach ($articleImports as $articleImport) {
@@ -136,14 +138,5 @@ class ArticleImportController extends AbstractController
         $this->addFlash('success', 'Wszystkie importy zostały usunięte.');
 
         return $this->redirectToRoute('admin_article_import_index');
-    }
-
-    private function deleteImportFile(?string $absolutePath): void
-    {
-        if (null !== $absolutePath && is_file($absolutePath)) {
-            if (!unlink($absolutePath)) {
-                throw new \RuntimeException(sprintf('Failed to delete import file: %s', $absolutePath));
-            }
-        }
     }
 }

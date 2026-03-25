@@ -86,6 +86,25 @@ final class ArticleExportFileWriterTest extends TestCase
         }
     }
 
+    public function testDeleteRemovesExistingExportFile(): void
+    {
+        $projectDir = sys_get_temp_dir().'/article-export-writer-'.bin2hex(random_bytes(4));
+        mkdir($projectDir.'/var/exports', 0775, true);
+
+        try {
+            $writer = new ArticleExportFileWriter($projectDir, 'var/exports');
+            $relativePath = 'var/exports/article-export.json';
+            $absolutePath = $projectDir.'/'.$relativePath;
+            file_put_contents($absolutePath, '{}');
+
+            $writer->delete($relativePath);
+
+            $this->assertFileDoesNotExist($absolutePath);
+        } finally {
+            $this->removeDirectory($projectDir);
+        }
+    }
+
     private function removeDirectory(string $directory): void
     {
         if (!is_dir($directory)) {
