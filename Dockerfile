@@ -24,11 +24,13 @@ FROM install_php AS final
     COPY --chown=www-data:www-data . /var/www/app/
     RUN chmod 755 /var/scripts/*.sh;
     WORKDIR /var/www/app/
-    RUN APP_ENV=prod \
+    RUN mkdir -p /tmp/composer && chown -R www-data:www-data /tmp/composer /var/www/app
+    RUN su -s /bin/bash www-data -c 'HOME=/tmp/composer \
+        APP_ENV=prod \
         APP_DEBUG=0 \
         APP_SECRET=build-time-secret \
         DATABASE_URL=sqlite:///%kernel.project_dir%/var/data.db \
-        composer install --no-interaction --prefer-dist --optimize-autoloader --no-scripts
+        composer install --no-interaction --prefer-dist --optimize-autoloader --no-scripts --no-dev'
 
 ENTRYPOINT ["/var/scripts/entrypoint.sh"]
 EXPOSE 8080 8888
