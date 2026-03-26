@@ -1,4 +1,5 @@
 /vendor/
+/node_modules/
 /_ai_data/
 /var/cache/*
 !var/cache/.gitkeep

@@ -12,10 +12,10 @@ export function setupImagePreview(){
   modal.setAttribute('hidden', '');
   modal.setAttribute('aria-hidden', 'true');
   modal.innerHTML = `
-    <div class="image-preview-dialog" role="dialog" aria-modal="true" aria-label="Image preview">
-      <button type="button" class="image-preview-nav image-preview-prev" data-action="preview-prev" aria-label="Previous image"><span class="image-preview-nav-icon" aria-hidden="true">‹</span></button>
-      <button type="button" class="image-preview-fullscreen" data-action="toggle-preview-fullscreen" aria-label="Full screen">⛶</button>
-      <button type="button" class="image-preview-close" data-action="close-image-preview" aria-label="Close preview">×</button>
+    <div class="image-preview-dialog" role="dialog" aria-modal="true">
+      <button type="button" class="image-preview-nav image-preview-prev" data-action="preview-prev"><span class="image-preview-nav-icon" aria-hidden="true">‹</span></button>
+      <button type="button" class="image-preview-fullscreen" data-action="toggle-preview-fullscreen">⛶</button>
+      <button type="button" class="image-preview-close" data-action="close-image-preview">×</button>
       <figure class="image-preview-frame">
         <h2 class="image-preview-title"></h2>
         <img src="" alt="" />
@@ -31,7 +31,7 @@ export function setupImagePreview(){
           </div>
         </section>
       </figure>
-      <button type="button" class="image-preview-nav image-preview-next" data-action="preview-next" aria-label="Next image"><span class="image-preview-nav-icon" aria-hidden="true">›</span></button>
+      <button type="button" class="image-preview-nav image-preview-next" data-action="preview-next"><span class="image-preview-nav-icon" aria-hidden="true">›</span></button>
     </div>
   `;
   document.body.appendChild(modal);
@@ -57,6 +57,22 @@ export function setupImagePreview(){
     const lang = getLang();
     return (i18n[lang] && i18n[lang][key]) || i18n.pl[key] || '';
   };
+
+  const syncAccessibilityLabels = ()=>{
+    dialog.setAttribute('aria-label', getPreviewText('preview_dialog_label'));
+    if(prevButton){
+      prevButton.setAttribute('aria-label', getPreviewText('preview_previous_image'));
+    }
+    if(nextButton){
+      nextButton.setAttribute('aria-label', getPreviewText('preview_next_image'));
+    }
+    if(closeButton){
+      closeButton.setAttribute('aria-label', getPreviewText('preview_close'));
+      closeButton.setAttribute('title', getPreviewText('preview_close'));
+    }
+  };
+
+  syncAccessibilityLabels();
 
   const syncCaptionToggle = ()=>{
     if(!metaToggle) return;
@@ -132,6 +148,7 @@ export function setupImagePreview(){
     image.src = src;
     image.alt = alt;
     syncCaptionContent(trigger);
+    syncAccessibilityLabels();
     syncNav();
     syncCaptionToggle();
     syncFullscreenToggle();

@@ -21,7 +21,6 @@ import { setupImagePreview } from './modules/preview.js';
 import { setupPrivacyNotice } from './modules/privacy.js';
 
 function init(){
-  syncTopbarHeight();
   persistUserLanguage(getLang());
   persistUserTimeZone();
   setupNav();

@@ -1,8 +1,11 @@
+import { getTranslation } from './i18n.js';
 import { qs, qsa } from './shared.js';
 
 export function setupArticleMarkupEditor(){
   const editors = qsa('[data-markup-editor]');
   if(!editors.length) return;
+
+  const t = (key)=> getTranslation(key);
 
   const preserveEditorView = (textarea, selectionStart, selectionEnd)=>{
     const { scrollTop, scrollLeft } = textarea;
@@ -117,48 +120,53 @@ export function setupArticleMarkupEditor(){
         return;
       }
 
-      if(action === 'bold') return wrapSelection(textarea, '**', '**', 'pogrubienie');
-      if(action === 'italic') return wrapSelection(textarea, '*', '*', 'kursywa');
-      if(action === 'underline') return wrapSelection(textarea, '++', '++', 'podkreslenie');
-      if(action === 'inline-code') return wrapSelection(textarea, '`', '`', 'kod');
+      if(action === 'bold') return wrapSelection(textarea, '**', '**', t('editor_placeholder_bold'));
+      if(action === 'italic') return wrapSelection(textarea, '*', '*', t('editor_placeholder_italic'));
+      if(action === 'underline') return wrapSelection(textarea, '++', '++', t('editor_placeholder_underline'));
+      if(action === 'inline-code') return wrapSelection(textarea, '`', '`', t('editor_placeholder_inline_code'));
       if(action === 'line-break') return insertText(textarea, "\\\n");
       if(action === 'separator') return insertText(textarea, "\n---\n");
-      if(action === 'table') return insertText(textarea, "| Kolumna A | Kolumna B |\n| --- | --- |\n| Wartosc 1 | Wartosc 2 |");
+      if(action === 'table'){
+        return insertText(
+          textarea,
+          `| ${t('editor_table_column_a')} | ${t('editor_table_column_b')} |\n| --- | --- |\n| ${t('editor_table_value_1')} | ${t('editor_table_value_2')} |`
+        );
+      }
       if(action === 'preformatted'){
-        return transformSelectedLines(textarea, (value)=> `:::pre\n${value || 'wpisz tekst zachowujacy uklad'}\n:::`);
+        return transformSelectedLines(textarea, (value)=> `:::pre\n${value || t('editor_placeholder_preformatted')}\n:::`);
       }
       if(action === 'quote'){
         return transformSelectedLines(textarea, (value)=> value.split('\n').map((line)=> `> ${line.replace(/^\s*>\s?/, '')}`).join('\n'));
       }
       if(action === 'bullet-list'){
-        return transformSelectedLines(textarea, (value)=> value.split('\n').map((line)=> `- ${line.replace(/^\s*[-*]\s+/, '').trim() || 'element listy'}`).join('\n'));
+        return transformSelectedLines(textarea, (value)=> value.split('\n').map((line)=> `- ${line.replace(/^\s*[-*]\s+/, '').trim() || t('editor_placeholder_list_item')}`).join('\n'));
       }
       if(action === 'numbered-list'){
-        return transformSelectedLines(textarea, (value)=> value.split('\n').map((line, index)=> `${index + 1}. ${line.replace(/^\s*\d+\.\s+/, '').trim() || 'element listy'}`).join('\n'));
+        return transformSelectedLines(textarea, (value)=> value.split('\n').map((line, index)=> `${index + 1}. ${line.replace(/^\s*\d+\.\s+/, '').trim() || t('editor_placeholder_list_item')}`).join('\n'));
       }
       if(action === 'heading'){
         const level = button.getAttribute('data-markup-level') || '1';
         return transformSelectedLines(textarea, (value)=>{
           const prefix = '#'.repeat(Number(level));
-          return `${prefix} ${value.replace(/^\s*#{1,7}\s+/, '').trim() || 'Naglowek'}`;
+          return `${prefix} ${value.replace(/^\s*#{1,7}\s+/, '').trim() || t('editor_placeholder_heading')}`;
         });
       }
       if(action === 'align'){
         const align = button.getAttribute('data-markup-align') || 'left';
-        return transformSelectedLines(textarea, (value)=> `:::${align}\n${value.trim() || 'Wpisz tresc'}\n:::`);
+        return transformSelectedLines(textarea, (value)=> `:::${align}\n${value.trim() || t('editor_placeholder_aligned_text')}\n:::`);
       }
       if(action === 'code-block'){
-        return wrapSelection(textarea, "```\n", "\n```", "wpisz kod");
+        return wrapSelection(textarea, "```\n", "\n```", t('editor_placeholder_code_block'));
       }
       if(action === 'link'){
-        const url = window.prompt('Podaj adres URL linku:', 'https://');
+        const url = window.prompt(t('editor_prompt_link_url'), 'https://');
         if(!url) return;
-        return wrapSelection(textarea, '[', `](${url})`, 'tekst linku');
+        return wrapSelection(textarea, '[', `](${url})`, t('editor_placeholder_link_text'));
       }
       if(action === 'image'){
-        const url = window.prompt('Podaj adres URL obrazka:', 'https://');
+        const url = window.prompt(t('editor_prompt_image_url'), 'https://');
         if(!url) return;
-        return wrapSelection(textarea, '![', `](${url})`, 'opis obrazka');
+        return wrapSelection(textarea, '![', `](${url})`, t('editor_placeholder_image_alt'));
       }
     });
 
