@@ -61,8 +61,8 @@ jobs:
             echo TAG_NAME=$TAG_NAME
 
             echo "${{ secrets.GH_TOKEN_PACKG }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin;
-            docker container stop $SERVICE_NAME && docker container rm $SERVICE_NAME;
-            docker image rm $IMAGE_ID:$TAG_NAME;
+            docker rm -f "$SERVICE_NAME" 2>/dev/null || true;
+            docker image rm "$IMAGE_ID:$TAG_NAME" 2>/dev/null || true;
             docker container run -d -p 8888:8888 -p 8080:80 \
                 -v /var/data/blog-system-ai/:/var/www/app/var/data/ \
                 -e E_APP_ENV=$ENV_NAME \
