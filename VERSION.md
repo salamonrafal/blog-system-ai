@@ -169,3 +169,14 @@
 - Wydzielono współdzielony serwis `ManagedFileDeleter`, który usuwa duplikację prywatnego helpera kasującego pliki importu w `ArticleImportController` i `QueueStatusController`, oraz dodano testy jednostkowe dla nowego serwisu.
 - Ujednolicono usuwanie plików eksportu w panelu administracyjnym, przepinając `ArticleExportController` na istniejącą metodę `ArticleExportFileWriter::delete()` i rozszerzając testy jednostkowe writer'a o scenariusz kasowania pliku.
 - Poprawiono twardo wpisane polskie komunikaty w kontrolerach administracyjnych oraz w `public/assets/js/app.js`, uzupełniając brakujące znaki diakrytyczne w flashach, słowniku i fallbackach modali potwierdzeń.
+
+## 2026-03-26
+
+- Przebudowano frontendowy kod JavaScript, rozbijając monolityczny `public/assets/js/app.js` na zestaw modułów odpowiedzialnych osobno za `i18n`, preferencje użytkownika, layout, interakcje, panel administracyjny, edytor treści, podgląd obrazów, popup prywatności i współdzielone helpery.
+- Rozdzielono warstwę internacjonalizacji na osobny słownik danych `public/assets/js/modules/i18n-data.js` oraz logikę w `public/assets/js/modules/i18n.js`, porządkując sposób aplikowania tłumaczeń i rejestracji listenerów dla komponentów dynamicznych.
+- Dodano mechanizm budowania assetów JavaScript oparty o `esbuild`, wraz z `package.json`, skryptem `scripts/build-assets.mjs`, przełączaniem assetu w Twig zależnie od `app_env` oraz nowym globalsem środowiska w `AppGlobalsExtension`.
+- Przebudowano obraz Dockera na bezpieczniejszy wariant multi-stage, przenosząc bundlowanie i minifikację assetów do osobnego etapu `node:22-bookworm-slim` oraz usuwając z runtime potrzebę instalowania Node.js przez zewnętrzny skrypt `curl | bash`.
+- Uspójniono obsługę języka użytkownika po stronie JavaScript, normalizując wartości `lang` przy odczycie i zapisie w `localStorage` oraz przy zapisie cookie, tak aby wszystkie moduły operowały wyłącznie na wartościach `pl` i `en`.
+- Uzupełniono i dopracowano internacjonalizację komponentów frontendowych, dodając brakujące klucze tłumaczeń dla modala usuwania użytkownika, podpisów i etykiet dostępności w podglądzie obrazów oraz placeholderów i promptów w edytorze formatowania artykułów.
+- Poprawiono komponenty dynamiczne po refaktorze, usuwając niesymetryczne zerowanie `document.body.style.overflow` w modalach administracyjnych, eliminując podwójne `applyI18n()` inicjowane przez popup prywatności oraz dopinając odświeżanie tłumaczeń w już otwartym modalu podglądu obrazów po zmianie języka.
+- Uporządkowano bootstrap aplikacji i build assetów, usuwając redundantne wywołanie `syncTopbarHeight()`, zmieniając import `esbuild` na bezpieczny wariant namespace w ESM, zachowując `.gitkeep` w `public/assets/build` podczas czyszczenia outputu oraz doprecyzowując `README.md`, że w środowisku developerskim Twig ładuje bezpośrednio źródłowe moduły z `public/assets/js`.
