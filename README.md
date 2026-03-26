@@ -267,10 +267,10 @@ docker image build -t salamonrafal/blog-system-ai:dev .
 ### Create develop container 
 ```bash
 docker container run -d -p 8888:8888 -p 8080:80 \
-   -e E_APP_ENV=dev \
-   -e E_APP_DEBUG=1 \
-   -e E_APP_SECRET="test12345_deko1" \
-   -e E_DATABASE_URL="sqlite:///%kernel.project_dir%/var/data.db" \
+   -e APP_ENV=dev \
+   -e APP_DEBUG=1 \
+   -e APP_SECRET="test12345_deko1" \
+   -e DATABASE_URL="sqlite:///%kernel.project_dir%/var/data.db" \
  --name blog-system-ai salamonrafal/blog-system-ai:dev
 ```
 

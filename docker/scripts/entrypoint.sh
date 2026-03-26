@@ -6,8 +6,11 @@ echo "Running entrypoint script..."
 echo "Checking tasks..."
 /var/scripts/checking-tasks.sh
 
-echo "Create .env file..."
-/var/scripts/create-env.sh
+if [ "${APP_ENV:-dev}" = "prod" ]; then
+    echo "Warming Symfony cache..."
+    php bin/console cache:clear --env=prod --no-debug
+    php bin/console cache:warmup --env=prod --no-debug
+fi
 
 echo 'Starting php-fpm in background...'
 nohup php-fpm -D >/dev/null 2>&1 &
