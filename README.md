@@ -37,12 +37,15 @@ Build commands:
   `npm install`
 - Reproducible install from lockfile:
   `npm ci`
-- Build development bundle without minification:
-  `npm run build:assets:dev`
 - Build production bundle with minification:
   `npm run build:assets:prod`
 
-In daily development you can keep using the source modules directly and skip the asset build step.
+In daily development Twig serves the source modules directly from `public/assets/js/`, so no JavaScript build step is required.
+
+Optional command:
+
+- Build an unminified development bundle for manual inspection/debugging of the bundled output:
+  `npm run build:assets:dev`
 
 Useful commands:
 

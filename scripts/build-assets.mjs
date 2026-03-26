@@ -1,4 +1,4 @@
-import { mkdir, rm } from 'node:fs/promises';
+import { mkdir, readdir, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as esbuild from 'esbuild';
@@ -11,8 +11,15 @@ const entryFile = path.join(projectDir, 'public', 'assets', 'js', 'app.js');
 const mode = process.argv[2] === 'prod' ? 'prod' : 'dev';
 
 async function ensureCleanOutputDir(){
-  await rm(outputDir, { recursive: true, force: true });
   await mkdir(outputDir, { recursive: true });
+
+  const entries = await readdir(outputDir, { withFileTypes: true });
+  const removableEntries = entries.filter((entry)=> entry.name !== '.gitkeep');
+
+  await Promise.all(removableEntries.map((entry)=>{
+    const entryPath = path.join(outputDir, entry.name);
+    return rm(entryPath, { recursive: true, force: true });
+  }));
 }
 
 async function build(){
