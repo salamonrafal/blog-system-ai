@@ -16,19 +16,24 @@ FROM install_dependencies AS install_php
     pdo_sqlite readline session \
     tokenizer xml xmlreader xmlwriter \
     xsl zip; \
-    curl -fsSL https://deb.nodesource.com/setup_22.x | bash -; \
-    apt-get install -y nodejs; \
     curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer;
+
+FROM node:22-bookworm-slim AS build_assets
+    WORKDIR /var/www/app/
+    COPY package.json package-lock.json ./
+    COPY scripts/ ./scripts/
+    COPY public/assets/js/ ./public/assets/js/
+    RUN npm ci
+    RUN npm run build:assets:prod
 
 FROM install_php AS final
     COPY ./docker/scripts/ /var/scripts/
     COPY ./docker/conf/nginx/sites-available/application /etc/nginx/sites-available/default
     COPY --chown=www-data:www-data . /var/www/app/
+    COPY --from=build_assets --chown=www-data:www-data /var/www/app/public/assets/build/app.min.js /var/www/app/public/assets/build/app.min.js
     RUN chmod 755 /var/scripts/*.sh;
     WORKDIR /var/www/app/
-    RUN mkdir -p /tmp/composer /tmp/npm && chown -R www-data:www-data /tmp/composer /tmp/npm
-    RUN su -s /bin/bash www-data -c 'HOME=/tmp/npm npm ci'
-    RUN su -s /bin/bash www-data -c 'HOME=/tmp/npm npm run build:assets:prod'
+    RUN mkdir -p /tmp/composer && chown -R www-data:www-data /tmp/composer
     RUN su -s /bin/bash www-data -c 'HOME=/tmp/composer \
         APP_ENV=prod \
         APP_DEBUG=0 \

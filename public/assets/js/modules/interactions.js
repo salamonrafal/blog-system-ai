@@ -1,4 +1,4 @@
-import { getTranslation, i18n } from './i18n.js';
+import { getTranslation } from './i18n.js';
 import { getLang, getTheme, setAccent, setLangPreference, setTheme } from './preferences.js';
 import { copyTextToClipboard, qs, qsa } from './shared.js';
 
@@ -39,8 +39,7 @@ export function setupActions({ applyI18n }){
       const copied = await copyTextToClipboard(email);
 
       if(copied){
-        const lang = getLang();
-        copyEmailButton.setAttribute('data-tooltip', i18n[lang].contact_copied);
+        copyEmailButton.setAttribute('data-tooltip', getTranslation('contact_copied'));
         setTimeout(()=>{
           copyEmailButton.setAttribute('data-tooltip', getTranslation('contact_copy_hint'));
         }, 1200);

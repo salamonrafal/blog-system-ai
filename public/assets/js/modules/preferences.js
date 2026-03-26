@@ -4,23 +4,35 @@ const ADMIN_DEVICE_STORAGE_KEY = 'admin_device_remembered';
 const USER_LANGUAGE_COOKIE_NAME = 'user_language';
 const USER_TIMEZONE_COOKIE_NAME = 'user_timezone';
 
+function normalizeLanguage(lang){
+  return lang === 'en' ? 'en' : 'pl';
+}
+
 export function getLang(){
   const storedLang = localStorage.getItem('lang');
-  if(storedLang) return storedLang;
+  if(storedLang){
+    const normalizedStoredLang = normalizeLanguage(storedLang);
+    if(normalizedStoredLang !== storedLang){
+      localStorage.setItem('lang', normalizedStoredLang);
+    }
+
+    return normalizedStoredLang;
+  }
 
   const navigatorLanguage = (navigator.language || 'pl').toLowerCase();
-  return navigatorLanguage.startsWith('pl') ? 'pl' : 'en';
+  return normalizeLanguage(navigatorLanguage.startsWith('pl') ? 'pl' : 'en');
 }
 
 export function persistUserLanguage(lang){
-  const normalizedLang = lang === 'en' ? 'en' : 'pl';
+  const normalizedLang = normalizeLanguage(lang);
   const secure = window.location.protocol === 'https:' ? '; Secure' : '';
   document.cookie = `${USER_LANGUAGE_COOKIE_NAME}=${encodeURIComponent(normalizedLang)}; Max-Age=31536000; Path=/; SameSite=Lax${secure}`;
 }
 
 export function setLangPreference(lang){
-  localStorage.setItem('lang', lang);
-  persistUserLanguage(lang);
+  const normalizedLang = normalizeLanguage(lang);
+  localStorage.setItem('lang', normalizedLang);
+  persistUserLanguage(normalizedLang);
 }
 
 export function getTheme(){
