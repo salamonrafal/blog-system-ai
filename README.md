@@ -284,7 +284,7 @@ docker container exec -it blog-system-ai bash
 docker container exec -u www-data -it blog-system-ai composer install
 ```
 
-### Run migrate database
+### Run database migrations
 ```bash
 docker container exec -u www-data -it blog-system-ai php bin/console doctrine:migrations:migrate --no-interaction
 ```
