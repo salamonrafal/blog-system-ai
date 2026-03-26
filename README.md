@@ -279,7 +279,7 @@ docker container run -d -p 8888:8888 -p 8080:80 \
 docker container exec -it blog-system-ai bash
 ```
 
-### Run composer install 
+### Run Composer install
 ```bash
 docker container exec -u www-data -it blog-system-ai composer install
 ```
