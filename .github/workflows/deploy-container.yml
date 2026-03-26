@@ -73,8 +73,6 @@ jobs:
                 --name $SERVICE_NAME \
               $IMAGE_ID:$TAG_NAME;
 
-              docker container exec -u www-data $SERVICE_NAME composer install --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader
-
             if [ "$RUN_MIGRATIONS" = "1" ]; then
                 echo "Running database migrations..."
                 docker container exec -u www-data $SERVICE_NAME php bin/console doctrine:migrations:migrate --no-interaction

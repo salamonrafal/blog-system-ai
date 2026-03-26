@@ -13,8 +13,11 @@ if (!isset($_SERVER['APP_ENV'])) {
     if (class_exists(Dotenv::class) && is_file($projectDir.'/.env')) {
         (new Dotenv())->usePutenv()->bootEnv($projectDir.'/.env');
     } else {
-        $appEnv = $_ENV['APP_ENV'] ?? getenv('APP_ENV') ?: 'dev';
-        $appDebug = $_ENV['APP_DEBUG'] ?? getenv('APP_DEBUG') ?: '1';
+        $appEnv = $_ENV['APP_ENV'] ?? getenv('APP_ENV');
+        $appDebug = $_ENV['APP_DEBUG'] ?? getenv('APP_DEBUG');
+
+        $appEnv = $appEnv === false ? 'dev' : (string) $appEnv;
+        $appDebug = $appDebug === false ? '1' : (string) $appDebug;
 
         $_SERVER['APP_ENV'] = $appEnv;
         $_ENV['APP_ENV'] = $appEnv;
