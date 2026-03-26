@@ -1,5 +1,5 @@
 import { getLang } from './preferences.js';
-import { i18n } from './i18n.js';
+import { i18n, registerI18nListener } from './i18n.js';
 import { qs, qsa } from './shared.js';
 
 export function setupImagePreview(){
@@ -126,6 +126,18 @@ export function setupImagePreview(){
       nextButton.setAttribute('aria-hidden', hasNext ? 'false' : 'true');
     }
   };
+
+  const syncPreviewI18n = ()=>{
+    syncAccessibilityLabels();
+    syncCaptionToggle();
+    syncFullscreenToggle();
+
+    if(!modal.hasAttribute('hidden') && lastTrigger){
+      syncCaptionContent(lastTrigger);
+    }
+  };
+
+  registerI18nListener(syncPreviewI18n);
 
   const closePreview = ()=>{
     modal.setAttribute('hidden', '');

@@ -27,6 +27,7 @@ function init(){
   setupBackToTop();
   setTheme(getTheme());
   setAccent(getAccent());
+  setupPrivacyNotice();
   const lang = getLang();
   applyI18n(lang);
   setupTooltips();
@@ -46,7 +47,6 @@ function init(){
   setupImportDeleteConfirmation();
   setupImportClearConfirmation();
   setupQueueClearConfirmation();
-  setupPrivacyNotice();
   syncTopbarHeight();
 
   window.addEventListener('resize', syncTopbarHeight);

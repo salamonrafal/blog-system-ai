@@ -1,5 +1,3 @@
-import { applyI18n } from './i18n.js';
-import { getLang } from './preferences.js';
 import { qs } from './shared.js';
 
 export function setupPrivacyNotice(){
@@ -11,7 +9,6 @@ export function setupPrivacyNotice(){
 
   const existingPopup = qs('.privacy-popup');
   if(existingPopup){
-    applyI18n(getLang());
     return;
   }
 
@@ -34,7 +31,6 @@ export function setupPrivacyNotice(){
   `;
 
   document.body.appendChild(popup);
-  applyI18n(getLang());
 
   let isClosing = false;
   const closePopup = (consentValue)=>{
