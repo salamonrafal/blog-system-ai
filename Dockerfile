@@ -22,7 +22,7 @@ FROM install_php AS final
     COPY ./docker/scripts/ /var/scripts/
     COPY ./docker/conf/nginx/sites-available/application /etc/nginx/sites-available/default
     COPY --chown=www-data:www-data . /var/www/app/
-    RUN chmod 777 /var/scripts/*.sh;
+    RUN chmod 755 /var/scripts/*.sh;
     WORKDIR /var/www/app/
 
 ENTRYPOINT ["/var/scripts/entrypoint.sh"]
