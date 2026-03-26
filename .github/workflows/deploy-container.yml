@@ -68,7 +68,7 @@ jobs:
                 -e APP_ENV=$ENV_NAME \
                 -e APP_DEBUG=$DEBUG_ENABLED \
                 -e APP_SECRET="${{ secrets.APPLICATION_SECRET_WORD }}" \
-                -e DATABASE_URL="${{ secrets.DATABASE_URL}}" \
+                -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
                 --restart unless-stopped \
                 --name $SERVICE_NAME \
               $IMAGE_ID:$TAG_NAME;
