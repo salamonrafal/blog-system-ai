@@ -24,7 +24,7 @@ FROM install_php AS final
     COPY --chown=www-data:www-data . /var/www/app/
     RUN chmod 755 /var/scripts/*.sh;
     WORKDIR /var/www/app/
-    RUN mkdir -p /tmp/composer && chown -R www-data:www-data /tmp/composer /var/www/app
+    RUN mkdir -p /tmp/composer && chown -R www-data:www-data /tmp/composer
     RUN su -s /bin/bash www-data -c 'HOME=/tmp/composer \
         APP_ENV=prod \
         APP_DEBUG=0 \
