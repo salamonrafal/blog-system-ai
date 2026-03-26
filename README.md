@@ -279,6 +279,16 @@ docker container run -d -p 8888:8888 -p 8080:80 \
 docker container exec -it blog-system-ai bash
 ```
 
+### Run Composer install
+```bash
+docker container exec -u www-data -it blog-system-ai composer install
+```
+
+### Run database migrations
+```bash
+docker container exec -u www-data -it blog-system-ai php bin/console doctrine:migrations:migrate --no-interaction
+```
+
 ### Display log
 ```bash
 docker container logs blog-system-ai

@@ -24,13 +24,21 @@ on:
         options:
             - '0'
             - '1'
+      runMigrations:
+        description: 'Run database migrations (0/1)'
+        required: true
+        default: '0'
+        type: choice
+        options:
+            - '0'
+            - '1'
 
 env:
   IMAGE_NAME: blog-system-ai
   TAG_NAME: ${{ inputs.tagName }}
   DEBUG_ENABLED: ${{ inputs.debugEnabled }}
   ENV_NAME: ${{ inputs.envName }}
-
+  RUN_MIGRATIONS: ${{ inputs.runMigrations }}
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -43,17 +51,18 @@ jobs:
         username: ${{ secrets.DEPLOY_SERVER_USERNAME }}
         key: ${{ secrets.DEPLOY_SERVER_KEY }}
         port: ${{ secrets.DEPLOY_SERVER_PORT }}
-        envs: IMAGE_NAME,TAG_NAME,DEBUG_ENABLED,ENV_NAME
+        envs: IMAGE_NAME,TAG_NAME,DEBUG_ENABLED,ENV_NAME,RUN_MIGRATIONS
         script: |
             IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
             IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+            SERVICE_NAME="blog-system-ai"
 
             echo IMAGE_ID=$IMAGE_ID
             echo TAG_NAME=$TAG_NAME
 
             echo "${{ secrets.GH_TOKEN_PACKG }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin;
-            docker container stop blog-system-ai && docker container rm blog-system-ai;
-            docker image rm $IMAGE_ID:$TAG_NAME;
+            docker rm -f "$SERVICE_NAME" 2>/dev/null || true;
+            docker image rm "$IMAGE_ID:$TAG_NAME" 2>/dev/null || true;
             docker container run -d -p 8888:8888 -p 8080:80 \
                 -v /var/data/blog-system-ai/:/var/www/app/var/data/ \
                 -e E_APP_ENV=$ENV_NAME \
@@ -61,4 +70,15 @@ jobs:
                 -e E_APP_SECRET="${{ secrets.APPLICATION_SECRET_WORD }}" \
                 -e E_DATABASE_URL="sqlite:///%kernel.project_dir%/var/data/data.db" \
                 --restart unless-stopped \
-                --name blog-system-ai $IMAGE_ID:$TAG_NAME;
+                --name $SERVICE_NAME \
+              $IMAGE_ID:$TAG_NAME;
+
+              docker container exec -u www-data $SERVICE_NAME composer install --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader
+
+            if [ "$RUN_MIGRATIONS" = "1" ]; then
+                echo "Running database migrations..."
+                docker container exec -u www-data $SERVICE_NAME php bin/console doctrine:migrations:migrate --no-interaction
+            else
+                echo "Skipping database migrations."
+            fi
+

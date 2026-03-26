@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -Eeuo pipefail
 
 echo "Running entrypoint script..."
 
@@ -9,13 +9,8 @@ echo "Checking tasks..."
 echo "Create .env file..."
 /var/scripts/create-env.sh
 
-echo "Install app dependencies with composer..."
-composer install
-
 echo 'Starting php-fpm in background...'
 nohup php-fpm -D >/dev/null 2>&1 &
 
-echo 'Starting nginx...'
-nginx -g 'daemon off;'
-
-sleep infinity
+echo "Starting nginx..."
+exec nginx -g 'daemon off;'
