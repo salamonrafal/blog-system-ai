@@ -16,6 +16,8 @@ FROM install_dependencies AS install_php
     pdo_sqlite readline session \
     tokenizer xml xmlreader xmlwriter \
     xsl zip; \
+    curl -fsSL https://deb.nodesource.com/setup_22.x | bash -; \
+    apt-get install -y nodejs; \
     curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer;
 
 FROM install_php AS final
@@ -24,7 +26,9 @@ FROM install_php AS final
     COPY --chown=www-data:www-data . /var/www/app/
     RUN chmod 755 /var/scripts/*.sh;
     WORKDIR /var/www/app/
-    RUN mkdir -p /tmp/composer && chown -R www-data:www-data /tmp/composer
+    RUN mkdir -p /tmp/composer /tmp/npm && chown -R www-data:www-data /tmp/composer /tmp/npm
+    RUN su -s /bin/bash www-data -c 'HOME=/tmp/npm npm ci'
+    RUN su -s /bin/bash www-data -c 'HOME=/tmp/npm npm run build:assets:prod'
     RUN su -s /bin/bash www-data -c 'HOME=/tmp/composer \
         APP_ENV=prod \
         APP_DEBUG=0 \

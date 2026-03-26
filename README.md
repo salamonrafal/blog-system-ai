@@ -25,6 +25,25 @@ Quick start:
 5. Open the application:
    `http://127.0.0.1:8888`
 
+## JavaScript assets
+
+JavaScript runs in two modes:
+- `dev`: Twig loads source modules directly from `public/assets/js/` without minification
+- `prod`: Twig loads one bundled and minified file from `public/assets/build/app.min.js`
+
+Build commands:
+
+- Install frontend dependencies:
+  `npm install`
+- Reproducible install from lockfile:
+  `npm ci`
+- Build development bundle without minification:
+  `npm run build:assets:dev`
+- Build production bundle with minification:
+  `npm run build:assets:prod`
+
+In daily development you can keep using the source modules directly and skip the asset build step.
+
 Useful commands:
 
 - Start server:
@@ -267,7 +286,7 @@ docker image build -t salamonrafal/blog-system-ai:dev .
 ### Create develop container 
 ```bash
 docker container run -d -p 8888:8888 -p 8080:80 \
-   -e APP_ENV=dev \
+   -e APP_ENV=prod \
    -e APP_DEBUG=1 \
    -e APP_SECRET="test12345_deko1" \
    -e DATABASE_URL="sqlite:///%kernel.project_dir%/var/data.db" \

@@ -1,0 +1,13 @@
+{
+  "name": "blog-system-ai-assets",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:assets": "node scripts/build-assets.mjs",
+    "build:assets:dev": "node scripts/build-assets.mjs dev",
+    "build:assets:prod": "node scripts/build-assets.mjs prod"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.3"
+  }
+}

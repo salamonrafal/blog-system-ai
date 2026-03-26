@@ -334,6 +334,10 @@ Fullstack Developer</span>
     </div>
 </footer>
 
-<script src="/assets/js/app.js"></script>
+{% if app_env == 'prod' %}
+    <script type="module" src="/assets/build/app.min.js"></script>
+{% else %}
+    <script type="module" src="/assets/js/app.js"></script>
+{% endif %}
 </body>
 </html>
