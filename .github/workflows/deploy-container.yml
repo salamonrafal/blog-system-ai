@@ -65,15 +65,13 @@ jobs:
             docker image rm "$IMAGE_ID:$TAG_NAME" 2>/dev/null || true;
             docker container run -d -p 8888:8888 -p 8080:80 \
                 -v /var/data/blog-system-ai/:/var/www/app/var/data/ \
-                -e E_APP_ENV=$ENV_NAME \
-                -e E_APP_DEBUG=$DEBUG_ENABLED \
-                -e E_APP_SECRET="${{ secrets.APPLICATION_SECRET_WORD }}" \
-                -e E_DATABASE_URL="sqlite:///%kernel.project_dir%/var/data/data.db" \
+                -e APP_ENV=$ENV_NAME \
+                -e APP_DEBUG=$DEBUG_ENABLED \
+                -e APP_SECRET="${{ secrets.APPLICATION_SECRET_WORD }}" \
+                -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
                 --restart unless-stopped \
                 --name $SERVICE_NAME \
               $IMAGE_ID:$TAG_NAME;
-
-              docker container exec -u www-data $SERVICE_NAME composer install --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader
 
             if [ "$RUN_MIGRATIONS" = "1" ]; then
                 echo "Running database migrations..."
@@ -81,4 +79,3 @@ jobs:
             else
                 echo "Skipping database migrations."
             fi
-

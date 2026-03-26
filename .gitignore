@@ -71,6 +71,7 @@
 
 # Environment variables file
 .env
+.env.local
 
 # AI data
 /_ai_data/
