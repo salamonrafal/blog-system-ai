@@ -254,7 +254,6 @@ function setupDangerConfirmation(config){
   const closeModal = ()=>{
     modal.setAttribute('hidden', '');
     modal.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = '';
     if(lastTrigger){
       lastTrigger.focus({ preventScroll: true });
     }
