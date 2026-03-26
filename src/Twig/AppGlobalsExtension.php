@@ -22,6 +22,7 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
         private readonly ArticleImportQueueRepository $articleImportQueueRepository,
         private readonly ArticleExportQueueRepository $articleExportQueueRepository,
         private readonly ArticleExportRepository $articleExportRepository,
+        private readonly string $appEnv,
     )
     {
     }
@@ -36,6 +37,7 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
         return [
             'app_name' => $settings->getBlogTitle(),
             'blog_settings' => $settings,
+            'app_env' => $this->appEnv,
             'user_language' => $this->userLanguageResolver->getLanguage(),
             'user_timezone' => $this->userTimeZoneResolver->getTimeZone(),
             'admin_shortcut_badges' => [

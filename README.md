@@ -25,6 +25,28 @@ Quick start:
 5. Open the application:
    `http://127.0.0.1:8888`
 
+## JavaScript assets
+
+JavaScript runs in two modes:
+- `dev`: Twig loads source modules directly from `public/assets/js/` without minification
+- `prod`: Twig loads one bundled and minified file from `public/assets/build/app.min.js`
+
+Build commands:
+
+- Install frontend dependencies:
+  `npm install`
+- Reproducible install from lockfile:
+  `npm ci`
+- Build production bundle with minification:
+  `npm run build:assets:prod`
+
+In daily development Twig serves the source modules directly from `public/assets/js/`, so no JavaScript build step is required.
+
+Optional command:
+
+- Build an unminified development bundle for manual inspection/debugging of the bundled output:
+  `npm run build:assets:dev`
+
 Useful commands:
 
 - Start server:

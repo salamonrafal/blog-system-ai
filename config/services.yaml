@@ -13,3 +13,7 @@ services:
             - ../src/DependencyInjection/
             - ../src/Entity/
             - ../src/Kernel.php
+
+    App\Twig\AppGlobalsExtension:
+        arguments:
+            $appEnv: '%kernel.environment%'

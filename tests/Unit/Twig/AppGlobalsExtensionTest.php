@@ -63,11 +63,13 @@ final class AppGlobalsExtensionTest extends TestCase
             $importQueueRepository,
             $exportQueueRepository,
             $exportRepository,
+            'test',
         );
         $globals = $extension->getGlobals();
 
         $this->assertSame('Blog testowy', $globals['app_name']);
         $this->assertSame($settings, $globals['blog_settings']);
+        $this->assertSame('test', $globals['app_env']);
         $this->assertSame('en', $globals['user_language']);
         $this->assertSame('Europe/Warsaw', $globals['user_timezone']);
         $this->assertSame([

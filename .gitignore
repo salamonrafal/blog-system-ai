@@ -59,6 +59,9 @@
 
 # Build data
 /build/
+/public/assets/build/*
+!/public/assets/build/.gitkeep
+/node_modules/
 
 # Composer PHAR
 /composer.phar
