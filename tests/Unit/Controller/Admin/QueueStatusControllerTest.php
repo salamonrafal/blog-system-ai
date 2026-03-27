@@ -81,11 +81,14 @@ final class QueueStatusControllerTest extends TestCase
             ->with(['status' => ArticleImportQueueStatus::PENDING])
             ->willReturn([$importQueueItem]);
 
+        $removedEntities = [];
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager
             ->expects($this->exactly(2))
             ->method('remove')
-            ->with($this->callback(static fn (object $entity): bool => $entity === $exportQueueItem || $entity === $importQueueItem));
+            ->willReturnCallback(static function (object $entity) use (&$removedEntities): void {
+                $removedEntities[] = $entity;
+            });
         $entityManager
             ->expects($this->once())
             ->method('flush');
@@ -111,6 +114,7 @@ final class QueueStatusControllerTest extends TestCase
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertSame('/admin/queues/status', $response->getTargetUrl());
         $this->assertSame([['success', 'Kolejka oczekujących elementów została wyczyszczona.']], $controller->flashes);
+        $this->assertSame([$exportQueueItem, $importQueueItem], $removedEntities);
     }
 
     public function testDeleteImportDeletesManagedFileAndQueueItem(): void

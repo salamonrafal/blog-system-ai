@@ -9,6 +9,7 @@ use App\Entity\Article;
 use App\Entity\ArticleCategory;
 use App\Entity\BlogSettings;
 use App\Enum\ArticleLanguage;
+use App\Enum\ArticleStatus;
 use App\Repository\ArticleCategoryRepository;
 use App\Repository\ArticleRepository;
 use App\Service\ArticleSlugger;
@@ -167,6 +168,31 @@ final class BlogControllerTest extends TestCase
             new PaginationBuilder(),
             new ArticleSlugger(),
         );
+    }
+
+    public function testShowExposesCategorySlugForLinkedCategoryBadge(): void
+    {
+        $category = (new ArticleCategory())->setName('Architektura Systemow');
+        $article = (new Article())
+            ->setTitle('Article')
+            ->setSlug('article')
+            ->setStatus(ArticleStatus::PUBLISHED)
+            ->setCategory($category);
+
+        $articleRepository = $this->createMock(ArticleRepository::class);
+        $articleRepository
+            ->expects($this->once())
+            ->method('findOneBySlug')
+            ->with('article')
+            ->willReturn($article);
+
+        $controller = new TestBlogController();
+        $response = $controller->show('article', $articleRepository, new ArticleSlugger());
+
+        $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
+        $this->assertSame('blog/show.html.twig', $controller->capturedView);
+        $this->assertSame($article, $controller->capturedParameters['article']);
+        $this->assertSame('architektura-systemow', $controller->capturedParameters['article_category_slug']);
     }
 }
 

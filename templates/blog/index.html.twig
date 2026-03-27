@@ -15,24 +15,30 @@
                 <span class="pill">blog://published-feed</span>
             </div>
             <div class="dashboard-feed-intro">
-                {% set current_language_code = current_language ? current_language.value : 'pl' %}
-                {% set category_title = current_category ? current_category.localizedTitle(current_language_code) : null %}
-                {% set category_description = current_category ? (current_category.localizedDescription(current_language_code) ?: current_category.shortDescription ?: 'Artykuły przypisane do wybranej kategorii.') : null %}
-                <h1{% if not current_category %} data-i18n="blog_feed_title"{% endif %}>{{ category_title ?: 'Blog o programowaniu, technologii i praktyce tworzenia produktów' }}</h1>
-                <p class="lede"{% if not current_category %} data-i18n="blog_feed_lede"{% endif %}>{{ category_description ?: 'Znajdziesz tutaj artykuły o PHP, web developmencie, architekturze aplikacji, jakości kodu i codziennej pracy nad nowoczesnymi produktami cyfrowymi.' }}</p>
+                {% set category_language_code = user_language ?? 'pl' %}
+                {% set category_localized_title = current_category ? current_category.title(category_language_code, null) : null %}
+                {% set category_localized_description = current_category ? current_category.description(category_language_code, null) : null %}
+                {% set category_title_fallback = category_language_code == 'en' ? 'Selected category' : 'Wybrana kategoria' %}
+                {% set category_description_fallback = category_language_code == 'en' ? 'Articles assigned to the selected category.' : 'Artykuły przypisane do wybranej kategorii.' %}
+                {% set category_base_title = current_category ? current_category.name : null %}
+                {% set category_base_description = current_category ? current_category.shortDescription : null %}
+                {% set category_title = current_category ? (category_localized_title ?: category_base_title ?: category_title_fallback) : null %}
+                {% set category_description = current_category ? (category_localized_description ?: category_base_description ?: category_description_fallback) : null %}
+                <h1{% if not current_category %} data-i18n="blog_feed_title"{% elseif not category_localized_title and not category_base_title %} data-i18n="blog_category_fallback_title"{% endif %}>{{ category_title ?: 'Blog o programowaniu, technologii i praktyce tworzenia produktów' }}</h1>
+                <p class="lede"{% if not current_category %} data-i18n="blog_feed_lede"{% elseif not category_localized_description and not category_base_description %} data-i18n="blog_category_fallback_description"{% endif %}>{{ category_description ?: 'Znajdziesz tutaj artykuły o PHP, web developmencie, architekturze aplikacji, jakości kodu i codziennej pracy nad nowoczesnymi produktami cyfrowymi.' }}</p>
             </div>
 
-            <div class="blog-category-section" aria-label="Lista kategorii artykułów">
+            <div class="blog-category-section" data-i18n-aria="blog_categories_aria" aria-label="Lista kategorii artykułów">
                 <span class="blog-category-title" data-i18n="blog_categories_title">Kategorie artykułów</span>
                 {% set category_base_params = current_language ? { lang: current_language.value } : {} %}
                 <a class="blog-category-link{{ current_category ? '' : ' is-current' }}" href="{{ path('blog_index', category_base_params) }}">
-                    <span class="blog-category-link-name">Wszystkie</span>
+                    <span class="blog-category-link-name" data-i18n="blog_categories_all">Wszystkie</span>
                 </a>
                 {% for item in categories %}
                     {% set category = item.category %}
                     {% set is_current = current_category_slug and current_category_slug == item.slug %}
                     <a class="blog-category-link{{ is_current ? ' is-current' : '' }}" href="{{ path('blog_category', category_base_params|merge({ slug: item.slug })) }}">
-                        <span class="blog-category-link-name">{{ category.localizedTitle(current_language ? current_language.value : 'pl') }}</span>
+                        <span class="blog-category-link-name">{{ category.localizedTitle(category_language_code) }}</span>
                     </a>
                 {% endfor %}
             </div>

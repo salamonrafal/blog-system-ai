@@ -62,7 +62,7 @@ class BlogController extends AbstractController
     }
 
     #[Route('/articles/{slug}', name: 'blog_show', methods: ['GET'])]
-    public function show(string $slug, ArticleRepository $articleRepository): Response
+    public function show(string $slug, ArticleRepository $articleRepository, ArticleSlugger $articleSlugger): Response
     {
         $article = $articleRepository->findOneBySlug($slug);
 
@@ -76,6 +76,7 @@ class BlogController extends AbstractController
 
         return $this->render('blog/show.html.twig', [
             'article' => $article,
+            'article_category_slug' => $article->getCategory() ? $articleSlugger->slugify($article->getCategory()->getName()) : null,
         ]);
     }
 

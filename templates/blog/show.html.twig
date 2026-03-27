@@ -28,12 +28,34 @@
                             decoding="async"
                         >
                         <figcaption class="article-headline-caption">
-                            <h1 class="article-headline-title">{{ article.title }}</h1>
+                            <div class="article-headline-header">
+                                <h1 class="article-headline-title">{{ article.title }}</h1>
+                                {% if article.category and article_category_slug %}
+                                    <a class="article-headline-category" href="{{ path('blog_category', { slug: article_category_slug }) }}">
+                                        <span class="article-headline-category-label">
+                                            <span data-lang="pl">Kategoria</span>
+                                            <span data-lang="en">Category</span>
+                                        </span>
+                                        <span class="article-headline-category-name">{{ article.category.localizedTitle(user_language) }}</span>
+                                    </a>
+                                {% endif %}
+                            </div>
                         </figcaption>
                     </figure>
                 {% else %}
                     <div class="dashboard-feed-intro">
-                        <h1>{{ article.title }}</h1>
+                        <div class="article-headline-header article-headline-header-standalone">
+                            <h1>{{ article.title }}</h1>
+                            {% if article.category and article_category_slug %}
+                                <a class="article-headline-category article-headline-category-standalone" href="{{ path('blog_category', { slug: article_category_slug }) }}">
+                                    <span class="article-headline-category-label">
+                                        <span data-lang="pl">Kategoria</span>
+                                        <span data-lang="en">Category</span>
+                                    </span>
+                                    <span class="article-headline-category-name">{{ article.category.localizedTitle(user_language) }}</span>
+                                </a>
+                            {% endif %}
+                        </div>
                     </div>
                 {% endif %}
                 <div class="article-body">

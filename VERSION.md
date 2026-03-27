@@ -18,6 +18,11 @@
 - Uzupełniono publiczny widok bloga o dynamiczne podmienianie głównego tytułu i opisu listy artykułów na treści aktualnie wybranej kategorii, dzięki czemu wejście w filtr kategorii prezentuje jej własny kontekst redakcyjny zamiast ogólnego intro bloga.
 - Dopracowano interfejs filtrów kategorii na `blog_index`, upraszczając listę do kompaktowych przycisków bez opisów, dodając tłumaczenie etykiety `Kategorie artykułów`, zmniejszając promień zaokrągleń oraz porządkując wyrównanie i wizualne odróżnienie samej etykiety sekcji.
 - Dodano nowe testy jednostkowe dla `BlogController`, `SecurityController`, `BlogSettingsController` i `QueueStatusController`, uzupełniając brakujące pokrycie dla publicznego filtrowania kategorii, logowania, zapisu ustawień bloga oraz obsługi widoku i czyszczenia kolejek administracyjnych.
+- Dopracowano internacjonalizację sekcji kategorii na `blog_index`, zastępując twardo wpisane polskie etykiety kluczami i18n oraz rozdzielając język interfejsu użytkownika od parametru `lang` używanego do filtrowania listy artykułów.
+- Uporządkowano fallbacki tytułu i opisu na stronie `blog_category`, tak aby korzystały kolejno z tłumaczenia dla aktualnego języka użytkownika, pól podstawowych kategorii, a dopiero na końcu z neutralnych wartości i18n.
+- Rozszerzono widok `blog_show` o informację o kategorii artykułu z linkiem do filtrowanej listy wpisów tej kategorii oraz dopracowano układ znacznika względem headline, także dla wariantu bez grafiki nagłówkowej.
+- Ujednolicono formatowanie nowego bloku stylów kategorii w `public/assets/css/styles.css`, dopasowując spacing i zapis deklaracji do konwencji używanej w reszcie arkusza.
+- Uproszczono sortowanie aktywnych kategorii w repozytorium, usuwając redundantne drugie kryterium `createdAt`, oraz doprecyzowano test `QueueStatusController`, aby potwierdzał usunięcie obu konkretnych encji kolejki zamiast dowolnych dwóch wywołań `remove()`.
 
 ## 2026-03-14
 

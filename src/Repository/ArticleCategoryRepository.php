@@ -54,7 +54,6 @@ class ArticleCategoryRepository extends ServiceEntityRepository
             ->andWhere('category.status = :status')
             ->setParameter('status', ArticleCategoryStatus::ACTIVE)
             ->orderBy('category.name', 'ASC')
-            ->addOrderBy('category.createdAt', 'DESC')
             ->getQuery()
             ->getResult();
 
