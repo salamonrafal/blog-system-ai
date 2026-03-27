@@ -17,6 +17,10 @@ class BlogSettingsType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
+            ->add('appUrl', TextType::class, [
+                'label' => 'URL aplikacji',
+                'attr' => ['maxlength' => 255],
+            ])
             ->add('blogTitle', TextType::class, [
                 'label' => 'Tytuł bloga',
                 'attr' => ['maxlength' => 255],

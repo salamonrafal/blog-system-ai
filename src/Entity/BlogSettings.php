@@ -6,6 +6,7 @@ namespace App\Entity;
 
 use App\Repository\BlogSettingsRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: BlogSettingsRepository::class)]
@@ -13,6 +14,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\HasLifecycleCallbacks]
 class BlogSettings
 {
+    public const DEFAULT_APP_URL = 'https://www.salamonrafal.pl';
     public const DEFAULT_BLOG_TITLE = 'Blog System AI';
     public const DEFAULT_SEO_DESCRIPTION = 'Blog o programowaniu, technologii i praktyce tworzenia produktów. Artykuły o PHP, web developmencie, architekturze aplikacji i jakości kodu.';
     public const DEFAULT_SOCIAL_IMAGE = 'https://www.salamonrafal.pl/assets/img/profile.jpg';
@@ -24,6 +26,16 @@ class BlogSettings
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
+
+    #[Assert\NotBlank(message: 'URL aplikacji jest wymagany.')]
+    #[Assert\Length(max: 255, maxMessage: 'URL aplikacji może mieć maksymalnie 255 znaków.')]
+    #[Assert\Url(
+        protocols: ['http', 'https'],
+        requireTld: false,
+        message: 'Podaj poprawny pełny URL aplikacji zaczynający się od http:// lub https://.'
+    )]
+    #[ORM\Column(length: 255)]
+    private string $appUrl = self::DEFAULT_APP_URL;
 
     #[Assert\NotBlank(message: 'Tytuł bloga jest wymagany.')]
     #[Assert\Length(max: 255, maxMessage: 'Tytuł bloga może mieć maksymalnie 255 znaków.')]
@@ -77,6 +89,18 @@ class BlogSettings
         return $this->id;
     }
 
+    public function getAppUrl(): string
+    {
+        return $this->appUrl;
+    }
+
+    public function setAppUrl(string $appUrl): self
+    {
+        $this->appUrl = rtrim(trim($appUrl), '/');
+
+        return $this;
+    }
+
     public function getBlogTitle(): string
     {
         return $this->blogTitle;
@@ -111,6 +135,15 @@ class BlogSettings
         $this->homepageSocialImage = trim($homepageSocialImage);
 
         return $this;
+    }
+
+    public function getResolvedHomepageSocialImage(): string
+    {
+        if (str_starts_with($this->homepageSocialImage, 'http://') || str_starts_with($this->homepageSocialImage, 'https://')) {
+            return $this->homepageSocialImage;
+        }
+
+        return $this->appUrl.$this->homepageSocialImage;
     }
 
     public function getHomepageSeoKeywords(): string
@@ -171,5 +204,37 @@ class BlogSettings
     public function onPreUpdate(): void
     {
         $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    #[Assert\Callback]
+    public function validateAppUrlOrigin(ExecutionContextInterface $context): void
+    {
+        if ('' === $this->appUrl) {
+            return;
+        }
+
+        $parts = parse_url($this->appUrl);
+
+        if (false === $parts || !isset($parts['scheme'], $parts['host'])) {
+            $context
+                ->buildViolation('Podaj poprawny origin aplikacji w formacie http(s)://domena.')
+                ->atPath('appUrl')
+                ->addViolation();
+
+            return;
+        }
+
+        if (
+            isset($parts['path']) ||
+            isset($parts['query']) ||
+            isset($parts['fragment']) ||
+            isset($parts['user']) ||
+            isset($parts['pass'])
+        ) {
+            $context
+                ->buildViolation('URL aplikacji musi wskazywać wyłącznie origin bez ścieżki, parametrów, fragmentu i danych użytkownika.')
+                ->atPath('appUrl')
+                ->addViolation();
+        }
     }
 }

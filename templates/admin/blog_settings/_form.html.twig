@@ -12,7 +12,31 @@
             <div class="blog-settings-subsection-header">
                 <span class="pill">admin://identity-and-seo</span>
                 <h2 id="blog-settings-section-general" class="blog-settings-subsection-title">Tożsamość i SEO</h2>
-                <p class="blog-settings-subsection-lede">Ustawienia odpowiedzialne za nazwę bloga oraz metadane strony głównej.</p>
+                <p class="blog-settings-subsection-lede">Ustawienia odpowiedzialne za adres aplikacji, nazwę bloga oraz metadane strony głównej.</p>
+            </div>
+
+            {% set app_url_has_errors = form.appUrl.vars.errors|length > 0 %}
+            {% set app_url_counter_id = form.appUrl.vars.id ~ '-char-count' %}
+            {% set app_url_described_by = app_url_counter_id ~ (app_url_has_errors ? ' ' ~ form.appUrl.vars.id ~ '-error' : '') %}
+            <div class="field article-editor-field{{ app_url_has_errors ? ' has-error' : '' }}">
+                {{ form_label(form.appUrl) }}
+                {{ form_widget(form.appUrl, { attr: {
+                    class: 'article-editor-input',
+                    placeholder: 'https://twoja-domena.pl',
+                    'data-character-count-input': 'true',
+                    'aria-describedby': app_url_described_by
+                }|merge(app_url_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
+                <div class="article-editor-field-meta">
+                    <span id="{{ app_url_counter_id }}" class="article-editor-character-count" data-character-count-target>{{ form.appUrl.vars.value|default('')|length }} / {{ form.appUrl.vars.attr.maxlength }}</span>
+                    <span class="article-editor-field-hint article-editor-field-hint-help">Ten adres jest używany do budowania canonicali, linków do udostępniania i pełnych URL-i obrazków SEO.</span>
+                </div>
+                {% if app_url_has_errors %}
+                    <div id="{{ form.appUrl.vars.id }}-error" class="article-editor-error-message" role="alert">
+                        {% for error in form.appUrl.vars.errors %}
+                            <p>{{ error.message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
 
             {% set title_has_errors = form.blogTitle.vars.errors|length > 0 %}

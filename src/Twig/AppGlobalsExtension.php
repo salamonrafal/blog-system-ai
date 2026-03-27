@@ -36,6 +36,7 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
 
         return [
             'app_name' => $settings->getBlogTitle(),
+            'app_url' => $settings->getAppUrl(),
             'blog_settings' => $settings,
             'app_env' => $this->appEnv,
             'user_language' => $this->userLanguageResolver->getLanguage(),
