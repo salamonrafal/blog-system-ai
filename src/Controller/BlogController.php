@@ -83,9 +83,12 @@ class BlogController extends AbstractController
             ];
         }
 
+        $recommendedArticles = $articleRepository->findRecommendedPublished($article);
+
         return $this->render('blog/show.html.twig', [
             'article' => $article,
             'article_category_route_params' => $articleCategoryRouteParams,
+            'recommended_articles' => $recommendedArticles,
         ]);
     }
 

@@ -23,6 +23,8 @@
 - Rozszerzono widok `blog_show` o informację o kategorii artykułu z linkiem do filtrowanej listy wpisów tej kategorii oraz dopracowano układ znacznika względem headline, także dla wariantu bez grafiki nagłówkowej.
 - Ujednolicono formatowanie nowego bloku stylów kategorii w `public/assets/css/styles.css`, dopasowując spacing i zapis deklaracji do konwencji używanej w reszcie arkusza.
 - Uproszczono sortowanie aktywnych kategorii w repozytorium, usuwając redundantne drugie kryterium `createdAt`, oraz doprecyzowano test `QueueStatusController`, aby potwierdzał usunięcie obu konkretnych encji kolejki zamiast dowolnych dwóch wywołań `remove()`.
+- Rozszerzono widok `blog_show` o sekcję polecanych artykułów pod panelem autora, prezentującą do `5` innych opublikowanych wpisów z tej samej kategorii, a dla artykułów bez kategorii dobierającą rekomendacje z całego bloga.
+- Przeniesiono dolne akcje `Wróć`, `Kopiuj link` i `Edytuj` na `blog_show` bezpośrednio pod treść artykułu, tak aby pojawiały się przed sekcją `Autor artykułu` i blokiem rekomendacji.
 
 ## 2026-03-14
 

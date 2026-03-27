@@ -185,6 +185,11 @@ final class BlogControllerTest extends TestCase
             ->method('findOneBySlug')
             ->with('article')
             ->willReturn($article);
+        $articleRepository
+            ->expects($this->once())
+            ->method('findRecommendedPublished')
+            ->with($article)
+            ->willReturn([]);
 
         $controller = new TestBlogController();
         $response = $controller->show('article', $articleRepository, new ArticleSlugger());
@@ -196,6 +201,7 @@ final class BlogControllerTest extends TestCase
             'slug' => 'architektura-systemow',
             'lang' => 'pl',
         ], $controller->capturedParameters['article_category_route_params']);
+        $this->assertSame([], $controller->capturedParameters['recommended_articles']);
     }
 
     public function testShowDoesNotExposeCategoryRouteParamsForInactiveCategory(): void
@@ -215,12 +221,47 @@ final class BlogControllerTest extends TestCase
             ->method('findOneBySlug')
             ->with('article')
             ->willReturn($article);
+        $articleRepository
+            ->expects($this->once())
+            ->method('findRecommendedPublished')
+            ->with($article)
+            ->willReturn([]);
 
         $controller = new TestBlogController();
         $response = $controller->show('article', $articleRepository, new ArticleSlugger());
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
         $this->assertNull($controller->capturedParameters['article_category_route_params']);
+        $this->assertSame([], $controller->capturedParameters['recommended_articles']);
+    }
+
+    public function testShowExposesRecommendedArticles(): void
+    {
+        $article = (new Article())
+            ->setTitle('Article')
+            ->setSlug('article')
+            ->setStatus(ArticleStatus::PUBLISHED);
+        $recommendedArticle = (new Article())
+            ->setTitle('Recommended')
+            ->setSlug('recommended')
+            ->setStatus(ArticleStatus::PUBLISHED);
+
+        $articleRepository = $this->createMock(ArticleRepository::class);
+        $articleRepository
+            ->expects($this->once())
+            ->method('findOneBySlug')
+            ->with('article')
+            ->willReturn($article);
+        $articleRepository
+            ->expects($this->once())
+            ->method('findRecommendedPublished')
+            ->with($article)
+            ->willReturn([$recommendedArticle]);
+
+        $controller = new TestBlogController();
+        $controller->show('article', $articleRepository, new ArticleSlugger());
+
+        $this->assertSame([$recommendedArticle], $controller->capturedParameters['recommended_articles']);
     }
 }
 
