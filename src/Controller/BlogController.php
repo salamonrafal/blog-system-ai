@@ -74,9 +74,18 @@ class BlogController extends AbstractController
             $this->denyAccessUnlessGranted('IS_AUTHENTICATED_REMEMBERED');
         }
 
+        $articleCategory = $article->getCategory();
+        $articleCategoryRouteParams = null;
+        if (null !== $articleCategory && $articleCategory->isActive()) {
+            $articleCategoryRouteParams = [
+                'slug' => $articleSlugger->slugify($articleCategory->getName()),
+                'lang' => $article->getLanguage()->value,
+            ];
+        }
+
         return $this->render('blog/show.html.twig', [
             'article' => $article,
-            'article_category_slug' => $article->getCategory() ? $articleSlugger->slugify($article->getCategory()->getName()) : null,
+            'article_category_route_params' => $articleCategoryRouteParams,
         ]);
     }
 

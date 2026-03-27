@@ -192,7 +192,35 @@ final class BlogControllerTest extends TestCase
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
         $this->assertSame('blog/show.html.twig', $controller->capturedView);
         $this->assertSame($article, $controller->capturedParameters['article']);
-        $this->assertSame('architektura-systemow', $controller->capturedParameters['article_category_slug']);
+        $this->assertSame([
+            'slug' => 'architektura-systemow',
+            'lang' => 'pl',
+        ], $controller->capturedParameters['article_category_route_params']);
+    }
+
+    public function testShowDoesNotExposeCategoryRouteParamsForInactiveCategory(): void
+    {
+        $category = (new ArticleCategory())
+            ->setName('Architektura Systemow')
+            ->setStatus(\App\Enum\ArticleCategoryStatus::INACTIVE);
+        $article = (new Article())
+            ->setTitle('Article')
+            ->setSlug('article')
+            ->setStatus(ArticleStatus::PUBLISHED)
+            ->setCategory($category);
+
+        $articleRepository = $this->createMock(ArticleRepository::class);
+        $articleRepository
+            ->expects($this->once())
+            ->method('findOneBySlug')
+            ->with('article')
+            ->willReturn($article);
+
+        $controller = new TestBlogController();
+        $response = $controller->show('article', $articleRepository, new ArticleSlugger());
+
+        $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
+        $this->assertNull($controller->capturedParameters['article_category_route_params']);
     }
 }
 
