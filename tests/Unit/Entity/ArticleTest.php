@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Entity;
 
 use App\Entity\Article;
+use App\Entity\ArticleCategory;
 use App\Entity\User;
 use App\Enum\ArticleLanguage;
 use App\Enum\ArticleStatus;
@@ -17,6 +18,7 @@ final class ArticleTest extends TestCase
         $publishedAt = new \DateTimeImmutable('2026-03-16 10:00:00', new \DateTimeZone('Europe/Warsaw'));
         $creator = (new User())->setEmail('creator@example.com');
         $updater = (new User())->setEmail('updater@example.com');
+        $category = (new ArticleCategory())->setName('PHP');
 
         $article = (new Article())
             ->setTitle('Tytul artykulu')
@@ -27,6 +29,7 @@ final class ArticleTest extends TestCase
             ->setContent('Pelna tresc')
             ->setStatus(ArticleStatus::REVIEW)
             ->setPublishedAt($publishedAt)
+            ->setCategory($category)
             ->setCreatedBy($creator)
             ->setUpdatedBy($updater);
 
@@ -41,6 +44,7 @@ final class ArticleTest extends TestCase
         $this->assertSame(ArticleStatus::REVIEW, $article->getStatus());
         $this->assertSame('2026-03-16 09:00:00', $article->getPublishedAt()?->format('Y-m-d H:i:s'));
         $this->assertSame('UTC', $article->getPublishedAt()?->getTimezone()->getName());
+        $this->assertSame($category, $article->getCategory());
         $this->assertSame($creator, $article->getCreatedBy());
         $this->assertSame($updater, $article->getUpdatedBy());
         $this->assertFalse($article->isPublished());

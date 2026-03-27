@@ -8,6 +8,7 @@ use App\Entity\Article;
 use App\Entity\User;
 use App\Enum\ArticleStatus;
 use App\Form\ArticleType;
+use App\Repository\ArticleCategoryRepository;
 use App\Repository\ArticleExportQueueRepository;
 use App\Repository\ArticleRepository;
 use App\Service\ArticlePublisher;
@@ -16,6 +17,7 @@ use App\Service\PaginationBuilder;
 use App\Service\UserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -51,10 +53,11 @@ class ArticleController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         ArticlePublisher $articlePublisher,
+        ArticleCategoryRepository $articleCategoryRepository,
     ): Response {
         $article = new Article();
         $currentUser = $this->resolveAuthenticatedUser();
-        $form = $this->createForm(ArticleType::class, $article);
+        $form = $this->createArticleForm($article, $articleCategoryRepository);
         $form->handleRequest($request);
 
         if ($form->isSubmitted()) {
@@ -87,9 +90,10 @@ class ArticleController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         ArticlePublisher $articlePublisher,
+        ArticleCategoryRepository $articleCategoryRepository,
     ): Response {
         $currentUser = $this->resolveAuthenticatedUser();
-        $form = $this->createForm(ArticleType::class, $article);
+        $form = $this->createArticleForm($article, $articleCategoryRepository);
         $form->handleRequest($request);
 
         if ($form->isSubmitted()) {
@@ -336,5 +340,12 @@ class ArticleController extends AbstractController
         $user = $this->getUser();
 
         return $user instanceof User ? $user : null;
+    }
+
+    private function createArticleForm(Article $article, ArticleCategoryRepository $articleCategoryRepository): FormInterface
+    {
+        return $this->createForm(ArticleType::class, $article, [
+            'categories' => $articleCategoryRepository->findForAdminIndex(),
+        ]);
     }
 }

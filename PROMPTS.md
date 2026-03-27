@@ -1,0 +1,1 @@
+- Zaktualizuj plik VERSION.md o moje ostatnie zmiany, które zrobiłem w tym branchu. Pamiętaj, że nowsze element są dodawane od dolnej części sekcji, a data dzisiejsza to kolejna podsekcja ale jeśli istnieje to scal w jedną sekcje, nowe zmiany będą na dole.

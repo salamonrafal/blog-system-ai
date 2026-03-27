@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Form;
 
 use App\Entity\Article;
+use App\Entity\ArticleCategory;
 use App\Enum\ArticleLanguage;
 use App\Enum\ArticleStatus;
 use App\Form\ArticleType;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -27,12 +29,19 @@ final class ArticleTypeTest extends TestCase
         $options = $resolver->resolve();
 
         $this->assertSame(Article::class, $options['data_class']);
+        $this->assertSame([], $options['categories']);
     }
 
     public function testBuildFormRegistersExpectedFieldsAndImportantOptions(): void
     {
         $factory = Forms::createFormFactoryBuilder()->getFormFactory();
-        $form = $factory->create(ArticleType::class, new Article());
+        $categories = [
+            (new ArticleCategory())->setName('PHP'),
+            (new ArticleCategory())->setName('AI'),
+        ];
+        $form = $factory->create(ArticleType::class, new Article(), [
+            'categories' => $categories,
+        ]);
 
         $this->assertInstanceOf(TextType::class, $form->get('title')->getConfig()->getType()->getInnerType());
         $this->assertSame(255, $form->get('title')->getConfig()->getOption('attr')['maxlength']);
@@ -54,6 +63,11 @@ final class ArticleTypeTest extends TestCase
 
         $this->assertInstanceOf(EnumType::class, $form->get('status')->getConfig()->getType()->getInnerType());
         $this->assertSame(ArticleStatus::class, $form->get('status')->getConfig()->getOption('class'));
+
+        $this->assertInstanceOf(ChoiceType::class, $form->get('category')->getConfig()->getType()->getInnerType());
+        $this->assertFalse($form->get('category')->getConfig()->getOption('required'));
+        $this->assertSame('Bez kategorii', $form->get('category')->getConfig()->getOption('placeholder'));
+        $this->assertSame($categories, $form->get('category')->getConfig()->getOption('choices'));
 
         $this->assertInstanceOf(DateTimeType::class, $form->get('publishedAt')->getConfig()->getType()->getInnerType());
         $this->assertFalse($form->get('publishedAt')->getConfig()->getOption('required'));
