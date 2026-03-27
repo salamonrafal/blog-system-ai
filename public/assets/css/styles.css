@@ -3344,6 +3344,116 @@ select {
   gap:14px;
 }
 
+.article-category-translation-tabs{
+  display:grid;
+  gap:0;
+}
+
+.article-category-translation-tab-list{
+  position:relative;
+  z-index:1;
+  flex-wrap:wrap;
+  align-items:flex-end;
+  gap:6px;
+  padding-bottom:0;
+}
+
+.article-category-translation-tab{
+  display:grid;
+  gap:1px;
+  align-items:start;
+  text-align:left;
+  padding:6px 10px 7px;
+  border-top-left-radius:10px;
+  border-top-right-radius:10px;
+  border-bottom-left-radius:0;
+  border-bottom-right-radius:0;
+  min-width:0;
+  max-width:100%;
+  flex:0 1 150px;
+  overflow:hidden;
+}
+
+.article-category-translation-tab-language{
+  display:block;
+  color:var(--text);
+  font-size:12px;
+  line-height:1.2;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+
+.article-category-translation-tab-scope{
+  display:block;
+  color:var(--muted);
+  font-size:9px;
+  line-height:1.2;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+
+.article-category-translation-tab.is-active{
+  position:relative;
+  z-index:2;
+}
+
+.article-category-translation-tab.is-active .article-category-translation-tab-scope{
+  color:color-mix(in oklab, var(--text) 78%, var(--accent) 22%);
+}
+
+.article-category-translation-panels{
+  margin-top:-1px;
+}
+
+.article-category-translation-panel{
+  padding:22px;
+  border:1px solid color-mix(in oklab, var(--accent) 24%, var(--border));
+  border-radius:0 24px 24px 24px;
+  background:
+    radial-gradient(circle at top right, color-mix(in oklab, var(--accent) 12%, transparent), transparent 42%),
+    linear-gradient(180deg, color-mix(in oklab, var(--panel) 96%, transparent), color-mix(in oklab, var(--panel-2) 94%, transparent));
+  box-shadow:var(--shadow);
+}
+
+.article-category-translation-panel-header{
+  display:grid;
+  gap:8px;
+  margin-bottom:6px;
+}
+
+.article-category-translation-panel-header-top{
+  display:grid;
+  gap:8px;
+}
+
+.article-category-translation-panel-copy{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.article-category-translation-panel-header h2{
+  margin:0;
+  font-size:22px;
+  line-height:1.15;
+}
+
+.article-category-translation-copy-button{
+  flex:0 0 auto;
+  min-height:36px;
+  padding:8px 12px;
+  white-space:nowrap;
+}
+
+.article-category-translation-panel-header p{
+  margin:0;
+  color:var(--muted);
+  line-height:1.6;
+}
+
 .article-editor-help-list{
   margin:0;
   padding-left:20px;

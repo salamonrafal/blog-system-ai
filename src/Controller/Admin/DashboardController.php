@@ -9,6 +9,7 @@ use App\Enum\ArticleExportType;
 use App\Enum\ArticleExportQueueStatus;
 use App\Enum\ArticleImportQueueStatus;
 use App\Enum\ArticleStatus;
+use App\Repository\ArticleCategoryRepository;
 use App\Repository\ArticleExportRepository;
 use App\Repository\ArticleExportQueueRepository;
 use App\Repository\ArticleImportQueueRepository;
@@ -25,6 +26,7 @@ class DashboardController extends AbstractController
     #[Route('/admin', name: 'admin_dashboard', methods: ['GET'])]
     public function index(
         ArticleRepository $articleRepository,
+        ArticleCategoryRepository $articleCategoryRepository,
         ArticleImportQueueRepository $articleImportQueueRepository,
         ArticleExportRepository $articleExportRepository,
         ArticleExportQueueRepository $articleExportQueueRepository,
@@ -75,6 +77,34 @@ class DashboardController extends AbstractController
                     'secondary_action' => [
                         'label' => 'Nowy artykuł',
                         'route' => 'admin_article_new',
+                    ],
+                ],
+                [
+                    'label' => 'admin://categories',
+                    'title' => 'Kategorie',
+                    'description' => 'Słownik kategorii artykułów z opisami, ikonami i kontrolą aktywności.',
+                    'stats' => [
+                        [
+                            'value' => $articleCategoryRepository->count([]),
+                            'label' => 'Wszystkie',
+                        ],
+                        [
+                            'value' => $articleCategoryRepository->countActive(),
+                            'label' => 'Aktywne',
+                        ],
+                        [
+                            'value' => $articleCategoryRepository->countInactive(),
+                            'label' => 'Nieaktywne',
+                        ],
+                    ],
+                    'meta' => [],
+                    'primary_action' => [
+                        'label' => 'Otwórz kategorie',
+                        'route' => 'admin_article_category_index',
+                    ],
+                    'secondary_action' => [
+                        'label' => 'Nowa kategoria',
+                        'route' => 'admin_article_category_new',
                     ],
                 ],
                 [

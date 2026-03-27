@@ -1,0 +1,27 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nowa kategoria | {{ app_name }}{% endblock %}
+
+{% block body %}
+    <section class="section">
+        <div class="card">
+            <div class="card-header">
+                <div class="window-dots" aria-hidden="true">
+                    <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                </div>
+                <span class="pill">admin://category-create</span>
+            </div>
+
+            <div class="dashboard-feed-intro">
+                <h1 data-i18n="admin_category_new_title">Dodaj kategorię artykułów</h1>
+                <p class="lede" data-i18n="admin_category_new_lede">Uzupełnij podstawowe dane kategorii, aby była gotowa do dalszego wykorzystania w panelu redakcyjnym.</p>
+            </div>
+
+            {% include 'admin/article_category/_form.html.twig' with {
+                form: form,
+                submit_label: 'Dodaj kategorię',
+                submit_key: 'category_form_submit_create'
+            } %}
+        </div>
+    </section>
+{% endblock %}

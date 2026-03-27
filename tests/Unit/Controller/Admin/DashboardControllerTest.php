@@ -6,11 +6,13 @@ namespace App\Tests\Unit\Controller\Admin;
 
 use App\Controller\Admin\DashboardController;
 use App\Entity\BlogSettings;
+use App\Enum\ArticleCategoryStatus;
 use App\Enum\ArticleExportQueueStatus;
 use App\Enum\ArticleExportStatus;
 use App\Enum\ArticleExportType;
 use App\Enum\ArticleImportQueueStatus;
 use App\Enum\ArticleStatus;
+use App\Repository\ArticleCategoryRepository;
 use App\Repository\ArticleExportQueueRepository;
 use App\Repository\ArticleExportRepository;
 use App\Repository\ArticleImportQueueRepository;
@@ -35,6 +37,11 @@ final class DashboardControllerTest extends TestCase
             ArticleStatus::REVIEW->value => 3,
             ArticleStatus::PUBLISHED->value => 4,
             ArticleStatus::ARCHIVED->value => 2,
+        ]);
+        $articleCategoryRepository = $this->createCategoryRepositoryMock([
+            'all' => 5,
+            ArticleCategoryStatus::ACTIVE->value => 4,
+            ArticleCategoryStatus::INACTIVE->value => 1,
         ]);
         $articleImportQueueRepository = $this->createImportQueueRepositoryMock([
             'all' => 8,
@@ -72,6 +79,7 @@ final class DashboardControllerTest extends TestCase
         $controller = new TestDashboardController();
         $response = $controller->index(
             $articleRepository,
+            $articleCategoryRepository,
             $articleImportQueueRepository,
             $articleExportRepository,
             $articleExportQueueRepository,
@@ -84,7 +92,7 @@ final class DashboardControllerTest extends TestCase
 
         $panels = $controller->capturedParameters['dashboard_panels'] ?? null;
         $this->assertIsArray($panels);
-        $this->assertCount(6, $panels);
+        $this->assertCount(7, $panels);
 
         $this->assertSame('Artykuły', $panels[0]['title']);
         $this->assertSame([
@@ -95,49 +103,56 @@ final class DashboardControllerTest extends TestCase
             ['value' => 2, 'label' => 'Archiwum'],
         ], $panels[0]['stats']);
 
-        $this->assertSame('Importy', $panels[1]['title']);
+        $this->assertSame('Kategorie', $panels[1]['title']);
+        $this->assertSame([
+            ['value' => 5, 'label' => 'Wszystkie'],
+            ['value' => 4, 'label' => 'Aktywne'],
+            ['value' => 1, 'label' => 'Nieaktywne'],
+        ], $panels[1]['stats']);
+
+        $this->assertSame('Importy', $panels[2]['title']);
         $this->assertSame([
             ['value' => 8, 'label' => 'Wszystkie'],
             ['value' => 2, 'label' => 'Oczekujące'],
             ['value' => 1, 'label' => 'W trakcie'],
             ['value' => 4, 'label' => 'Zakończone'],
             ['value' => 1, 'label' => 'Błędy'],
-        ], $panels[1]['stats']);
+        ], $panels[2]['stats']);
 
-        $this->assertSame('Eksporty', $panels[2]['title']);
+        $this->assertSame('Eksporty', $panels[3]['title']);
         $this->assertSame([
             ['value' => 6, 'label' => 'Wszystkie'],
             ['value' => 6, 'label' => 'Artykuły'],
             ['value' => 4, 'label' => 'Nowe'],
             ['value' => 2, 'label' => 'Pobrane'],
-        ], $panels[2]['stats']);
+        ], $panels[3]['stats']);
 
-        $this->assertSame('Stan kolejek', $panels[3]['title']);
-        $this->assertSame('all', $panels[3]['sections'][0]['key']);
-        $this->assertSame('import', $panels[3]['sections'][1]['key']);
-        $this->assertSame('export', $panels[3]['sections'][2]['key']);
+        $this->assertSame('Stan kolejek', $panels[4]['title']);
+        $this->assertSame('all', $panels[4]['sections'][0]['key']);
+        $this->assertSame('import', $panels[4]['sections'][1]['key']);
+        $this->assertSame('export', $panels[4]['sections'][2]['key']);
         $this->assertSame([
             ['value' => 13, 'label' => 'Wszystkie'],
             ['value' => 3, 'label' => 'Oczekujące'],
             ['value' => 3, 'label' => 'W trakcie'],
             ['value' => 5, 'label' => 'Zakończone'],
             ['value' => 2, 'label' => 'Błędy'],
-        ], $panels[3]['sections'][0]['stats']);
+        ], $panels[4]['sections'][0]['stats']);
 
-        $this->assertSame('Użytkownicy', $panels[4]['title']);
+        $this->assertSame('Użytkownicy', $panels[5]['title']);
         $this->assertSame([
             ['value' => 4, 'label' => 'Wszystkie'],
             ['value' => 3, 'label' => 'Aktywne'],
             ['value' => 1, 'label' => 'Nieaktywne'],
             ['value' => 2, 'label' => 'Administratorzy'],
-        ], $panels[4]['stats']);
+        ], $panels[5]['stats']);
 
-        $this->assertSame('Ustawienia bloga', $panels[5]['title']);
+        $this->assertSame('Ustawienia bloga', $panels[6]['title']);
         $this->assertSame([
             ['label' => 'Tytuł bloga', 'value' => 'AI Ops Blog'],
             ['label' => 'Artykułów na stronę', 'value' => '9'],
             ['label' => 'Ostatnia aktualizacja', 'value' => $settings->getUpdatedAt()->format('Y-m-d H:i')],
-        ], $panels[5]['meta_cards']);
+        ], $panels[6]['meta_cards']);
     }
 
     public function testIndexUsesDefaultFallbackValuesWhenBlogSettingsAreMissing(): void
@@ -148,6 +163,11 @@ final class DashboardControllerTest extends TestCase
             ArticleStatus::REVIEW->value => 0,
             ArticleStatus::PUBLISHED->value => 0,
             ArticleStatus::ARCHIVED->value => 0,
+        ]);
+        $articleCategoryRepository = $this->createCategoryRepositoryMock([
+            'all' => 0,
+            ArticleCategoryStatus::ACTIVE->value => 0,
+            ArticleCategoryStatus::INACTIVE->value => 0,
         ]);
         $articleImportQueueRepository = $this->createImportQueueRepositoryMock([
             'all' => 0,
@@ -185,6 +205,7 @@ final class DashboardControllerTest extends TestCase
         $controller = new TestDashboardController();
         $controller->index(
             $articleRepository,
+            $articleCategoryRepository,
             $articleImportQueueRepository,
             $articleExportRepository,
             $articleExportQueueRepository,
@@ -193,13 +214,39 @@ final class DashboardControllerTest extends TestCase
         );
 
         $panels = $controller->capturedParameters['dashboard_panels'];
-        $settingsPanel = $panels[5];
+        $settingsPanel = $panels[6];
 
         $this->assertSame([
             ['label' => 'Tytuł bloga', 'value' => BlogSettings::DEFAULT_BLOG_TITLE],
             ['label' => 'Artykułów na stronę', 'value' => (string) BlogSettings::DEFAULT_ARTICLES_PER_PAGE],
             ['label' => 'Ostatnia aktualizacja', 'value' => 'Brak zapisanych zmian'],
         ], $settingsPanel['meta_cards']);
+    }
+
+    /**
+     * @param array<string, int> $counts
+     */
+    private function createCategoryRepositoryMock(array $counts): ArticleCategoryRepository
+    {
+        /** @var ArticleCategoryRepository&MockObject $repository */
+        $repository = $this->createMock(ArticleCategoryRepository::class);
+        $repository
+            ->method('count')
+            ->willReturnCallback(static function (array $criteria) use ($counts): int {
+                if ([] === $criteria) {
+                    return $counts['all'];
+                }
+
+                return $counts[$criteria['status']->value] ?? 0;
+            });
+        $repository
+            ->method('countActive')
+            ->willReturn($counts[ArticleCategoryStatus::ACTIVE->value] ?? 0);
+        $repository
+            ->method('countInactive')
+            ->willReturn($counts[ArticleCategoryStatus::INACTIVE->value] ?? 0);
+
+        return $repository;
     }
 
     /**

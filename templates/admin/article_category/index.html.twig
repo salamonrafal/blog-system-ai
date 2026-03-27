@@ -1,0 +1,109 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Kategorie artykułów | {{ app_name }}{% endblock %}
+
+{% block body %}
+    <section class="section">
+        <div class="card">
+            <div class="card-header">
+                <div class="window-dots" aria-hidden="true">
+                    <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                </div>
+                <span class="pill">admin://categories</span>
+            </div>
+
+            <div class="dashboard-feed-intro">
+                <h1 data-i18n="admin_category_index_title">Zarządzanie kategoriami artykułów</h1>
+                <p class="lede" data-i18n="admin_category_index_lede">Twórz i utrzymuj słownik kategorii dla treści redakcyjnych, wraz z opisem, ikoną i stanem publikacyjnym.</p>
+
+                <div class="actions">
+                    <a class="button" href="{{ path('admin_article_category_new') }}" data-i18n="category_form_submit_create">Dodaj kategorię</a>
+                </div>
+
+                <section class="article-edit-meta-panel article-edit-meta-panel-compact" data-i18n-aria="admin_category_overview_aria" aria-label="Podsumowanie kategorii">
+                    <div class="article-edit-meta-header">
+                        <span class="pill">admin://category-overview</span>
+                    </div>
+                    <dl class="article-edit-meta-list article-edit-meta-list-compact">
+                        <div class="article-edit-meta-item">
+                            <dt class="article-edit-meta-label" data-i18n="admin_category_overview_all">Wszystkie kategorie</dt>
+                            <dd class="article-edit-meta-value">{{ category_stats.all }}</dd>
+                        </div>
+                        <div class="article-edit-meta-item">
+                            <dt class="article-edit-meta-label" data-i18n="admin_category_overview_active">Aktywne</dt>
+                            <dd class="article-edit-meta-value">{{ category_stats.active }}</dd>
+                        </div>
+                        <div class="article-edit-meta-item">
+                            <dt class="article-edit-meta-label" data-i18n="admin_category_overview_inactive">Nieaktywne</dt>
+                            <dd class="article-edit-meta-value">{{ category_stats.inactive }}</dd>
+                        </div>
+                    </dl>
+                </section>
+            </div>
+
+            <div class="table-wrap article-index-table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th data-i18n="category_form_name">Nazwa</th>
+                        <th>
+                            <span data-lang="pl">Tytuł (PL)</span>
+                            <span data-lang="en">Title (EN)</span>
+                        </th>
+                        <th>
+                            <span data-lang="pl">Opis (PL)</span>
+                            <span data-lang="en">Description (EN)</span>
+                        </th>
+                        <th data-i18n="category_form_icon">Ikona</th>
+                        <th data-i18n="admin_table_status">Stan</th>
+                        <th data-i18n="admin_table_updated">Aktualizacja</th>
+                        <th data-i18n="admin_table_action">Akcja</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for category in categories %}
+                        <tr>
+                            <td class="user-index-email-cell">
+                                <strong>{{ category.name }}</strong>
+                            </td>
+                            <td>{{ category.localizedTitle(user_language) }}</td>
+                            <td>{{ category.localizedDescription(user_language) ?? '—' }}</td>
+                            <td><code>{{ category.icon ?? '—' }}</code></td>
+                            <td class="article-index-status-cell">
+                                <span data-i18n="{{ category.status.translationKey }}">{{ category.status.label }}</span>
+                            </td>
+                            <td class="article-index-updated-cell">{{ category.updatedAt|user_date }}</td>
+                            <td>
+                                <div class="actions">
+                                    <a class="button secondary article-action-button" href="{{ path('admin_article_category_edit', {id: category.id}) }}" data-i18n-title="admin_table_edit" data-i18n-tooltip="admin_table_edit" data-tooltip="Edytuj" aria-label="Edytuj kategorię">
+                                        <span class="article-action-icon is-edit" aria-hidden="true"></span>
+                                    </a>
+                                    <form method="post" action="{{ path('admin_article_category_delete', {id: category.id}) }}" data-delete-form>
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete_article_category_' ~ category.id) }}">
+                                        <button
+                                            class="button secondary button-danger article-action-button"
+                                            type="button"
+                                            data-action="confirm-delete-category"
+                                            data-category-name="{{ category.name }}"
+                                            data-i18n-title="admin_table_delete"
+                                            data-i18n-tooltip="admin_table_delete"
+                                            data-tooltip="Usuń"
+                                            aria-label="Usuń kategorię"
+                                        >
+                                            <span class="article-action-icon is-delete" aria-hidden="true"></span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="7" data-i18n="admin_category_table_empty">Nie znaleziono kategorii.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+{% endblock %}
