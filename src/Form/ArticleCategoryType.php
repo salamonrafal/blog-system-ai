@@ -58,10 +58,7 @@ class ArticleCategoryType extends AbstractType
                 'class' => ArticleCategoryStatus::class,
                 'choice_label' => static fn (ArticleCategoryStatus $status): string => $status->label(),
                 'choice_attr' => static fn (ArticleCategoryStatus $status): array => [
-                    'data-i18n' => match ($status) {
-                        ArticleCategoryStatus::ACTIVE => 'category_status_active',
-                        ArticleCategoryStatus::INACTIVE => 'category_status_inactive',
-                    },
+                    'data-i18n' => $status->translationKey(),
                 ],
                 'label' => 'Stan',
                 'label_attr' => ['data-i18n' => 'form_status'],

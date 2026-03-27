@@ -12,8 +12,16 @@ enum ArticleCategoryStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::ACTIVE => 'Aktywna',
-            self::INACTIVE => 'Nieaktywna',
+            self::ACTIVE => 'Active',
+            self::INACTIVE => 'Inactive',
+        };
+    }
+
+    public function translationKey(): string
+    {
+        return match ($this) {
+            self::ACTIVE => 'category_status_active',
+            self::INACTIVE => 'category_status_inactive',
         };
     }
 }
