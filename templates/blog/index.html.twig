@@ -37,8 +37,9 @@
                 {% for item in categories %}
                     {% set category = item.category %}
                     {% set is_current = current_category_slug and current_category_slug == item.slug %}
+                    {% set category_nav_title = category.title(category_language_code, null) ?: category.name %}
                     <a class="blog-category-link{{ is_current ? ' is-current' : '' }}" href="{{ path('blog_category', category_base_params|merge({ slug: item.slug })) }}"{% if is_current %} aria-current="page"{% endif %}>
-                        <span class="blog-category-link-name">{{ category.localizedTitle(category_language_code) }}</span>
+                        <span class="blog-category-link-name">{{ category_nav_title }}</span>
                     </a>
                 {% endfor %}
             </nav>
