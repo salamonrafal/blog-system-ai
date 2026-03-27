@@ -30,22 +30,12 @@
                         <figcaption class="article-headline-caption">
                             <div class="article-headline-header">
                                 <h1 class="article-headline-title">{{ article.title }}</h1>
-                                {% if article.category and article_category_route_params %}
-                                    <a class="article-headline-category" href="{{ path('blog_category', article_category_route_params) }}">
-                                        <span class="article-headline-category-label">
-                                            <span data-lang="pl">Kategoria</span>
-                                            <span data-lang="en">Category</span>
-                                        </span>
-                                        <span class="article-headline-category-name">{{ article.category.localizedTitle(user_language) }}</span>
-                                    </a>
-                                {% elseif article.category %}
-                                    <span class="article-headline-category article-headline-category-static" role="note">
-                                        <span class="article-headline-category-label">
-                                            <span data-lang="pl">Kategoria</span>
-                                            <span data-lang="en">Category</span>
-                                        </span>
-                                        <span class="article-headline-category-name">{{ article.category.localizedTitle(user_language) }}</span>
-                                    </span>
+                                {% if article.category %}
+                                    {% include 'blog/_category_badge.html.twig' with {
+                                        category: article.category,
+                                        route_params: article_category_route_params,
+                                        standalone: false,
+                                    } only %}
                                 {% endif %}
                             </div>
                         </figcaption>
@@ -54,22 +44,12 @@
                     <div class="dashboard-feed-intro">
                         <div class="article-headline-header article-headline-header-standalone">
                             <h1>{{ article.title }}</h1>
-                            {% if article.category and article_category_route_params %}
-                                <a class="article-headline-category article-headline-category-standalone" href="{{ path('blog_category', article_category_route_params) }}">
-                                    <span class="article-headline-category-label">
-                                        <span data-lang="pl">Kategoria</span>
-                                        <span data-lang="en">Category</span>
-                                    </span>
-                                    <span class="article-headline-category-name">{{ article.category.localizedTitle(user_language) }}</span>
-                                </a>
-                            {% elseif article.category %}
-                                <span class="article-headline-category article-headline-category-standalone article-headline-category-static" role="note">
-                                    <span class="article-headline-category-label">
-                                        <span data-lang="pl">Kategoria</span>
-                                        <span data-lang="en">Category</span>
-                                    </span>
-                                    <span class="article-headline-category-name">{{ article.category.localizedTitle(user_language) }}</span>
-                                </span>
+                            {% if article.category %}
+                                {% include 'blog/_category_badge.html.twig' with {
+                                    category: article.category,
+                                    route_params: article_category_route_params,
+                                    standalone: true,
+                                } only %}
                             {% endif %}
                         </div>
                     </div>
