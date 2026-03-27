@@ -169,6 +169,42 @@
                     </tbody>
                 </table>
             </div>
+
+            {% if total_pages > 1 %}
+                <nav class="blog-pagination article-index-pagination" aria-label="Paginacja artykułów w panelu administracyjnym">
+                    {% if current_page > 1 %}
+                        <a class="btn blog-pagination-link blog-pagination-link-icon" href="{{ path('admin_article_index', { page: current_page - 1 }) }}" aria-label="Poprzednia strona">
+                            <span aria-hidden="true">&lsaquo;</span>
+                        </a>
+                    {% else %}
+                        <span class="btn blog-pagination-link blog-pagination-link-icon is-disabled" aria-disabled="true" aria-label="Poprzednia strona">
+                            <span aria-hidden="true">&lsaquo;</span>
+                        </span>
+                    {% endif %}
+
+                    <div class="blog-pagination-pages">
+                        {% for item in pagination_items %}
+                            {% if item == '...' %}
+                                <span class="blog-pagination-ellipsis" aria-hidden="true">...</span>
+                            {% elseif item == current_page %}
+                                <span class="btn blog-pagination-link is-current" aria-current="page">{{ item }}</span>
+                            {% else %}
+                                <a class="btn blog-pagination-link" href="{{ path('admin_article_index', { page: item }) }}">{{ item }}</a>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    {% if current_page < total_pages %}
+                        <a class="btn blog-pagination-link blog-pagination-link-icon" href="{{ path('admin_article_index', { page: current_page + 1 }) }}" aria-label="Następna strona">
+                            <span aria-hidden="true">&rsaquo;</span>
+                        </a>
+                    {% else %}
+                        <span class="btn blog-pagination-link blog-pagination-link-icon is-disabled" aria-disabled="true" aria-label="Następna strona">
+                            <span aria-hidden="true">&rsaquo;</span>
+                        </span>
+                    {% endif %}
+                </nav>
+            {% endif %}
         </div>
     </section>
 {% endblock %}

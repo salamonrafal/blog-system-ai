@@ -4368,6 +4368,10 @@ tbody tr:last-child td {
   margin:0 1.15rem 1.2rem;
 }
 
+.article-index-pagination {
+  margin-top:1rem;
+}
+
 .blog-pagination-pages {
   display:flex;
   align-items:center;

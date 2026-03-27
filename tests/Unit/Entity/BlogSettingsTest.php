@@ -16,13 +16,15 @@ final class BlogSettingsTest extends TestCase
             ->setHomepageSeoDescription('  Opis strony glownej  ')
             ->setHomepageSocialImage('  /assets/img/blog-share.png  ')
             ->setHomepageSeoKeywords('  php, symfony, ai  ')
-            ->setArticlesPerPage(9);
+            ->setArticlesPerPage(9)
+            ->setAdminArticlesPerPage(25);
 
         $this->assertSame('Moj Blog AI', $settings->getBlogTitle());
         $this->assertSame('Opis strony glownej', $settings->getHomepageSeoDescription());
         $this->assertSame('/assets/img/blog-share.png', $settings->getHomepageSocialImage());
         $this->assertSame('php, symfony, ai', $settings->getHomepageSeoKeywords());
         $this->assertSame(9, $settings->getArticlesPerPage());
+        $this->assertSame(25, $settings->getAdminArticlesPerPage());
     }
 
     public function testBlogSettingsProvideDefaultValues(): void
@@ -34,6 +36,7 @@ final class BlogSettingsTest extends TestCase
         $this->assertSame(BlogSettings::DEFAULT_SOCIAL_IMAGE, $settings->getHomepageSocialImage());
         $this->assertSame(BlogSettings::DEFAULT_SEO_KEYWORDS, $settings->getHomepageSeoKeywords());
         $this->assertSame(BlogSettings::DEFAULT_ARTICLES_PER_PAGE, $settings->getArticlesPerPage());
+        $this->assertSame(BlogSettings::DEFAULT_ADMIN_ARTICLES_PER_PAGE, $settings->getAdminArticlesPerPage());
     }
 
     public function testLifecycleCallbacksRefreshTimestamps(): void

@@ -139,6 +139,37 @@
                 {% endif %}
             </div>
         </section>
+
+        <section class="blog-settings-subsection" aria-labelledby="blog-settings-section-admin-pagination">
+            <div class="blog-settings-subsection-header">
+                <span class="pill">admin://article-index-pagination</span>
+                <h2 id="blog-settings-section-admin-pagination" class="blog-settings-subsection-title">Paginacja listy artykułów w panelu</h2>
+                <p class="blog-settings-subsection-lede">To ustawienie działa niezależnie od strony głównej i steruje liczbą rekordów widocznych na `admin_article_index`.</p>
+            </div>
+
+            {% set admin_articles_per_page_has_errors = form.adminArticlesPerPage.vars.errors|length > 0 %}
+            {% set admin_articles_per_page_error_id = form.adminArticlesPerPage.vars.id ~ '-error' %}
+            {% set admin_articles_per_page_hint_id = form.adminArticlesPerPage.vars.id ~ '-hint' %}
+            {% set admin_articles_per_page_described_by = admin_articles_per_page_hint_id ~ (admin_articles_per_page_has_errors ? ' ' ~ admin_articles_per_page_error_id : '') %}
+            <div class="field article-editor-field{{ admin_articles_per_page_has_errors ? ' has-error' : '' }}">
+                {{ form_label(form.adminArticlesPerPage) }}
+                {{ form_widget(form.adminArticlesPerPage, { attr: {
+                    class: 'article-editor-input blog-settings-number-input',
+                    placeholder: '25',
+                    'aria-describedby': admin_articles_per_page_described_by
+                }|merge(admin_articles_per_page_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
+                <div class="article-editor-field-meta">
+                    <span id="{{ admin_articles_per_page_hint_id }}" class="article-editor-field-hint article-editor-field-hint-help">Domyślna wartość to <code>25</code>. Zmiana wpływa wyłącznie na tabelę artykułów w panelu administracyjnym.</span>
+                </div>
+                {% if admin_articles_per_page_has_errors %}
+                    <div id="{{ admin_articles_per_page_error_id }}" class="article-editor-error-message" role="alert">
+                        {% for error in form.adminArticlesPerPage.vars.errors %}
+                            <p>{{ error.message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </section>
     </div>
 
     <div class="actions article-editor-actions">
