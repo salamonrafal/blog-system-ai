@@ -17,7 +17,7 @@ final class ArticleCategoryTest extends TestCase
             ->setShortDescription('Backend i architektura aplikacji.')
             ->setTitle('pl', 'Programowanie w PHP')
             ->setTitle('en', 'PHP Development')
-            ->setDescription('pl', 'Kategoria dla tresci po polsku.')
+            ->setDescription('pl', 'Kategoria dla treści po polsku.')
             ->setDescription('en', 'Category for English content.')
             ->setIcon('ph ph-code')
             ->setStatus(ArticleCategoryStatus::INACTIVE);
@@ -26,7 +26,7 @@ final class ArticleCategoryTest extends TestCase
         $this->assertSame('Backend i architektura aplikacji.', $category->getShortDescription());
         $this->assertSame('Programowanie w PHP', $category->getTitle('pl'));
         $this->assertSame('PHP Development', $category->getTitle('en'));
-        $this->assertSame('Kategoria dla tresci po polsku.', $category->getDescription('pl'));
+        $this->assertSame('Kategoria dla treści po polsku.', $category->getDescription('pl'));
         $this->assertSame('Category for English content.', $category->getDescription('en'));
         $this->assertSame('PHP Development', $category->getLocalizedTitle('en'));
         $this->assertSame('ph ph-code', $category->getIcon());

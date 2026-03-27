@@ -84,7 +84,6 @@ class ArticleCategoryType extends AbstractType
                 'attr' => [
                     'class' => 'article-editor-input',
                     'maxlength' => 255,
-                    'data-i18n-placeholder' => 'category_translation_title_placeholder',
                     'placeholder' => 'pl' === $language ? 'Na przykład: Programowanie w PHP' : 'For example: PHP Development',
                 ],
             ]);
@@ -98,7 +97,6 @@ class ArticleCategoryType extends AbstractType
                     'class' => 'article-editor-input article-editor-textarea',
                     'maxlength' => 1000,
                     'rows' => 4,
-                    'data-i18n-placeholder' => 'category_translation_description_placeholder',
                     'placeholder' => 'pl' === $language
                         ? 'Opis kategorii widoczny dla polskiej wersji językowej.'
                         : 'Category description for the English version.',

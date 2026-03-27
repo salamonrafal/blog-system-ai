@@ -8,7 +8,6 @@ use App\Enum\ArticleExportStatus;
 use App\Enum\ArticleExportType;
 use App\Enum\ArticleExportQueueStatus;
 use App\Enum\ArticleImportQueueStatus;
-use App\Enum\ArticleCategoryStatus;
 use App\Enum\ArticleStatus;
 use App\Repository\ArticleCategoryRepository;
 use App\Repository\ArticleExportRepository;
@@ -90,11 +89,11 @@ class DashboardController extends AbstractController
                             'label' => 'Wszystkie',
                         ],
                         [
-                            'value' => $articleCategoryRepository->count(['status' => ArticleCategoryStatus::ACTIVE]),
+                            'value' => $articleCategoryRepository->countActive(),
                             'label' => 'Aktywne',
                         ],
                         [
-                            'value' => $articleCategoryRepository->count(['status' => ArticleCategoryStatus::INACTIVE]),
+                            'value' => $articleCategoryRepository->countInactive(),
                             'label' => 'Nieaktywne',
                         ],
                     ],
