@@ -14,6 +14,10 @@
 - Dodano w panelach tłumaczeń akcji `Uzupełnij z podstawowych`, która kopiuje nazwę i krótki opis z sekcji podstawowej do aktualnie edytowanego wariantu językowego.
 - Uzupełniono moduł kategorii o pełną internacjonalizację `PL/EN` dla nagłówków ekranów, zakładek, opisów sekcji, etykiet pól, placeholderów, wartości statusu, przycisków i komunikatów pomocniczych, tak aby przełączanie języka działało również na ekranach tworzenia i edycji kategorii.
 - Rozszerzono formularze tworzenia i edycji artykułu o możliwość przypisania kategorii, dodając relację `Article -> ArticleCategory`, migrację bazy danych oraz aktualizację testów jednostkowych encji i formularza.
+- Rozszerzono publiczny widok `blog_index` o sekcję kategorii artykułów wraz z nową trasą filtrowania `/category/{slug}`, obsługą slugów budowanych z nazw kategorii, filtrowaniem listy opublikowanych wpisów oraz zachowaniem wybranej kategorii w paginacji.
+- Uzupełniono publiczny widok bloga o dynamiczne podmienianie głównego tytułu i opisu listy artykułów na treści aktualnie wybranej kategorii, dzięki czemu wejście w filtr kategorii prezentuje jej własny kontekst redakcyjny zamiast ogólnego intro bloga.
+- Dopracowano interfejs filtrów kategorii na `blog_index`, upraszczając listę do kompaktowych przycisków bez opisów, dodając tłumaczenie etykiety `Kategorie artykułów`, zmniejszając promień zaokrągleń oraz porządkując wyrównanie i wizualne odróżnienie samej etykiety sekcji.
+- Dodano nowe testy jednostkowe dla `BlogController`, `SecurityController`, `BlogSettingsController` i `QueueStatusController`, uzupełniając brakujące pokrycie dla publicznego filtrowania kategorii, logowania, zapisu ustawień bloga oraz obsługi widoku i czyszczenia kolejek administracyjnych.
 
 ## 2026-03-14
 

@@ -15,8 +15,26 @@
                 <span class="pill">blog://published-feed</span>
             </div>
             <div class="dashboard-feed-intro">
-                <h1 data-i18n="blog_feed_title">Blog o programowaniu, technologii i praktyce tworzenia produktów</h1>
-                <p class="lede" data-i18n="blog_feed_lede">Znajdziesz tutaj artykuły o PHP, web developmencie, architekturze aplikacji, jakości kodu i codziennej pracy nad nowoczesnymi produktami cyfrowymi.</p>
+                {% set current_language_code = current_language ? current_language.value : 'pl' %}
+                {% set category_title = current_category ? current_category.localizedTitle(current_language_code) : null %}
+                {% set category_description = current_category ? (current_category.localizedDescription(current_language_code) ?: current_category.shortDescription ?: 'Artykuły przypisane do wybranej kategorii.') : null %}
+                <h1{% if not current_category %} data-i18n="blog_feed_title"{% endif %}>{{ category_title ?: 'Blog o programowaniu, technologii i praktyce tworzenia produktów' }}</h1>
+                <p class="lede"{% if not current_category %} data-i18n="blog_feed_lede"{% endif %}>{{ category_description ?: 'Znajdziesz tutaj artykuły o PHP, web developmencie, architekturze aplikacji, jakości kodu i codziennej pracy nad nowoczesnymi produktami cyfrowymi.' }}</p>
+            </div>
+
+            <div class="blog-category-section" aria-label="Lista kategorii artykułów">
+                <span class="blog-category-title" data-i18n="blog_categories_title">Kategorie artykułów</span>
+                {% set category_base_params = current_language ? { lang: current_language.value } : {} %}
+                <a class="blog-category-link{{ current_category ? '' : ' is-current' }}" href="{{ path('blog_index', category_base_params) }}">
+                    <span class="blog-category-link-name">Wszystkie</span>
+                </a>
+                {% for item in categories %}
+                    {% set category = item.category %}
+                    {% set is_current = current_category_slug and current_category_slug == item.slug %}
+                    <a class="blog-category-link{{ is_current ? ' is-current' : '' }}" href="{{ path('blog_category', category_base_params|merge({ slug: item.slug })) }}">
+                        <span class="blog-category-link-name">{{ category.localizedTitle(current_language ? current_language.value : 'pl') }}</span>
+                    </a>
+                {% endfor %}
             </div>
 
             {% if articles is not empty %}
@@ -56,9 +74,9 @@
 
                 {% if total_pages > 1 %}
                     <nav class="blog-pagination" aria-label="Paginacja artykułów">
-                        {% set base_params = current_language ? { lang: current_language.value } : {} %}
+                        {% set base_params = pagination_route_params %}
                         {% if current_page > 1 %}
-                            <a class="btn blog-pagination-link blog-pagination-link-icon" href="{{ path('blog_index', base_params|merge({ page: current_page - 1 })) }}" aria-label="Poprzednia strona">
+                            <a class="btn blog-pagination-link blog-pagination-link-icon" href="{{ path(pagination_route, base_params|merge({ page: current_page - 1 })) }}" aria-label="Poprzednia strona">
                                 <span aria-hidden="true">&lsaquo;</span>
                             </a>
                         {% else %}
@@ -74,13 +92,13 @@
                                 {% elseif item == current_page %}
                                     <span class="btn blog-pagination-link is-current" aria-current="page">{{ item }}</span>
                                 {% else %}
-                                    <a class="btn blog-pagination-link" href="{{ path('blog_index', base_params|merge({ page: item })) }}">{{ item }}</a>
+                                    <a class="btn blog-pagination-link" href="{{ path(pagination_route, base_params|merge({ page: item })) }}">{{ item }}</a>
                                 {% endif %}
                             {% endfor %}
                         </div>
 
                         {% if current_page < total_pages %}
-                            <a class="btn blog-pagination-link blog-pagination-link-icon" href="{{ path('blog_index', base_params|merge({ page: current_page + 1 })) }}" aria-label="Następna strona">
+                            <a class="btn blog-pagination-link blog-pagination-link-icon" href="{{ path(pagination_route, base_params|merge({ page: current_page + 1 })) }}" aria-label="Następna strona">
                                 <span aria-hidden="true">&rsaquo;</span>
                             </a>
                         {% else %}
