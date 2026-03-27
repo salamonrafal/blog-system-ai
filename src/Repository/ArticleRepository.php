@@ -6,6 +6,7 @@ namespace App\Repository;
 
 use App\Entity\Article;
 use App\Entity\ArticleCategory;
+use App\Entity\BlogSettings;
 use App\Enum\ArticleLanguage;
 use App\Enum\ArticleStatus;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -91,7 +92,7 @@ class ArticleRepository extends ServiceEntityRepository
     /**
      * @return list<Article>
      */
-    public function findRecommendedPublished(Article $currentArticle, int $limit = 5): array
+    public function findRecommendedPublished(Article $currentArticle, int $limit = BlogSettings::DEFAULT_RECOMMENDED_ARTICLES_LIMIT): array
     {
         if ($limit <= 0) {
             return [];

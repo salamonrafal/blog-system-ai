@@ -83,7 +83,7 @@ class BlogController extends AbstractController
             ];
         }
 
-        $recommendedArticles = $articleRepository->findRecommendedPublished($article, 5);
+        $recommendedArticles = $articleRepository->findRecommendedPublished($article);
 
         return $this->render('blog/show.html.twig', [
             'article' => $article,

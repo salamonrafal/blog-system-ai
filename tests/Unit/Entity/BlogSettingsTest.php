@@ -43,6 +43,7 @@ final class BlogSettingsTest extends TestCase
         $this->assertSame(BlogSettings::DEFAULT_SEO_KEYWORDS, $settings->getHomepageSeoKeywords());
         $this->assertSame(BlogSettings::DEFAULT_ARTICLES_PER_PAGE, $settings->getArticlesPerPage());
         $this->assertSame(BlogSettings::DEFAULT_ADMIN_ARTICLES_PER_PAGE, $settings->getAdminArticlesPerPage());
+        $this->assertSame(5, BlogSettings::DEFAULT_RECOMMENDED_ARTICLES_LIMIT);
     }
 
     public function testLifecycleCallbacksRefreshTimestamps(): void

@@ -188,7 +188,7 @@ final class BlogControllerTest extends TestCase
         $articleRepository
             ->expects($this->once())
             ->method('findRecommendedPublished')
-            ->with($article, 5)
+            ->with($article)
             ->willReturn([]);
 
         $controller = new TestBlogController();
@@ -224,7 +224,7 @@ final class BlogControllerTest extends TestCase
         $articleRepository
             ->expects($this->once())
             ->method('findRecommendedPublished')
-            ->with($article, 5)
+            ->with($article)
             ->willReturn([]);
 
         $controller = new TestBlogController();
@@ -255,7 +255,7 @@ final class BlogControllerTest extends TestCase
         $articleRepository
             ->expects($this->once())
             ->method('findRecommendedPublished')
-            ->with($article, 5)
+            ->with($article)
             ->willReturn([$recommendedArticle]);
 
         $controller = new TestBlogController();

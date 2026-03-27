@@ -21,6 +21,7 @@ class BlogSettings
     public const DEFAULT_SEO_KEYWORDS = 'blog, programowanie, php, web development, architektura aplikacji, seo, jakość kodu';
     public const DEFAULT_ARTICLES_PER_PAGE = 5;
     public const DEFAULT_ADMIN_ARTICLES_PER_PAGE = 25;
+    public const DEFAULT_RECOMMENDED_ARTICLES_LIMIT = 5;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
