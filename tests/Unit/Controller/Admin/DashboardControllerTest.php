@@ -239,6 +239,12 @@ final class DashboardControllerTest extends TestCase
 
                 return $counts[$criteria['status']->value] ?? 0;
             });
+        $repository
+            ->method('countActive')
+            ->willReturn($counts[ArticleCategoryStatus::ACTIVE->value] ?? 0);
+        $repository
+            ->method('countInactive')
+            ->willReturn($counts[ArticleCategoryStatus::INACTIVE->value] ?? 0);
 
         return $repository;
     }
