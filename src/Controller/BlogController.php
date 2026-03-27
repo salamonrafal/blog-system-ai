@@ -8,6 +8,7 @@ use App\Enum\ArticleLanguage;
 use App\Enum\ArticleStatus;
 use App\Repository\ArticleRepository;
 use App\Service\BlogSettingsProvider;
+use App\Service\PaginationBuilder;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,7 +20,8 @@ class BlogController extends AbstractController
     public function index(
         Request $request,
         ArticleRepository $articleRepository,
-        BlogSettingsProvider $blogSettingsProvider
+        BlogSettingsProvider $blogSettingsProvider,
+        PaginationBuilder $paginationBuilder,
     ): Response
     {
         $language = ArticleLanguage::tryFrom((string) $request->query->get('lang', ''));
@@ -36,7 +38,7 @@ class BlogController extends AbstractController
             'language_options' => ArticleLanguage::cases(),
             'current_page' => $currentPage,
             'total_pages' => $totalPages,
-            'pagination_items' => $this->buildPaginationItems($currentPage, $totalPages),
+            'pagination_items' => $paginationBuilder->buildPaginationItems($currentPage, $totalPages),
         ]);
     }
 
@@ -56,39 +58,5 @@ class BlogController extends AbstractController
         return $this->render('blog/show.html.twig', [
             'article' => $article,
         ]);
-    }
-
-    /**
-     * @return list<int|string>
-     */
-    private function buildPaginationItems(int $currentPage, int $totalPages): array
-    {
-        if ($totalPages <= 7) {
-            return range(1, $totalPages);
-        }
-
-        $pages = [1, $totalPages];
-
-        for ($page = $currentPage - 1; $page <= $currentPage + 1; ++$page) {
-            if ($page > 1 && $page < $totalPages) {
-                $pages[] = $page;
-            }
-        }
-
-        sort($pages);
-
-        $items = [];
-        $previousPage = null;
-
-        foreach (array_values(array_unique($pages)) as $page) {
-            if (null !== $previousPage && $page - $previousPage > 1) {
-                $items[] = '...';
-            }
-
-            $items[] = $page;
-            $previousPage = $page;
-        }
-
-        return $items;
     }
 }

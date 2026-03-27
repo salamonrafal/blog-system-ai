@@ -12,6 +12,7 @@ use App\Repository\ArticleExportQueueRepository;
 use App\Repository\ArticleRepository;
 use App\Service\ArticlePublisher;
 use App\Service\BlogSettingsProvider;
+use App\Service\PaginationBuilder;
 use App\Service\UserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -27,20 +28,21 @@ class ArticleController extends AbstractController
         Request $request,
         ArticleRepository $articleRepository,
         BlogSettingsProvider $blogSettingsProvider,
+        PaginationBuilder $paginationBuilder,
     ): Response
     {
         $settings = $blogSettingsProvider->getSettings();
         $articlesPerPage = max(1, $settings->getAdminArticlesPerPage());
         $requestedPage = max(1, $request->query->getInt('page', 1));
         $totalArticles = $articleRepository->count([]);
-        $totalPages = (int) ceil($totalArticles / $articlesPerPage);
-        $currentPage = min($requestedPage, max(1, $totalPages));
+        $totalPages = max(1, (int) ceil($totalArticles / $articlesPerPage));
+        $currentPage = min($requestedPage, $totalPages);
 
         return $this->render('admin/article/index.html.twig', [
             'articles' => $articleRepository->findPaginatedOrderedByCreatedDate($currentPage, $articlesPerPage),
             'current_page' => $currentPage,
             'total_pages' => $totalPages,
-            'pagination_items' => $this->buildPaginationItems($currentPage, $totalPages),
+            'pagination_items' => $paginationBuilder->buildPaginationItems($currentPage, $totalPages),
         ]);
     }
 
@@ -334,39 +336,5 @@ class ArticleController extends AbstractController
         $user = $this->getUser();
 
         return $user instanceof User ? $user : null;
-    }
-
-    /**
-     * @return list<int|string>
-     */
-    private function buildPaginationItems(int $currentPage, int $totalPages): array
-    {
-        if ($totalPages <= 7) {
-            return range(1, $totalPages);
-        }
-
-        $pages = [1, $totalPages];
-
-        for ($page = $currentPage - 1; $page <= $currentPage + 1; ++$page) {
-            if ($page > 1 && $page < $totalPages) {
-                $pages[] = $page;
-            }
-        }
-
-        sort($pages);
-
-        $items = [];
-        $previousPage = null;
-
-        foreach (array_values(array_unique($pages)) as $page) {
-            if (null !== $previousPage && $page - $previousPage > 1) {
-                $items[] = '...';
-            }
-
-            $items[] = $page;
-            $previousPage = $page;
-        }
-
-        return $items;
     }
 }

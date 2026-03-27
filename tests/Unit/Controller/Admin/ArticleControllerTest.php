@@ -11,6 +11,7 @@ use App\Entity\User;
 use App\Repository\ArticleExportQueueRepository;
 use App\Repository\ArticleRepository;
 use App\Service\BlogSettingsProvider;
+use App\Service\PaginationBuilder;
 use App\Service\UserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
@@ -48,8 +49,9 @@ final class ArticleControllerTest extends TestCase
             ->willReturn($settings);
 
         $controller = new TestArticleController();
+        $paginationBuilder = new PaginationBuilder();
 
-        $response = $controller->index(new Request(['page' => '2']), $articleRepository, $blogSettingsProvider);
+        $response = $controller->index(new Request(['page' => '2']), $articleRepository, $blogSettingsProvider, $paginationBuilder);
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
         $this->assertSame('admin/article/index.html.twig', $controller->capturedView);
@@ -57,6 +59,40 @@ final class ArticleControllerTest extends TestCase
         $this->assertSame(2, $controller->capturedParameters['current_page']);
         $this->assertSame(3, $controller->capturedParameters['total_pages']);
         $this->assertSame([1, 2, 3], $controller->capturedParameters['pagination_items']);
+    }
+
+    public function testIndexKeepsPaginationStateConsistentWhenThereAreNoArticles(): void
+    {
+        $settings = (new BlogSettings())
+            ->setAdminArticlesPerPage(25);
+
+        $articleRepository = $this->createMock(ArticleRepository::class);
+        $articleRepository
+            ->expects($this->once())
+            ->method('count')
+            ->with([])
+            ->willReturn(0);
+        $articleRepository
+            ->expects($this->once())
+            ->method('findPaginatedOrderedByCreatedDate')
+            ->with(1, 25)
+            ->willReturn([]);
+
+        $blogSettingsProvider = $this->createMock(BlogSettingsProvider::class);
+        $blogSettingsProvider
+            ->expects($this->once())
+            ->method('getSettings')
+            ->willReturn($settings);
+
+        $controller = new TestArticleController();
+        $paginationBuilder = new PaginationBuilder();
+
+        $response = $controller->index(new Request(), $articleRepository, $blogSettingsProvider, $paginationBuilder);
+
+        $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
+        $this->assertSame(1, $controller->capturedParameters['current_page']);
+        $this->assertSame(1, $controller->capturedParameters['total_pages']);
+        $this->assertSame([1], $controller->capturedParameters['pagination_items']);
     }
 
     public function testAssignToMeSetsCurrentUserAsAuthorWhenArticleHasNoAuthor(): void
