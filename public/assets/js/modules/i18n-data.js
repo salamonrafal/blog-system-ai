@@ -513,7 +513,7 @@ export const i18n = {
     admin_category_new_title: "Add article category",
     admin_category_new_lede: "Fill in the core category details so it is ready to use in the editorial panel.",
     admin_category_edit_title: "Edit category",
-    admin_category_edit_lede_prefix: "You are editing category",
+    admin_category_edit_lede_prefix: "You are editing the category",
     admin_category_edit_lede_suffix: "Changes will be saved as soon as you submit the form.",
     admin_category_overview_aria: "Category overview",
     admin_category_overview_all: "All categories",

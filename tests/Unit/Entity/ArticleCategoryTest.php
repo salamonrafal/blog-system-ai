@@ -75,15 +75,24 @@ final class ArticleCategoryTest extends TestCase
         usleep(1000);
         $category->onPrePersist();
 
-        $this->assertGreaterThanOrEqual($originalCreatedAt->getTimestamp(), $category->getCreatedAt()->getTimestamp());
-        $this->assertGreaterThanOrEqual($originalUpdatedAt->getTimestamp(), $category->getUpdatedAt()->getTimestamp());
+        $this->assertGreaterThanOrEqual(
+            (float) $originalCreatedAt->format('U.u'),
+            (float) $category->getCreatedAt()->format('U.u'),
+        );
+        $this->assertGreaterThan(
+            (float) $originalUpdatedAt->format('U.u'),
+            (float) $category->getUpdatedAt()->format('U.u'),
+        );
 
         $updatedAtAfterPersist = $category->getUpdatedAt();
 
         usleep(1000);
         $category->onPreUpdate();
 
-        $this->assertGreaterThanOrEqual($updatedAtAfterPersist->getTimestamp(), $category->getUpdatedAt()->getTimestamp());
+        $this->assertGreaterThan(
+            (float) $updatedAtAfterPersist->format('U.u'),
+            (float) $category->getUpdatedAt()->format('U.u'),
+        );
         $this->assertSame('UTC', $category->getUpdatedAt()->getTimezone()->getName());
     }
 }
