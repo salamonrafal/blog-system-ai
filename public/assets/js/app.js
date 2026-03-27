@@ -4,12 +4,15 @@ import {
   setupCharacterCounters,
   setupDashboardCarousels,
   setupDeleteConfirmation,
+  setupCategoryDeleteConfirmation,
+  setupCategoryTranslationCopy,
   setupExportClearConfirmation,
   setupExportDeleteConfirmation,
   setupHeadlineImageToggle,
   setupImportClearConfirmation,
   setupImportDeleteConfirmation,
   setupQueueClearConfirmation,
+  setupTranslationTabs,
   setupUserDeleteConfirmation,
 } from './modules/admin.js';
 import { setupArticleMarkupEditor } from './modules/editor.js';
@@ -36,11 +39,14 @@ function init(){
   setupActions({ applyI18n });
   setupCharacterCounters();
   setupHeadlineImageToggle();
+  setupTranslationTabs();
+  setupCategoryTranslationCopy();
   setupDashboardCarousels();
   setupArticleBulkExport();
   setupArticleMarkupEditor();
   setupImagePreview();
   setupDeleteConfirmation();
+  setupCategoryDeleteConfirmation();
   setupUserDeleteConfirmation();
   setupExportDeleteConfirmation();
   setupExportClearConfirmation();

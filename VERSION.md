@@ -6,6 +6,13 @@
 - Wprowadzono osobne ustawienie liczby elementów na stronę dla listy artykułów w panelu administracyjnym, z domyślną wartością `25`.
 - Rozszerzono model ustawień bloga, formularz panelu oraz migrację bazy danych o konfigurację `admin_articles_per_page`.
 - Rozszerzono ustawienia bloga o konfigurowalny `URL aplikacji`, wykorzystywany przy budowaniu canonicali, `og:url`, linków kopiowania artykułów oraz pełnych adresów obrazków SEO, wraz z migracją bazy danych i aktualizacją testów jednostkowych.
+- Dodano nowy moduł zarządzania kategoriami artykułów w panelu administracyjnym z ekranami listy, tworzenia, edycji i usuwania, nową encją `ArticleCategory`, repozytorium, formularzem, kontrolerem, migracją bazy danych oraz testami jednostkowymi.
+- Rozszerzono dashboard i skróty administracyjne o sekcję kategorii artykułów, dzięki czemu nowy moduł jest dostępny bezpośrednio z panelu głównego i pływającego menu admina.
+- Wprowadzono obsługę statusu kategorii (`Aktywna` / `Nieaktywna`) wraz z prezentacją w formularzu, tabeli listy i modalem potwierdzenia usuwania w stylu interfejsu aplikacji.
+- Rozszerzono kategorie o wielojęzyczne tytuły i opisy, a następnie przebudowano model danych na generyczne mapy tłumaczeń `titles` i `descriptions`, przygotowując strukturę pod kolejne języki bez dodawania nowych pól do encji.
+- Przebudowano formularze dodawania i edycji kategorii, grupując pola w zakładkach `Podstawowe` oraz osobnych panelach tłumaczeń per język, z dopracowanym układem, spacingiem i bardziej kompaktowymi tabami.
+- Dodano w panelach tłumaczeń akcji `Uzupełnij z podstawowych`, która kopiuje nazwę i krótki opis z sekcji podstawowej do aktualnie edytowanego wariantu językowego.
+- Uzupełniono moduł kategorii o pełną internacjonalizację `PL/EN` dla nagłówków ekranów, zakładek, opisów sekcji, etykiet pól, placeholderów, wartości statusu, przycisków i komunikatów pomocniczych, tak aby przełączanie języka działało również na ekranach tworzenia i edycji kategorii.
 
 ## 2026-03-14
 

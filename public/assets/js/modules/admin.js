@@ -180,6 +180,75 @@ export function setupDashboardCarousels(){
   });
 }
 
+export function setupTranslationTabs(){
+  qsa('[data-translation-tabs]').forEach((tabsRoot)=>{
+    const tabs = qsa('[data-translation-tab]', tabsRoot);
+    const panels = qsa('[data-translation-panel]', tabsRoot);
+    if(!tabs.length || !panels.length) return;
+
+    const activateTab = (name)=>{
+      tabs.forEach((tab)=>{
+        const isActive = tab.getAttribute('data-translation-tab') === name;
+        tab.classList.toggle('is-active', isActive);
+        tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        tab.setAttribute('tabindex', isActive ? '0' : '-1');
+      });
+
+      panels.forEach((panel)=>{
+        const isActive = panel.getAttribute('data-translation-panel') === name;
+        panel.classList.toggle('is-active', isActive);
+        panel.hidden = !isActive;
+      });
+    };
+
+    tabs.forEach((tab)=>{
+      tab.addEventListener('click', ()=>{
+        activateTab(tab.getAttribute('data-translation-tab') || '');
+      });
+
+      tab.addEventListener('keydown', (event)=>{
+        if(event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+
+        event.preventDefault();
+        const currentIndex = tabs.indexOf(tab);
+        const direction = event.key === 'ArrowRight' ? 1 : -1;
+        const nextIndex = (currentIndex + direction + tabs.length) % tabs.length;
+        const nextTab = tabs[nextIndex];
+        if(!nextTab) return;
+
+        activateTab(nextTab.getAttribute('data-translation-tab') || '');
+        nextTab.focus({ preventScroll: true });
+      });
+    });
+  });
+}
+
+export function setupCategoryTranslationCopy(){
+  qsa('[data-translation-tabs]').forEach((tabsRoot)=>{
+    const basicTitle = qs('[data-category-basic-title]', tabsRoot);
+    const basicDescription = qs('[data-category-basic-description]', tabsRoot);
+    if(!basicTitle || !basicDescription) return;
+
+    qsa('[data-action="copy-basic-translation"]', tabsRoot).forEach((button)=>{
+      button.addEventListener('click', ()=>{
+        const language = button.getAttribute('data-copy-target-language');
+        if(!language) return;
+
+        const titleField = qs(`[data-category-translation-title="${language}"]`, tabsRoot);
+        const descriptionField = qs(`[data-category-translation-description="${language}"]`, tabsRoot);
+        if(!titleField || !descriptionField) return;
+
+        titleField.value = basicTitle.value;
+        descriptionField.value = basicDescription.value;
+        titleField.dispatchEvent(new Event('input', { bubbles: true }));
+        descriptionField.dispatchEvent(new Event('input', { bubbles: true }));
+        titleField.dispatchEvent(new Event('change', { bubbles: true }));
+        descriptionField.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+    });
+  });
+}
+
 export function setupArticleBulkExport(){
   const selectAll = qs('[data-article-select-all]');
   const submit = qs('[data-article-bulk-submit]');
@@ -354,6 +423,29 @@ export function setupUserDeleteConfirmation(){
     cancelFallback: 'Przerwij',
     submitI18n: 'admin_users_delete_popup_confirm',
     submitFallback: 'Usuń użytkownika',
+    closeI18n: 'admin_close_alert',
+    closeFallback: 'Zamknij alert',
+  });
+}
+
+export function setupCategoryDeleteConfirmation(){
+  setupDangerConfirmation({
+    triggerSelector: '[data-action="confirm-delete-category"]',
+    modalClass: 'confirm-delete-category-modal',
+    modalIdPrefix: 'confirm-delete-category',
+    titleI18n: 'admin_categories_delete_popup_title',
+    titleFallback: 'Usunąć kategorię?',
+    textI18n: 'admin_categories_delete_popup_text',
+    textFallback: 'Ta operacja trwale usunie kategorię z panelu administracyjnego.',
+    detailsClass: 'confirm-delete-category-name',
+    detailsText: (trigger)=> trigger.getAttribute('data-category-name') || '',
+    cancelAction: 'cancel-delete-category',
+    submitAction: 'submit-delete-category',
+    closeAction: 'close-delete-category',
+    cancelI18n: 'admin_categories_delete_popup_cancel',
+    cancelFallback: 'Przerwij',
+    submitI18n: 'admin_categories_delete_popup_confirm',
+    submitFallback: 'Usuń kategorię',
     closeI18n: 'admin_close_alert',
     closeFallback: 'Zamknij alert',
   });

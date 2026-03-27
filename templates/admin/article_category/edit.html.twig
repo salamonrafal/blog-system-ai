@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edytuj kategorię | {{ app_name }}{% endblock %}
+
+{% block body %}
+    <section class="section">
+        <div class="card">
+            <div class="card-header">
+                <div class="window-dots" aria-hidden="true">
+                    <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                </div>
+                <span class="pill">admin://category-edit</span>
+            </div>
+
+            <div class="dashboard-feed-intro">
+                <h1 data-i18n="admin_category_edit_title">Edytuj kategorię</h1>
+                <p class="lede">
+                    <span data-i18n="admin_category_edit_lede_prefix">Aktualizujesz kategorię</span>
+                    <strong>{{ category.name }}</strong>.
+                    <span data-i18n="admin_category_edit_lede_suffix">Zmiany zostaną zapisane od razu po zatwierdzeniu formularza.</span>
+                </p>
+            </div>
+
+            {% include 'admin/article_category/_form.html.twig' with {
+                form: form,
+                submit_label: 'Zapisz zmiany',
+                submit_key: 'form_submit_update'
+            } %}
+        </div>
+    </section>
+{% endblock %}

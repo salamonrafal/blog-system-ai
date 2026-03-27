@@ -1,0 +1,202 @@
+{{ form_start(form, { attr: { class: 'article-editor-form' } }) }}
+    {% if form.vars.errors|length > 0 %}
+        <div class="form-errors article-editor-errors" role="alert">
+            {% for error in form.vars.errors %}
+                <p>{{ error.message }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="article-editor-fields">
+        <section class="article-category-translation-tabs" data-translation-tabs>
+            <div class="article-editor-help-tabs article-category-translation-tab-list" role="tablist" data-i18n-aria="category_translation_tabs_aria" aria-label="Tłumaczenia kategorii">
+                <button
+                    type="button"
+                    class="article-editor-help-tab article-category-translation-tab is-active"
+                    data-translation-tab="basic"
+                    role="tab"
+                    aria-selected="true"
+                    aria-controls="category-translation-panel-basic"
+                    id="category-translation-tab-basic"
+                    tabindex="0"
+                >
+                    <span class="article-category-translation-tab-language" data-i18n="category_tab_basic">Podstawowe</span>
+                    <span class="article-category-translation-tab-scope" data-i18n="category_tab_basic_scope">Nazwa i opis</span>
+                </button>
+                {% for title_field in form.titles %}
+                    {% set language = title_field.vars.name %}
+                    {% set language_label_key = language == 'pl' ? 'category_language_pl' : language == 'en' ? 'category_language_en' : '' %}
+                    <button
+                        type="button"
+                        class="article-editor-help-tab article-category-translation-tab"
+                        data-translation-tab="{{ language }}"
+                        role="tab"
+                        aria-selected="false"
+                        aria-controls="category-translation-panel-{{ language }}"
+                        id="category-translation-tab-{{ language }}"
+                        tabindex="-1"
+                    >
+                        <span class="article-category-translation-tab-language"{% if language_label_key %} data-i18n="{{ language_label_key }}"{% endif %}>{{ language == 'pl' ? 'Polski (PL)' : language == 'en' ? 'English (EN)' : language|upper }}</span>
+                        <span class="article-category-translation-tab-scope" data-i18n="category_tab_translation_scope">Tytuł i opis</span>
+                    </button>
+                {% endfor %}
+            </div>
+
+            <div class="article-editor-help-panels article-category-translation-panels">
+                <section
+                    id="category-translation-panel-basic"
+                    class="article-editor-help-panel article-category-translation-panel is-active"
+                    data-translation-panel="basic"
+                    role="tabpanel"
+                    aria-labelledby="category-translation-tab-basic"
+                >
+                    <div class="article-category-translation-panel-header">
+                        <h2 data-i18n="category_basic_panel_title">Podstawowe informacje</h2>
+                        <p data-i18n="category_basic_panel_lede">Uzupełnij techniczną nazwę kategorii oraz jej krótki opis pomocniczy używany w panelu administracyjnym.</p>
+                    </div>
+
+                    {% set name_has_errors = form.name.vars.errors|length > 0 %}
+                    <div class="field article-editor-field{{ name_has_errors ? ' has-error' : '' }}">
+                        {{ form_label(form.name) }}
+                        {{ form_widget(form.name, {
+                            attr: form.name.vars.attr|merge({'data-category-basic-title': ''})|merge(name_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.name.vars.id ~ '-error'} : {})
+                        }) }}
+                        {% if name_has_errors %}
+                            <div id="{{ form.name.vars.id }}-error" class="article-editor-error-message" role="alert">
+                                {% for error in form.name.vars.errors %}
+                                    <p>{{ error.message }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    {% set short_description_has_errors = form.shortDescription.vars.errors|length > 0 %}
+                    <div class="field article-editor-field{{ short_description_has_errors ? ' has-error' : '' }}">
+                        {{ form_label(form.shortDescription) }}
+                        {{ form_widget(form.shortDescription, {
+                            attr: form.shortDescription.vars.attr|merge({'data-category-basic-description': '', 'data-character-count-input': ''})|merge(short_description_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.shortDescription.vars.id ~ '-error'} : {})
+                        }) }}
+                        <div class="article-editor-field-meta">
+                            <span class="article-editor-field-hint" data-i18n="category_basic_short_description_hint">Krótki opis przyda się przy późniejszym przypisywaniu kategorii do artykułów.</span>
+                            <span class="article-editor-field-counter" data-character-count-target></span>
+                        </div>
+                        {% if short_description_has_errors %}
+                            <div id="{{ form.shortDescription.vars.id }}-error" class="article-editor-error-message" role="alert">
+                                {% for error in form.shortDescription.vars.errors %}
+                                    <p>{{ error.message }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </section>
+
+                {% for title_field in form.titles %}
+                    {% set language = title_field.vars.name %}
+                    {% set language_label_key = language == 'pl' ? 'category_language_pl' : language == 'en' ? 'category_language_en' : '' %}
+                    {% set description_field = attribute(form.descriptions, language) %}
+                    <section
+                        id="category-translation-panel-{{ language }}"
+                        class="article-editor-help-panel article-category-translation-panel"
+                        data-translation-panel="{{ language }}"
+                        role="tabpanel"
+                        aria-labelledby="category-translation-tab-{{ language }}"
+                        hidden
+                    >
+                        <div class="article-category-translation-panel-header">
+                            <div class="article-category-translation-panel-header-top">
+                                <div class="article-category-translation-panel-copy">
+                                    <h2{% if language_label_key %} data-i18n="{{ language_label_key }}"{% endif %}>{{ language == 'pl' ? 'Polski (PL)' : language == 'en' ? 'English (EN)' : language|upper }}</h2>
+                                    <button
+                                        type="button"
+                                        class="button secondary article-category-translation-copy-button"
+                                        data-action="copy-basic-translation"
+                                        data-copy-target-language="{{ language }}"
+                                        data-i18n="category_copy_from_basic"
+                                    >
+                                        Uzupełnij z podstawowych
+                                    </button>
+                                </div>
+                                <p data-i18n="category_translation_panel_lede">Uzupełnij treści kategorii dla wybranego języka. Ta sekcja obejmuje tytuł oraz opis.</p>
+                            </div>
+                        </div>
+
+                        {% set translation_title_has_errors = title_field.vars.errors|length > 0 %}
+                        <div class="field article-editor-field{{ translation_title_has_errors ? ' has-error' : '' }}">
+                            {{ form_label(title_field) }}
+                            {{ form_widget(title_field, {
+                                attr: title_field.vars.attr|merge({'data-category-translation-title': language})|merge(translation_title_has_errors ? {'aria-invalid': 'true', 'aria-describedby': title_field.vars.id ~ '-error'} : {})
+                            }) }}
+                            {% if translation_title_has_errors %}
+                                <div id="{{ title_field.vars.id }}-error" class="article-editor-error-message" role="alert">
+                                    {% for error in title_field.vars.errors %}
+                                        <p>{{ error.message }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        {% set translation_description_has_errors = description_field.vars.errors|length > 0 %}
+                        <div class="field article-editor-field{{ translation_description_has_errors ? ' has-error' : '' }}">
+                            {{ form_label(description_field) }}
+                            {{ form_widget(description_field, {
+                                attr: description_field.vars.attr|merge({'data-category-translation-description': language, 'data-character-count-input': ''})|merge(translation_description_has_errors ? {'aria-invalid': 'true', 'aria-describedby': description_field.vars.id ~ '-error'} : {})
+                            }) }}
+                            <div class="article-editor-field-meta">
+                                <span class="article-editor-field-counter" data-character-count-target></span>
+                            </div>
+                            {% if translation_description_has_errors %}
+                                <div id="{{ description_field.vars.id }}-error" class="article-editor-error-message" role="alert">
+                                    {% for error in description_field.vars.errors %}
+                                        <p>{{ error.message }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </section>
+                {% endfor %}
+            </div>
+        </section>
+
+        <div class="article-editor-grid">
+            {% set icon_has_errors = form.icon.vars.errors|length > 0 %}
+            <div class="field article-editor-field{{ icon_has_errors ? ' has-error' : '' }}">
+                {{ form_label(form.icon) }}
+                {{ form_widget(form.icon, {
+                    attr: form.icon.vars.attr|merge(icon_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.icon.vars.id ~ '-error'} : {})
+                }) }}
+                <div class="article-editor-field-meta">
+                    <span class="article-editor-field-hint" data-i18n="category_form_icon_hint">Pole tekstowe na klasę CSS, nazwę ikony lub ścieżkę do pliku SVG.</span>
+                </div>
+                {% if icon_has_errors %}
+                    <div id="{{ form.icon.vars.id }}-error" class="article-editor-error-message" role="alert">
+                        {% for error in form.icon.vars.errors %}
+                            <p>{{ error.message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            {% set status_has_errors = form.status.vars.errors|length > 0 %}
+            <div class="field article-editor-field{{ status_has_errors ? ' has-error' : '' }}">
+                {{ form_label(form.status) }}
+                {{ form_widget(form.status, {
+                    attr: form.status.vars.attr|merge(status_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.status.vars.id ~ '-error'} : {})
+                }) }}
+                {% if status_has_errors %}
+                    <div id="{{ form.status.vars.id }}-error" class="article-editor-error-message" role="alert">
+                        {% for error in form.status.vars.errors %}
+                            <p>{{ error.message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {{ form_rest(form) }}
+
+    <div class="actions article-editor-actions">
+        <button class="button" type="submit" data-i18n="{{ submit_key|default('category_form_submit_save') }}">{{ submit_label|default('Zapisz kategorię') }}</button>
+        <a class="button secondary" href="{{ path('admin_article_category_index') }}" data-i18n="category_form_back_to_list">Wróć do listy</a>
+    </div>
+{{ form_end(form) }}
