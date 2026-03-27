@@ -13,6 +13,7 @@
 - Przebudowano formularze dodawania i edycji kategorii, grupując pola w zakładkach `Podstawowe` oraz osobnych panelach tłumaczeń per język, z dopracowanym układem, spacingiem i bardziej kompaktowymi tabami.
 - Dodano w panelach tłumaczeń akcji `Uzupełnij z podstawowych`, która kopiuje nazwę i krótki opis z sekcji podstawowej do aktualnie edytowanego wariantu językowego.
 - Uzupełniono moduł kategorii o pełną internacjonalizację `PL/EN` dla nagłówków ekranów, zakładek, opisów sekcji, etykiet pól, placeholderów, wartości statusu, przycisków i komunikatów pomocniczych, tak aby przełączanie języka działało również na ekranach tworzenia i edycji kategorii.
+- Rozszerzono formularze tworzenia i edycji artykułu o możliwość przypisania kategorii, dodając relację `Article -> ArticleCategory`, migrację bazy danych oraz aktualizację testów jednostkowych encji i formularza.
 
 ## 2026-03-14
 

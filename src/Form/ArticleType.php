@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Form;
 
 use App\Entity\Article;
+use App\Entity\ArticleCategory;
 use App\Enum\ArticleLanguage;
 use App\Enum\ArticleStatus;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -74,6 +76,15 @@ class ArticleType extends AbstractType
                     },
                 ],
             ])
+            ->add('category', ChoiceType::class, [
+                'label' => 'Category',
+                'label_attr' => ['data-i18n' => 'category_form_name'],
+                'required' => false,
+                'placeholder' => '---',
+                'choice_translation_domain' => false,
+                'choices' => $options['categories'],
+                'choice_label' => static fn (ArticleCategory $category): string => $category->getName(),
+            ])
             ->add('publishedAt', DateTimeType::class, [
                 'label' => 'Publish date',
                 'label_attr' => ['data-i18n' => 'form_publish_date'],
@@ -90,6 +101,9 @@ class ArticleType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Article::class,
+            'categories' => [],
         ]);
+
+        $resolver->setAllowedTypes('categories', 'array');
     }
 }

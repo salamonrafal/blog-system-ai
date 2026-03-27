@@ -63,6 +63,10 @@ class Article
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?ArticleCategory $category = null;
+
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?User $createdBy = null;
 
     #[ORM\ManyToOne]
@@ -201,6 +205,18 @@ class Article
     public function setPublishedAt(?\DateTimeImmutable $publishedAt): self
     {
         $this->publishedAt = self::normalizeToUtc($publishedAt);
+
+        return $this;
+    }
+
+    public function getCategory(): ?ArticleCategory
+    {
+        return $this->category;
+    }
+
+    public function setCategory(?ArticleCategory $category): self
+    {
+        $this->category = $category;
 
         return $this;
     }
