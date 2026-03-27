@@ -10,9 +10,11 @@ use App\Repository\ArticleCategoryRepository;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Form\Extension\HttpFoundation\HttpFoundationExtension;
+use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\Forms;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Validator\Validation;
 
 final class ArticleCategoryControllerTest extends TestCase
 {
@@ -84,8 +86,11 @@ final class TestArticleCategoryController extends ArticleCategoryController
 
     protected function createForm(string $type, mixed $data = null, array $options = []): FormInterface
     {
+        $validator = Validation::createValidator();
+
         return Forms::createFormFactoryBuilder()
             ->addExtension(new HttpFoundationExtension())
+            ->addExtension(new ValidatorExtension($validator))
             ->getFormFactory()
             ->create($type, $data, $options);
     }

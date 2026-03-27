@@ -13,6 +13,8 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\NotBlank;
 
 class ArticleCategoryType extends AbstractType
 {
@@ -81,6 +83,15 @@ class ArticleCategoryType extends AbstractType
                 'label_attr' => ['data-i18n' => 'form_title'],
                 'required' => true,
                 'data' => $category instanceof ArticleCategory ? $category->getTitle($language) ?? '' : '',
+                'constraints' => [
+                    new NotBlank([
+                        'message' => 'Tytuł kategorii jest wymagany.',
+                    ]),
+                    new Length([
+                        'max' => 255,
+                        'maxMessage' => 'Tytuł kategorii może mieć maksymalnie 255 znaków.',
+                    ]),
+                ],
                 'attr' => [
                     'class' => 'article-editor-input',
                     'maxlength' => 255,
@@ -93,6 +104,12 @@ class ArticleCategoryType extends AbstractType
                 'label_attr' => ['data-i18n' => 'category_form_description'],
                 'required' => false,
                 'data' => $category instanceof ArticleCategory ? $category->getDescription($language) : null,
+                'constraints' => [
+                    new Length([
+                        'max' => 1000,
+                        'maxMessage' => 'Opis kategorii może mieć maksymalnie 1000 znaków.',
+                    ]),
+                ],
                 'attr' => [
                     'class' => 'article-editor-input article-editor-textarea',
                     'maxlength' => 1000,

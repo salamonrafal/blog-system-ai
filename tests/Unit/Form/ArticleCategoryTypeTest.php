@@ -13,6 +13,10 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Forms;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
+use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Validation;
 
 final class ArticleCategoryTypeTest extends TestCase
 {
@@ -28,7 +32,10 @@ final class ArticleCategoryTypeTest extends TestCase
 
     public function testBuildFormRegistersExpectedFieldsAndOptions(): void
     {
-        $factory = Forms::createFormFactoryBuilder()->getFormFactory();
+        $validator = Validation::createValidator();
+        $factory = Forms::createFormFactoryBuilder()
+            ->addExtension(new ValidatorExtension($validator))
+            ->getFormFactory();
         $form = $factory->create(ArticleCategoryType::class, new ArticleCategory());
 
         $this->assertInstanceOf(TextType::class, $form->get('name')->getConfig()->getType()->getInnerType());
@@ -43,19 +50,25 @@ final class ArticleCategoryTypeTest extends TestCase
         $this->assertInstanceOf(TextType::class, $form->get('titles')->get('pl')->getConfig()->getType()->getInnerType());
         $this->assertSame(255, $form->get('titles')->get('pl')->getConfig()->getOption('attr')['maxlength']);
         $this->assertTrue($form->get('titles')->get('pl')->getConfig()->getOption('required'));
+        $this->assertContainsOnlyInstancesOf(NotBlank::class, [$form->get('titles')->get('pl')->getConfig()->getOption('constraints')[0]]);
+        $this->assertContainsOnlyInstancesOf(Length::class, [$form->get('titles')->get('pl')->getConfig()->getOption('constraints')[1]]);
 
         $this->assertInstanceOf(TextType::class, $form->get('titles')->get('en')->getConfig()->getType()->getInnerType());
         $this->assertSame(255, $form->get('titles')->get('en')->getConfig()->getOption('attr')['maxlength']);
         $this->assertTrue($form->get('titles')->get('en')->getConfig()->getOption('required'));
+        $this->assertContainsOnlyInstancesOf(NotBlank::class, [$form->get('titles')->get('en')->getConfig()->getOption('constraints')[0]]);
+        $this->assertContainsOnlyInstancesOf(Length::class, [$form->get('titles')->get('en')->getConfig()->getOption('constraints')[1]]);
 
         $this->assertInstanceOf(FormType::class, $form->get('descriptions')->getConfig()->getType()->getInnerType());
         $this->assertInstanceOf(TextareaType::class, $form->get('descriptions')->get('pl')->getConfig()->getType()->getInnerType());
         $this->assertFalse($form->get('descriptions')->get('pl')->getConfig()->getOption('required'));
         $this->assertSame(1000, $form->get('descriptions')->get('pl')->getConfig()->getOption('attr')['maxlength']);
+        $this->assertContainsOnlyInstancesOf(Length::class, $form->get('descriptions')->get('pl')->getConfig()->getOption('constraints'));
 
         $this->assertInstanceOf(TextareaType::class, $form->get('descriptions')->get('en')->getConfig()->getType()->getInnerType());
         $this->assertFalse($form->get('descriptions')->get('en')->getConfig()->getOption('required'));
         $this->assertSame(1000, $form->get('descriptions')->get('en')->getConfig()->getOption('attr')['maxlength']);
+        $this->assertContainsOnlyInstancesOf(Length::class, $form->get('descriptions')->get('en')->getConfig()->getOption('constraints'));
 
         $this->assertInstanceOf(TextType::class, $form->get('icon')->getConfig()->getType()->getInnerType());
         $this->assertFalse($form->get('icon')->getConfig()->getOption('required'));
