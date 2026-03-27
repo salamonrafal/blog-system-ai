@@ -5,6 +5,7 @@
 - Dodano stronicowanie pod tabelą na `admin_article_index`.
 - Wprowadzono osobne ustawienie liczby elementów na stronę dla listy artykułów w panelu administracyjnym, z domyślną wartością `25`.
 - Rozszerzono model ustawień bloga, formularz panelu oraz migrację bazy danych o konfigurację `admin_articles_per_page`.
+- Rozszerzono ustawienia bloga o konfigurowalny `URL aplikacji`, wykorzystywany przy budowaniu canonicali, `og:url`, linków kopiowania artykułów oraz pełnych adresów obrazków SEO, wraz z migracją bazy danych i aktualizacją testów jednostkowych.
 
 ## 2026-03-14
 

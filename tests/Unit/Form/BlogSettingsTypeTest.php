@@ -30,6 +30,9 @@ final class BlogSettingsTypeTest extends TestCase
         $factory = Forms::createFormFactoryBuilder()->getFormFactory();
         $form = $factory->create(BlogSettingsType::class, new BlogSettings());
 
+        $this->assertInstanceOf(TextType::class, $form->get('appUrl')->getConfig()->getType()->getInnerType());
+        $this->assertSame(255, $form->get('appUrl')->getConfig()->getOption('attr')['maxlength']);
+
         $this->assertInstanceOf(TextType::class, $form->get('blogTitle')->getConfig()->getType()->getInnerType());
         $this->assertSame(255, $form->get('blogTitle')->getConfig()->getOption('attr')['maxlength']);
 

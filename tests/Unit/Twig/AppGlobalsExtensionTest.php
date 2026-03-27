@@ -18,7 +18,9 @@ final class AppGlobalsExtensionTest extends TestCase
 {
     public function testGetGlobalsExposesAppNameAndBlogSettings(): void
     {
-        $settings = (new BlogSettings())->setBlogTitle('Blog testowy');
+        $settings = (new BlogSettings())
+            ->setAppUrl('https://blog.example.com')
+            ->setBlogTitle('Blog testowy');
 
         $provider = $this->createMock(BlogSettingsProvider::class);
         $provider
@@ -68,6 +70,7 @@ final class AppGlobalsExtensionTest extends TestCase
         $globals = $extension->getGlobals();
 
         $this->assertSame('Blog testowy', $globals['app_name']);
+        $this->assertSame('https://blog.example.com', $globals['app_url']);
         $this->assertSame($settings, $globals['blog_settings']);
         $this->assertSame('test', $globals['app_env']);
         $this->assertSame('en', $globals['user_language']);

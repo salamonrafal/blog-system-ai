@@ -4,9 +4,9 @@
 {% block meta_description %}{{ blog_settings.homepageSeoDescription }}{% endblock %}
 {% block meta_keywords %}{{ blog_settings.homepageSeoKeywords }}{% endblock %}
 {% block og_description %}{{ blog_settings.homepageSeoDescription }}{% endblock %}
-{% block og_image %}{{ blog_settings.homepageSocialImage }}{% endblock %}
+{% block og_image %}{{ blog_settings.resolvedHomepageSocialImage }}{% endblock %}
 {% block twitter_description %}{{ blog_settings.homepageSeoDescription }}{% endblock %}
-{% block twitter_image %}{{ blog_settings.homepageSocialImage }}{% endblock %}
+{% block twitter_image %}{{ blog_settings.resolvedHomepageSocialImage }}{% endblock %}
 
 {% block body %}
     <section class="section">

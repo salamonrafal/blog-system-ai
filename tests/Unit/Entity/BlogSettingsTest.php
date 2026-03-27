@@ -12,6 +12,7 @@ final class BlogSettingsTest extends TestCase
     public function testBlogSettingsExposeAssignedAndNormalizedValues(): void
     {
         $settings = (new BlogSettings())
+            ->setAppUrl('  https://example.com/  ')
             ->setBlogTitle('  Moj Blog AI  ')
             ->setHomepageSeoDescription('  Opis strony glownej  ')
             ->setHomepageSocialImage('  /assets/img/blog-share.png  ')
@@ -19,9 +20,11 @@ final class BlogSettingsTest extends TestCase
             ->setArticlesPerPage(9)
             ->setAdminArticlesPerPage(25);
 
+        $this->assertSame('https://example.com', $settings->getAppUrl());
         $this->assertSame('Moj Blog AI', $settings->getBlogTitle());
         $this->assertSame('Opis strony glownej', $settings->getHomepageSeoDescription());
         $this->assertSame('/assets/img/blog-share.png', $settings->getHomepageSocialImage());
+        $this->assertSame('https://example.com/assets/img/blog-share.png', $settings->getResolvedHomepageSocialImage());
         $this->assertSame('php, symfony, ai', $settings->getHomepageSeoKeywords());
         $this->assertSame(9, $settings->getArticlesPerPage());
         $this->assertSame(25, $settings->getAdminArticlesPerPage());
@@ -31,9 +34,11 @@ final class BlogSettingsTest extends TestCase
     {
         $settings = new BlogSettings();
 
+        $this->assertSame(BlogSettings::DEFAULT_APP_URL, $settings->getAppUrl());
         $this->assertSame(BlogSettings::DEFAULT_BLOG_TITLE, $settings->getBlogTitle());
         $this->assertSame(BlogSettings::DEFAULT_SEO_DESCRIPTION, $settings->getHomepageSeoDescription());
         $this->assertSame(BlogSettings::DEFAULT_SOCIAL_IMAGE, $settings->getHomepageSocialImage());
+        $this->assertSame(BlogSettings::DEFAULT_SOCIAL_IMAGE, $settings->getResolvedHomepageSocialImage());
         $this->assertSame(BlogSettings::DEFAULT_SEO_KEYWORDS, $settings->getHomepageSeoKeywords());
         $this->assertSame(BlogSettings::DEFAULT_ARTICLES_PER_PAGE, $settings->getArticlesPerPage());
         $this->assertSame(BlogSettings::DEFAULT_ADMIN_ARTICLES_PER_PAGE, $settings->getAdminArticlesPerPage());

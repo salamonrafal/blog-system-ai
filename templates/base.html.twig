@@ -9,7 +9,7 @@
     <meta name="author" content="Rafał Salamon">
     <meta name="theme-color" content="#0b0f12">
 
-    <link rel="canonical" href="{% block canonical %}https://www.salamonrafal.pl/{% endblock %}">
+    <link rel="canonical" href="{% block canonical %}{{ app_url ~ path('blog_index') }}{% endblock %}">
     <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/assets/css/styles.css">
 
@@ -18,8 +18,8 @@
     <meta property="og:site_name" content="{{ app_name }}">
     <meta property="og:title" content="{% block og_title %}{% block title %}{{ app_name }}{% endblock %}{% endblock %}">
     <meta property="og:description" content="{% block og_description %}{{ block('meta_description') }}{% endblock %}">
-    <meta property="og:url" content="{% block og_url %}https://www.salamonrafal.pl/{% endblock %}">
-    <meta property="og:image" content="{% block og_image %}{{ blog_settings.homepageSocialImage }}{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}{{ app_url ~ path('blog_index') }}{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{{ blog_settings.resolvedHomepageSocialImage }}{% endblock %}">
 
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{% block twitter_title %}{{ block('og_title') }}{% endblock %}">
