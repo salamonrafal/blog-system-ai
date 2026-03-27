@@ -28,12 +28,30 @@
                             decoding="async"
                         >
                         <figcaption class="article-headline-caption">
-                            <h1 class="article-headline-title">{{ article.title }}</h1>
+                            <div class="article-headline-header">
+                                <h1 class="article-headline-title">{{ article.title }}</h1>
+                                {% if article.category %}
+                                    {% include 'blog/_category_badge.html.twig' with {
+                                        category: article.category,
+                                        route_params: article_category_route_params,
+                                        standalone: false,
+                                    } only %}
+                                {% endif %}
+                            </div>
                         </figcaption>
                     </figure>
                 {% else %}
                     <div class="dashboard-feed-intro">
-                        <h1>{{ article.title }}</h1>
+                        <div class="article-headline-header article-headline-header-standalone">
+                            <h1>{{ article.title }}</h1>
+                            {% if article.category %}
+                                {% include 'blog/_category_badge.html.twig' with {
+                                    category: article.category,
+                                    route_params: article_category_route_params,
+                                    standalone: true,
+                                } only %}
+                            {% endif %}
+                        </div>
                     </div>
                 {% endif %}
                 <div class="article-body">

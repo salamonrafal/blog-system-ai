@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\Article;
+use App\Entity\ArticleCategory;
 use App\Enum\ArticleLanguage;
 use App\Enum\ArticleStatus;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -24,9 +25,9 @@ class ArticleRepository extends ServiceEntityRepository
     /**
      * @return list<Article>
      */
-    public function findPublishedOrderedByDate(?ArticleLanguage $language = null): array
+    public function findPublishedOrderedByDate(?ArticleLanguage $language = null, ?ArticleCategory $category = null): array
     {
-        return $this->createPublishedOrderedByDateQueryBuilder($language)
+        return $this->createPublishedOrderedByDateQueryBuilder($language, $category)
             ->getQuery()
             ->getResult();
     }
@@ -34,9 +35,9 @@ class ArticleRepository extends ServiceEntityRepository
     /**
      * @return list<Article>
      */
-    public function findPublishedPaginated(?ArticleLanguage $language, int $page, int $limit): array
+    public function findPublishedPaginated(?ArticleLanguage $language, int $page, int $limit, ?ArticleCategory $category = null): array
     {
-        return $this->createPublishedOrderedByDateQueryBuilder($language)
+        return $this->createPublishedOrderedByDateQueryBuilder($language, $category)
             ->setFirstResult(max(0, ($page - 1) * $limit))
             ->setMaxResults($limit)
             ->getQuery()
@@ -57,9 +58,9 @@ class ArticleRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    public function countPublished(?ArticleLanguage $language = null): int
+    public function countPublished(?ArticleLanguage $language = null, ?ArticleCategory $category = null): int
     {
-        return (int) $this->createPublishedQueryBuilder($language)
+        return (int) $this->createPublishedQueryBuilder($language, $category)
             ->select('COUNT(article.id)')
             ->getQuery()
             ->getSingleScalarResult();
@@ -105,16 +106,16 @@ class ArticleRepository extends ServiceEntityRepository
             ->getSingleScalarResult() > 0;
     }
 
-    private function createPublishedOrderedByDateQueryBuilder(?ArticleLanguage $language): QueryBuilder
+    private function createPublishedOrderedByDateQueryBuilder(?ArticleLanguage $language, ?ArticleCategory $category): QueryBuilder
     {
-        return $this->createPublishedQueryBuilder($language)
+        return $this->createPublishedQueryBuilder($language, $category)
             ->addSelect('COALESCE(article.publishedAt, article.createdAt) AS HIDDEN publicationOrderAt')
             ->orderBy('publicationOrderAt', 'DESC')
             ->addOrderBy('article.createdAt', 'DESC')
             ->addOrderBy('article.id', 'DESC');
     }
 
-    private function createPublishedQueryBuilder(?ArticleLanguage $language): QueryBuilder
+    private function createPublishedQueryBuilder(?ArticleLanguage $language, ?ArticleCategory $category): QueryBuilder
     {
         $queryBuilder = $this->createQueryBuilder('article')
             ->andWhere('article.status = :status')
@@ -124,6 +125,12 @@ class ArticleRepository extends ServiceEntityRepository
             $queryBuilder
                 ->andWhere('article.language = :language')
                 ->setParameter('language', $language);
+        }
+
+        if (null !== $category) {
+            $queryBuilder
+                ->andWhere('article.category = :category')
+                ->setParameter('category', $category);
         }
 
         return $queryBuilder;

@@ -43,4 +43,20 @@ class ArticleCategoryRepository extends ServiceEntityRepository
     {
         return $this->count(['status' => ArticleCategoryStatus::INACTIVE]);
     }
+
+    /**
+     * @return list<ArticleCategory>
+     */
+    public function findActiveOrderedByName(): array
+    {
+        /** @var list<ArticleCategory> $categories */
+        $categories = $this->createQueryBuilder('category')
+            ->andWhere('category.status = :status')
+            ->setParameter('status', ArticleCategoryStatus::ACTIVE)
+            ->orderBy('category.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        return $categories;
+    }
 }
