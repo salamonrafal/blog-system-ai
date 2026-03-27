@@ -31,6 +31,7 @@ class BlogSettings
     #[Assert\Length(max: 255, maxMessage: 'URL aplikacji może mieć maksymalnie 255 znaków.')]
     #[Assert\Url(
         protocols: ['http', 'https'],
+        requireTld: false,
         message: 'Podaj poprawny pełny URL aplikacji zaczynający się od http:// lub https://.'
     )]
     #[ORM\Column(length: 255)]

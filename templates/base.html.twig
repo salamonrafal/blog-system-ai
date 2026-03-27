@@ -32,7 +32,7 @@
 <body data-page-title="{% block page_title %}{{ block('title') }}{% endblock %}">
 <header class="topbar">
     <div class="topbar-inner">
-        <a class="brand" href="https://www.salamonrafal.pl/" aria-label="Home">
+        <a class="brand" href="{{ path('blog_index') }}" aria-label="Home">
             <img src="/assets/img/logo.svg" alt="RS logo">
             <div class="title">
                 <strong>Rafał Salamon</strong>
@@ -44,7 +44,7 @@ Fullstack Developer</span>
         <nav class="nav" aria-label="Primary">
             <a href="https://www.salamonrafal.pl/" data-i18n="nav_home">Start</a>
             <a href="https://www.salamonrafal.pl/about.html" data-i18n="nav_about">O mnie</a>
-            <a href="https://www.salamonrafal.pl/projects.html" data-i18n="nav_projects">Moje projekty</a>
+            <a href="https://www.salamonrafal.pl/projects.htm" data-i18n="nav_projects">Moje projekty</a>
             <a href="https://www.salamonrafal.pl/tools.html" data-i18n="nav_tools">Moje narzędzia</a>
             <a href="{{ path('blog_index') }}" data-i18n="nav_blog">Blog</a>
             <a href="https://www.salamonrafal.pl/contact.html" data-i18n="nav_contact">Kontakt</a>
@@ -66,7 +66,7 @@ Fullstack Developer</span>
 <div class="mobile-drawer" role="dialog" aria-label="Mobile menu">
     <a href="https://www.salamonrafal.pl/" data-i18n="nav_home">Start</a>
     <a href="https://www.salamonrafal.pl/about.html" data-i18n="nav_about">O mnie</a>
-    <a href="https://www.salamonrafal.pl/projects.html" data-i18n="nav_projects">Moje projekty</a>
+    <a href="https://www.salamonrafal.pl/projects.htm" data-i18n="nav_projects">Moje projekty</a>
     <a href="https://www.salamonrafal.pl/tools.html" data-i18n="nav_tools">Moje narzędzia</a>
     <a href="{{ path('blog_index') }}" data-i18n="nav_blog">Blog</a>
     <a href="https://www.salamonrafal.pl/contact.html" data-i18n="nav_contact">Kontakt</a>
@@ -319,11 +319,11 @@ Fullstack Developer</span>
     <div class="footer-inner">
         <div class="footer-text">
             <span>&copy;</span>
-            <a class="footer-home-link" href="https://www.salamonrafal.pl/">Rafał Salamon</a>
+            <a class="footer-home-link" href="{{ app_url ~ '/' }}">Rafał Salamon</a>
             <span>•</span>
             <span data-i18n="footer">Tworzę rzeczy, które są czytelne, solidne i praktyczne.</span>
             <span class="footer-break" aria-hidden="true"></span>
-            <a class="footer-sub-link" href="https://www.salamonrafal.pl/evaluation.html">Zobacz ewolucję strony</a>
+            <a class="footer-sub-link" href="{{ app_url ~ '/evaluation.html' }}">Zobacz ewolucję strony</a>
         </div>
         <div class="footer-icons" aria-label="Social links">
             <a class="footer-icon-link" href="https://github.com/salamonrafal" target="_blank" rel="noreferrer" aria-label="GitHub" title="GitHub"><span class="footer-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 5C9.9 5 5 9.9 5 16c0 4.9 3.2 9 7.6 10.4.6.1.8-.3.8-.6v-2.2c-3.1.7-3.8-1.3-3.8-1.3-.5-1.3-1.2-1.7-1.2-1.7-1-.7.1-.7.1-.7 1.1.1 1.7 1.2 1.7 1.2 1 .1 1.7.9 2 1.4.9.2 1.8.2 2.6-.1.1-.7.4-1.3.8-1.7-2.5-.3-5.1-1.2-5.1-5.4 0-1.2.4-2.2 1.1-3-.1-.3-.5-1.4.1-2.9 0 0 .9-.3 3 .1.9-.3 1.9-.4 2.9-.4s2 .1 2.9.4c2.1-.4 3-.1 3-.1.6 1.5.2 2.6.1 2.9.7.8 1.1 1.8 1.1 3 0 4.2-2.6 5.1-5.1 5.4.5.5.9 1.3.9 2.5v3.7c0 .3.2.7.8.6A11 11 0 0 0 27 16c0-6.1-4.9-11-11-11Z" stroke-width="1.7" stroke-linejoin="round"></path></svg></span></a>
