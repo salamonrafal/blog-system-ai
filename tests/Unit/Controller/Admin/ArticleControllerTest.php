@@ -6,16 +6,95 @@ namespace App\Tests\Unit\Controller\Admin;
 
 use App\Controller\Admin\ArticleController;
 use App\Entity\Article;
+use App\Entity\BlogSettings;
 use App\Entity\User;
 use App\Repository\ArticleExportQueueRepository;
+use App\Repository\ArticleRepository;
+use App\Service\BlogSettingsProvider;
+use App\Service\PaginationBuilder;
 use App\Service\UserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 final class ArticleControllerTest extends TestCase
 {
+    public function testIndexBuildsPaginatedArticleListUsingDedicatedAdminSetting(): void
+    {
+        $settings = (new BlogSettings())
+            ->setAdminArticlesPerPage(25);
+        $articles = [
+            (new Article())->setTitle('Article 1')->setSlug('article-1'),
+            (new Article())->setTitle('Article 2')->setSlug('article-2'),
+        ];
+
+        $articleRepository = $this->createMock(ArticleRepository::class);
+        $articleRepository
+            ->expects($this->once())
+            ->method('count')
+            ->with([])
+            ->willReturn(63);
+        $articleRepository
+            ->expects($this->once())
+            ->method('findPaginatedOrderedByCreatedDate')
+            ->with(2, 25)
+            ->willReturn($articles);
+
+        $blogSettingsProvider = $this->createMock(BlogSettingsProvider::class);
+        $blogSettingsProvider
+            ->expects($this->once())
+            ->method('getSettings')
+            ->willReturn($settings);
+
+        $controller = new TestArticleController();
+        $paginationBuilder = new PaginationBuilder();
+
+        $response = $controller->index(new Request(['page' => '2']), $articleRepository, $blogSettingsProvider, $paginationBuilder);
+
+        $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
+        $this->assertSame('admin/article/index.html.twig', $controller->capturedView);
+        $this->assertSame($articles, $controller->capturedParameters['articles']);
+        $this->assertSame(2, $controller->capturedParameters['current_page']);
+        $this->assertSame(3, $controller->capturedParameters['total_pages']);
+        $this->assertSame([1, 2, 3], $controller->capturedParameters['pagination_items']);
+    }
+
+    public function testIndexKeepsPaginationStateConsistentWhenThereAreNoArticles(): void
+    {
+        $settings = (new BlogSettings())
+            ->setAdminArticlesPerPage(25);
+
+        $articleRepository = $this->createMock(ArticleRepository::class);
+        $articleRepository
+            ->expects($this->once())
+            ->method('count')
+            ->with([])
+            ->willReturn(0);
+        $articleRepository
+            ->expects($this->once())
+            ->method('findPaginatedOrderedByCreatedDate')
+            ->with(1, 25)
+            ->willReturn([]);
+
+        $blogSettingsProvider = $this->createMock(BlogSettingsProvider::class);
+        $blogSettingsProvider
+            ->expects($this->once())
+            ->method('getSettings')
+            ->willReturn($settings);
+
+        $controller = new TestArticleController();
+        $paginationBuilder = new PaginationBuilder();
+
+        $response = $controller->index(new Request(), $articleRepository, $blogSettingsProvider, $paginationBuilder);
+
+        $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
+        $this->assertSame(1, $controller->capturedParameters['current_page']);
+        $this->assertSame(1, $controller->capturedParameters['total_pages']);
+        $this->assertSame([1], $controller->capturedParameters['pagination_items']);
+    }
+
     public function testAssignToMeSetsCurrentUserAsAuthorWhenArticleHasNoAuthor(): void
     {
         $currentUser = (new User())
@@ -160,6 +239,11 @@ final class TestArticleController extends ArticleController
 
     public bool $csrfTokenIsValid = true;
 
+    public ?string $capturedView = null;
+
+    /** @var array<string, mixed> */
+    public array $capturedParameters = [];
+
     /** @var list<array{0: string, 1: string}> */
     public array $flashes = [];
 
@@ -176,6 +260,14 @@ final class TestArticleController extends ArticleController
     public function addFlash(string $type, mixed $message): void
     {
         $this->flashes[] = [$type, (string) $message];
+    }
+
+    protected function render(string $view, array $parameters = [], ?Response $response = null): Response
+    {
+        $this->capturedView = $view;
+        $this->capturedParameters = $parameters;
+
+        return $response ?? new Response();
     }
 
     protected function redirectToRoute(string $route, array $parameters = [], int $status = 302): RedirectResponse

@@ -1,5 +1,11 @@
 # VERSION
 
+## 2026-03-27
+
+- Dodano stronicowanie pod tabelą na `admin_article_index`.
+- Wprowadzono osobne ustawienie liczby elementów na stronę dla listy artykułów w panelu administracyjnym, z domyślną wartością `25`.
+- Rozszerzono model ustawień bloga, formularz panelu oraz migrację bazy danych o konfigurację `admin_articles_per_page`.
+
 ## 2026-03-14
 
 - Dodano zestaw testów jednostkowych dla `ArticleSlugger`, `ArticlePublisher`, `UserChecker` oraz `User`.

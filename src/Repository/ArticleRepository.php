@@ -43,6 +43,20 @@ class ArticleRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * @return list<Article>
+     */
+    public function findPaginatedOrderedByCreatedDate(int $page, int $limit): array
+    {
+        return $this->createQueryBuilder('article')
+            ->orderBy('article.createdAt', 'DESC')
+            ->addOrderBy('article.id', 'DESC')
+            ->setFirstResult(max(0, ($page - 1) * $limit))
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
     public function countPublished(?ArticleLanguage $language = null): int
     {
         return (int) $this->createPublishedQueryBuilder($language)
@@ -96,7 +110,8 @@ class ArticleRepository extends ServiceEntityRepository
         return $this->createPublishedQueryBuilder($language)
             ->addSelect('COALESCE(article.publishedAt, article.createdAt) AS HIDDEN publicationOrderAt')
             ->orderBy('publicationOrderAt', 'DESC')
-            ->addOrderBy('article.createdAt', 'DESC');
+            ->addOrderBy('article.createdAt', 'DESC')
+            ->addOrderBy('article.id', 'DESC');
     }
 
     private function createPublishedQueryBuilder(?ArticleLanguage $language): QueryBuilder

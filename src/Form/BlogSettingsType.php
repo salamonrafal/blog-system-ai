@@ -40,6 +40,14 @@ class BlogSettingsType extends AbstractType
                     'step' => 1,
                     'inputmode' => 'numeric',
                 ],
+            ])
+            ->add('adminArticlesPerPage', IntegerType::class, [
+                'label' => 'Ilość artykułów na stronę w panelu administracyjnym',
+                'attr' => [
+                    'min' => 1,
+                    'step' => 1,
+                    'inputmode' => 'numeric',
+                ],
             ]);
     }
 
