@@ -93,13 +93,17 @@ class ArticleRepository extends ServiceEntityRepository
      */
     public function findRecommendedPublished(Article $currentArticle, int $limit = 5): array
     {
+        if ($limit <= 0) {
+            return [];
+        }
+
         return $this->createPublishedOrderedByDateQueryBuilder(
             $currentArticle->getLanguage(),
             $currentArticle->getCategory(),
         )
             ->andWhere('article != :currentArticle')
             ->setParameter('currentArticle', $currentArticle)
-            ->setMaxResults(max(1, $limit))
+            ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
     }
