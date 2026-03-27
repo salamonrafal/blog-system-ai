@@ -137,22 +137,22 @@ export function setupHeadlineImageToggle(){
   });
 }
 
-export function setupDashboardCarousels(){
-  qsa('[data-dashboard-carousel]').forEach((carousel)=>{
-    const tabs = qsa('[data-dashboard-carousel-tab]', carousel);
-    const panels = qsa('[data-dashboard-carousel-panel]', carousel);
+function setupTabbedPanels(rootSelector, tabAttribute, panelAttribute){
+  qsa(rootSelector).forEach((root)=>{
+    const tabs = qsa(`[${tabAttribute}]`, root);
+    const panels = qsa(`[${panelAttribute}]`, root);
     if(!tabs.length || !panels.length) return;
 
     const activateTab = (name)=>{
       tabs.forEach((tab)=>{
-        const isActive = tab.getAttribute('data-dashboard-carousel-tab') === name;
+        const isActive = tab.getAttribute(tabAttribute) === name;
         tab.classList.toggle('is-active', isActive);
         tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
         tab.setAttribute('tabindex', isActive ? '0' : '-1');
       });
 
       panels.forEach((panel)=>{
-        const isActive = panel.getAttribute('data-dashboard-carousel-panel') === name;
+        const isActive = panel.getAttribute(panelAttribute) === name;
         panel.classList.toggle('is-active', isActive);
         panel.hidden = !isActive;
       });
@@ -160,7 +160,7 @@ export function setupDashboardCarousels(){
 
     tabs.forEach((tab)=>{
       tab.addEventListener('click', ()=>{
-        activateTab(tab.getAttribute('data-dashboard-carousel-tab') || '');
+        activateTab(tab.getAttribute(tabAttribute) || '');
       });
 
       tab.addEventListener('keydown', (event)=>{
@@ -173,54 +173,19 @@ export function setupDashboardCarousels(){
         const nextTab = tabs[nextIndex];
         if(!nextTab) return;
 
-        activateTab(nextTab.getAttribute('data-dashboard-carousel-tab') || '');
+        activateTab(nextTab.getAttribute(tabAttribute) || '');
         nextTab.focus({ preventScroll: true });
       });
     });
   });
 }
 
+export function setupDashboardCarousels(){
+  setupTabbedPanels('[data-dashboard-carousel]', 'data-dashboard-carousel-tab', 'data-dashboard-carousel-panel');
+}
+
 export function setupTranslationTabs(){
-  qsa('[data-translation-tabs]').forEach((tabsRoot)=>{
-    const tabs = qsa('[data-translation-tab]', tabsRoot);
-    const panels = qsa('[data-translation-panel]', tabsRoot);
-    if(!tabs.length || !panels.length) return;
-
-    const activateTab = (name)=>{
-      tabs.forEach((tab)=>{
-        const isActive = tab.getAttribute('data-translation-tab') === name;
-        tab.classList.toggle('is-active', isActive);
-        tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
-        tab.setAttribute('tabindex', isActive ? '0' : '-1');
-      });
-
-      panels.forEach((panel)=>{
-        const isActive = panel.getAttribute('data-translation-panel') === name;
-        panel.classList.toggle('is-active', isActive);
-        panel.hidden = !isActive;
-      });
-    };
-
-    tabs.forEach((tab)=>{
-      tab.addEventListener('click', ()=>{
-        activateTab(tab.getAttribute('data-translation-tab') || '');
-      });
-
-      tab.addEventListener('keydown', (event)=>{
-        if(event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
-
-        event.preventDefault();
-        const currentIndex = tabs.indexOf(tab);
-        const direction = event.key === 'ArrowRight' ? 1 : -1;
-        const nextIndex = (currentIndex + direction + tabs.length) % tabs.length;
-        const nextTab = tabs[nextIndex];
-        if(!nextTab) return;
-
-        activateTab(nextTab.getAttribute('data-translation-tab') || '');
-        nextTab.focus({ preventScroll: true });
-      });
-    });
-  });
+  setupTabbedPanels('[data-translation-tabs]', 'data-translation-tab', 'data-translation-panel');
 }
 
 export function setupCategoryTranslationCopy(){
