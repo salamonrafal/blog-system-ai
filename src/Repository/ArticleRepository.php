@@ -88,6 +88,22 @@ class ArticleRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
+    /**
+     * @return list<Article>
+     */
+    public function findRecommendedPublished(Article $currentArticle, int $limit = 5): array
+    {
+        return $this->createPublishedOrderedByDateQueryBuilder(
+            $currentArticle->getLanguage(),
+            $currentArticle->getCategory(),
+        )
+            ->andWhere('article != :currentArticle')
+            ->setParameter('currentArticle', $currentArticle)
+            ->setMaxResults(max(1, $limit))
+            ->getQuery()
+            ->getResult();
+    }
+
     public function slugExists(string $slug, ?int $ignoreId = null): bool
     {
         $queryBuilder = $this->createQueryBuilder('article')

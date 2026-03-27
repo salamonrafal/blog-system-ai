@@ -3909,6 +3909,57 @@ select {
   line-height: 1.6;
 }
 
+.article-recommendations-panel {
+  margin: 1.15rem 0 0;
+  padding: 1rem 1.1rem;
+  border: 1px solid color-mix(in oklab, var(--accent) 18%, var(--border));
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at top right, color-mix(in oklab, var(--accent) 12%, transparent), transparent 42%),
+    linear-gradient(180deg, color-mix(in oklab, var(--panel-2) 96%, transparent), color-mix(in oklab, var(--panel) 94%, transparent));
+}
+
+.article-recommendations-eyebrow {
+  margin-bottom: .7rem;
+  color: var(--muted);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.article-recommendations-list {
+  display: grid;
+  gap: .3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.article-recommendations-link {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: .7rem .9rem;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: color-mix(in oklab, var(--panel) 86%, transparent);
+  color: color-mix(in oklab, var(--text) 90%, var(--accent) 10%);
+  font-weight: 600;
+  line-height: 1.45;
+  text-decoration: none;
+  transition: border-color .16s ease, background-color .16s ease, color .16s ease, box-shadow .16s ease;
+}
+
+.article-recommendations-link:hover,
+.article-recommendations-link:focus-visible {
+  border-color: color-mix(in oklab, var(--accent) 36%, var(--border));
+  background: color-mix(in oklab, var(--panel-2) 92%, color-mix(in oklab, var(--accent) 10%, transparent));
+  color: color-mix(in oklab, var(--accent) 58%, var(--text) 42%);
+  text-decoration: none;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+}
+
 .article-content-actions {
   justify-content:flex-end;
   margin-top:16px;
@@ -4155,6 +4206,10 @@ select {
 
   .article-author-panel {
     align-items: flex-start;
+    padding: .95rem 1rem;
+  }
+
+  .article-recommendations-panel {
     padding: .95rem 1rem;
   }
 

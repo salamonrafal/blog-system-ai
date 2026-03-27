@@ -57,6 +57,39 @@
                 <div class="article-body">
                     {{ article.content|article_markup }}
                 </div>
+                <div class="actions article-content-actions">
+                    <a
+                        class="button secondary article-action-button"
+                        href="{{ path('blog_index') }}"
+                        data-i18n-tooltip="blog_back_to_articles"
+                        data-tooltip="Wróć do artykułów"
+                        aria-label="Wróć do artykułów"
+                    >
+                        <span class="article-action-icon is-back" aria-hidden="true"></span>
+                    </a>
+                    <button
+                        class="button secondary article-action-button"
+                        type="button"
+                        data-action="copy-article-link"
+                        data-link="{{ app_url ~ path('blog_show', {slug: article.slug}) }}"
+                        data-i18n-tooltip="blog_copy_link"
+                        data-tooltip="Kopiuj link"
+                        aria-label="Kopiuj link"
+                    >
+                        <span class="article-action-icon is-copy" aria-hidden="true"></span>
+                    </button>
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <a
+                            class="button secondary article-action-button"
+                            href="{{ path('admin_article_edit', {id: article.id}) }}"
+                            data-i18n-tooltip="blog_edit_in_admin"
+                            data-tooltip="Edytuj w panelu admina"
+                            aria-label="Edytuj w panelu admina"
+                        >
+                            <span class="article-action-icon is-edit" aria-hidden="true"></span>
+                        </a>
+                    {% endif %}
+                </div>
                 {% set author = article.createdBy %}
                 {% if author %}
                     {% set author_name = author.nickname ?: author.fullName ?: author.email %}
@@ -91,39 +124,23 @@
                         </div>
                     </aside>
                 {% endif %}
-                <div class="actions article-content-actions">
-                    <a
-                        class="button secondary article-action-button"
-                        href="{{ path('blog_index') }}"
-                        data-i18n-tooltip="blog_back_to_articles"
-                        data-tooltip="Wróć do artykułów"
-                        aria-label="Wróć do artykułów"
-                    >
-                        <span class="article-action-icon is-back" aria-hidden="true"></span>
-                    </a>
-                    <button
-                        class="button secondary article-action-button"
-                        type="button"
-                        data-action="copy-article-link"
-                        data-link="{{ app_url ~ path('blog_show', {slug: article.slug}) }}"
-                        data-i18n-tooltip="blog_copy_link"
-                        data-tooltip="Kopiuj link"
-                        aria-label="Kopiuj link"
-                    >
-                        <span class="article-action-icon is-copy" aria-hidden="true"></span>
-                    </button>
-                    {% if is_granted('ROLE_ADMIN') %}
-                        <a
-                            class="button secondary article-action-button"
-                            href="{{ path('admin_article_edit', {id: article.id}) }}"
-                            data-i18n-tooltip="blog_edit_in_admin"
-                            data-tooltip="Edytuj w panelu admina"
-                            aria-label="Edytuj w panelu admina"
-                        >
-                            <span class="article-action-icon is-edit" aria-hidden="true"></span>
-                        </a>
-                    {% endif %}
-                </div>
+                {% if recommended_articles is not empty %}
+                    <aside class="article-recommendations-panel">
+                        <div class="article-recommendations-eyebrow">
+                            <span data-lang="pl">Polecane artykuły</span>
+                            <span data-lang="en">Recommended articles</span>
+                        </div>
+                        <ul class="article-recommendations-list">
+                            {% for recommended_article in recommended_articles %}
+                                <li>
+                                    <a href="{{ path('blog_show', {slug: recommended_article.slug}) }}" class="article-recommendations-link">
+                                        {{ recommended_article.title }}
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </aside>
+                {% endif %}
             </div>
         </article>
     </section>
