@@ -28,20 +28,20 @@
                 <p class="lede"{% if not current_category %} data-i18n="blog_feed_lede"{% elseif not category_localized_description and not category_base_description %} data-i18n="blog_category_fallback_description"{% endif %}>{{ category_description ?: 'Znajdziesz tutaj artykuły o PHP, web developmencie, architekturze aplikacji, jakości kodu i codziennej pracy nad nowoczesnymi produktami cyfrowymi.' }}</p>
             </div>
 
-            <div class="blog-category-section" data-i18n-aria="blog_categories_aria" aria-label="Lista kategorii artykułów">
+            <nav class="blog-category-section" data-i18n-aria="blog_categories_aria" aria-label="Lista kategorii artykułów">
                 <span class="blog-category-title" data-i18n="blog_categories_title">Kategorie artykułów</span>
                 {% set category_base_params = current_language ? { lang: current_language.value } : {} %}
-                <a class="blog-category-link{{ current_category ? '' : ' is-current' }}" href="{{ path('blog_index', category_base_params) }}">
+                <a class="blog-category-link{{ current_category ? '' : ' is-current' }}" href="{{ path('blog_index', category_base_params) }}"{% if not current_category %} aria-current="page"{% endif %}>
                     <span class="blog-category-link-name" data-i18n="blog_categories_all">Wszystkie</span>
                 </a>
                 {% for item in categories %}
                     {% set category = item.category %}
                     {% set is_current = current_category_slug and current_category_slug == item.slug %}
-                    <a class="blog-category-link{{ is_current ? ' is-current' : '' }}" href="{{ path('blog_category', category_base_params|merge({ slug: item.slug })) }}">
+                    <a class="blog-category-link{{ is_current ? ' is-current' : '' }}" href="{{ path('blog_category', category_base_params|merge({ slug: item.slug })) }}"{% if is_current %} aria-current="page"{% endif %}>
                         <span class="blog-category-link-name">{{ category.localizedTitle(category_language_code) }}</span>
                     </a>
                 {% endfor %}
-            </div>
+            </nav>
 
             {% if articles is not empty %}
                 <div class="quick-links feed-panel-list">
