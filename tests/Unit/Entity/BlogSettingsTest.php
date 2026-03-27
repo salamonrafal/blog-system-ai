@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Entity;
 
 use App\Entity\BlogSettings;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Validator\Validation;
 
 final class BlogSettingsTest extends TestCase
 {
@@ -62,5 +63,24 @@ final class BlogSettingsTest extends TestCase
         $settings->onPreUpdate();
 
         $this->assertGreaterThanOrEqual($updatedAtAfterPersist->getTimestamp(), $settings->getUpdatedAt()->getTimestamp());
+    }
+
+    public function testAppUrlValidationAcceptsHttpAndHttpsOriginsOnly(): void
+    {
+        $validator = Validation::createValidatorBuilder()
+            ->enableAttributeMapping()
+            ->getValidator();
+
+        $validSettings = (new BlogSettings())->setAppUrl('https://example.com/');
+        $httpSettings = (new BlogSettings())->setAppUrl('http://localhost:8080');
+        $missingHostSettings = (new BlogSettings())->setAppUrl('https:///');
+        $pathSettings = (new BlogSettings())->setAppUrl('https://example.com/blog');
+        $querySettings = (new BlogSettings())->setAppUrl('https://example.com?ref=1');
+
+        $this->assertSame(0, $validator->validate($validSettings)->count());
+        $this->assertSame(0, $validator->validate($httpSettings)->count());
+        $this->assertGreaterThan(0, $validator->validate($missingHostSettings)->count());
+        $this->assertGreaterThan(0, $validator->validate($pathSettings)->count());
+        $this->assertGreaterThan(0, $validator->validate($querySettings)->count());
     }
 }

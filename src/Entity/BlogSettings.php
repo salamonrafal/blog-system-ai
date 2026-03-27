@@ -6,6 +6,7 @@ namespace App\Entity;
 
 use App\Repository\BlogSettingsRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: BlogSettingsRepository::class)]
@@ -28,8 +29,8 @@ class BlogSettings
 
     #[Assert\NotBlank(message: 'URL aplikacji jest wymagany.')]
     #[Assert\Length(max: 255, maxMessage: 'URL aplikacji może mieć maksymalnie 255 znaków.')]
-    #[Assert\Regex(
-        pattern: '/^https?:\/\/.+$/',
+    #[Assert\Url(
+        protocols: ['http', 'https'],
         message: 'Podaj poprawny pełny URL aplikacji zaczynający się od http:// lub https://.'
     )]
     #[ORM\Column(length: 255)]
@@ -202,5 +203,37 @@ class BlogSettings
     public function onPreUpdate(): void
     {
         $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    #[Assert\Callback]
+    public function validateAppUrlOrigin(ExecutionContextInterface $context): void
+    {
+        if ('' === $this->appUrl) {
+            return;
+        }
+
+        $parts = parse_url($this->appUrl);
+
+        if (false === $parts || !isset($parts['scheme'], $parts['host'])) {
+            $context
+                ->buildViolation('Podaj poprawny origin aplikacji w formacie http(s)://domena.')
+                ->atPath('appUrl')
+                ->addViolation();
+
+            return;
+        }
+
+        if (
+            isset($parts['path']) ||
+            isset($parts['query']) ||
+            isset($parts['fragment']) ||
+            isset($parts['user']) ||
+            isset($parts['pass'])
+        ) {
+            $context
+                ->buildViolation('URL aplikacji musi wskazywać wyłącznie origin bez ścieżki, parametrów, fragmentu i danych użytkownika.')
+                ->atPath('appUrl')
+                ->addViolation();
+        }
     }
 }
