@@ -80,7 +80,7 @@ class ArticleType extends AbstractType
                 'label' => 'Category',
                 'label_attr' => ['data-i18n' => 'category_form_name'],
                 'required' => false,
-                'placeholder' => 'Bez kategorii',
+                'placeholder' => '---',
                 'choice_translation_domain' => false,
                 'choices' => $options['categories'],
                 'choice_label' => static fn (ArticleCategory $category): string => $category->getName(),

@@ -66,7 +66,7 @@ final class ArticleTypeTest extends TestCase
 
         $this->assertInstanceOf(ChoiceType::class, $form->get('category')->getConfig()->getType()->getInnerType());
         $this->assertFalse($form->get('category')->getConfig()->getOption('required'));
-        $this->assertSame('Bez kategorii', $form->get('category')->getConfig()->getOption('placeholder'));
+        $this->assertSame('---', $form->get('category')->getConfig()->getOption('placeholder'));
         $this->assertSame($categories, $form->get('category')->getConfig()->getOption('choices'));
 
         $this->assertInstanceOf(DateTimeType::class, $form->get('publishedAt')->getConfig()->getType()->getInnerType());
