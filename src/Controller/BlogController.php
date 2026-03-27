@@ -29,8 +29,8 @@ class BlogController extends AbstractController
         $articlesPerPage = max(1, $settings->getArticlesPerPage());
         $requestedPage = max(1, $request->query->getInt('page', 1));
         $totalArticles = $articleRepository->countPublished($language);
-        $totalPages = (int) ceil($totalArticles / $articlesPerPage);
-        $currentPage = min($requestedPage, max(1, $totalPages));
+        $totalPages = max(1, (int) ceil($totalArticles / $articlesPerPage));
+        $currentPage = min($requestedPage, $totalPages);
 
         return $this->render('blog/index.html.twig', [
             'articles' => $articleRepository->findPublishedPaginated($language, $currentPage, $articlesPerPage),

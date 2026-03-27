@@ -50,6 +50,7 @@ class ArticleRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('article')
             ->orderBy('article.createdAt', 'DESC')
+            ->addOrderBy('article.id', 'DESC')
             ->setFirstResult(max(0, ($page - 1) * $limit))
             ->setMaxResults($limit)
             ->getQuery()
@@ -109,7 +110,8 @@ class ArticleRepository extends ServiceEntityRepository
         return $this->createPublishedQueryBuilder($language)
             ->addSelect('COALESCE(article.publishedAt, article.createdAt) AS HIDDEN publicationOrderAt')
             ->orderBy('publicationOrderAt', 'DESC')
-            ->addOrderBy('article.createdAt', 'DESC');
+            ->addOrderBy('article.createdAt', 'DESC')
+            ->addOrderBy('article.id', 'DESC');
     }
 
     private function createPublishedQueryBuilder(?ArticleLanguage $language): QueryBuilder
