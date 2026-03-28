@@ -6,7 +6,7 @@ FROM php:8.4.19-fpm AS base
     ENV LC_ALL="C.UTF-8"
     
 FROM base AS install_dependencies
-    RUN apt-get update && apt-get install -y mc nano nginx curl zip unzip htop;
+    RUN apt-get update && apt-get install -y mc nano nginx curl zip unzip htop cron;
 
 FROM install_dependencies AS install_php
     RUN docker-php-ext-install \

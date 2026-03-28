@@ -18,5 +18,11 @@ fi
 echo 'Starting php-fpm in background...'
 nohup php-fpm -D >/dev/null 2>&1 &
 
+/var/scripts/prepare-cron-environment.sh
+
+echo "Starting cron..."
+crontab -u www-data /var/www/app/docker/conf/cron/article-queue
+service cron start
+
 echo "Starting nginx..."
 exec nginx -g 'daemon off;'

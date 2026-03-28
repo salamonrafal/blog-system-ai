@@ -1,0 +1,4 @@
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+* * * * * /var/scripts/run-console.sh app:article-export:process-queue >> /tmp/article-export-cron.log 2>&1
+* * * * * /var/scripts/run-console.sh app:article-import:process-queue >> /tmp/article-import-cron.log 2>&1
