@@ -115,7 +115,7 @@
                                         <strong>{{ queue_item.originalFilename }}</strong><br>
                                         <span class="meta">{{ queue_item.filePath|split('/')|last }}</span>
                                     </td>
-                                    <td>Import artykułu</td>
+                                    <td data-i18n="admin_queue_type_article_import">Import artykułu</td>
                                     <td>{{ queue_item.requestedBy ? queue_item.requestedBy.displayName : 'System' }}</td>
                                     <td>{{ queue_item.createdAt|user_date }}</td>
                                     <td>

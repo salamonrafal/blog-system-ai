@@ -2094,10 +2094,6 @@ button.button {
   color:#b54708;
 }
 
-[data-theme="light"] .import-message-button{
-  color:#b54708;
-}
-
 .article-action-icon.is-archive{
   -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M4 4h16v4H4V4Zm1 6h14v10H5V10Zm5 1v3.17l-1.59-1.58L7 14l5 5 5-5-1.41-1.41L14 14.17V11h-4Zm1-5h2v1h-2V6Z'/%3E%3C/svg%3E");
   mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M4 4h16v4H4V4Zm1 6h14v10H5V10Zm5 1v3.17l-1.59-1.58L7 14l5 5 5-5-1.41-1.41L14 14.17V11h-4Zm1-5h2v1h-2V6Z'/%3E%3C/svg%3E");

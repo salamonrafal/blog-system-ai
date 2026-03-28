@@ -25,4 +25,17 @@ class ArticleExportRepository extends ServiceEntityRepository
             'status' => ArticleExportStatus::NEW,
         ]);
     }
+
+    /**
+     * @return list<ArticleExport>
+     */
+    public function findAllForAdminIndex(): array
+    {
+        return $this->createQueryBuilder('article_export')
+            ->leftJoin('article_export.requestedBy', 'requested_by')
+            ->addSelect('requested_by')
+            ->orderBy('article_export.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }

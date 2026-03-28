@@ -59,7 +59,7 @@ class ArticleImportController extends AbstractController
 
         return $this->render('admin/article_import/index.html.twig', [
             'form' => $form,
-            'imports' => $articleImportQueueRepository->findBy([], ['createdAt' => 'DESC']),
+            'imports' => $articleImportQueueRepository->findAllForAdminIndex(),
         ]);
     }
 
