@@ -4,15 +4,12 @@ declare(strict_types=1);
 
 namespace App\Twig;
 
-use App\Entity\User;
 use App\Service\BlogSettingsProvider;
-use App\Service\UserNotificationService;
 use App\Service\UserLanguageResolver;
 use App\Service\UserTimeZoneResolver;
 use App\Repository\ArticleExportQueueRepository;
 use App\Repository\ArticleExportRepository;
 use App\Repository\ArticleImportQueueRepository;
-use Symfony\Bundle\SecurityBundle\Security;
 use Twig\Extension\AbstractExtension;
 use Twig\Extension\GlobalsInterface;
 
@@ -22,8 +19,6 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
         private readonly BlogSettingsProvider $blogSettingsProvider,
         private readonly UserLanguageResolver $userLanguageResolver,
         private readonly UserTimeZoneResolver $userTimeZoneResolver,
-        private readonly Security $security,
-        private readonly UserNotificationService $userNotificationService,
         private readonly ArticleImportQueueRepository $articleImportQueueRepository,
         private readonly ArticleExportQueueRepository $articleExportQueueRepository,
         private readonly ArticleExportRepository $articleExportRepository,
@@ -38,10 +33,6 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
         $pendingImportCount = $this->articleImportQueueRepository->countPending();
         $pendingExportQueueCount = $this->articleExportQueueRepository->countPending();
         $newExportCount = $this->articleExportRepository->countNew();
-        $user = $this->security->getUser();
-        $userNotifications = $user instanceof User
-            ? $this->userNotificationService->consumeUndisplayedForUserId($user->getId())
-            : [];
 
         return [
             'app_name' => $settings->getBlogTitle(),
@@ -50,7 +41,6 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
             'app_env' => $this->appEnv,
             'user_language' => $this->userLanguageResolver->getLanguage(),
             'user_timezone' => $this->userTimeZoneResolver->getTimeZone(),
-            'user_notifications' => $userNotifications,
             'admin_shortcut_badges' => [
                 'queue_status' => $pendingImportCount + $pendingExportQueueCount,
                 'imports' => $pendingImportCount,
