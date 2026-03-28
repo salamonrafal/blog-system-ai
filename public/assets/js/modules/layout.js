@@ -173,6 +173,7 @@ export function setupBackToTop(){
 export function setupFlashNotices(){
   const stack = qs('.flash-stack');
   const notificationsEndpoint = document.body.getAttribute('data-user-notifications-endpoint');
+  const notificationsCsrfToken = document.body.getAttribute('data-user-notifications-csrf');
 
   const hideFlash = (flash)=>{
     flash.setAttribute('hidden', '');
@@ -238,14 +239,17 @@ export function setupFlashNotices(){
   };
 
   const pollNotifications = async ()=>{
-    if(!notificationsEndpoint) return;
+    if(!notificationsEndpoint || !notificationsCsrfToken) return;
 
     try{
       const response = await fetch(notificationsEndpoint, {
+        method: 'POST',
         headers: {
           'X-Requested-With': 'XMLHttpRequest',
           'Accept': 'application/json',
+          'X-CSRF-Token': notificationsCsrfToken,
         },
+        cache: 'no-store',
         credentials: 'same-origin',
       });
 
@@ -257,8 +261,16 @@ export function setupFlashNotices(){
 
       if(!response.ok) return;
 
+      if(response.redirected){
+        stopPolling = true;
+        clearPolling();
+        return;
+      }
+
       const contentType = response.headers.get('content-type') || '';
       if(!contentType.toLowerCase().includes('application/json')){
+        stopPolling = true;
+        clearPolling();
         return;
       }
 
@@ -308,7 +320,7 @@ export function setupFlashNotices(){
     bindFlash(flash);
   });
 
-  if(!notificationsEndpoint){
+  if(!notificationsEndpoint || !notificationsCsrfToken){
     return;
   }
 

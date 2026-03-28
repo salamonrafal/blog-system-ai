@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Entity\ArticleImportQueue;
 use App\Enum\ArticleImportQueueStatus;
 use App\Repository\ArticleImportQueueRepository;
 use App\Service\ArticleImportProcessor;
@@ -118,7 +119,7 @@ class ProcessArticleImportQueueCommand extends Command
     }
 
     private function markQueueItemAsFailed(
-        \App\Entity\ArticleImportQueue $queueItem,
+        ArticleImportQueue $queueItem,
         string $errorMessage,
         EntityManagerInterface $entityManager,
         ArticleImportQueueRepository $queueRepository,
@@ -136,13 +137,13 @@ class ProcessArticleImportQueueCommand extends Command
 
         $this->managerRegistry->resetManager();
 
-        $entityManager = $this->managerRegistry->getManagerForClass(\App\Entity\ArticleImportQueue::class);
+        $entityManager = $this->managerRegistry->getManagerForClass(ArticleImportQueue::class);
         if (!$entityManager instanceof EntityManagerInterface) {
             throw new \RuntimeException('Entity manager for article import queue is not available.');
         }
 
-        $managedQueueItem = $entityManager->find(\App\Entity\ArticleImportQueue::class, $queueItem->getId());
-        if (!$managedQueueItem instanceof \App\Entity\ArticleImportQueue) {
+        $managedQueueItem = $entityManager->find(ArticleImportQueue::class, $queueItem->getId());
+        if (!$managedQueueItem instanceof ArticleImportQueue) {
             throw new \RuntimeException(sprintf(
                 'Unable to reload article import queue item %d after import failure.',
                 $queueItem->getId() ?? 0,
@@ -160,7 +161,7 @@ class ProcessArticleImportQueueCommand extends Command
 
     private function refreshQueueRepository(): ArticleImportQueueRepository
     {
-        $repository = $this->managerRegistry->getRepository(\App\Entity\ArticleImportQueue::class);
+        $repository = $this->managerRegistry->getRepository(ArticleImportQueue::class);
         if (!$repository instanceof ArticleImportQueueRepository) {
             throw new \RuntimeException('Article import queue repository is not available.');
         }
@@ -171,7 +172,7 @@ class ProcessArticleImportQueueCommand extends Command
     private function notifyImportCompletion(
         ?int $userId,
         bool $success,
-        \App\Entity\ArticleImportQueue $queueItem,
+        ArticleImportQueue $queueItem,
     ): void
     {
         try {

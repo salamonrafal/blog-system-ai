@@ -11,6 +11,7 @@ use App\Enum\UserNotificationType;
 use App\Service\UserNotificationService;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final class UserNotificationControllerTest extends TestCase
@@ -44,7 +45,12 @@ final class UserNotificationControllerTest extends TestCase
             ]);
 
         $controller = new TestUserNotificationController($user, $urlGenerator);
-        $response = $controller->pending($service);
+        $controller->csrfTokenIsValid = true;
+
+        $request = new Request();
+        $request->headers->set('X-CSRF-Token', 'valid');
+
+        $response = $controller->pending($request, $service);
 
         $this->assertInstanceOf(JsonResponse::class, $response);
         $this->assertSame([
@@ -76,6 +82,8 @@ final class UserNotificationControllerTest extends TestCase
 
 final class TestUserNotificationController extends UserNotificationController
 {
+    public bool $csrfTokenIsValid = true;
+
     public function __construct(
         private readonly ?User $user,
         UrlGeneratorInterface $urlGenerator,
@@ -86,5 +94,10 @@ final class TestUserNotificationController extends UserNotificationController
     protected function getUser(): ?User
     {
         return $this->user;
+    }
+
+    protected function isCsrfTokenValid(string $id, ?string $token): bool
+    {
+        return $this->csrfTokenIsValid;
     }
 }
