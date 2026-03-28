@@ -75,7 +75,7 @@ class DashboardController extends AbstractController
                         'route' => 'admin_article_index',
                     ],
                     'secondary_action' => [
-                        'label' => 'Nowy artykuł',
+                        'label' => 'Dodaj',
                         'route' => 'admin_article_new',
                     ],
                 ],
@@ -99,11 +99,11 @@ class DashboardController extends AbstractController
                     ],
                     'meta' => [],
                     'primary_action' => [
-                        'label' => 'Otwórz kategorie',
+                        'label' => 'Przeglądaj',
                         'route' => 'admin_article_category_index',
                     ],
                     'secondary_action' => [
-                        'label' => 'Nowa kategoria',
+                        'label' => 'Dodaj',
                         'route' => 'admin_article_category_new',
                     ],
                 ],
@@ -135,11 +135,11 @@ class DashboardController extends AbstractController
                     ],
                     'meta' => [],
                     'primary_action' => [
-                        'label' => 'Otwórz importy',
+                        'label' => 'Przeglądaj',
                         'route' => 'admin_article_import_index',
                     ],
                     'secondary_action' => [
-                        'label' => 'Stan kolejek',
+                        'label' => 'Kolejki',
                         'route' => 'admin_queue_status',
                     ],
                 ],
@@ -167,7 +167,7 @@ class DashboardController extends AbstractController
                     ],
                     'meta' => [],
                     'primary_action' => [
-                        'label' => 'Otwórz eksporty',
+                        'label' => 'Przeglądaj',
                         'route' => 'admin_article_export_index',
                     ],
                 ],
@@ -257,7 +257,7 @@ class DashboardController extends AbstractController
                     ],
                     'meta' => [],
                     'primary_action' => [
-                        'label' => 'Otwórz kolejki',
+                        'label' => 'Przeglądaj',
                         'route' => 'admin_queue_status',
                     ],
                 ],
@@ -280,16 +280,16 @@ class DashboardController extends AbstractController
                         ],
                         [
                             'value' => $userRepository->countAdministrators(),
-                            'label' => 'Administratorzy',
+                            'label' => 'Admini',
                         ],
                     ],
                     'meta' => [],
                     'primary_action' => [
-                        'label' => 'Otwórz użytkowników',
+                        'label' => 'Przeglądaj',
                         'route' => 'admin_user_index',
                     ],
                     'secondary_action' => [
-                        'label' => 'Dodaj użytkownika',
+                        'label' => 'Dodaj',
                         'route' => 'admin_user_new',
                     ],
                 ],
@@ -315,7 +315,7 @@ class DashboardController extends AbstractController
                     ],
                     'meta' => [],
                     'primary_action' => [
-                        'label' => 'Otwórz ustawienia',
+                        'label' => 'Edytuj',
                         'route' => 'admin_blog_settings',
                     ],
                 ],

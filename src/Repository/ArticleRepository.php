@@ -48,15 +48,21 @@ class ArticleRepository extends ServiceEntityRepository
     /**
      * @return list<Article>
      */
-    public function findPaginatedOrderedByCreatedDate(int $page, int $limit): array
+    public function findPaginatedOrderedByCreatedDate(int $page, int $limit, ?ArticleCategory $category = null): array
     {
-        return $this->createQueryBuilder('article')
-            ->orderBy('article.createdAt', 'DESC')
-            ->addOrderBy('article.id', 'DESC')
+        return $this->createAdminIndexQueryBuilder($category)
             ->setFirstResult(max(0, ($page - 1) * $limit))
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
+    }
+
+    public function countForAdminIndex(?ArticleCategory $category = null): int
+    {
+        return (int) $this->createAdminIndexFilterQueryBuilder($category)
+            ->select('COUNT(article.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     public function countPublished(?ArticleLanguage $language = null, ?ArticleCategory $category = null): int
@@ -147,6 +153,26 @@ class ArticleRepository extends ServiceEntityRepository
                 ->andWhere('article.language = :language')
                 ->setParameter('language', $language);
         }
+
+        if (null !== $category) {
+            $queryBuilder
+                ->andWhere('article.category = :category')
+                ->setParameter('category', $category);
+        }
+
+        return $queryBuilder;
+    }
+
+    private function createAdminIndexQueryBuilder(?ArticleCategory $category): QueryBuilder
+    {
+        return $this->createAdminIndexFilterQueryBuilder($category)
+            ->orderBy('article.createdAt', 'DESC')
+            ->addOrderBy('article.id', 'DESC');
+    }
+
+    private function createAdminIndexFilterQueryBuilder(?ArticleCategory $category): QueryBuilder
+    {
+        $queryBuilder = $this->createQueryBuilder('article');
 
         if (null !== $category) {
             $queryBuilder

@@ -141,28 +141,48 @@ Fullstack Developer</span>
                         </span>
                         <span data-i18n="admin_shortcut_dashboard">Panel główny</span>
                     </a>
-                    <a class="admin-shortcuts-link" href="{{ path('admin_article_index') }}">
-                        <span class="admin-shortcuts-link-icon" aria-hidden="true">
-                            <svg viewBox="0 0 32 32">
-                                <path d="M10 9h14"></path>
-                                <path d="M10 16h14"></path>
-                                <path d="M10 23h14"></path>
-                                <circle cx="7" cy="9" r="1.5"></circle>
-                                <circle cx="7" cy="16" r="1.5"></circle>
-                                <circle cx="7" cy="23" r="1.5"></circle>
-                            </svg>
-                        </span>
-                        <span data-i18n="admin_shortcut_articles">Lista artykułów</span>
-                    </a>
-                    <a class="admin-shortcuts-link" href="{{ path('admin_article_category_index') }}">
-                        <span class="admin-shortcuts-link-icon" aria-hidden="true">
-                            <svg viewBox="0 0 32 32">
-                                <path d="M8 10h10l6 6-8 8-8-8Z"></path>
-                                <circle cx="13" cy="13" r="1.5"></circle>
-                            </svg>
-                        </span>
-                        <span data-i18n="admin_shortcut_categories">Kategorie artykułów</span>
-                    </a>
+                    <div class="admin-shortcuts-submenu" data-admin-shortcuts-submenu>
+                        <button type="button" class="admin-shortcuts-link admin-shortcuts-button admin-shortcuts-submenu-trigger" data-action="toggle-admin-submenu" aria-haspopup="true" aria-expanded="false" aria-controls="admin-shortcuts-content-management-panel">
+                            <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                                <svg viewBox="0 0 32 32">
+                                    <path d="M8 9h16"></path>
+                                    <path d="M8 16h16"></path>
+                                    <path d="M8 23h10"></path>
+                                    <circle cx="23" cy="23" r="3"></circle>
+                                </svg>
+                            </span>
+                            <span data-i18n="admin_shortcut_content_management_title">Zarządzanie treścią</span>
+                            <span class="admin-shortcuts-submenu-caret" aria-hidden="true">
+                                <svg viewBox="0 0 32 32">
+                                    <path d="M10 13l6 6 6-6"></path>
+                                </svg>
+                            </span>
+                        </button>
+                        <div class="admin-shortcuts-submenu-panel" id="admin-shortcuts-content-management-panel" data-i18n-aria="admin_shortcut_content_management_title" aria-label="Zarządzanie treścią">
+                            <a class="admin-shortcuts-link admin-shortcuts-sublink" href="{{ path('admin_article_index') }}">
+                                <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 32 32">
+                                        <path d="M10 9h14"></path>
+                                        <path d="M10 16h14"></path>
+                                        <path d="M10 23h14"></path>
+                                        <circle cx="7" cy="9" r="1.5"></circle>
+                                        <circle cx="7" cy="16" r="1.5"></circle>
+                                        <circle cx="7" cy="23" r="1.5"></circle>
+                                    </svg>
+                                </span>
+                                <span data-i18n="admin_shortcut_articles">Lista artykułów</span>
+                            </a>
+                            <a class="admin-shortcuts-link admin-shortcuts-sublink" href="{{ path('admin_article_category_index') }}">
+                                <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 32 32">
+                                        <path d="M8 10h10l6 6-8 8-8-8Z"></path>
+                                        <circle cx="13" cy="13" r="1.5"></circle>
+                                    </svg>
+                                </span>
+                                <span data-i18n="admin_shortcut_categories">Kategorie artykułów</span>
+                            </a>
+                        </div>
+                    </div>
                     <div class="admin-shortcuts-submenu" data-admin-shortcuts-submenu>
                         <button type="button" class="admin-shortcuts-link admin-shortcuts-button admin-shortcuts-submenu-trigger" data-action="toggle-admin-submenu" aria-haspopup="true" aria-expanded="false" aria-controls="admin-shortcuts-users-panel">
                             <span class="admin-shortcuts-link-icon" aria-hidden="true">

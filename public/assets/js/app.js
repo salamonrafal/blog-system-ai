@@ -1,5 +1,6 @@
 import {
   setupAdminShortcuts,
+  setupArticleCategoryFilter,
   setupArticleBulkExport,
   setupCharacterCounters,
   setupDashboardCarousels,
@@ -43,6 +44,7 @@ function init(){
   setupCategoryTranslationCopy();
   setupDashboardCarousels();
   setupArticleBulkExport();
+  setupArticleCategoryFilter();
   setupArticleMarkupEditor();
   setupImagePreview();
   setupDeleteConfirmation();
