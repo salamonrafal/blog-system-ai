@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Entity\ArticleImportQueue;
-use App\Entity\User;
 use App\Form\ArticleImportType;
 use App\Repository\ArticleImportQueueRepository;
 use App\Service\ArticleImportStorage;
@@ -23,6 +22,8 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/admin/imports')]
 class ArticleImportController extends AbstractController
 {
+    use AuthenticatedAdminUserTrait;
+
     public function __construct(
         private readonly ManagedFilePathResolver $managedFilePathResolver,
         private readonly ManagedFileDeleter $managedFileDeleter,
@@ -140,12 +141,5 @@ class ArticleImportController extends AbstractController
         $this->addFlash('success', 'Wszystkie importy zostały usunięte.');
 
         return $this->redirectToRoute('admin_article_import_index');
-    }
-
-    private function resolveAuthenticatedUser(): ?User
-    {
-        $user = $this->getUser();
-
-        return $user instanceof User ? $user : null;
     }
 }

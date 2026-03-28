@@ -26,6 +26,8 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/admin/articles')]
 class ArticleController extends AbstractController
 {
+    use AuthenticatedAdminUserTrait;
+
     #[Route('', name: 'admin_article_index', methods: ['GET'])]
     public function index(
         Request $request,
@@ -342,13 +344,6 @@ class ArticleController extends AbstractController
             'queued' => $queued,
             'skipped' => $skipped,
         ];
-    }
-
-    private function resolveAuthenticatedUser(): ?User
-    {
-        $user = $this->getUser();
-
-        return $user instanceof User ? $user : null;
     }
 
     private function resolveSelectedCategory(Request $request, ArticleCategoryRepository $articleCategoryRepository): ?ArticleCategory
