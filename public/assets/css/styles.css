@@ -2147,6 +2147,28 @@ button.button {
   align-self:center;
 }
 
+.flash-actions{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex:0 0 auto;
+}
+
+.flash-link{
+  white-space:nowrap;
+}
+
+@media (max-width:640px){
+  .flash{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .flash-actions{
+    width:100%;
+    justify-content:space-between;
+  }
+}
+
 .flash-close {
   display:inline-flex;
   align-items:center;

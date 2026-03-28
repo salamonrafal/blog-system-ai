@@ -11,6 +11,7 @@ use App\Enum\ArticleExportStatus;
 use App\Enum\ArticleExportType;
 use App\Repository\ArticleExportQueueRepository;
 use App\Service\ArticleExportFileWriter;
+use App\Service\UserNotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
@@ -33,6 +34,7 @@ class ProcessArticleExportQueueCommand extends Command
         private readonly ManagerRegistry $managerRegistry,
         private readonly ArticleExportQueueRepository $articleExportQueueRepository,
         private readonly ArticleExportFileWriter $articleExportFileWriter,
+        private readonly UserNotificationService $userNotificationService,
         private readonly LoggerInterface $logger,
     ) {
         parent::__construct();
@@ -71,6 +73,7 @@ class ProcessArticleExportQueueCommand extends Command
 
                 $this->entityManager->persist($articleExport);
                 $this->entityManager->flush();
+                $this->userNotificationService->notifyExportCompleted($queueItem->getRequestedBy()?->getId(), true);
                 ++$processedCount;
             } catch (\Throwable $exception) {
                 if (is_string($filePath)) {
@@ -86,6 +89,7 @@ class ProcessArticleExportQueueCommand extends Command
                 ]);
 
                 $this->markQueueItemAsFailed($queueItem);
+                $this->userNotificationService->notifyExportCompleted($queueItem->getRequestedBy()?->getId(), false);
                 ++$failedCount;
 
                 $io->error(sprintf(

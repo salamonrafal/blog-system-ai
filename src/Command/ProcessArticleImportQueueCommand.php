@@ -7,6 +7,7 @@ namespace App\Command;
 use App\Enum\ArticleImportQueueStatus;
 use App\Repository\ArticleImportQueueRepository;
 use App\Service\ArticleImportProcessor;
+use App\Service\UserNotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
@@ -29,6 +30,7 @@ class ProcessArticleImportQueueCommand extends Command
         private readonly ManagerRegistry $managerRegistry,
         private readonly ArticleImportQueueRepository $articleImportQueueRepository,
         private readonly ArticleImportProcessor $articleImportProcessor,
+        private readonly UserNotificationService $userNotificationService,
         private readonly LoggerInterface $logger,
     ) {
         parent::__construct();
@@ -60,6 +62,7 @@ class ProcessArticleImportQueueCommand extends Command
                     ->setErrorMessage(null);
 
                 $entityManager->flush();
+                $this->userNotificationService->notifyImportCompleted($queueItem->getRequestedBy()?->getId(), true);
                 ++$processedCount;
 
                 $io->success(sprintf(
@@ -81,6 +84,7 @@ class ProcessArticleImportQueueCommand extends Command
                     $entityManager,
                     $queueRepository,
                 );
+                $this->userNotificationService->notifyImportCompleted($queueItem->getRequestedBy()?->getId(), false);
                 ++$failedCount;
 
                 $io->error(sprintf(

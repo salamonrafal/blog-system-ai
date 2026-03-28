@@ -29,7 +29,12 @@
     <title>{{ block('title') }}</title>
 </head>
 
-<body data-page-title="{% block page_title %}{{ block('title') }}{% endblock %}">
+<body
+    data-page-title="{% block page_title %}{{ block('title') }}{% endblock %}"
+    {% if app.user %}
+        data-user-notifications-endpoint="{{ path('admin_user_notification_pending') }}"
+    {% endif %}
+>
 <header class="topbar">
     <div class="topbar-inner">
         <a class="brand" href="{{ path('blog_index') }}" aria-label="Home">
@@ -83,6 +88,22 @@ Fullstack Developer</span>
 </div>
 
 <div class="flash-stack" aria-live="polite" aria-atomic="true">
+    {% for notification in user_notifications %}
+        <div class="flash{{ notification.type.flashType == 'error' ? ' error' : '' }}" role="{{ notification.type.flashType == 'error' ? 'alert' : 'status' }}">
+            <span class="flash-message" data-i18n="{{ notification.type.translationKey }}">{{ notification.type.translationKey }}</span>
+            <div class="flash-actions">
+                <a
+                    class="button secondary flash-link"
+                    href="{{ path(notification.type.targetRouteName) }}"
+                    data-i18n="{{ notification.type.actionLabelTranslationKey }}"
+                >{{ notification.type.actionLabelTranslationKey }}</a>
+                <button type="button" class="flash-close" data-action="dismiss-flash" data-i18n-aria="admin_close_alert" aria-label="Zamknij alert">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        </div>
+    {% endfor %}
+
     {% for message in app.flashes('success') %}
         <div class="flash" role="status">
             <span class="flash-message">{{ message }}</span>
