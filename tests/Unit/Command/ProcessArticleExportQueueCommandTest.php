@@ -14,6 +14,7 @@ use App\Enum\ArticleExportStatus;
 use App\Enum\ArticleExportType;
 use App\Repository\ArticleExportQueueRepository;
 use App\Service\ArticleExportFileWriter;
+use App\Service\UserNotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -36,11 +37,13 @@ final class ProcessArticleExportQueueCommandTest extends TestCase
         $writer->expects($this->never())->method('write');
         $managerRegistry = $this->createMock(ManagerRegistry::class);
         $managerRegistry->expects($this->never())->method('resetManager');
+        $userNotificationService = $this->createMock(UserNotificationService::class);
+        $userNotificationService->expects($this->never())->method('notifyExportCompleted');
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects($this->never())->method('error');
         $logger->expects($this->never())->method('warning');
 
-        $tester = new CommandTester(new ProcessArticleExportQueueCommand($entityManager, $managerRegistry, $queueRepository, $writer, $logger));
+        $tester = new CommandTester(new ProcessArticleExportQueueCommand($entityManager, $managerRegistry, $queueRepository, $writer, $userNotificationService, $logger));
         $exitCode = $tester->execute([]);
 
         $this->assertSame(Command::SUCCESS, $exitCode);
@@ -80,11 +83,19 @@ final class ProcessArticleExportQueueCommandTest extends TestCase
             ]);
         $managerRegistry = $this->createMock(ManagerRegistry::class);
         $managerRegistry->expects($this->never())->method('resetManager');
+        $userNotificationService = $this->createMock(UserNotificationService::class);
+        $userNotificationService
+            ->expects($this->exactly(2))
+            ->method('notifyExportCompleted')
+            ->willReturnCallback(static function (?int $userId, bool $success): void {
+                TestCase::assertTrue($success);
+                TestCase::assertNull($userId);
+            });
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects($this->never())->method('error');
         $logger->expects($this->never())->method('warning');
 
-        $tester = new CommandTester(new ProcessArticleExportQueueCommand($entityManager, $managerRegistry, $queueRepository, $writer, $logger));
+        $tester = new CommandTester(new ProcessArticleExportQueueCommand($entityManager, $managerRegistry, $queueRepository, $writer, $userNotificationService, $logger));
         $exitCode = $tester->execute([]);
 
         $this->assertSame(Command::SUCCESS, $exitCode);
@@ -101,6 +112,65 @@ final class ProcessArticleExportQueueCommandTest extends TestCase
         $this->assertNotNull($queueItemOne->getProcessedAt());
         $this->assertNotNull($queueItemTwo->getProcessedAt());
         $this->assertStringContainsString('Exported 2 queued article(s) into separate files.', $tester->getDisplay());
+    }
+
+    public function testExecuteKeepsCompletedExportWhenNotificationCreationFails(): void
+    {
+        $capturedExports = [];
+        $queueItem = new ArticleExportQueue((new Article())->setTitle('Artykul 1')->setSlug('artykul-1'));
+        $queueItem->setStatus(ArticleExportQueueStatus::PROCESSING);
+        $this->setEntityId($queueItem, 42);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager
+            ->expects($this->once())
+            ->method('persist')
+            ->willReturnCallback(static function (ArticleExport $articleExport) use (&$capturedExports): void {
+                $capturedExports[] = $articleExport;
+            });
+        $entityManager->expects($this->once())->method('flush');
+        $entityManager->expects($this->never())->method('isOpen');
+
+        $queueRepository = $this->createQueueRepositoryMock([$queueItem]);
+        $writer = $this->createMock(ArticleExportFileWriter::class);
+        $writer
+            ->expects($this->once())
+            ->method('write')
+            ->with($queueItem)
+            ->willReturn('var/exports/article-1-export.json');
+
+        $managerRegistry = $this->createMock(ManagerRegistry::class);
+        $managerRegistry->expects($this->never())->method('resetManager');
+
+        $userNotificationService = $this->createMock(UserNotificationService::class);
+        $userNotificationService
+            ->expects($this->once())
+            ->method('notifyExportCompleted')
+            ->with(null, true)
+            ->willThrowException(new \RuntimeException('Notification storage failed.'));
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->never())->method('error');
+        $logger
+            ->expects($this->once())
+            ->method('warning')
+            ->with(
+                'Failed to create export completion notification.',
+                $this->callback(static function (array $context): bool {
+                    return 42 === $context['queue_item_id']
+                        && 'var/exports/article-1-export.json' === $context['file_path']
+                        && true === $context['success'];
+                })
+            );
+
+        $tester = new CommandTester(new ProcessArticleExportQueueCommand($entityManager, $managerRegistry, $queueRepository, $writer, $userNotificationService, $logger));
+        $exitCode = $tester->execute([]);
+
+        $this->assertSame(Command::SUCCESS, $exitCode);
+        $this->assertCount(1, $capturedExports);
+        $this->assertSame(ArticleExportQueueStatus::COMPLETED, $queueItem->getStatus());
+        $this->assertNotNull($queueItem->getProcessedAt());
+        $this->assertStringContainsString('Exported 1 queued article(s) into separate files.', $tester->getDisplay());
     }
 
     public function testExecuteMarksOnlyFailedQueueItemWhenWriterThrowsException(): void
@@ -141,11 +211,18 @@ final class ProcessArticleExportQueueCommandTest extends TestCase
             ->method('delete');
         $managerRegistry = $this->createMock(ManagerRegistry::class);
         $managerRegistry->expects($this->never())->method('resetManager');
+        $userNotificationService = $this->createMock(UserNotificationService::class);
+        $userNotificationService
+            ->expects($this->exactly(2))
+            ->method('notifyExportCompleted')
+            ->willReturnCallback(static function (?int $userId, bool $success): void {
+                TestCase::assertContains([$userId, $success], [[null, true], [null, false]]);
+            });
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects($this->once())->method('error');
         $logger->expects($this->never())->method('warning');
 
-        $tester = new CommandTester(new ProcessArticleExportQueueCommand($entityManager, $managerRegistry, $queueRepository, $writer, $logger));
+        $tester = new CommandTester(new ProcessArticleExportQueueCommand($entityManager, $managerRegistry, $queueRepository, $writer, $userNotificationService, $logger));
         $exitCode = $tester->execute([]);
 
         $this->assertSame(Command::FAILURE, $exitCode);
@@ -211,11 +288,16 @@ final class ProcessArticleExportQueueCommandTest extends TestCase
             ->expects($this->once())
             ->method('delete')
             ->with('var/exports/article-1-export.json');
+        $userNotificationService = $this->createMock(UserNotificationService::class);
+        $userNotificationService
+            ->expects($this->once())
+            ->method('notifyExportCompleted')
+            ->with(null, false);
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects($this->once())->method('error');
         $logger->expects($this->never())->method('warning');
 
-        $tester = new CommandTester(new ProcessArticleExportQueueCommand($entityManager, $managerRegistry, $queueRepository, $writer, $logger));
+        $tester = new CommandTester(new ProcessArticleExportQueueCommand($entityManager, $managerRegistry, $queueRepository, $writer, $userNotificationService, $logger));
         $exitCode = $tester->execute([]);
 
         $this->assertSame(Command::FAILURE, $exitCode);
@@ -262,11 +344,16 @@ final class ProcessArticleExportQueueCommandTest extends TestCase
 
         $managerRegistry = $this->createMock(ManagerRegistry::class);
         $managerRegistry->expects($this->never())->method('resetManager');
+        $userNotificationService = $this->createMock(UserNotificationService::class);
+        $userNotificationService
+            ->expects($this->once())
+            ->method('notifyExportCompleted')
+            ->with(null, false);
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects($this->once())->method('error');
         $logger->expects($this->never())->method('warning');
 
-        $tester = new CommandTester(new ProcessArticleExportQueueCommand($entityManager, $managerRegistry, $queueRepository, $writer, $logger));
+        $tester = new CommandTester(new ProcessArticleExportQueueCommand($entityManager, $managerRegistry, $queueRepository, $writer, $userNotificationService, $logger));
         $exitCode = $tester->execute([]);
 
         $this->assertSame(Command::FAILURE, $exitCode);

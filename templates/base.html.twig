@@ -29,7 +29,13 @@
     <title>{{ block('title') }}</title>
 </head>
 
-<body data-page-title="{% block page_title %}{{ block('title') }}{% endblock %}">
+<body
+    data-page-title="{% block page_title %}{{ block('title') }}{% endblock %}"
+    {% if is_granted('ROLE_ADMIN') %}
+        data-user-notifications-endpoint="{{ path('admin_user_notification_pending') }}"
+        data-user-notifications-csrf="{{ csrf_token('consume_user_notifications') }}"
+    {% endif %}
+>
 <header class="topbar">
     <div class="topbar-inner">
         <a class="brand" href="{{ path('blog_index') }}" aria-label="Home">

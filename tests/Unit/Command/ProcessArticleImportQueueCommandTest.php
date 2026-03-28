@@ -10,6 +10,7 @@ use App\Entity\User;
 use App\Enum\ArticleImportQueueStatus;
 use App\Repository\ArticleImportQueueRepository;
 use App\Service\ArticleImportProcessor;
+use App\Service\UserNotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -30,10 +31,12 @@ final class ProcessArticleImportQueueCommandTest extends TestCase
         $processor->expects($this->never())->method('process');
         $managerRegistry = $this->createMock(ManagerRegistry::class);
         $managerRegistry->expects($this->never())->method('resetManager');
+        $userNotificationService = $this->createMock(UserNotificationService::class);
+        $userNotificationService->expects($this->never())->method('notifyImportCompleted');
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects($this->never())->method('error');
 
-        $tester = new CommandTester(new ProcessArticleImportQueueCommand($entityManager, $managerRegistry, $queueRepository, $processor, $logger));
+        $tester = new CommandTester(new ProcessArticleImportQueueCommand($entityManager, $managerRegistry, $queueRepository, $processor, $userNotificationService, $logger));
         $exitCode = $tester->execute([]);
 
         $this->assertSame(Command::SUCCESS, $exitCode);
@@ -63,10 +66,71 @@ final class ProcessArticleImportQueueCommandTest extends TestCase
             ->willReturn(1);
         $managerRegistry = $this->createMock(ManagerRegistry::class);
         $managerRegistry->expects($this->never())->method('resetManager');
+        $userNotificationService = $this->createMock(UserNotificationService::class);
+        $userNotificationService
+            ->expects($this->once())
+            ->method('notifyImportCompleted')
+            ->with($queueItem->getRequestedBy()?->getId(), true);
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects($this->never())->method('error');
 
-        $tester = new CommandTester(new ProcessArticleImportQueueCommand($entityManager, $managerRegistry, $queueRepository, $processor, $logger));
+        $tester = new CommandTester(new ProcessArticleImportQueueCommand($entityManager, $managerRegistry, $queueRepository, $processor, $userNotificationService, $logger));
+        $exitCode = $tester->execute([]);
+
+        $this->assertSame(Command::SUCCESS, $exitCode);
+        $this->assertSame(ArticleImportQueueStatus::COMPLETED, $queueItem->getStatus());
+        $this->assertNull($queueItem->getErrorMessage());
+        $this->assertNotNull($queueItem->getProcessedAt());
+        $this->assertStringContainsString('Imported 1 queued article file(s).', $tester->getDisplay());
+    }
+
+    public function testExecuteKeepsCompletedImportWhenNotificationCreationFails(): void
+    {
+        $queueItem = (new ArticleImportQueue())
+            ->setOriginalFilename('article.json')
+            ->setFilePath('var/imports/article.json')
+            ->setStatus(ArticleImportQueueStatus::PROCESSING);
+        $this->setEntityId($queueItem, 42);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->once())->method('flush');
+
+        $queueRepository = $this->createQueueRepositoryMock([$queueItem]);
+        $processor = $this->createMock(ArticleImportProcessor::class);
+        $processor
+            ->expects($this->once())
+            ->method('process')
+            ->with($queueItem)
+            ->willReturn(1);
+
+        $managerRegistry = $this->createMock(ManagerRegistry::class);
+        $managerRegistry->expects($this->never())->method('resetManager');
+
+        $userNotificationService = $this->createMock(UserNotificationService::class);
+        $userNotificationService
+            ->expects($this->once())
+            ->method('notifyImportCompleted')
+            ->with(null, true)
+            ->willThrowException(new \RuntimeException('Notification storage failed.'));
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->never())->method('error');
+        $logger
+            ->expects($this->once())
+            ->method('warning')
+            ->with(
+                'Failed to create import completion notification.',
+                $this->callback(static function (array $context): bool {
+                    return 42 === ($context['queue_item_id'] ?? null)
+                        && 'var/imports/article.json' === ($context['file_path'] ?? null)
+                        && array_key_exists('requested_by_user_id', $context)
+                        && null === $context['requested_by_user_id']
+                        && true === ($context['success'] ?? null)
+                        && ($context['exception'] ?? null) instanceof \RuntimeException;
+                })
+            );
+
+        $tester = new CommandTester(new ProcessArticleImportQueueCommand($entityManager, $managerRegistry, $queueRepository, $processor, $userNotificationService, $logger));
         $exitCode = $tester->execute([]);
 
         $this->assertSame(Command::SUCCESS, $exitCode);
@@ -99,6 +163,11 @@ final class ProcessArticleImportQueueCommandTest extends TestCase
             ->willThrowException(new \RuntimeException('Pole title jest wymagane.'));
         $managerRegistry = $this->createMock(ManagerRegistry::class);
         $managerRegistry->expects($this->never())->method('resetManager');
+        $userNotificationService = $this->createMock(UserNotificationService::class);
+        $userNotificationService
+            ->expects($this->once())
+            ->method('notifyImportCompleted')
+            ->with(null, false);
         $logger = $this->createMock(LoggerInterface::class);
         $logger
             ->expects($this->once())
@@ -110,7 +179,7 @@ final class ProcessArticleImportQueueCommandTest extends TestCase
                 })
             );
 
-        $tester = new CommandTester(new ProcessArticleImportQueueCommand($entityManager, $managerRegistry, $queueRepository, $processor, $logger));
+        $tester = new CommandTester(new ProcessArticleImportQueueCommand($entityManager, $managerRegistry, $queueRepository, $processor, $userNotificationService, $logger));
         $exitCode = $tester->execute([]);
 
         $this->assertSame(Command::FAILURE, $exitCode);
@@ -181,10 +250,15 @@ final class ProcessArticleImportQueueCommandTest extends TestCase
             ->method('process')
             ->with($queueItem)
             ->willReturn(1);
+        $userNotificationService = $this->createMock(UserNotificationService::class);
+        $userNotificationService
+            ->expects($this->once())
+            ->method('notifyImportCompleted')
+            ->with(null, false);
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects($this->once())->method('error');
 
-        $tester = new CommandTester(new ProcessArticleImportQueueCommand($entityManager, $managerRegistry, $queueRepository, $processor, $logger));
+        $tester = new CommandTester(new ProcessArticleImportQueueCommand($entityManager, $managerRegistry, $queueRepository, $processor, $userNotificationService, $logger));
         $exitCode = $tester->execute([]);
 
         $this->assertSame(Command::FAILURE, $exitCode);
@@ -269,10 +343,17 @@ final class ProcessArticleImportQueueCommandTest extends TestCase
             ->method('getRepository')
             ->with(ArticleImportQueue::class)
             ->willReturn($freshQueueRepository);
+        $userNotificationService = $this->createMock(UserNotificationService::class);
+        $userNotificationService
+            ->expects($this->exactly(2))
+            ->method('notifyImportCompleted')
+            ->willReturnCallback(static function (?int $userId, bool $success): void {
+                TestCase::assertContains([$userId, $success], [[null, false], [null, true]]);
+            });
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects($this->once())->method('error');
 
-        $tester = new CommandTester(new ProcessArticleImportQueueCommand($entityManager, $managerRegistry, $staleQueueRepository, $processor, $logger));
+        $tester = new CommandTester(new ProcessArticleImportQueueCommand($entityManager, $managerRegistry, $staleQueueRepository, $processor, $userNotificationService, $logger));
         $exitCode = $tester->execute([]);
 
         $this->assertSame(Command::FAILURE, $exitCode);

@@ -11,6 +11,7 @@ use App\Enum\ArticleExportStatus;
 use App\Enum\ArticleExportType;
 use App\Repository\ArticleExportQueueRepository;
 use App\Service\ArticleExportFileWriter;
+use App\Service\UserNotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
@@ -33,6 +34,7 @@ class ProcessArticleExportQueueCommand extends Command
         private readonly ManagerRegistry $managerRegistry,
         private readonly ArticleExportQueueRepository $articleExportQueueRepository,
         private readonly ArticleExportFileWriter $articleExportFileWriter,
+        private readonly UserNotificationService $userNotificationService,
         private readonly LoggerInterface $logger,
     ) {
         parent::__construct();
@@ -71,6 +73,7 @@ class ProcessArticleExportQueueCommand extends Command
 
                 $this->entityManager->persist($articleExport);
                 $this->entityManager->flush();
+                $this->notifyExportCompletion($queueItem->getRequestedBy()?->getId(), true, $queueItem, $filePath);
                 ++$processedCount;
             } catch (\Throwable $exception) {
                 if (is_string($filePath)) {
@@ -86,6 +89,7 @@ class ProcessArticleExportQueueCommand extends Command
                 ]);
 
                 $this->markQueueItemAsFailed($queueItem);
+                $this->notifyExportCompletion($queueItem->getRequestedBy()?->getId(), false, $queueItem, $filePath);
                 ++$failedCount;
 
                 $io->error(sprintf(
@@ -159,6 +163,27 @@ class ProcessArticleExportQueueCommand extends Command
                 'requested_by_user_id' => $queueItem->getRequestedBy()?->getId(),
                 'file_path' => $filePath,
                 'exception' => $cleanupException,
+            ]);
+        }
+    }
+
+    private function notifyExportCompletion(
+        ?int $userId,
+        bool $success,
+        ArticleExportQueue $queueItem,
+        ?string $filePath,
+    ): void
+    {
+        try {
+            $this->userNotificationService->notifyExportCompleted($userId, $success);
+        } catch (\Throwable $exception) {
+            $this->logger->warning('Failed to create export completion notification.', [
+                'queue_item_id' => $queueItem->getId(),
+                'article_id' => $queueItem->getArticle()->getId(),
+                'requested_by_user_id' => $userId,
+                'file_path' => $filePath,
+                'success' => $success,
+                'exception' => $exception,
             ]);
         }
     }

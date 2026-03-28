@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Entity\ArticleImportQueue;
 use App\Enum\ArticleImportQueueStatus;
 use App\Repository\ArticleImportQueueRepository;
 use App\Service\ArticleImportProcessor;
+use App\Service\UserNotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
@@ -29,6 +31,7 @@ class ProcessArticleImportQueueCommand extends Command
         private readonly ManagerRegistry $managerRegistry,
         private readonly ArticleImportQueueRepository $articleImportQueueRepository,
         private readonly ArticleImportProcessor $articleImportProcessor,
+        private readonly UserNotificationService $userNotificationService,
         private readonly LoggerInterface $logger,
     ) {
         parent::__construct();
@@ -60,6 +63,7 @@ class ProcessArticleImportQueueCommand extends Command
                     ->setErrorMessage(null);
 
                 $entityManager->flush();
+                $this->notifyImportCompletion($queueItem->getRequestedBy()?->getId(), true, $queueItem);
                 ++$processedCount;
 
                 $io->success(sprintf(
@@ -81,6 +85,7 @@ class ProcessArticleImportQueueCommand extends Command
                     $entityManager,
                     $queueRepository,
                 );
+                $this->notifyImportCompletion($queueItem->getRequestedBy()?->getId(), false, $queueItem);
                 ++$failedCount;
 
                 $io->error(sprintf(
@@ -114,7 +119,7 @@ class ProcessArticleImportQueueCommand extends Command
     }
 
     private function markQueueItemAsFailed(
-        \App\Entity\ArticleImportQueue $queueItem,
+        ArticleImportQueue $queueItem,
         string $errorMessage,
         EntityManagerInterface $entityManager,
         ArticleImportQueueRepository $queueRepository,
@@ -132,13 +137,13 @@ class ProcessArticleImportQueueCommand extends Command
 
         $this->managerRegistry->resetManager();
 
-        $entityManager = $this->managerRegistry->getManagerForClass(\App\Entity\ArticleImportQueue::class);
+        $entityManager = $this->managerRegistry->getManagerForClass(ArticleImportQueue::class);
         if (!$entityManager instanceof EntityManagerInterface) {
             throw new \RuntimeException('Entity manager for article import queue is not available.');
         }
 
-        $managedQueueItem = $entityManager->find(\App\Entity\ArticleImportQueue::class, $queueItem->getId());
-        if (!$managedQueueItem instanceof \App\Entity\ArticleImportQueue) {
+        $managedQueueItem = $entityManager->find(ArticleImportQueue::class, $queueItem->getId());
+        if (!$managedQueueItem instanceof ArticleImportQueue) {
             throw new \RuntimeException(sprintf(
                 'Unable to reload article import queue item %d after import failure.',
                 $queueItem->getId() ?? 0,
@@ -156,11 +161,30 @@ class ProcessArticleImportQueueCommand extends Command
 
     private function refreshQueueRepository(): ArticleImportQueueRepository
     {
-        $repository = $this->managerRegistry->getRepository(\App\Entity\ArticleImportQueue::class);
+        $repository = $this->managerRegistry->getRepository(ArticleImportQueue::class);
         if (!$repository instanceof ArticleImportQueueRepository) {
             throw new \RuntimeException('Article import queue repository is not available.');
         }
 
         return $repository;
+    }
+
+    private function notifyImportCompletion(
+        ?int $userId,
+        bool $success,
+        ArticleImportQueue $queueItem,
+    ): void
+    {
+        try {
+            $this->userNotificationService->notifyImportCompleted($userId, $success);
+        } catch (\Throwable $exception) {
+            $this->logger->warning('Failed to create import completion notification.', [
+                'queue_item_id' => $queueItem->getId(),
+                'file_path' => $queueItem->getFilePath(),
+                'requested_by_user_id' => $userId,
+                'success' => $success,
+                'exception' => $exception,
+            ]);
+        }
     }
 }
