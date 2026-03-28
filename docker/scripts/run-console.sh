@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-cron_env_file='/var/www/app/.cron.env'
+cron_env_file='/run/blog-system-ai/cron.env'
 
 if [ -f "${cron_env_file}" ]; then
     # Load runtime environment prepared during container startup.

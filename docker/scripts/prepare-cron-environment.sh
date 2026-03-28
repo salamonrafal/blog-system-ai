@@ -1,9 +1,12 @@
 #!/bin/sh
 set -eu
 
-cron_env_file='/var/www/app/.cron.env'
+cron_runtime_dir='/run/blog-system-ai'
+cron_env_file="${cron_runtime_dir}/cron.env"
 
 echo "Preparing environment for cron..."
+
+install -d -o www-data -g www-data -m 700 "${cron_runtime_dir}"
 
 {
     echo '#!/bin/sh'
