@@ -189,9 +189,11 @@ export function setupFlashNotices(){
       });
     }
 
-    window.setTimeout(()=>{
-      hideFlash(flash);
-    }, 10000);
+    if(flash.getAttribute('data-autohide') === 'true'){
+      window.setTimeout(()=>{
+        hideFlash(flash);
+      }, 10000);
+    }
   };
 
   const appendNotificationFlash = (notification)=>{
@@ -199,6 +201,7 @@ export function setupFlashNotices(){
 
     const flash = document.createElement('div');
     flash.className = notification.type === 'error' ? 'flash error' : 'flash';
+    flash.setAttribute('data-autohide', 'true');
     flash.setAttribute('role', notification.type === 'error' ? 'alert' : 'status');
 
     const message = document.createElement('span');
@@ -257,6 +260,37 @@ export function setupFlashNotices(){
     }
   };
 
+  let pollTimeoutId = null;
+  let isPolling = false;
+
+  const clearPolling = ()=>{
+    if(pollTimeoutId !== null){
+      window.clearTimeout(pollTimeoutId);
+      pollTimeoutId = null;
+    }
+  };
+
+  const scheduleNextPoll = ()=>{
+    clearPolling();
+    if(document.visibilityState !== 'visible') return;
+
+    pollTimeoutId = window.setTimeout(()=>{
+      void runPollingCycle();
+    }, 5000);
+  };
+
+  const runPollingCycle = async ()=>{
+    if(isPolling || document.visibilityState !== 'visible') return;
+
+    isPolling = true;
+    try{
+      await pollNotifications();
+    }finally{
+      isPolling = false;
+      scheduleNextPoll();
+    }
+  };
+
   qsa('.flash').forEach((flash)=>{
     bindFlash(flash);
   });
@@ -265,15 +299,14 @@ export function setupFlashNotices(){
     return;
   }
 
-  window.setInterval(()=>{
-    pollNotifications();
-  }, 5000);
-
   document.addEventListener('visibilitychange', ()=>{
     if(document.visibilityState === 'visible'){
-      pollNotifications();
+      void runPollingCycle();
+      return;
     }
+
+    clearPolling();
   });
 
-  pollNotifications();
+  void runPollingCycle();
 }

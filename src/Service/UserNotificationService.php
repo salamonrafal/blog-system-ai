@@ -45,12 +45,12 @@ class UserNotificationService
             return [];
         }
 
-        $notifications = $this->getNotificationRepository()->findUndisplayedForUserId($userId);
+        $entityManager = $this->getWritableEntityManager(UserNotification::class);
+        $notifications = $this->getNotificationRepository($entityManager)->findUndisplayedForUserId($userId);
         if ([] === $notifications) {
             return [];
         }
 
-        $entityManager = $this->getWritableEntityManager(UserNotification::class);
         $displayedAt = $this->utcNow();
 
         foreach ($notifications as $notification) {
@@ -95,9 +95,9 @@ class UserNotificationService
         return $entityManager;
     }
 
-    private function getNotificationRepository(): UserNotificationRepository
+    private function getNotificationRepository(EntityManagerInterface $entityManager): UserNotificationRepository
     {
-        $repository = $this->managerRegistry->getRepository(UserNotification::class);
+        $repository = $entityManager->getRepository(UserNotification::class);
         if (!$repository instanceof UserNotificationRepository) {
             throw new \RuntimeException('User notification repository is not available.');
         }

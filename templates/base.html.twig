@@ -89,7 +89,7 @@ Fullstack Developer</span>
 
 <div class="flash-stack" aria-live="polite" aria-atomic="true">
     {% for notification in user_notifications %}
-        <div class="flash{{ notification.type.flashType == 'error' ? ' error' : '' }}" role="{{ notification.type.flashType == 'error' ? 'alert' : 'status' }}">
+        <div class="flash{{ notification.type.flashType == 'error' ? ' error' : '' }}" data-autohide="true" role="{{ notification.type.flashType == 'error' ? 'alert' : 'status' }}">
             <span class="flash-message" data-i18n="{{ notification.type.translationKey }}">{{ notification.type.translationKey }}</span>
             <div class="flash-actions">
                 <a

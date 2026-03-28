@@ -43,14 +43,14 @@ final class UserNotificationServiceTest extends TestCase
             ->willReturn(true);
         $entityManager
             ->expects($this->once())
-            ->method('flush');
-
-        $managerRegistry = $this->createMock(ManagerRegistry::class);
-        $managerRegistry
-            ->expects($this->once())
             ->method('getRepository')
             ->with(UserNotification::class)
             ->willReturn($repository);
+        $entityManager
+            ->expects($this->once())
+            ->method('flush');
+
+        $managerRegistry = $this->createMock(ManagerRegistry::class);
         $managerRegistry
             ->expects($this->once())
             ->method('getManagerForClass')
