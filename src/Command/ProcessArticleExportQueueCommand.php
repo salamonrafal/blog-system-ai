@@ -62,7 +62,8 @@ class ProcessArticleExportQueueCommand extends Command
                     ->setStatus(ArticleExportStatus::NEW)
                     ->setType(ArticleExportType::ARTICLES)
                     ->setFilePath($filePath)
-                    ->setArticleCount(1);
+                    ->setArticleCount(1)
+                    ->setRequestedBy($queueItem->getRequestedBy());
 
                 $queueItem
                     ->setStatus(ArticleExportQueueStatus::COMPLETED)
@@ -79,6 +80,7 @@ class ProcessArticleExportQueueCommand extends Command
                 $this->logger->error('Article export failed while processing queue item.', [
                     'queue_item_id' => $queueItem->getId(),
                     'article_id' => $queueItem->getArticle()->getId(),
+                    'requested_by_user_id' => $queueItem->getRequestedBy()?->getId(),
                     'file_path' => $filePath,
                     'exception' => $exception,
                 ]);
@@ -154,6 +156,7 @@ class ProcessArticleExportQueueCommand extends Command
             $this->logger->warning('Failed to delete written export file after queue processing error.', [
                 'queue_item_id' => $queueItem->getId(),
                 'article_id' => $queueItem->getArticle()->getId(),
+                'requested_by_user_id' => $queueItem->getRequestedBy()?->getId(),
                 'file_path' => $filePath,
                 'exception' => $cleanupException,
             ]);

@@ -23,9 +23,24 @@ class ArticleImportQueueRepository extends ServiceEntityRepository
     /**
      * @return list<ArticleImportQueue>
      */
+    public function findAllForAdminIndex(): array
+    {
+        return $this->createQueryBuilder('queue_item')
+            ->leftJoin('queue_item.requestedBy', 'requested_by')
+            ->addSelect('requested_by')
+            ->orderBy('queue_item.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @return list<ArticleImportQueue>
+     */
     public function findPendingOrderedByCreatedAt(): array
     {
         return $this->createQueryBuilder('queue_item')
+            ->leftJoin('queue_item.requestedBy', 'requested_by')
+            ->addSelect('requested_by')
             ->andWhere('queue_item.status = :status')
             ->setParameter('status', ArticleImportQueueStatus::PENDING)
             ->orderBy('queue_item.createdAt', 'ASC')
@@ -75,7 +90,13 @@ class ArticleImportQueueRepository extends ServiceEntityRepository
                 continue;
             }
 
-            return $this->find((int) $queueItemId);
+            return $this->createQueryBuilder('queue_item')
+                ->leftJoin('queue_item.requestedBy', 'requested_by')
+                ->addSelect('requested_by')
+                ->andWhere('queue_item.id = :id')
+                ->setParameter('id', (int) $queueItemId)
+                ->getQuery()
+                ->getOneOrNullResult();
         }
 
         return null;

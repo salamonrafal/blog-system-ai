@@ -24,6 +24,10 @@ class ArticleExportQueue
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private Article $article;
 
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?User $requestedBy = null;
+
     #[ORM\Column(enumType: ArticleExportQueueStatus::class)]
     private ArticleExportQueueStatus $status = ArticleExportQueueStatus::PENDING;
 
@@ -57,6 +61,18 @@ class ArticleExportQueue
     public function getStatus(): ArticleExportQueueStatus
     {
         return $this->status;
+    }
+
+    public function getRequestedBy(): ?User
+    {
+        return $this->requestedBy;
+    }
+
+    public function setRequestedBy(?User $requestedBy): self
+    {
+        $this->requestedBy = $requestedBy;
+
+        return $this;
     }
 
     public function setStatus(ArticleExportQueueStatus $status): self

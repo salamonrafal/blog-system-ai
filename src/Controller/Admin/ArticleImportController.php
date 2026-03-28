@@ -22,6 +22,8 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/admin/imports')]
 class ArticleImportController extends AbstractController
 {
+    use AuthenticatedAdminUserTrait;
+
     public function __construct(
         private readonly ManagedFilePathResolver $managedFilePathResolver,
         private readonly ManagedFileDeleter $managedFileDeleter,
@@ -45,7 +47,8 @@ class ArticleImportController extends AbstractController
 
             $queueItem = (new ArticleImportQueue())
                 ->setOriginalFilename($storedFile['original_filename'])
-                ->setFilePath($storedFile['relative_path']);
+                ->setFilePath($storedFile['relative_path'])
+                ->setRequestedBy($this->resolveAuthenticatedUser());
 
             $entityManager->persist($queueItem);
             $entityManager->flush();
@@ -57,7 +60,7 @@ class ArticleImportController extends AbstractController
 
         return $this->render('admin/article_import/index.html.twig', [
             'form' => $form,
-            'imports' => $articleImportQueueRepository->findBy([], ['createdAt' => 'DESC']),
+            'imports' => $articleImportQueueRepository->findAllForAdminIndex(),
         ]);
     }
 

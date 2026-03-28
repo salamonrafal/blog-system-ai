@@ -30,7 +30,7 @@ class ArticleExportController extends AbstractController
     public function index(ArticleExportRepository $articleExportRepository): Response
     {
         return $this->render('admin/article_export/index.html.twig', [
-            'exports' => $articleExportRepository->findBy([], ['createdAt' => 'DESC']),
+            'exports' => $articleExportRepository->findAllForAdminIndex(),
         ]);
     }
 

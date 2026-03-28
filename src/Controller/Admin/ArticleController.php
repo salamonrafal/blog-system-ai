@@ -26,6 +26,8 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/admin/articles')]
 class ArticleController extends AbstractController
 {
+    use AuthenticatedAdminUserTrait;
+
     #[Route('', name: 'admin_article_index', methods: ['GET'])]
     public function index(
         Request $request,
@@ -183,7 +185,7 @@ class ArticleController extends AbstractController
             throw $this->createAccessDeniedException('Invalid CSRF token.');
         }
 
-        $result = $this->queueArticles([$article], $articleExportQueueRepository);
+        $result = $this->queueArticles([$article], $articleExportQueueRepository, $this->resolveAuthenticatedUser());
 
         if (0 === $result['queued']) {
             $this->addFlash('success', 'Article export is already queued.');
@@ -261,7 +263,7 @@ class ArticleController extends AbstractController
         }
 
         $articles = $articleRepository->findBy(['id' => $articleIds]);
-        $result = $this->queueArticles($articles, $articleExportQueueRepository);
+        $result = $this->queueArticles($articles, $articleExportQueueRepository, $this->resolveAuthenticatedUser());
 
         if (0 === $result['queued']) {
             $this->addFlash('success', 'Selected article exports are already queued.');
@@ -324,12 +326,13 @@ class ArticleController extends AbstractController
     private function queueArticles(
         array $articles,
         ArticleExportQueueRepository $articleExportQueueRepository,
+        ?User $requestedBy,
     ): array {
         $queued = 0;
         $skipped = 0;
 
         foreach ($articles as $article) {
-            if (!$articleExportQueueRepository->enqueuePending($article)) {
+            if (!$articleExportQueueRepository->enqueuePending($article, $requestedBy)) {
                 ++$skipped;
 
                 continue;
@@ -341,13 +344,6 @@ class ArticleController extends AbstractController
             'queued' => $queued,
             'skipped' => $skipped,
         ];
-    }
-
-    private function resolveAuthenticatedUser(): ?User
-    {
-        $user = $this->getUser();
-
-        return $user instanceof User ? $user : null;
     }
 
     private function resolveSelectedCategory(Request $request, ArticleCategoryRepository $articleCategoryRepository): ?ArticleCategory

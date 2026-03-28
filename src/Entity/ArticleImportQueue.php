@@ -26,6 +26,10 @@ class ArticleImportQueue
     #[ORM\Column(length: 500)]
     private string $filePath = '';
 
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?User $requestedBy = null;
+
     #[ORM\Column(enumType: ArticleImportQueueStatus::class)]
     private ArticleImportQueueStatus $status = ArticleImportQueueStatus::PENDING;
 
@@ -80,6 +84,18 @@ class ArticleImportQueue
     public function getStatus(): ArticleImportQueueStatus
     {
         return $this->status;
+    }
+
+    public function getRequestedBy(): ?User
+    {
+        return $this->requestedBy;
+    }
+
+    public function setRequestedBy(?User $requestedBy): self
+    {
+        $this->requestedBy = $requestedBy;
+
+        return $this;
     }
 
     public function setStatus(ArticleImportQueueStatus $status): self

@@ -12,6 +12,7 @@ import {
   setupHeadlineImageToggle,
   setupImportClearConfirmation,
   setupImportDeleteConfirmation,
+  setupImportMessageDialog,
   setupQueueClearConfirmation,
   setupTranslationTabs,
   setupUserDeleteConfirmation,
@@ -54,6 +55,7 @@ function init(){
   setupExportClearConfirmation();
   setupImportDeleteConfirmation();
   setupImportClearConfirmation();
+  setupImportMessageDialog();
   setupQueueClearConfirmation();
   syncTopbarHeight();
 

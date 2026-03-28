@@ -51,6 +51,7 @@
                                 <th data-i18n="admin_queue_table_id">ID</th>
                                 <th class="queue-status-title-column" data-i18n="admin_table_title">Tytuł</th>
                                 <th data-i18n="admin_queue_table_type">Typ kolejki</th>
+                                <th data-i18n="admin_queue_table_user">Użytkownik</th>
                                 <th data-i18n="admin_queue_table_created">Dodano</th>
                                 <th data-i18n="admin_table_action">Akcja</th>
                             </tr>
@@ -63,6 +64,13 @@
                                         <a href="{{ path('admin_article_edit', {id: queue_item.article.id}) }}">{{ queue_item.article.title }}</a>
                                     </td>
                                     <td data-i18n="admin_queue_type_article_export">Eksport artykułu</td>
+                                    <td>
+                                        {% if queue_item.requestedBy %}
+                                            {{ queue_item.requestedBy.displayName }}
+                                        {% else %}
+                                            <span data-i18n="admin_table_system">System</span>
+                                        {% endif %}
+                                    </td>
                                     <td>{{ queue_item.createdAt|user_date }}</td>
                                     <td>
                                         <div class="actions">
@@ -97,11 +105,12 @@
                         <table>
                             <thead>
                             <tr>
-                                <th>ID</th>
-                                <th class="queue-status-title-column">Plik</th>
-                                <th>Typ kolejki</th>
-                                <th>Dodano</th>
-                                <th>Akcja</th>
+                                <th data-i18n="admin_queue_table_id">ID</th>
+                                <th class="queue-status-title-column" data-i18n="admin_queue_table_file">Plik</th>
+                                <th data-i18n="admin_queue_table_type">Typ kolejki</th>
+                                <th data-i18n="admin_queue_table_user">Użytkownik</th>
+                                <th data-i18n="admin_queue_table_created">Dodano</th>
+                                <th data-i18n="admin_table_action">Akcja</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -112,7 +121,14 @@
                                         <strong>{{ queue_item.originalFilename }}</strong><br>
                                         <span class="meta">{{ queue_item.filePath|split('/')|last }}</span>
                                     </td>
-                                    <td>Import artykułu</td>
+                                    <td data-i18n="admin_queue_type_article_import">Import artykułu</td>
+                                    <td>
+                                        {% if queue_item.requestedBy %}
+                                            {{ queue_item.requestedBy.displayName }}
+                                        {% else %}
+                                            <span data-i18n="admin_table_system">System</span>
+                                        {% endif %}
+                                    </td>
                                     <td>{{ queue_item.createdAt|user_date }}</td>
                                     <td>
                                         <div class="actions">
