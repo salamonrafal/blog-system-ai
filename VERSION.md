@@ -1,31 +1,5 @@
 # VERSION
 
-## 2026-03-27
-
-- Dodano stronicowanie pod tabelą na `admin_article_index`.
-- Wprowadzono osobne ustawienie liczby elementów na stronę dla listy artykułów w panelu administracyjnym, z domyślną wartością `25`.
-- Rozszerzono model ustawień bloga, formularz panelu oraz migrację bazy danych o konfigurację `admin_articles_per_page`.
-- Rozszerzono ustawienia bloga o konfigurowalny `URL aplikacji`, wykorzystywany przy budowaniu canonicali, `og:url`, linków kopiowania artykułów oraz pełnych adresów obrazków SEO, wraz z migracją bazy danych i aktualizacją testów jednostkowych.
-- Dodano nowy moduł zarządzania kategoriami artykułów w panelu administracyjnym z ekranami listy, tworzenia, edycji i usuwania, nową encją `ArticleCategory`, repozytorium, formularzem, kontrolerem, migracją bazy danych oraz testami jednostkowymi.
-- Rozszerzono dashboard i skróty administracyjne o sekcję kategorii artykułów, dzięki czemu nowy moduł jest dostępny bezpośrednio z panelu głównego i pływającego menu admina.
-- Wprowadzono obsługę statusu kategorii (`Aktywna` / `Nieaktywna`) wraz z prezentacją w formularzu, tabeli listy i modalem potwierdzenia usuwania w stylu interfejsu aplikacji.
-- Rozszerzono kategorie o wielojęzyczne tytuły i opisy, a następnie przebudowano model danych na generyczne mapy tłumaczeń `titles` i `descriptions`, przygotowując strukturę pod kolejne języki bez dodawania nowych pól do encji.
-- Przebudowano formularze dodawania i edycji kategorii, grupując pola w zakładkach `Podstawowe` oraz osobnych panelach tłumaczeń per język, z dopracowanym układem, spacingiem i bardziej kompaktowymi tabami.
-- Dodano w panelach tłumaczeń akcji `Uzupełnij z podstawowych`, która kopiuje nazwę i krótki opis z sekcji podstawowej do aktualnie edytowanego wariantu językowego.
-- Uzupełniono moduł kategorii o pełną internacjonalizację `PL/EN` dla nagłówków ekranów, zakładek, opisów sekcji, etykiet pól, placeholderów, wartości statusu, przycisków i komunikatów pomocniczych, tak aby przełączanie języka działało również na ekranach tworzenia i edycji kategorii.
-- Rozszerzono formularze tworzenia i edycji artykułu o możliwość przypisania kategorii, dodając relację `Article -> ArticleCategory`, migrację bazy danych oraz aktualizację testów jednostkowych encji i formularza.
-- Rozszerzono publiczny widok `blog_index` o sekcję kategorii artykułów wraz z nową trasą filtrowania `/category/{slug}`, obsługą slugów budowanych z nazw kategorii, filtrowaniem listy opublikowanych wpisów oraz zachowaniem wybranej kategorii w paginacji.
-- Uzupełniono publiczny widok bloga o dynamiczne podmienianie głównego tytułu i opisu listy artykułów na treści aktualnie wybranej kategorii, dzięki czemu wejście w filtr kategorii prezentuje jej własny kontekst redakcyjny zamiast ogólnego intro bloga.
-- Dopracowano interfejs filtrów kategorii na `blog_index`, upraszczając listę do kompaktowych przycisków bez opisów, dodając tłumaczenie etykiety `Kategorie artykułów`, zmniejszając promień zaokrągleń oraz porządkując wyrównanie i wizualne odróżnienie samej etykiety sekcji.
-- Dodano nowe testy jednostkowe dla `BlogController`, `SecurityController`, `BlogSettingsController` i `QueueStatusController`, uzupełniając brakujące pokrycie dla publicznego filtrowania kategorii, logowania, zapisu ustawień bloga oraz obsługi widoku i czyszczenia kolejek administracyjnych.
-- Dopracowano internacjonalizację sekcji kategorii na `blog_index`, zastępując twardo wpisane polskie etykiety kluczami i18n oraz rozdzielając język interfejsu użytkownika od parametru `lang` używanego do filtrowania listy artykułów.
-- Uporządkowano fallbacki tytułu i opisu na stronie `blog_category`, tak aby korzystały kolejno z tłumaczenia dla aktualnego języka użytkownika, pól podstawowych kategorii, a dopiero na końcu z neutralnych wartości i18n.
-- Rozszerzono widok `blog_show` o informację o kategorii artykułu z linkiem do filtrowanej listy wpisów tej kategorii oraz dopracowano układ znacznika względem headline, także dla wariantu bez grafiki nagłówkowej.
-- Ujednolicono formatowanie nowego bloku stylów kategorii w `public/assets/css/styles.css`, dopasowując spacing i zapis deklaracji do konwencji używanej w reszcie arkusza.
-- Uproszczono sortowanie aktywnych kategorii w repozytorium, usuwając redundantne drugie kryterium `createdAt`, oraz doprecyzowano test `QueueStatusController`, aby potwierdzał usunięcie obu konkretnych encji kolejki zamiast dowolnych dwóch wywołań `remove()`.
-- Rozszerzono widok `blog_show` o sekcję polecanych artykułów pod panelem autora, prezentującą do `5` innych opublikowanych wpisów z tej samej kategorii, a dla artykułów bez kategorii dobierającą rekomendacje z całego bloga.
-- Przeniesiono dolne akcje `Wróć`, `Kopiuj link` i `Edytuj` na `blog_show` bezpośrednio pod treść artykułu, tak aby pojawiały się przed sekcją `Autor artykułu` i blokiem rekomendacji.
-
 ## 2026-03-14
 
 - Dodano zestaw testów jednostkowych dla `ArticleSlugger`, `ArticlePublisher`, `UserChecker` oraz `User`.
@@ -206,3 +180,40 @@
 - Uzupełniono i dopracowano internacjonalizację komponentów frontendowych, dodając brakujące klucze tłumaczeń dla modala usuwania użytkownika, podpisów i etykiet dostępności w podglądzie obrazów oraz placeholderów i promptów w edytorze formatowania artykułów.
 - Poprawiono komponenty dynamiczne po refaktorze, usuwając niesymetryczne zerowanie `document.body.style.overflow` w modalach administracyjnych, eliminując podwójne `applyI18n()` inicjowane przez popup prywatności oraz dopinając odświeżanie tłumaczeń w już otwartym modalu podglądu obrazów po zmianie języka.
 - Uporządkowano bootstrap aplikacji i build assetów, usuwając redundantne wywołanie `syncTopbarHeight()`, zmieniając import `esbuild` na bezpieczny wariant namespace w ESM, zachowując `.gitkeep` w `public/assets/build` podczas czyszczenia outputu oraz doprecyzowując `README.md`, że w środowisku developerskim Twig ładuje bezpośrednio źródłowe moduły z `public/assets/js`.
+
+## 2026-03-27
+
+- Dodano stronicowanie pod tabelą na `admin_article_index`.
+- Wprowadzono osobne ustawienie liczby elementów na stronę dla listy artykułów w panelu administracyjnym, z domyślną wartością `25`.
+- Rozszerzono model ustawień bloga, formularz panelu oraz migrację bazy danych o konfigurację `admin_articles_per_page`.
+- Rozszerzono ustawienia bloga o konfigurowalny `URL aplikacji`, wykorzystywany przy budowaniu canonicali, `og:url`, linków kopiowania artykułów oraz pełnych adresów obrazków SEO, wraz z migracją bazy danych i aktualizacją testów jednostkowych.
+- Dodano nowy moduł zarządzania kategoriami artykułów w panelu administracyjnym z ekranami listy, tworzenia, edycji i usuwania, nową encją `ArticleCategory`, repozytorium, formularzem, kontrolerem, migracją bazy danych oraz testami jednostkowymi.
+- Rozszerzono dashboard i skróty administracyjne o sekcję kategorii artykułów, dzięki czemu nowy moduł jest dostępny bezpośrednio z panelu głównego i pływającego menu admina.
+- Wprowadzono obsługę statusu kategorii (`Aktywna` / `Nieaktywna`) wraz z prezentacją w formularzu, tabeli listy i modalem potwierdzenia usuwania w stylu interfejsu aplikacji.
+- Rozszerzono kategorie o wielojęzyczne tytuły i opisy, a następnie przebudowano model danych na generyczne mapy tłumaczeń `titles` i `descriptions`, przygotowując strukturę pod kolejne języki bez dodawania nowych pól do encji.
+- Przebudowano formularze dodawania i edycji kategorii, grupując pola w zakładkach `Podstawowe` oraz osobnych panelach tłumaczeń per język, z dopracowanym układem, spacingiem i bardziej kompaktowymi tabami.
+- Dodano w panelach tłumaczeń akcji `Uzupełnij z podstawowych`, która kopiuje nazwę i krótki opis z sekcji podstawowej do aktualnie edytowanego wariantu językowego.
+- Uzupełniono moduł kategorii o pełną internacjonalizację `PL/EN` dla nagłówków ekranów, zakładek, opisów sekcji, etykiet pól, placeholderów, wartości statusu, przycisków i komunikatów pomocniczych, tak aby przełączanie języka działało również na ekranach tworzenia i edycji kategorii.
+- Rozszerzono formularze tworzenia i edycji artykułu o możliwość przypisania kategorii, dodając relację `Article -> ArticleCategory`, migrację bazy danych oraz aktualizację testów jednostkowych encji i formularza.
+- Rozszerzono publiczny widok `blog_index` o sekcję kategorii artykułów wraz z nową trasą filtrowania `/category/{slug}`, obsługą slugów budowanych z nazw kategorii, filtrowaniem listy opublikowanych wpisów oraz zachowaniem wybranej kategorii w paginacji.
+- Uzupełniono publiczny widok bloga o dynamiczne podmienianie głównego tytułu i opisu listy artykułów na treści aktualnie wybranej kategorii, dzięki czemu wejście w filtr kategorii prezentuje jej własny kontekst redakcyjny zamiast ogólnego intro bloga.
+- Dopracowano interfejs filtrów kategorii na `blog_index`, upraszczając listę do kompaktowych przycisków bez opisów, dodając tłumaczenie etykiety `Kategorie artykułów`, zmniejszając promień zaokrągleń oraz porządkując wyrównanie i wizualne odróżnienie samej etykiety sekcji.
+- Dodano nowe testy jednostkowe dla `BlogController`, `SecurityController`, `BlogSettingsController` i `QueueStatusController`, uzupełniając brakujące pokrycie dla publicznego filtrowania kategorii, logowania, zapisu ustawień bloga oraz obsługi widoku i czyszczenia kolejek administracyjnych.
+- Dopracowano internacjonalizację sekcji kategorii na `blog_index`, zastępując twardo wpisane polskie etykiety kluczami i18n oraz rozdzielając język interfejsu użytkownika od parametru `lang` używanego do filtrowania listy artykułów.
+- Uporządkowano fallbacki tytułu i opisu na stronie `blog_category`, tak aby korzystały kolejno z tłumaczenia dla aktualnego języka użytkownika, pól podstawowych kategorii, a dopiero na końcu z neutralnych wartości i18n.
+- Rozszerzono widok `blog_show` o informację o kategorii artykułu z linkiem do filtrowanej listy wpisów tej kategorii oraz dopracowano układ znacznika względem headline, także dla wariantu bez grafiki nagłówkowej.
+- Ujednolicono formatowanie nowego bloku stylów kategorii w `public/assets/css/styles.css`, dopasowując spacing i zapis deklaracji do konwencji używanej w reszcie arkusza.
+- Uproszczono sortowanie aktywnych kategorii w repozytorium, usuwając redundantne drugie kryterium `createdAt`, oraz doprecyzowano test `QueueStatusController`, aby potwierdzał usunięcie obu konkretnych encji kolejki zamiast dowolnych dwóch wywołań `remove()`.
+- Rozszerzono widok `blog_show` o sekcję polecanych artykułów pod panelem autora, prezentującą do `5` innych opublikowanych wpisów z tej samej kategorii, a dla artykułów bez kategorii dobierającą rekomendacje z całego bloga.
+- Przeniesiono dolne akcje `Wróć`, `Kopiuj link` i `Edytuj` na `blog_show` bezpośrednio pod treść artykułu, tak aby pojawiały się przed sekcją `Autor artykułu` i blokiem rekomendacji.
+
+## 2026-03-28
+
+- Uporządkowano `VERSION.md`, przenosząc sekcję z datą `2026-03-27` na dół pliku tak, aby zachować zasadę dopisywania nowszych zmian na końcu strony.
+- Poprawiono link kategorii na `blog_show`, tak aby przejście do filtrowanej listy wpisów zachowywało aktualny język interfejsu użytkownika zamiast zawsze kierować do wariantu `pl`, oraz dodano test regresyjny dla `BlogController`.
+- Przebudowano pływające menu administracyjne, dodając rozwijaną sekcję `Zarządzanie treścią`, do której przeniesiono pozycje `Lista artykułów` i `Kategorie artykułów`, wraz z nowym kluczem tłumaczenia `admin_shortcut_content_management_title`.
+- Dopracowano dashboard administracyjny, kompaktując przyciski akcji w panelach do pojedynczej linii, skracając etykiety akcji w blokach zarządzania do spójnych form `Przeglądaj`, `Dodaj`, `Kolejki` i `Edytuj` oraz zmieniając etykietę statystyki użytkowników z `Administratorzy` na krótsze `Admini`.
+- Uzupełniono style dashboardu o bezpieczne zawijanie dłuższych etykiet statystyk wewnątrz kafelków, dzięki czemu podpisy takie jak `Admini` nie wychodzą już poza obrys paneli.
+- Rozszerzono `admin_article_index` o filtrowanie listy po kategorii, dodając obsługę filtra w `ArticleController`, nowe metody repozytorium do liczenia i paginacji z uwzględnieniem kategorii, zachowanie parametru filtra w paginacji oraz testy jednostkowe dla wyboru konkretnej kategorii i pustego wyboru `Wszystkie kategorie`.
+- Dodano nad tabelą `admin_article_index` nowy, kompaktowy blok `Filtry` wyrównany do prawej strony, z uproszczonym układem bez etykiety pola `Kategoria`, przyciskiem czyszczenia aktywnego filtra oraz stylami dopasowanymi do estetyki panelu administracyjnego.
+- Zastąpiono natywną listę rozwijaną kategorii na `admin_article_index` customowym dropdownem z własnym triggerem, panelem opcji, stanem zaznaczenia i obsługą JavaScript, dzięki czemu cała lista rozwijana i jej elementy wizualnie pasują do panelu administracyjnego.

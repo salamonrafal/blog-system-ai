@@ -144,7 +144,7 @@ final class DashboardControllerTest extends TestCase
             ['value' => 4, 'label' => 'Wszystkie'],
             ['value' => 3, 'label' => 'Aktywne'],
             ['value' => 1, 'label' => 'Nieaktywne'],
-            ['value' => 2, 'label' => 'Administratorzy'],
+            ['value' => 2, 'label' => 'Admini'],
         ], $panels[5]['stats']);
 
         $this->assertSame('Ustawienia bloga', $panels[6]['title']);

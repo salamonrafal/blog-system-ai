@@ -12,6 +12,7 @@ use App\Repository\ArticleRepository;
 use App\Service\ArticleSlugger;
 use App\Service\BlogSettingsProvider;
 use App\Service\PaginationBuilder;
+use App\Service\UserLanguageResolver;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -62,7 +63,12 @@ class BlogController extends AbstractController
     }
 
     #[Route('/articles/{slug}', name: 'blog_show', methods: ['GET'])]
-    public function show(string $slug, ArticleRepository $articleRepository, ArticleSlugger $articleSlugger): Response
+    public function show(
+        string $slug,
+        ArticleRepository $articleRepository,
+        ArticleSlugger $articleSlugger,
+        UserLanguageResolver $userLanguageResolver,
+    ): Response
     {
         $article = $articleRepository->findOneBySlug($slug);
 
@@ -79,7 +85,7 @@ class BlogController extends AbstractController
         if (null !== $articleCategory && $articleCategory->isActive()) {
             $articleCategoryRouteParams = [
                 'slug' => $articleSlugger->slugify($articleCategory->getName()),
-                'lang' => $article->getLanguage()->value,
+                'lang' => $userLanguageResolver->getLanguage(),
             ];
         }
 

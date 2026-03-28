@@ -15,6 +15,7 @@ use App\Repository\ArticleRepository;
 use App\Service\ArticleSlugger;
 use App\Service\BlogSettingsProvider;
 use App\Service\PaginationBuilder;
+use App\Service\UserLanguageResolver;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -191,15 +192,21 @@ final class BlogControllerTest extends TestCase
             ->with($article)
             ->willReturn([]);
 
+        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
+        $userLanguageResolver
+            ->expects($this->once())
+            ->method('getLanguage')
+            ->willReturn('en');
+
         $controller = new TestBlogController();
-        $response = $controller->show('article', $articleRepository, new ArticleSlugger());
+        $response = $controller->show('article', $articleRepository, new ArticleSlugger(), $userLanguageResolver);
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
         $this->assertSame('blog/show.html.twig', $controller->capturedView);
         $this->assertSame($article, $controller->capturedParameters['article']);
         $this->assertSame([
             'slug' => 'architektura-systemow',
-            'lang' => 'pl',
+            'lang' => 'en',
         ], $controller->capturedParameters['article_category_route_params']);
         $this->assertSame([], $controller->capturedParameters['recommended_articles']);
     }
@@ -227,8 +234,13 @@ final class BlogControllerTest extends TestCase
             ->with($article)
             ->willReturn([]);
 
+        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
+        $userLanguageResolver
+            ->expects($this->never())
+            ->method('getLanguage');
+
         $controller = new TestBlogController();
-        $response = $controller->show('article', $articleRepository, new ArticleSlugger());
+        $response = $controller->show('article', $articleRepository, new ArticleSlugger(), $userLanguageResolver);
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
         $this->assertNull($controller->capturedParameters['article_category_route_params']);
@@ -258,8 +270,13 @@ final class BlogControllerTest extends TestCase
             ->with($article)
             ->willReturn([$recommendedArticle]);
 
+        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
+        $userLanguageResolver
+            ->expects($this->never())
+            ->method('getLanguage');
+
         $controller = new TestBlogController();
-        $controller->show('article', $articleRepository, new ArticleSlugger());
+        $controller->show('article', $articleRepository, new ArticleSlugger(), $userLanguageResolver);
 
         $this->assertSame([$recommendedArticle], $controller->capturedParameters['recommended_articles']);
     }

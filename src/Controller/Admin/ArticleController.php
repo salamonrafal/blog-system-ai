@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Entity\Article;
+use App\Entity\ArticleCategory;
 use App\Entity\User;
 use App\Enum\ArticleStatus;
 use App\Form\ArticleType;
@@ -29,6 +30,7 @@ class ArticleController extends AbstractController
     public function index(
         Request $request,
         ArticleRepository $articleRepository,
+        ArticleCategoryRepository $articleCategoryRepository,
         BlogSettingsProvider $blogSettingsProvider,
         PaginationBuilder $paginationBuilder,
     ): Response
@@ -36,12 +38,18 @@ class ArticleController extends AbstractController
         $settings = $blogSettingsProvider->getSettings();
         $articlesPerPage = max(1, $settings->getAdminArticlesPerPage());
         $requestedPage = max(1, $request->query->getInt('page', 1));
-        $totalArticles = $articleRepository->count([]);
+        $selectedCategory = $this->resolveSelectedCategory($request, $articleCategoryRepository);
+        $totalArticles = $articleRepository->countForAdminIndex($selectedCategory);
         $totalPages = max(1, (int) ceil($totalArticles / $articlesPerPage));
         $currentPage = min($requestedPage, $totalPages);
 
         return $this->render('admin/article/index.html.twig', [
-            'articles' => $articleRepository->findPaginatedOrderedByCreatedDate($currentPage, $articlesPerPage),
+            'articles' => $articleRepository->findPaginatedOrderedByCreatedDate($currentPage, $articlesPerPage, $selectedCategory),
+            'article_categories' => $articleCategoryRepository->findForAdminIndex(),
+            'selected_category' => $selectedCategory,
+            'pagination_route_params' => array_filter([
+                'category' => $selectedCategory?->getId(),
+            ], static fn (mixed $value): bool => null !== $value && '' !== $value),
             'current_page' => $currentPage,
             'total_pages' => $totalPages,
             'pagination_items' => $paginationBuilder->buildPaginationItems($currentPage, $totalPages),
@@ -340,6 +348,23 @@ class ArticleController extends AbstractController
         $user = $this->getUser();
 
         return $user instanceof User ? $user : null;
+    }
+
+    private function resolveSelectedCategory(Request $request, ArticleCategoryRepository $articleCategoryRepository): ?ArticleCategory
+    {
+        $categoryId = $request->query->get('category');
+        if (!is_string($categoryId) || '' === trim($categoryId)) {
+            return null;
+        }
+
+        $categoryId = trim($categoryId);
+        if (!ctype_digit($categoryId) || (int) $categoryId <= 0) {
+            return null;
+        }
+
+        $category = $articleCategoryRepository->find((int) $categoryId);
+
+        return $category instanceof ArticleCategory ? $category : null;
     }
 
     private function createArticleForm(Article $article, ArticleCategoryRepository $articleCategoryRepository): FormInterface

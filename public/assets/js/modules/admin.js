@@ -241,6 +241,64 @@ export function setupArticleBulkExport(){
   syncState();
 }
 
+export function setupArticleCategoryFilter(){
+  qsa('[data-article-category-filter]').forEach((dropdown)=>{
+    const trigger = qs('[data-action="toggle-article-category-filter"]', dropdown);
+    const hiddenInput = qs('[data-article-category-filter-input]', dropdown.closest('form'));
+    const options = qsa('[data-article-category-option]', dropdown);
+    if(!trigger || !hiddenInput || !options.length) return;
+
+    const close = ()=>{
+      dropdown.classList.remove('is-open');
+      trigger.setAttribute('aria-expanded', 'false');
+    };
+
+    const open = ()=>{
+      dropdown.classList.add('is-open');
+      trigger.setAttribute('aria-expanded', 'true');
+    };
+
+    trigger.addEventListener('click', (event)=>{
+      event.preventDefault();
+      const isOpen = dropdown.classList.contains('is-open');
+      qsa('[data-article-category-filter].is-open').forEach((openDropdown)=>{
+        if(openDropdown !== dropdown){
+          const openTrigger = qs('[data-action="toggle-article-category-filter"]', openDropdown);
+          openDropdown.classList.remove('is-open');
+          if(openTrigger){
+            openTrigger.setAttribute('aria-expanded', 'false');
+          }
+        }
+      });
+
+      if(isOpen){
+        close();
+      }else{
+        open();
+      }
+    });
+
+    options.forEach((option)=>{
+      option.addEventListener('click', ()=>{
+        hiddenInput.value = option.getAttribute('data-value') || '';
+        dropdown.closest('form')?.submit();
+      });
+    });
+
+    document.addEventListener('click', (event)=>{
+      if(!dropdown.contains(event.target)){
+        close();
+      }
+    });
+
+    document.addEventListener('keydown', (event)=>{
+      if(event.key === 'Escape'){
+        close();
+      }
+    });
+  });
+}
+
 function setupDangerConfirmation(config){
   const triggers = qsa(config.triggerSelector);
   if(!triggers.length) return;
