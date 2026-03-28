@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Command;
 
 use App\Command\ProcessArticleImportQueueCommand;
 use App\Entity\ArticleImportQueue;
+use App\Entity\User;
 use App\Enum\ArticleImportQueueStatus;
 use App\Repository\ArticleImportQueueRepository;
 use App\Service\ArticleImportProcessor;
@@ -44,6 +45,11 @@ final class ProcessArticleImportQueueCommandTest extends TestCase
         $queueItem = (new ArticleImportQueue())
             ->setOriginalFilename('article.json')
             ->setFilePath('var/imports/article.json')
+            ->setRequestedBy(
+                (new User())
+                    ->setEmail('importer@example.com')
+                    ->setFullName('Importer')
+            )
             ->setStatus(ArticleImportQueueStatus::PROCESSING);
 
         $entityManager = $this->createMock(EntityManagerInterface::class);
@@ -94,7 +100,15 @@ final class ProcessArticleImportQueueCommandTest extends TestCase
         $managerRegistry = $this->createMock(ManagerRegistry::class);
         $managerRegistry->expects($this->never())->method('resetManager');
         $logger = $this->createMock(LoggerInterface::class);
-        $logger->expects($this->once())->method('error');
+        $logger
+            ->expects($this->once())
+            ->method('error')
+            ->with(
+                'Article import failed while processing queue item.',
+                $this->callback(static function (array $context): bool {
+                    return array_key_exists('requested_by_user_id', $context);
+                })
+            );
 
         $tester = new CommandTester(new ProcessArticleImportQueueCommand($entityManager, $managerRegistry, $queueRepository, $processor, $logger));
         $exitCode = $tester->execute([]);

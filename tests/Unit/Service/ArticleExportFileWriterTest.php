@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Service;
 
 use App\Entity\Article;
 use App\Entity\ArticleExportQueue;
+use App\Entity\User;
 use App\Enum\ArticleLanguage;
 use App\Enum\ArticleStatus;
 use App\Service\ArticleExportFileWriter;
@@ -31,6 +32,12 @@ final class ArticleExportFileWriterTest extends TestCase
                 ->setPublishedAt(new \DateTimeImmutable('2026-03-22 12:00:00', new \DateTimeZone('Europe/Warsaw')));
 
             $queueItem = new ArticleExportQueue($article);
+            $this->setEntityId($queueItem, 12);
+            $user = (new User())
+                ->setEmail('exporter@example.com')
+                ->setFullName('Eksporter');
+            $this->setEntityId($user, 7);
+            $queueItem->setRequestedBy($user);
             $writer = new ArticleExportFileWriter($projectDir, 'var/exports');
 
             $relativePath = $writer->write($queueItem);
@@ -43,8 +50,12 @@ final class ArticleExportFileWriterTest extends TestCase
 
             $this->assertSame('article-export', $payload['format']);
             $this->assertSame(1, $payload['version']);
+            $this->assertSame(7, $payload['exported_by']['id']);
+            $this->assertSame('exporter@example.com', $payload['exported_by']['email']);
+            $this->assertSame('Eksporter', $payload['exported_by']['display_name']);
             $this->assertSame(1, $payload['article_count']);
             $this->assertCount(1, $payload['article']);
+            $this->assertSame(12, $payload['article'][0]['queue_item_id']);
             $this->assertSame('Eksportowany artykul', $payload['article'][0]['title']);
             $this->assertSame('en', $payload['article'][0]['language']);
             $this->assertSame('published', $payload['article'][0]['status']);
@@ -132,5 +143,11 @@ final class ArticleExportFileWriterTest extends TestCase
         }
 
         rmdir($directory);
+    }
+
+    private function setEntityId(object $entity, int $id): void
+    {
+        $reflectionProperty = new \ReflectionProperty($entity, 'id');
+        $reflectionProperty->setValue($entity, $id);
     }
 }

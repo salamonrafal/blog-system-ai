@@ -45,9 +45,8 @@
                             <th data-i18n="admin_exports_table_id">ID</th>
                             <th data-i18n="admin_exports_table_type">Typ</th>
                             <th data-i18n="admin_exports_table_status">Status</th>
-                            <th data-i18n="admin_exports_table_articles">Artykuły</th>
+                            <th data-i18n="admin_exports_table_user_created">Użytkownik / utworzono</th>
                             <th class="article-export-file-column" data-i18n="admin_exports_table_file">Plik</th>
-                            <th data-i18n="admin_exports_table_created">Utworzono</th>
                             <th data-i18n="admin_table_action">Akcja</th>
                         </tr>
                         </thead>
@@ -65,9 +64,11 @@
                                         <span data-i18n="admin_exports_status_new">Nowy</span>
                                     {% endif %}
                                 </td>
-                                <td>{{ export.articleCount }}</td>
+                                <td>
+                                    {{ export.requestedBy ? export.requestedBy.displayName : 'System' }}<br>
+                                    <span class="meta">{{ export.createdAt|user_date }}</span>
+                                </td>
                                 <td class="article-export-file-cell">{{ export.filePath|split('/')|last }}</td>
-                                <td>{{ export.createdAt|user_date }}</td>
                                 <td>
                                     <div class="actions">
                                         <a

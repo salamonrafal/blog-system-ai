@@ -615,3 +615,86 @@ export function setupImportDeleteConfirmation(){
     closeFallback: 'Zamknij alert',
   });
 }
+
+export function setupImportMessageDialog(){
+  const triggers = qsa('[data-action="show-import-message"]');
+  if(!triggers.length) return;
+
+  const existingModal = qs('.import-message-modal');
+  if(existingModal){
+    existingModal.remove();
+  }
+
+  const titleId = 'import-message-title';
+  const textId = 'import-message-text';
+  const modal = document.createElement('div');
+  modal.className = 'confirm-delete-modal import-message-modal';
+  modal.setAttribute('hidden', '');
+  modal.setAttribute('aria-hidden', 'true');
+  modal.innerHTML = `
+    <div class="confirm-delete-dialog" role="dialog" aria-modal="false" aria-labelledby="${titleId}" aria-describedby="${textId}">
+      <div class="confirm-delete-topbar">
+        <div class="confirm-delete-eyebrow">admin://imports</div>
+        <button type="button" class="confirm-delete-close" data-action="close-import-message" data-i18n-aria="admin_close_alert" aria-label="Zamknij alert">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <h2 id="${titleId}" class="confirm-delete-title" data-i18n="admin_imports_message_popup_title">Komunikat importu</h2>
+      <p id="${textId}" class="confirm-delete-text import-message-text"></p>
+      <div class="confirm-delete-actions">
+        <button type="button" class="button secondary" data-action="close-import-message" data-i18n="admin_imports_message_popup_close">Zamknij</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  applyI18n(getLang());
+
+  const dialog = qs('.confirm-delete-dialog', modal);
+  const text = qs('.import-message-text', modal);
+  const closeButtons = qsa('[data-action="close-import-message"]', modal);
+  let lastTrigger = null;
+
+  const closeModal = ()=>{
+    modal.setAttribute('hidden', '');
+    modal.setAttribute('aria-hidden', 'true');
+    if(lastTrigger){
+      lastTrigger.focus({ preventScroll: true });
+    }
+  };
+
+  const openModal = (trigger)=>{
+    lastTrigger = trigger;
+    if(text){
+      text.textContent = trigger.getAttribute('data-import-message') || '';
+    }
+
+    modal.removeAttribute('hidden');
+    modal.setAttribute('aria-hidden', 'false');
+    closeButtons[0]?.focus({ preventScroll: true });
+  };
+
+  triggers.forEach((trigger)=>{
+    trigger.addEventListener('click', ()=>{
+      openModal(trigger);
+    });
+  });
+
+  closeButtons.forEach((button)=>{
+    button.addEventListener('click', closeModal);
+  });
+
+  if(dialog){
+    dialog.addEventListener('click', (event)=>{
+      event.stopPropagation();
+    });
+  }
+
+  document.addEventListener('keydown', (event)=>{
+    if(modal.hasAttribute('hidden')) return;
+    if(event.key === 'Escape'){
+      event.preventDefault();
+      closeModal();
+    }
+  });
+}

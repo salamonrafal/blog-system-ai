@@ -71,6 +71,7 @@ class ProcessArticleImportQueueCommand extends Command
                 $this->logger->error('Article import failed while processing queue item.', [
                     'queue_item_id' => $queueItem->getId(),
                     'file_path' => $queueItem->getFilePath(),
+                    'requested_by_user_id' => $queueItem->getRequestedBy()?->getId(),
                     'exception' => $exception,
                 ]);
 

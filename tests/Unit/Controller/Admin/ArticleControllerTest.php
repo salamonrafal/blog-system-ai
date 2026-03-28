@@ -305,15 +305,19 @@ final class ArticleControllerTest extends TestCase
             ->setTitle('Test article')
             ->setSlug('test-article');
         $this->setEntityId($article, 10);
+        $currentUser = (new User())
+            ->setEmail('exporter@example.com')
+            ->setFullName('Eksporter');
 
         $queueRepository = $this->createMock(ArticleExportQueueRepository::class);
         $queueRepository
             ->expects($this->once())
             ->method('enqueuePending')
-            ->with($article)
+            ->with($article, $currentUser)
             ->willReturn(true);
 
         $controller = new TestArticleController();
+        $controller->authenticatedUser = $currentUser;
         $controller->csrfTokenIsValid = true;
 
         $request = new Request([], [
@@ -338,7 +342,7 @@ final class ArticleControllerTest extends TestCase
         $queueRepository
             ->expects($this->once())
             ->method('enqueuePending')
-            ->with($article)
+            ->with($article, null)
             ->willReturn(false);
 
         $controller = new TestArticleController();

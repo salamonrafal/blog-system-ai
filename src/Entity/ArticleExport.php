@@ -33,6 +33,10 @@ class ArticleExport
     #[ORM\Column]
     private int $articleCount = 0;
 
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?User $requestedBy = null;
+
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
@@ -95,6 +99,18 @@ class ArticleExport
     public function setArticleCount(int $articleCount): self
     {
         $this->articleCount = max(0, $articleCount);
+
+        return $this;
+    }
+
+    public function getRequestedBy(): ?User
+    {
+        return $this->requestedBy;
+    }
+
+    public function setRequestedBy(?User $requestedBy): self
+    {
+        $this->requestedBy = $requestedBy;
 
         return $this;
     }

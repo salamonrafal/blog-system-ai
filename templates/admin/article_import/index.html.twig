@@ -80,12 +80,11 @@
                     <table>
                         <thead>
                         <tr>
-                            <th>ID</th>
-                            <th class="article-import-source-column">Plik źródłowy</th>
-                            <th>Status</th>
-                            <th>Komunikat</th>
-                            <th>Dodano</th>
-                            <th>Akcje</th>
+                            <th data-i18n="admin_imports_table_id">ID</th>
+                            <th class="article-import-source-column" data-i18n="admin_imports_table_source_file">Plik źródłowy</th>
+                            <th data-i18n="admin_imports_table_user_created">Użytkownik / utworzono</th>
+                            <th data-i18n="admin_table_status">Status</th>
+                            <th data-i18n="admin_table_action">Akcje</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -102,11 +101,26 @@
                                     <strong class="article-import-source-primary">{{ import.originalFilename }}</strong>
                                     <span class="meta article-import-source-secondary">{{ import.filePath|split('/')|last }}</span>
                                 </td>
+                                <td>
+                                    {{ import.requestedBy ? import.requestedBy.displayName : 'System' }}<br>
+                                    <span class="meta">{{ import.createdAt|user_date }}</span>
+                                </td>
                                 <td>{{ import.status.value }}</td>
-                                <td class="queue-status-title-cell">{{ import.errorMessage ?? 'Brak' }}</td>
-                                <td>{{ import.createdAt|user_date }}</td>
                                 <td>
                                     <div class="actions">
+                                        {% if import.errorMessage %}
+                                            <button
+                                                class="button secondary article-action-button import-message-button"
+                                                type="button"
+                                                data-action="show-import-message"
+                                                data-import-message="{{ import.errorMessage|e('html_attr') }}"
+                                                data-i18n-tooltip="admin_imports_show_message"
+                                                data-tooltip="Pokaż komunikat importu"
+                                                aria-label="Pokaż komunikat importu"
+                                            >
+                                                <span class="article-action-icon is-warning" aria-hidden="true"></span>
+                                            </button>
+                                        {% endif %}
                                         <a
                                             class="button secondary article-action-button"
                                             href="{{ path('admin_article_import_download', {id: import.id}) }}"

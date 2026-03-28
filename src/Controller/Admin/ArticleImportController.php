@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Entity\ArticleImportQueue;
+use App\Entity\User;
 use App\Form\ArticleImportType;
 use App\Repository\ArticleImportQueueRepository;
 use App\Service\ArticleImportStorage;
@@ -45,7 +46,8 @@ class ArticleImportController extends AbstractController
 
             $queueItem = (new ArticleImportQueue())
                 ->setOriginalFilename($storedFile['original_filename'])
-                ->setFilePath($storedFile['relative_path']);
+                ->setFilePath($storedFile['relative_path'])
+                ->setRequestedBy($this->resolveAuthenticatedUser());
 
             $entityManager->persist($queueItem);
             $entityManager->flush();
@@ -138,5 +140,12 @@ class ArticleImportController extends AbstractController
         $this->addFlash('success', 'Wszystkie importy zostały usunięte.');
 
         return $this->redirectToRoute('admin_article_import_index');
+    }
+
+    private function resolveAuthenticatedUser(): ?User
+    {
+        $user = $this->getUser();
+
+        return $user instanceof User ? $user : null;
     }
 }

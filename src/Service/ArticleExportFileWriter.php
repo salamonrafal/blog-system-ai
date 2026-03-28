@@ -6,6 +6,7 @@ namespace App\Service;
 
 use App\Entity\Article;
 use App\Entity\ArticleExportQueue;
+use App\Entity\User;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 class ArticleExportFileWriter
@@ -42,6 +43,7 @@ class ArticleExportFileWriter
             'format' => 'article-export',
             'version' => 1,
             'exported_at' => $this->utcNow()->format(\DateTimeInterface::ATOM),
+            'exported_by' => $this->normalizeUser($queueItem->getRequestedBy()),
             'article_count' => 1,
             'article' => [$this->normalizeArticle($article, $queueItem)],
         ];
@@ -79,6 +81,19 @@ class ArticleExportFileWriter
             'published_at' => $article->getPublishedAt()?->format(\DateTimeInterface::ATOM),
             'created_at' => $article->getCreatedAt()->format(\DateTimeInterface::ATOM),
             'updated_at' => $article->getUpdatedAt()->format(\DateTimeInterface::ATOM),
+        ];
+    }
+
+    private function normalizeUser(?User $user): ?array
+    {
+        if (null === $user) {
+            return null;
+        }
+
+        return [
+            'id' => $user->getId(),
+            'email' => $user->getEmail(),
+            'display_name' => $user->getDisplayName(),
         ];
     }
 

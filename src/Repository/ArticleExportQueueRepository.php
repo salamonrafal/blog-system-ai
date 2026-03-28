@@ -6,6 +6,7 @@ namespace App\Repository;
 
 use App\Entity\Article;
 use App\Entity\ArticleExportQueue;
+use App\Entity\User;
 use App\Enum\ArticleExportQueueStatus;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\Types\Types;
@@ -38,16 +39,17 @@ class ArticleExportQueueRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
-    public function enqueuePending(Article $article): bool
+    public function enqueuePending(Article $article, ?User $requestedBy = null): bool
     {
         $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
 
         try {
             $insertedRows = $this->getEntityManager()->getConnection()->executeStatement(
-                'INSERT INTO article_export_queue (article_id, status, processed_at, created_at, updated_at)
-                VALUES (:articleId, :status, :processedAt, :createdAt, :updatedAt)',
+                'INSERT INTO article_export_queue (article_id, requested_by_id, status, processed_at, created_at, updated_at)
+                VALUES (:articleId, :requestedById, :status, :processedAt, :createdAt, :updatedAt)',
                 [
                     'articleId' => $article->getId(),
+                    'requestedById' => $requestedBy?->getId(),
                     'status' => ArticleExportQueueStatus::PENDING->value,
                     'processedAt' => null,
                     'createdAt' => $now,
@@ -89,6 +91,8 @@ class ArticleExportQueueRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('queue_item')
             ->innerJoin('queue_item.article', 'article')
             ->addSelect('article')
+            ->leftJoin('queue_item.requestedBy', 'requested_by')
+            ->addSelect('requested_by')
             ->andWhere('queue_item.status = :status')
             ->setParameter('status', ArticleExportQueueStatus::PENDING)
             ->orderBy('queue_item.createdAt', 'ASC')
@@ -141,6 +145,8 @@ class ArticleExportQueueRepository extends ServiceEntityRepository
             return $this->createQueryBuilder('queue_item')
                 ->innerJoin('queue_item.article', 'article')
                 ->addSelect('article')
+                ->leftJoin('queue_item.requestedBy', 'requested_by')
+                ->addSelect('requested_by')
                 ->andWhere('queue_item.id = :id')
                 ->setParameter('id', (int) $queueItemId)
                 ->getQuery()

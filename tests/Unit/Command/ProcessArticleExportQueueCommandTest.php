@@ -8,6 +8,7 @@ use App\Command\ProcessArticleExportQueueCommand;
 use App\Entity\Article;
 use App\Entity\ArticleExport;
 use App\Entity\ArticleExportQueue;
+use App\Entity\User;
 use App\Enum\ArticleExportQueueStatus;
 use App\Enum\ArticleExportStatus;
 use App\Enum\ArticleExportType;
@@ -51,6 +52,10 @@ final class ProcessArticleExportQueueCommandTest extends TestCase
         $capturedExports = [];
         $queueItemOne = new ArticleExportQueue((new Article())->setTitle('Artykul 1')->setSlug('artykul-1'));
         $queueItemTwo = new ArticleExportQueue((new Article())->setTitle('Artykul 2')->setSlug('artykul-2'));
+        $requestedBy = (new User())
+            ->setEmail('exporter@example.com')
+            ->setFullName('Eksporter');
+        $queueItemOne->setRequestedBy($requestedBy);
         $queueItemOne->setStatus(ArticleExportQueueStatus::PROCESSING);
         $queueItemTwo->setStatus(ArticleExportQueueStatus::PROCESSING);
 
@@ -88,6 +93,8 @@ final class ProcessArticleExportQueueCommandTest extends TestCase
         $this->assertSame(ArticleExportType::ARTICLES, $capturedExports[0]->getType());
         $this->assertSame('var/exports/article-1-export.json', $capturedExports[0]->getFilePath());
         $this->assertSame(1, $capturedExports[0]->getArticleCount());
+        $this->assertSame($requestedBy, $capturedExports[0]->getRequestedBy());
+        $this->assertNull($capturedExports[1]->getRequestedBy());
         $this->assertSame('var/exports/article-2-export.json', $capturedExports[1]->getFilePath());
         $this->assertSame(ArticleExportQueueStatus::COMPLETED, $queueItemOne->getStatus());
         $this->assertSame(ArticleExportQueueStatus::COMPLETED, $queueItemTwo->getStatus());

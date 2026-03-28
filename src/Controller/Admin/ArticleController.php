@@ -183,7 +183,7 @@ class ArticleController extends AbstractController
             throw $this->createAccessDeniedException('Invalid CSRF token.');
         }
 
-        $result = $this->queueArticles([$article], $articleExportQueueRepository);
+        $result = $this->queueArticles([$article], $articleExportQueueRepository, $this->resolveAuthenticatedUser());
 
         if (0 === $result['queued']) {
             $this->addFlash('success', 'Article export is already queued.');
@@ -261,7 +261,7 @@ class ArticleController extends AbstractController
         }
 
         $articles = $articleRepository->findBy(['id' => $articleIds]);
-        $result = $this->queueArticles($articles, $articleExportQueueRepository);
+        $result = $this->queueArticles($articles, $articleExportQueueRepository, $this->resolveAuthenticatedUser());
 
         if (0 === $result['queued']) {
             $this->addFlash('success', 'Selected article exports are already queued.');
@@ -324,12 +324,13 @@ class ArticleController extends AbstractController
     private function queueArticles(
         array $articles,
         ArticleExportQueueRepository $articleExportQueueRepository,
+        ?User $requestedBy,
     ): array {
         $queued = 0;
         $skipped = 0;
 
         foreach ($articles as $article) {
-            if (!$articleExportQueueRepository->enqueuePending($article)) {
+            if (!$articleExportQueueRepository->enqueuePending($article, $requestedBy)) {
                 ++$skipped;
 
                 continue;
