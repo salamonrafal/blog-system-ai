@@ -249,7 +249,18 @@ export function setupFlashNotices(){
         credentials: 'same-origin',
       });
 
+      if(response.status === 401 || response.status === 403){
+        stopPolling = true;
+        clearPolling();
+        return;
+      }
+
       if(!response.ok) return;
+
+      const contentType = response.headers.get('content-type') || '';
+      if(!contentType.toLowerCase().includes('application/json')){
+        return;
+      }
 
       const payload = await response.json();
       const notifications = Array.isArray(payload.notifications) ? payload.notifications : [];
@@ -263,6 +274,7 @@ export function setupFlashNotices(){
 
   let pollTimeoutId = null;
   let isPolling = false;
+  let stopPolling = false;
 
   const clearPolling = ()=>{
     if(pollTimeoutId !== null){
@@ -273,7 +285,7 @@ export function setupFlashNotices(){
 
   const scheduleNextPoll = ()=>{
     clearPolling();
-    if(document.visibilityState !== 'visible') return;
+    if(stopPolling || document.visibilityState !== 'visible') return;
 
     pollTimeoutId = window.setTimeout(()=>{
       void runPollingCycle();
@@ -281,7 +293,7 @@ export function setupFlashNotices(){
   };
 
   const runPollingCycle = async ()=>{
-    if(isPolling || document.visibilityState !== 'visible') return;
+    if(stopPolling || isPolling || document.visibilityState !== 'visible') return;
 
     isPolling = true;
     try{

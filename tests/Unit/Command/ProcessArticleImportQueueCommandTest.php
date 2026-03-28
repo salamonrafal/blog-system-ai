@@ -121,8 +121,12 @@ final class ProcessArticleImportQueueCommandTest extends TestCase
             ->with(
                 'Failed to create import completion notification.',
                 $this->callback(static function (array $context): bool {
-                    return 42 === $context['queue_item_id']
-                        && false === $context['success'] ? false : true;
+                    return 42 === ($context['queue_item_id'] ?? null)
+                        && 'var/imports/article.json' === ($context['file_path'] ?? null)
+                        && array_key_exists('requested_by_user_id', $context)
+                        && null === $context['requested_by_user_id']
+                        && true === ($context['success'] ?? null)
+                        && ($context['exception'] ?? null) instanceof \RuntimeException;
                 })
             );
 

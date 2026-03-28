@@ -31,7 +31,7 @@
 
 <body
     data-page-title="{% block page_title %}{{ block('title') }}{% endblock %}"
-    {% if app.user %}
+    {% if is_granted('ROLE_ADMIN') %}
         data-user-notifications-endpoint="{{ path('admin_user_notification_pending') }}"
     {% endif %}
 >
