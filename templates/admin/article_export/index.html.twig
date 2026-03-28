@@ -65,7 +65,11 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {{ export.requestedBy ? export.requestedBy.displayName : 'System' }}<br>
+                                    {% if export.requestedBy %}
+                                        {{ export.requestedBy.displayName }}
+                                    {% else %}
+                                        <span data-i18n="admin_table_system">System</span>
+                                    {% endif %}<br>
                                     <span class="meta">{{ export.createdAt|user_date }}</span>
                                 </td>
                                 <td class="article-export-file-cell">{{ export.filePath|split('/')|last }}</td>
