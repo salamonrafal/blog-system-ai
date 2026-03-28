@@ -59,7 +59,7 @@ class ArticleRepository extends ServiceEntityRepository
 
     public function countForAdminIndex(?ArticleCategory $category = null): int
     {
-        return (int) $this->createAdminIndexQueryBuilder($category)
+        return (int) $this->createAdminIndexFilterQueryBuilder($category)
             ->select('COUNT(article.id)')
             ->getQuery()
             ->getSingleScalarResult();
@@ -165,9 +165,14 @@ class ArticleRepository extends ServiceEntityRepository
 
     private function createAdminIndexQueryBuilder(?ArticleCategory $category): QueryBuilder
     {
-        $queryBuilder = $this->createQueryBuilder('article')
+        return $this->createAdminIndexFilterQueryBuilder($category)
             ->orderBy('article.createdAt', 'DESC')
             ->addOrderBy('article.id', 'DESC');
+    }
+
+    private function createAdminIndexFilterQueryBuilder(?ArticleCategory $category): QueryBuilder
+    {
+        $queryBuilder = $this->createQueryBuilder('article');
 
         if (null !== $category) {
             $queryBuilder

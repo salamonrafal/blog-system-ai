@@ -35,27 +35,29 @@
             </div>
 
             <div class="article-index-toolbar">
-                <form method="get" class="article-index-filter-panel" aria-label="Filtry listy artykułów">
-                    <span class="article-index-filter-label">Filtry</span>
+                <form method="get" class="article-index-filter-panel" data-i18n-aria="admin_article_filters_aria" aria-label="Filtry listy artykułów">
+                    <span class="article-index-filter-label" data-i18n="blog_filters">Filtry</span>
                     <input type="hidden" name="category" value="{{ selected_category ? selected_category.id : '' }}" data-article-category-filter-input>
                     <div class="article-index-filter-dropdown" data-article-category-filter>
                         <button
                             type="button"
                             class="article-index-filter-trigger"
                             data-action="toggle-article-category-filter"
+                            {% if not selected_category %}data-i18n-aria="admin_article_filter_all_categories"{% endif %}
                             aria-haspopup="true"
                             aria-expanded="false"
                             aria-controls="article-index-category-filter-panel"
+                            aria-label="{{ selected_category ? selected_category.name : 'Wszystkie kategorie' }}"
                         >
-                            <span class="article-index-filter-trigger-label">{{ selected_category ? selected_category.name : 'Wszystkie kategorie' }}</span>
+                            <span class="article-index-filter-trigger-label"{% if not selected_category %} data-i18n="admin_article_filter_all_categories"{% endif %}>{{ selected_category ? selected_category.name : 'Wszystkie kategorie' }}</span>
                             <span class="article-index-filter-trigger-caret" aria-hidden="true">
                                 <svg viewBox="0 0 24 24">
                                     <path d="m7 10 5 5 5-5"></path>
                                 </svg>
                             </span>
                         </button>
-                        <div class="article-index-filter-options" id="article-index-category-filter-panel" aria-label="Kategorie artykułów">
-                            <button type="button" class="article-index-filter-option{{ not selected_category ? ' is-selected' : '' }}" data-article-category-option data-value="">
+                        <div class="article-index-filter-options" id="article-index-category-filter-panel" data-i18n-aria="admin_article_filter_options_aria" aria-label="Kategorie artykułów" aria-hidden="true" hidden>
+                            <button type="button" class="article-index-filter-option{{ not selected_category ? ' is-selected' : '' }}" data-article-category-option data-value="" data-i18n="admin_article_filter_all_categories">
                                 Wszystkie kategorie
                             </button>
                             {% for category in article_categories %}
@@ -71,7 +73,7 @@
                         </div>
                     </div>
                     {% if selected_category %}
-                        <a class="button secondary article-index-filter-reset" href="{{ path('admin_article_index') }}">Wyczyść</a>
+                        <a class="button secondary article-index-filter-reset" href="{{ path('admin_article_index') }}" data-i18n="admin_article_filter_clear">Wyczyść</a>
                     {% endif %}
                 </form>
             </div>
