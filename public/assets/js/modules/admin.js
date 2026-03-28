@@ -632,7 +632,7 @@ export function setupImportMessageDialog(){
   modal.setAttribute('hidden', '');
   modal.setAttribute('aria-hidden', 'true');
   modal.innerHTML = `
-    <div class="confirm-delete-dialog" role="dialog" aria-modal="false" aria-labelledby="${titleId}" aria-describedby="${textId}">
+    <div class="confirm-delete-dialog" role="dialog" aria-modal="true" aria-labelledby="${titleId}" aria-describedby="${textId}">
       <div class="confirm-delete-topbar">
         <div class="confirm-delete-eyebrow">admin://imports</div>
         <button type="button" class="confirm-delete-close" data-action="close-import-message" data-i18n-aria="admin_close_alert" aria-label="Zamknij alert">
