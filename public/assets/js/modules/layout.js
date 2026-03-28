@@ -257,6 +257,7 @@ export function setupFlashNotices(){
         appendNotificationFlash(notification);
       });
     }catch(err){
+      // Ignore transient polling failures and retry on the next scheduled cycle.
     }
   };
 
