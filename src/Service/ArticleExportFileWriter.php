@@ -92,7 +92,6 @@ class ArticleExportFileWriter
 
         return [
             'id' => $user->getId(),
-            'email' => $user->getEmail(),
             'display_name' => $user->getDisplayName(),
         ];
     }

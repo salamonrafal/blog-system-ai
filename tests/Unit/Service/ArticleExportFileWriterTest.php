@@ -51,8 +51,8 @@ final class ArticleExportFileWriterTest extends TestCase
             $this->assertSame('article-export', $payload['format']);
             $this->assertSame(1, $payload['version']);
             $this->assertSame(7, $payload['exported_by']['id']);
-            $this->assertSame('exporter@example.com', $payload['exported_by']['email']);
             $this->assertSame('Eksporter', $payload['exported_by']['display_name']);
+            $this->assertArrayNotHasKey('email', $payload['exported_by']);
             $this->assertSame(1, $payload['article_count']);
             $this->assertCount(1, $payload['article']);
             $this->assertSame(12, $payload['article'][0]['queue_item_id']);
