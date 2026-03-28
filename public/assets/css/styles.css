@@ -1954,6 +1954,11 @@ button.button {
   line-height:1.6;
 }
 
+.import-message-text{
+  white-space:pre-wrap;
+  word-break:break-word;
+}
+
 .confirm-delete-article-name{
   margin:18px 0 0;
   padding:12px 14px;
