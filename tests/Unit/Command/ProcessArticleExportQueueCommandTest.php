@@ -114,6 +114,65 @@ final class ProcessArticleExportQueueCommandTest extends TestCase
         $this->assertStringContainsString('Exported 2 queued article(s) into separate files.', $tester->getDisplay());
     }
 
+    public function testExecuteKeepsCompletedExportWhenNotificationCreationFails(): void
+    {
+        $capturedExports = [];
+        $queueItem = new ArticleExportQueue((new Article())->setTitle('Artykul 1')->setSlug('artykul-1'));
+        $queueItem->setStatus(ArticleExportQueueStatus::PROCESSING);
+        $this->setEntityId($queueItem, 42);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager
+            ->expects($this->once())
+            ->method('persist')
+            ->willReturnCallback(static function (ArticleExport $articleExport) use (&$capturedExports): void {
+                $capturedExports[] = $articleExport;
+            });
+        $entityManager->expects($this->once())->method('flush');
+        $entityManager->expects($this->never())->method('isOpen');
+
+        $queueRepository = $this->createQueueRepositoryMock([$queueItem]);
+        $writer = $this->createMock(ArticleExportFileWriter::class);
+        $writer
+            ->expects($this->once())
+            ->method('write')
+            ->with($queueItem)
+            ->willReturn('var/exports/article-1-export.json');
+
+        $managerRegistry = $this->createMock(ManagerRegistry::class);
+        $managerRegistry->expects($this->never())->method('resetManager');
+
+        $userNotificationService = $this->createMock(UserNotificationService::class);
+        $userNotificationService
+            ->expects($this->once())
+            ->method('notifyExportCompleted')
+            ->with(null, true)
+            ->willThrowException(new \RuntimeException('Notification storage failed.'));
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->never())->method('error');
+        $logger
+            ->expects($this->once())
+            ->method('warning')
+            ->with(
+                'Failed to create export completion notification.',
+                $this->callback(static function (array $context): bool {
+                    return 42 === $context['queue_item_id']
+                        && 'var/exports/article-1-export.json' === $context['file_path']
+                        && true === $context['success'];
+                })
+            );
+
+        $tester = new CommandTester(new ProcessArticleExportQueueCommand($entityManager, $managerRegistry, $queueRepository, $writer, $userNotificationService, $logger));
+        $exitCode = $tester->execute([]);
+
+        $this->assertSame(Command::SUCCESS, $exitCode);
+        $this->assertCount(1, $capturedExports);
+        $this->assertSame(ArticleExportQueueStatus::COMPLETED, $queueItem->getStatus());
+        $this->assertNotNull($queueItem->getProcessedAt());
+        $this->assertStringContainsString('Exported 1 queued article(s) into separate files.', $tester->getDisplay());
+    }
+
     public function testExecuteMarksOnlyFailedQueueItemWhenWriterThrowsException(): void
     {
         $capturedExports = [];

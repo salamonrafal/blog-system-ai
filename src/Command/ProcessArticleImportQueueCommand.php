@@ -62,7 +62,7 @@ class ProcessArticleImportQueueCommand extends Command
                     ->setErrorMessage(null);
 
                 $entityManager->flush();
-                $this->userNotificationService->notifyImportCompleted($queueItem->getRequestedBy()?->getId(), true);
+                $this->notifyImportCompletion($queueItem->getRequestedBy()?->getId(), true, $queueItem);
                 ++$processedCount;
 
                 $io->success(sprintf(
@@ -84,7 +84,7 @@ class ProcessArticleImportQueueCommand extends Command
                     $entityManager,
                     $queueRepository,
                 );
-                $this->userNotificationService->notifyImportCompleted($queueItem->getRequestedBy()?->getId(), false);
+                $this->notifyImportCompletion($queueItem->getRequestedBy()?->getId(), false, $queueItem);
                 ++$failedCount;
 
                 $io->error(sprintf(
@@ -166,5 +166,24 @@ class ProcessArticleImportQueueCommand extends Command
         }
 
         return $repository;
+    }
+
+    private function notifyImportCompletion(
+        ?int $userId,
+        bool $success,
+        \App\Entity\ArticleImportQueue $queueItem,
+    ): void
+    {
+        try {
+            $this->userNotificationService->notifyImportCompleted($userId, $success);
+        } catch (\Throwable $exception) {
+            $this->logger->warning('Failed to create import completion notification.', [
+                'queue_item_id' => $queueItem->getId(),
+                'file_path' => $queueItem->getFilePath(),
+                'requested_by_user_id' => $userId,
+                'success' => $success,
+                'exception' => $exception,
+            ]);
+        }
     }
 }

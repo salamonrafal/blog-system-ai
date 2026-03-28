@@ -73,7 +73,7 @@ class ProcessArticleExportQueueCommand extends Command
 
                 $this->entityManager->persist($articleExport);
                 $this->entityManager->flush();
-                $this->userNotificationService->notifyExportCompleted($queueItem->getRequestedBy()?->getId(), true);
+                $this->notifyExportCompletion($queueItem->getRequestedBy()?->getId(), true, $queueItem, $filePath);
                 ++$processedCount;
             } catch (\Throwable $exception) {
                 if (is_string($filePath)) {
@@ -89,7 +89,7 @@ class ProcessArticleExportQueueCommand extends Command
                 ]);
 
                 $this->markQueueItemAsFailed($queueItem);
-                $this->userNotificationService->notifyExportCompleted($queueItem->getRequestedBy()?->getId(), false);
+                $this->notifyExportCompletion($queueItem->getRequestedBy()?->getId(), false, $queueItem, $filePath);
                 ++$failedCount;
 
                 $io->error(sprintf(
@@ -163,6 +163,27 @@ class ProcessArticleExportQueueCommand extends Command
                 'requested_by_user_id' => $queueItem->getRequestedBy()?->getId(),
                 'file_path' => $filePath,
                 'exception' => $cleanupException,
+            ]);
+        }
+    }
+
+    private function notifyExportCompletion(
+        ?int $userId,
+        bool $success,
+        ArticleExportQueue $queueItem,
+        ?string $filePath,
+    ): void
+    {
+        try {
+            $this->userNotificationService->notifyExportCompleted($userId, $success);
+        } catch (\Throwable $exception) {
+            $this->logger->warning('Failed to create export completion notification.', [
+                'queue_item_id' => $queueItem->getId(),
+                'article_id' => $queueItem->getArticle()->getId(),
+                'requested_by_user_id' => $userId,
+                'file_path' => $filePath,
+                'success' => $success,
+                'exception' => $exception,
             ]);
         }
     }
