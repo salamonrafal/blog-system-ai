@@ -18,6 +18,8 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
 {
     private const VALIDATION_I18N_FILE = __DIR__ . '/../../config/validation_i18n.php';
 
+    private ?array $validationMessageFallbacks = null;
+
     public function __construct(
         private readonly BlogSettingsProvider $blogSettingsProvider,
         private readonly UserLanguageResolver $userLanguageResolver,
@@ -75,9 +77,13 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
 
     private function getValidationMessageFallbacks(): array
     {
+        if (null !== $this->validationMessageFallbacks) {
+            return $this->validationMessageFallbacks;
+        }
+
         /** @var array<string, array<string, string>> $messages */
         $messages = require self::VALIDATION_I18N_FILE;
 
-        return $messages;
+        return $this->validationMessageFallbacks = $messages;
     }
 }
