@@ -98,7 +98,7 @@
                 }|merge(social_image_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
                 <div class="article-editor-field-meta">
                     <span id="{{ social_image_counter_id }}" class="article-editor-character-count" data-character-count-target>{{ form.homepageSocialImage.vars.value|default('')|length }} / {{ form.homepageSocialImage.vars.attr.maxlength }}</span>
-                    <span class="article-editor-field-hint article-editor-field-hint-help" data-i18n="blog_settings_homepage_social_image_hint">Podaj pełny URL albo ścieżkę zaczynającą się od <code>/</code>.</span>
+                    <span class="article-editor-field-hint article-editor-field-hint-help" data-i18n="blog_settings_homepage_social_image_hint">Podaj pełny URL albo ścieżkę zaczynającą się od /.</span>
                 </div>
                 {% if social_image_has_errors %}
                     <div id="{{ form.homepageSocialImage.vars.id }}-error" class="article-editor-error-message" role="alert">
@@ -152,7 +152,7 @@
                     'aria-describedby': articles_per_page_described_by
                 }|merge(articles_per_page_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
                 <div class="article-editor-field-meta">
-                    <span id="{{ articles_per_page_hint_id }}" class="article-editor-field-hint article-editor-field-hint-help" data-i18n="blog_settings_articles_per_page_hint">Domyślna wartość to <code>5</code>. Zmiana wpływa na publiczną listę artykułów na stronie głównej.</span>
+                    <span id="{{ articles_per_page_hint_id }}" class="article-editor-field-hint article-editor-field-hint-help" data-i18n="blog_settings_articles_per_page_hint">Domyślna wartość to 5. Zmiana wpływa na publiczną listę artykułów na stronie głównej.</span>
                 </div>
                 {% if articles_per_page_has_errors %}
                     <div id="{{ articles_per_page_error_id }}" class="article-editor-error-message" role="alert">
@@ -168,7 +168,7 @@
             <div class="blog-settings-subsection-header">
                 <span class="pill">admin://article-index-pagination</span>
                 <h2 id="blog-settings-section-admin-pagination" class="blog-settings-subsection-title" data-i18n="blog_settings_section_admin_pagination_title">Paginacja listy artykułów w panelu</h2>
-                <p class="blog-settings-subsection-lede" data-i18n="blog_settings_section_admin_pagination_lede">To ustawienie działa niezależnie od strony głównej i steruje liczbą rekordów widocznych na <code>admin_article_index</code>.</p>
+                <p class="blog-settings-subsection-lede" data-i18n="blog_settings_section_admin_pagination_lede">To ustawienie działa niezależnie od strony głównej i steruje liczbą rekordów widocznych na admin_article_index.</p>
             </div>
 
             {% set admin_articles_per_page_has_errors = form.adminArticlesPerPage.vars.errors|length > 0 %}
@@ -183,7 +183,7 @@
                     'aria-describedby': admin_articles_per_page_described_by
                 }|merge(admin_articles_per_page_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
                 <div class="article-editor-field-meta">
-                    <span id="{{ admin_articles_per_page_hint_id }}" class="article-editor-field-hint article-editor-field-hint-help" data-i18n="blog_settings_admin_articles_per_page_hint">Domyślna wartość to <code>25</code>. Zmiana wpływa wyłącznie na tabelę artykułów w panelu administracyjnym.</span>
+                    <span id="{{ admin_articles_per_page_hint_id }}" class="article-editor-field-hint article-editor-field-hint-help" data-i18n="blog_settings_admin_articles_per_page_hint">Domyślna wartość to 25. Zmiana wpływa wyłącznie na tabelę artykułów w panelu administracyjnym.</span>
                 </div>
                 {% if admin_articles_per_page_has_errors %}
                     <div id="{{ admin_articles_per_page_error_id }}" class="article-editor-error-message" role="alert">

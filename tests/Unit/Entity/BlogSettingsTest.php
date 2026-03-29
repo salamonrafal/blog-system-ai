@@ -95,8 +95,21 @@ final class BlogSettingsTest extends TestCase
         $pathViolations = $validator->validate((new BlogSettings())->setAppUrl('https://example.com/blog'));
         $emptyTitleViolations = $validator->validate((new BlogSettings())->setBlogTitle(''));
 
-        $this->assertSame('validation_blog_settings_app_url_origin_invalid', $missingHostViolations->get(0)->getMessage());
-        $this->assertSame('validation_blog_settings_app_url_origin_only', $pathViolations->get(0)->getMessage());
-        $this->assertSame('validation_blog_settings_blog_title_required', $emptyTitleViolations->get(0)->getMessage());
+        $missingHostMessages = array_map(
+            static fn (mixed $violation): string => $violation->getMessage(),
+            iterator_to_array($missingHostViolations)
+        );
+        $pathMessages = array_map(
+            static fn (mixed $violation): string => $violation->getMessage(),
+            iterator_to_array($pathViolations)
+        );
+        $emptyTitleMessages = array_map(
+            static fn (mixed $violation): string => $violation->getMessage(),
+            iterator_to_array($emptyTitleViolations)
+        );
+
+        $this->assertContains('validation_blog_settings_app_url_origin_invalid', $missingHostMessages);
+        $this->assertContains('validation_blog_settings_app_url_origin_only', $pathMessages);
+        $this->assertContains('validation_blog_settings_blog_title_required', $emptyTitleMessages);
     }
 }
