@@ -15,20 +15,20 @@
             <div class="dashboard-feed-intro">
                 <h1 data-i18n="admin_dashboard_title">Centrum operacji treści</h1>
                 <p class="lede" data-i18n="admin_dashboard_lede">Jedno miejsce do zarządzania artykułami, importami, eksportami, kolejkami, użytkownikami i ustawieniami bloga.</p>
-                <div class="dashboard-user-summary" aria-label="Informacje o zalogowanym użytkowniku">
+                <div class="dashboard-user-summary" data-i18n-aria="admin_dashboard_user_summary_aria" aria-label="Informacje o zalogowanym użytkowniku">
                     <div class="dashboard-user-summary-item">
-                        <span>Użytkownik</span>
+                        <span data-i18n="{{ dashboard_user.email_label_key }}">{{ dashboard_user.email_label }}</span>
                         <strong>{{ dashboard_user.email }}</strong>
                     </div>
                     <div class="dashboard-user-summary-item">
-                        <span>Rola</span>
-                        <strong>{{ dashboard_user.role }}</strong>
+                        <span data-i18n="{{ dashboard_user.role_label_key }}">{{ dashboard_user.role_label }}</span>
+                        <strong data-i18n="{{ dashboard_user.role_key }}">{{ dashboard_user.role }}</strong>
                     </div>
                 </div>
 
                 <div class="actions">
                     <a class="button" href="{{ path('admin_article_new') }}" data-i18n="blog_create_article">Utwórz artykuł</a>
-                    <a class="button secondary" href="{{ path('admin_queue_status') }}">Sprawdź kolejki</a>
+                    <a class="button secondary" href="{{ path('admin_queue_status') }}" data-i18n="admin_dashboard_check_queues">Sprawdź kolejki</a>
                 </div>
             </div>
         </div>
@@ -40,22 +40,22 @@
                 <article class="dashboard-overview-panel">
                     <div class="dashboard-overview-panel-header">
                         <span class="pill">{{ panel.label }}</span>
-                        <h2>{{ panel.title }}</h2>
+                        <h2 data-i18n="{{ panel.title_key }}">{{ panel.title }}</h2>
                     </div>
-                    <p class="dashboard-overview-panel-description">{{ panel.description }}</p>
+                    <p class="dashboard-overview-panel-description" data-i18n="{{ panel.description_key }}">{{ panel.description }}</p>
                     {% if panel.stats is defined %}
-                        <div class="dashboard-overview-stats" aria-label="Statystyki sekcji {{ panel.title }}">
+                        <div class="dashboard-overview-stats" data-i18n-aria="admin_dashboard_section_stats_aria" aria-label="Statystyki sekcji {{ panel.title }}">
                             {% for stat in panel.stats %}
                                 <div class="dashboard-overview-stat">
                                     <strong>{{ stat.value }}</strong>
-                                    <span>{{ stat.label }}</span>
+                                    <span data-i18n="{{ stat.label_key }}">{{ stat.label }}</span>
                                 </div>
                             {% endfor %}
                         </div>
                     {% endif %}
                     {% if panel.sections is defined %}
                         <div class="dashboard-overview-carousel" data-dashboard-carousel>
-                            <div class="dashboard-overview-carousel-tabs" role="tablist" aria-label="Typy kolejek sekcji {{ panel.title }}">
+                            <div class="dashboard-overview-carousel-tabs" role="tablist" data-i18n-aria="admin_dashboard_section_tabs_aria" aria-label="Typy kolejek sekcji {{ panel.title }}">
                                 {% for section in panel.sections %}
                                     <button
                                         type="button"
@@ -66,6 +66,7 @@
                                         aria-controls="dashboard-carousel-panel-{{ loop.index }}"
                                         id="dashboard-carousel-tab-{{ loop.index }}"
                                         tabindex="{{ loop.first ? '0' : '-1' }}"
+                                        data-i18n="{{ section.title_key }}"
                                     >
                                         {{ section.title }}
                                     </button>
@@ -85,7 +86,7 @@
                                         {% for stat in section.stats %}
                                             <div class="dashboard-overview-stat">
                                                 <strong>{{ stat.value }}</strong>
-                                                <span>{{ stat.label }}</span>
+                                                <span data-i18n="{{ stat.label_key }}">{{ stat.label }}</span>
                                             </div>
                                         {% endfor %}
                                     </div>
@@ -94,10 +95,10 @@
                         </div>
                     {% endif %}
                     {% if panel.meta_cards is defined %}
-                        <div class="dashboard-overview-meta-cards" aria-label="Szczegóły sekcji {{ panel.title }}">
+                        <div class="dashboard-overview-meta-cards" data-i18n-aria="admin_dashboard_section_details_aria" aria-label="Szczegóły sekcji {{ panel.title }}">
                             {% for item in panel.meta_cards %}
                                 <div class="dashboard-overview-meta-card">
-                                    <span>{{ item.label }}</span>
+                                    <span data-i18n="{{ item.label_key }}">{{ item.label }}</span>
                                     <strong>{{ item.value }}</strong>
                                 </div>
                             {% endfor %}
@@ -111,9 +112,9 @@
                         </ul>
                     {% endif %}
                     <div class="dashboard-overview-panel-actions">
-                        <a class="button" href="{{ path(panel.primary_action.route) }}">{{ panel.primary_action.label }}</a>
+                        <a class="button" href="{{ path(panel.primary_action.route) }}" data-i18n="{{ panel.primary_action.label_key }}">{{ panel.primary_action.label }}</a>
                         {% if panel.secondary_action is defined %}
-                            <a class="button secondary" href="{{ path(panel.secondary_action.route) }}">{{ panel.secondary_action.label }}</a>
+                            <a class="button secondary" href="{{ path(panel.secondary_action.route) }}" data-i18n="{{ panel.secondary_action.label_key }}">{{ panel.secondary_action.label }}</a>
                         {% endif %}
                     </div>
                 </article>

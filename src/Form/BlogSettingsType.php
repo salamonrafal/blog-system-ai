@@ -19,38 +19,64 @@ class BlogSettingsType extends AbstractType
         $builder
             ->add('appUrl', TextType::class, [
                 'label' => 'URL aplikacji',
-                'attr' => ['maxlength' => 255],
+                'label_attr' => ['data-i18n' => 'blog_settings_app_url'],
+                'attr' => [
+                    'maxlength' => 255,
+                    'data-i18n-placeholder' => 'blog_settings_app_url_placeholder',
+                ],
             ])
             ->add('blogTitle', TextType::class, [
                 'label' => 'Tytuł bloga',
-                'attr' => ['maxlength' => 255],
+                'label_attr' => ['data-i18n' => 'blog_settings_blog_title'],
+                'attr' => [
+                    'maxlength' => 255,
+                    'data-i18n-placeholder' => 'blog_settings_blog_title_placeholder',
+                ],
             ])
             ->add('homepageSeoDescription', TextareaType::class, [
                 'label' => 'Opis strony głównej dla SEO',
-                'attr' => ['rows' => 4, 'maxlength' => 320],
+                'label_attr' => ['data-i18n' => 'blog_settings_homepage_seo_description'],
+                'attr' => [
+                    'rows' => 4,
+                    'maxlength' => 320,
+                    'data-i18n-placeholder' => 'blog_settings_homepage_seo_description_placeholder',
+                ],
             ])
             ->add('homepageSocialImage', TextType::class, [
                 'label' => 'Obrazek dla strony głównej',
-                'attr' => ['maxlength' => 500],
+                'label_attr' => ['data-i18n' => 'blog_settings_homepage_social_image'],
+                'attr' => [
+                    'maxlength' => 500,
+                    'data-i18n-placeholder' => 'blog_settings_homepage_social_image_placeholder',
+                ],
             ])
             ->add('homepageSeoKeywords', TextareaType::class, [
                 'label' => 'Słowa kluczowe SEO',
-                'attr' => ['rows' => 3, 'maxlength' => 500],
+                'label_attr' => ['data-i18n' => 'blog_settings_homepage_seo_keywords'],
+                'attr' => [
+                    'rows' => 3,
+                    'maxlength' => 500,
+                    'data-i18n-placeholder' => 'blog_settings_homepage_seo_keywords_placeholder',
+                ],
             ])
             ->add('articlesPerPage', IntegerType::class, [
                 'label' => 'Ilość artykułów na stronę',
+                'label_attr' => ['data-i18n' => 'blog_settings_articles_per_page'],
                 'attr' => [
                     'min' => 1,
                     'step' => 1,
                     'inputmode' => 'numeric',
+                    'data-i18n-placeholder' => 'blog_settings_articles_per_page_placeholder',
                 ],
             ])
             ->add('adminArticlesPerPage', IntegerType::class, [
                 'label' => 'Ilość artykułów na stronę w panelu administracyjnym',
+                'label_attr' => ['data-i18n' => 'blog_settings_admin_articles_per_page'],
                 'attr' => [
                     'min' => 1,
                     'step' => 1,
                     'inputmode' => 'numeric',
+                    'data-i18n-placeholder' => 'blog_settings_admin_articles_per_page_placeholder',
                 ],
             ]);
     }

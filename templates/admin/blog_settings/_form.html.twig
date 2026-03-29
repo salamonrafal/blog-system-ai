@@ -2,7 +2,7 @@
     {% if form.vars.errors|length > 0 %}
         <div class="form-errors article-editor-errors" role="alert">
             {% for error in form.vars.errors %}
-                <p>{{ error.message }}</p>
+                <p data-i18n="{{ error.message }}">{{ error.message }}</p>
             {% endfor %}
         </div>
     {% endif %}
@@ -11,8 +11,8 @@
         <section class="blog-settings-subsection" aria-labelledby="blog-settings-section-general">
             <div class="blog-settings-subsection-header">
                 <span class="pill">admin://identity-and-seo</span>
-                <h2 id="blog-settings-section-general" class="blog-settings-subsection-title">Tożsamość i SEO</h2>
-                <p class="blog-settings-subsection-lede">Ustawienia odpowiedzialne za adres aplikacji, nazwę bloga oraz metadane strony głównej.</p>
+                <h2 id="blog-settings-section-general" class="blog-settings-subsection-title" data-i18n="blog_settings_section_identity_title">Tożsamość i SEO</h2>
+                <p class="blog-settings-subsection-lede" data-i18n="blog_settings_section_identity_lede">Ustawienia odpowiedzialne za adres aplikacji, nazwę bloga oraz metadane strony głównej.</p>
             </div>
 
             {% set app_url_has_errors = form.appUrl.vars.errors|length > 0 %}
@@ -28,12 +28,12 @@
                 }|merge(app_url_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
                 <div class="article-editor-field-meta">
                     <span id="{{ app_url_counter_id }}" class="article-editor-character-count" data-character-count-target>{{ form.appUrl.vars.value|default('')|length }} / {{ form.appUrl.vars.attr.maxlength }}</span>
-                    <span class="article-editor-field-hint article-editor-field-hint-help">Ten adres jest używany do budowania canonicali, linków do udostępniania i pełnych URL-i obrazków SEO.</span>
+                    <span class="article-editor-field-hint article-editor-field-hint-help" data-i18n="blog_settings_app_url_hint">Ten adres jest używany do budowania canonicali, linków do udostępniania i pełnych URL-i obrazków SEO.</span>
                 </div>
                 {% if app_url_has_errors %}
                     <div id="{{ form.appUrl.vars.id }}-error" class="article-editor-error-message" role="alert">
                         {% for error in form.appUrl.vars.errors %}
-                            <p>{{ error.message }}</p>
+                            <p data-i18n="{{ error.message }}">{{ error.message }}</p>
                         {% endfor %}
                     </div>
                 {% endif %}
@@ -56,7 +56,7 @@
                 {% if title_has_errors %}
                     <div id="{{ form.blogTitle.vars.id }}-error" class="article-editor-error-message" role="alert">
                         {% for error in form.blogTitle.vars.errors %}
-                            <p>{{ error.message }}</p>
+                            <p data-i18n="{{ error.message }}">{{ error.message }}</p>
                         {% endfor %}
                     </div>
                 {% endif %}
@@ -79,7 +79,7 @@
                 {% if description_has_errors %}
                     <div id="{{ form.homepageSeoDescription.vars.id }}-error" class="article-editor-error-message" role="alert">
                         {% for error in form.homepageSeoDescription.vars.errors %}
-                            <p>{{ error.message }}</p>
+                            <p data-i18n="{{ error.message }}">{{ error.message }}</p>
                         {% endfor %}
                     </div>
                 {% endif %}
@@ -98,12 +98,12 @@
                 }|merge(social_image_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
                 <div class="article-editor-field-meta">
                     <span id="{{ social_image_counter_id }}" class="article-editor-character-count" data-character-count-target>{{ form.homepageSocialImage.vars.value|default('')|length }} / {{ form.homepageSocialImage.vars.attr.maxlength }}</span>
-                    <span class="article-editor-field-hint article-editor-field-hint-help">Podaj pełny URL albo ścieżkę zaczynającą się od <code>/</code>.</span>
+                    <span class="article-editor-field-hint article-editor-field-hint-help" data-i18n="blog_settings_homepage_social_image_hint">Podaj pełny URL albo ścieżkę zaczynającą się od <code>/</code>.</span>
                 </div>
                 {% if social_image_has_errors %}
                     <div id="{{ form.homepageSocialImage.vars.id }}-error" class="article-editor-error-message" role="alert">
                         {% for error in form.homepageSocialImage.vars.errors %}
-                            <p>{{ error.message }}</p>
+                            <p data-i18n="{{ error.message }}">{{ error.message }}</p>
                         {% endfor %}
                     </div>
                 {% endif %}
@@ -126,7 +126,7 @@
                 {% if keywords_has_errors %}
                     <div id="{{ form.homepageSeoKeywords.vars.id }}-error" class="article-editor-error-message" role="alert">
                         {% for error in form.homepageSeoKeywords.vars.errors %}
-                            <p>{{ error.message }}</p>
+                            <p data-i18n="{{ error.message }}">{{ error.message }}</p>
                         {% endfor %}
                     </div>
                 {% endif %}
@@ -136,8 +136,8 @@
         <section class="blog-settings-subsection" aria-labelledby="blog-settings-section-pagination">
             <div class="blog-settings-subsection-header">
                 <span class="pill">admin://homepage-pagination</span>
-                <h2 id="blog-settings-section-pagination" class="blog-settings-subsection-title">Paginacja strony głównej</h2>
-                <p class="blog-settings-subsection-lede">Steruj tym, ile opublikowanych artykułów ma pojawiać się na jednej stronie listy.</p>
+                <h2 id="blog-settings-section-pagination" class="blog-settings-subsection-title" data-i18n="blog_settings_section_home_pagination_title">Paginacja strony głównej</h2>
+                <p class="blog-settings-subsection-lede" data-i18n="blog_settings_section_home_pagination_lede">Steruj tym, ile opublikowanych artykułów ma pojawiać się na jednej stronie listy.</p>
             </div>
 
             {% set articles_per_page_has_errors = form.articlesPerPage.vars.errors|length > 0 %}
@@ -152,12 +152,12 @@
                     'aria-describedby': articles_per_page_described_by
                 }|merge(articles_per_page_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
                 <div class="article-editor-field-meta">
-                    <span id="{{ articles_per_page_hint_id }}" class="article-editor-field-hint article-editor-field-hint-help">Domyślna wartość to <code>5</code>. Zmiana wpływa na publiczną listę artykułów na stronie głównej.</span>
+                    <span id="{{ articles_per_page_hint_id }}" class="article-editor-field-hint article-editor-field-hint-help" data-i18n="blog_settings_articles_per_page_hint">Domyślna wartość to <code>5</code>. Zmiana wpływa na publiczną listę artykułów na stronie głównej.</span>
                 </div>
                 {% if articles_per_page_has_errors %}
                     <div id="{{ articles_per_page_error_id }}" class="article-editor-error-message" role="alert">
                         {% for error in form.articlesPerPage.vars.errors %}
-                            <p>{{ error.message }}</p>
+                            <p data-i18n="{{ error.message }}">{{ error.message }}</p>
                         {% endfor %}
                     </div>
                 {% endif %}
@@ -167,8 +167,8 @@
         <section class="blog-settings-subsection" aria-labelledby="blog-settings-section-admin-pagination">
             <div class="blog-settings-subsection-header">
                 <span class="pill">admin://article-index-pagination</span>
-                <h2 id="blog-settings-section-admin-pagination" class="blog-settings-subsection-title">Paginacja listy artykułów w panelu</h2>
-                <p class="blog-settings-subsection-lede">To ustawienie działa niezależnie od strony głównej i steruje liczbą rekordów widocznych na <code>admin_article_index</code>.</p>
+                <h2 id="blog-settings-section-admin-pagination" class="blog-settings-subsection-title" data-i18n="blog_settings_section_admin_pagination_title">Paginacja listy artykułów w panelu</h2>
+                <p class="blog-settings-subsection-lede" data-i18n="blog_settings_section_admin_pagination_lede">To ustawienie działa niezależnie od strony głównej i steruje liczbą rekordów widocznych na <code>admin_article_index</code>.</p>
             </div>
 
             {% set admin_articles_per_page_has_errors = form.adminArticlesPerPage.vars.errors|length > 0 %}
@@ -183,12 +183,12 @@
                     'aria-describedby': admin_articles_per_page_described_by
                 }|merge(admin_articles_per_page_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
                 <div class="article-editor-field-meta">
-                    <span id="{{ admin_articles_per_page_hint_id }}" class="article-editor-field-hint article-editor-field-hint-help">Domyślna wartość to <code>25</code>. Zmiana wpływa wyłącznie na tabelę artykułów w panelu administracyjnym.</span>
+                    <span id="{{ admin_articles_per_page_hint_id }}" class="article-editor-field-hint article-editor-field-hint-help" data-i18n="blog_settings_admin_articles_per_page_hint">Domyślna wartość to <code>25</code>. Zmiana wpływa wyłącznie na tabelę artykułów w panelu administracyjnym.</span>
                 </div>
                 {% if admin_articles_per_page_has_errors %}
                     <div id="{{ admin_articles_per_page_error_id }}" class="article-editor-error-message" role="alert">
                         {% for error in form.adminArticlesPerPage.vars.errors %}
-                            <p>{{ error.message }}</p>
+                            <p data-i18n="{{ error.message }}">{{ error.message }}</p>
                         {% endfor %}
                     </div>
                 {% endif %}
@@ -197,7 +197,7 @@
     </div>
 
     <div class="actions article-editor-actions">
-        <button type="submit" class="button">Zapisz ustawienia</button>
-        <a class="button secondary" href="{{ path('admin_dashboard') }}">Wróć do panelu</a>
+        <button type="submit" class="button" data-i18n="blog_settings_submit">Zapisz ustawienia</button>
+        <a class="button secondary" href="{{ path('admin_dashboard') }}" data-i18n="blog_settings_back_to_dashboard">Wróć do panelu</a>
     </div>
 {{ form_end(form) }}

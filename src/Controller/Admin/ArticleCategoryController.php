@@ -7,6 +7,7 @@ namespace App\Controller\Admin;
 use App\Entity\ArticleCategory;
 use App\Form\ArticleCategoryType;
 use App\Repository\ArticleCategoryRepository;
+use App\Service\UserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -31,7 +32,7 @@ class ArticleCategoryController extends AbstractController
     }
 
     #[Route('/new', name: 'admin_article_category_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, UserLanguageResolver $userLanguageResolver): Response
     {
         $category = new ArticleCategory();
         $form = $this->createForm(ArticleCategoryType::class, $category);
@@ -42,7 +43,7 @@ class ArticleCategoryController extends AbstractController
             $entityManager->persist($category);
             $entityManager->flush();
 
-            $this->addFlash('success', 'Kategoria została dodana.');
+            $this->addFlash('success', $this->translateFlash($userLanguageResolver, 'Kategoria została dodana.', 'Category created.'));
 
             return $this->redirectToRoute('admin_article_category_index');
         }
@@ -57,6 +58,7 @@ class ArticleCategoryController extends AbstractController
         ArticleCategory $category,
         Request $request,
         EntityManagerInterface $entityManager,
+        UserLanguageResolver $userLanguageResolver,
     ): Response {
         $form = $this->createForm(ArticleCategoryType::class, $category);
         $form->handleRequest($request);
@@ -65,7 +67,7 @@ class ArticleCategoryController extends AbstractController
             $this->syncTranslations($category, $form);
             $entityManager->flush();
 
-            $this->addFlash('success', 'Kategoria została zaktualizowana.');
+            $this->addFlash('success', $this->translateFlash($userLanguageResolver, 'Kategoria została zaktualizowana.', 'Category updated.'));
 
             return $this->redirectToRoute('admin_article_category_index');
         }
@@ -81,6 +83,7 @@ class ArticleCategoryController extends AbstractController
         ArticleCategory $category,
         Request $request,
         EntityManagerInterface $entityManager,
+        UserLanguageResolver $userLanguageResolver,
     ): Response {
         if (!$this->isCsrfTokenValid('delete_article_category_'.$category->getId(), (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Invalid CSRF token.');
@@ -89,7 +92,7 @@ class ArticleCategoryController extends AbstractController
         $entityManager->remove($category);
         $entityManager->flush();
 
-        $this->addFlash('success', 'Kategoria została usunięta.');
+        $this->addFlash('success', $this->translateFlash($userLanguageResolver, 'Kategoria została usunięta.', 'Category deleted.'));
 
         return $this->redirectToRoute('admin_article_category_index');
     }
@@ -104,5 +107,10 @@ class ArticleCategoryController extends AbstractController
         $category
             ->setTitles($titles)
             ->setDescriptions($descriptions);
+    }
+
+    private function translateFlash(UserLanguageResolver $userLanguageResolver, string $polish, string $english): string
+    {
+        return 'pl' === $userLanguageResolver->getLanguage() ? $polish : $english;
     }
 }

@@ -116,7 +116,7 @@ Fullstack Developer</span>
 {% set is_login_route = app.request.attributes.get('_route') == 'app_login' %}
 {% if app.user or not is_login_route %}
     <details class="admin-shortcuts"{% if not app.user %} hidden{% endif %}>
-        <summary class="admin-shortcuts-toggle" aria-label="Admin shortcuts">
+        <summary class="admin-shortcuts-toggle" data-i18n-aria="admin_shortcut_menu_label" aria-label="Skróty administratora">
             <span class="admin-shortcuts-gear" aria-hidden="true">
                 <svg viewBox="0 0 32 32">
                     <path d="M13.2 4h5.6l.7 3.2c.9.3 1.8.7 2.6 1.3l3.1-1.1 2.8 4.8-2.5 2.2c.1.5.1 1 .1 1.6s0 1.1-.1 1.6l2.5 2.2-2.8 4.8-3.1-1.1c-.8.6-1.7 1-2.6 1.3l-.7 3.2h-5.6l-.7-3.2c-.9-.3-1.8-.7-2.6-1.3l-3.1 1.1-2.8-4.8 2.5-2.2a9.2 9.2 0 0 1 0-3.2l-2.5-2.2 2.8-4.8 3.1 1.1c.8-.6 1.7-1 2.6-1.3Z"></path>
@@ -124,7 +124,7 @@ Fullstack Developer</span>
                 </svg>
             </span>
         </summary>
-        <nav class="admin-shortcuts-menu" aria-label="Admin shortcuts" data-admin-shortcuts data-authenticated="{{ app.user ? 'true' : 'false' }}">
+        <nav class="admin-shortcuts-menu" data-i18n-aria="admin_shortcut_menu_label" aria-label="Skróty administratora" data-admin-shortcuts data-authenticated="{{ app.user ? 'true' : 'false' }}">
             {% if app.user %}
                 <div class="admin-shortcuts-section">
                     <a class="admin-shortcuts-link primary" href="{{ path('admin_article_new') }}">
@@ -199,14 +199,14 @@ Fullstack Developer</span>
                                     <path d="M17 25c.7-2.8 3.1-5 6-5 2.2 0 4.2 1.2 5 3"></path>
                                 </svg>
                             </span>
-                            <span>Użytkownicy</span>
+                            <span data-i18n="admin_shortcut_users_title">Użytkownicy</span>
                             <span class="admin-shortcuts-submenu-caret" aria-hidden="true">
                                 <svg viewBox="0 0 32 32">
                                     <path d="M10 13l6 6 6-6"></path>
                                 </svg>
                             </span>
                         </button>
-                        <div class="admin-shortcuts-submenu-panel" id="admin-shortcuts-users-panel" aria-label="Użytkownicy">
+                        <div class="admin-shortcuts-submenu-panel" id="admin-shortcuts-users-panel" data-i18n-aria="admin_shortcut_users_title" aria-label="Użytkownicy">
                             <a class="admin-shortcuts-link admin-shortcuts-sublink" href="{{ path('admin_user_new') }}">
                                 <span class="admin-shortcuts-link-icon" aria-hidden="true">
                                     <svg viewBox="0 0 32 32">
@@ -216,7 +216,7 @@ Fullstack Developer</span>
                                         <path d="M19 14h8"></path>
                                     </svg>
                                 </span>
-                                <span>Dodaj użytkownika</span>
+                                <span data-i18n="admin_shortcut_user_new">Dodaj użytkownika</span>
                             </a>
                             <a class="admin-shortcuts-link admin-shortcuts-sublink" href="{{ path('admin_user_index') }}">
                                 <span class="admin-shortcuts-link-icon" aria-hidden="true">
@@ -227,7 +227,7 @@ Fullstack Developer</span>
                                         <path d="M17 25c.7-2.8 3.1-5 6-5 2.2 0 4.2 1.2 5 3"></path>
                                     </svg>
                                 </span>
-                                <span>Zarządzanie użytkownikami</span>
+                                <span data-i18n="admin_shortcut_user_index">Zarządzanie użytkownikami</span>
                             </a>
                         </div>
                     </div>
@@ -250,7 +250,7 @@ Fullstack Developer</span>
                                 </svg>
                             </span>
                         </button>
-                        <div class="admin-shortcuts-submenu-panel" id="admin-shortcuts-import-export-panel" aria-label="Importy i eksporty">
+                        <div class="admin-shortcuts-submenu-panel" id="admin-shortcuts-import-export-panel" data-i18n-aria="admin_shortcut_import_export_title" aria-label="Importy i eksporty">
                             <a class="admin-shortcuts-link admin-shortcuts-sublink" href="{{ path('admin_queue_status') }}">
                                 <span class="admin-shortcuts-link-icon" aria-hidden="true">
                                     <svg viewBox="0 0 32 32">
@@ -308,7 +308,7 @@ Fullstack Developer</span>
                         <span data-i18n="admin_shortcut_logout">Wyloguj</span>
                     </a>
                 </div>
-                <section class="admin-shortcuts-section admin-shortcuts-settings" aria-label="Quick settings">
+                <section class="admin-shortcuts-section admin-shortcuts-settings" data-i18n-aria="admin_shortcut_settings_title" aria-label="Szybkie ustawienia">
                     <p class="admin-shortcuts-section-title" data-i18n="admin_shortcut_settings_title">Szybkie ustawienia</p>
                     <button type="button" class="admin-shortcuts-link admin-shortcuts-button" data-action="toggle-device-login" aria-pressed="false">
                         <span class="admin-shortcuts-link-icon" aria-hidden="true">

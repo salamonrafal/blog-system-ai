@@ -11,6 +11,7 @@ use App\Repository\ArticleImportQueueRepository;
 use App\Service\ArticleImportStorage;
 use App\Service\ManagedFileDeleter;
 use App\Service\ManagedFilePathResolver;
+use App\Service\UserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Form\Extension\HttpFoundation\HttpFoundationExtension;
@@ -55,7 +56,12 @@ final class ArticleImportControllerTest extends TestCase
             $this->createStub(ManagedFileDeleter::class),
         );
 
-        $response = $controller->index(new Request(), $entityManager, $repository, $storage);
+        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
+        $userLanguageResolver
+            ->expects($this->never())
+            ->method('getLanguage');
+
+        $response = $controller->index(new Request(), $entityManager, $repository, $storage, $userLanguageResolver);
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
         $this->assertSame('admin/article_import/index.html.twig', $controller->capturedView);

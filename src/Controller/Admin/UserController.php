@@ -8,6 +8,7 @@ use App\Entity\User;
 use App\Form\UserType;
 use App\Repository\ArticleRepository;
 use App\Repository\UserRepository;
+use App\Service\UserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -40,6 +41,7 @@ class UserController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         UserPasswordHasherInterface $passwordHasher,
+        UserLanguageResolver $userLanguageResolver,
     ): Response {
         $user = new User();
         $form = $this->createForm(UserType::class, $user, [
@@ -63,7 +65,7 @@ class UserController extends AbstractController
             $entityManager->persist($user);
             $entityManager->flush();
 
-            $this->addFlash('success', 'User created.');
+            $this->addFlash('success', $this->translateFlash($userLanguageResolver, 'Użytkownik został utworzony.', 'User created.'));
 
             return $this->redirectToRoute('admin_user_index');
         }
@@ -79,6 +81,7 @@ class UserController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         UserPasswordHasherInterface $passwordHasher,
+        UserLanguageResolver $userLanguageResolver,
     ): Response {
         $currentUser = $this->getUser();
         $form = $this->createForm(UserType::class, $managedUser, [
@@ -111,7 +114,7 @@ class UserController extends AbstractController
 
             $entityManager->flush();
 
-            $this->addFlash('success', 'User updated.');
+            $this->addFlash('success', $this->translateFlash($userLanguageResolver, 'Użytkownik został zaktualizowany.', 'User updated.'));
 
             return $this->redirectToRoute('admin_user_index');
         }
@@ -129,6 +132,7 @@ class UserController extends AbstractController
         UserRepository $userRepository,
         ArticleRepository $articleRepository,
         EntityManagerInterface $entityManager,
+        UserLanguageResolver $userLanguageResolver,
     ): Response {
         if (!$this->isCsrfTokenValid('delete_user_'.$managedUser->getId(), (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Invalid CSRF token.');
@@ -152,8 +156,13 @@ class UserController extends AbstractController
         $entityManager->remove($managedUser);
         $entityManager->flush();
 
-        $this->addFlash('success', 'User deleted.');
+        $this->addFlash('success', $this->translateFlash($userLanguageResolver, 'Użytkownik został usunięty.', 'User deleted.'));
 
         return $this->redirectToRoute('admin_user_index');
+    }
+
+    private function translateFlash(UserLanguageResolver $userLanguageResolver, string $polish, string $english): string
+    {
+        return 'pl' === $userLanguageResolver->getLanguage() ? $polish : $english;
     }
 }

@@ -227,3 +227,15 @@
 - Uproszczono listę importów, usuwając osobną kolumnę `Komunikat`, zastępując ją ikoną ostrzeżenia wyświetlaną tylko dla rekordów z błędem oraz dodając modal z pełną treścią komunikatu po kliknięciu.
 - Dodano trwałe powiadomienia per-user o zakończeniu importu i eksportu przetwarzanego w tle, widoczne wyłącznie dla zalogowanego użytkownika inicjującego akcję, z internacjonalizowanym komunikatem o sukcesie lub błędzie, automatycznym ukrywaniem po `10` sekundach oraz możliwością ręcznego zamknięcia.
 - Rozszerzono nowe powiadomienia o aktywne dostarczanie bez odświeżania strony przez polling do dedykowanego endpointu, przycisk przejścia do listy `Importy` lub `Eksporty` zależnie od typu zdarzenia oraz scalanie wielu zakończonych importów albo eksportów do pojedynczego komunikatu na typ i rezultat.
+
+## 2026-03-29
+
+- Dopracowano mobilny układ `blog_index`, wymuszając pojedynczą kolumnę kart artykułów, zabezpieczając ich zawartość przed wychodzeniem poza blok oraz zmniejszając główny tytuł strony na małych ekranach.
+- Przebudowano mobilną sekcję kategorii na `blog_index`, przenosząc etykietę `Kategorie artykułów` nad listę, wprowadzając poziome przewijanie kategorii z automatycznym przewinięciem aktywnego elementu do widoku oraz stabilizując paginację dla ekranów poniżej `425px`.
+- Dopracowano mobilny hero na `blog_show`, zmniejszając tytuł nakładany na obrazek oraz kompaktując badge kategorii tak, aby lepiej mieścił się i wizualnie pasował do nagłówka.
+- Poprawiono internacjonalizację kategorii na `blog_show`, usuwając podwójny napis `Kategoria Category`, podpinając etykietę `KATEGORIA` do przełącznika języka oraz dodając brakującą ochronę skryptu przewijania kategorii przed błędem `querySelector` na `null`.
+- Ustabilizowano dolne akcje na `blog_show`, przywracając ich wyrównanie do prawej strony na urządzeniach mobilnych.
+- Ujednolicono komunikaty flash w panelu administracyjnym względem wybranego języka użytkownika na ekranach `admin_article_index`, `admin_article_category_index`, `admin_user_index`, `admin_article_import_index`, `admin_article_export_index`, `admin_queue_status` oraz `admin_blog_settings`.
+- Rozszerzono internacjonalizację widoków administracyjnych, uzupełniając brakujące tłumaczenia na stronach `admin_dashboard`, `admin_article_import_index`, `admin_article_export_index`, `admin_queue_status`, `admin_blog_settings` oraz formularzach dodawania i edycji użytkownika.
+- Dopracowano internacjonalizację pływającego menu administracyjnego, podpinając brakujące elementy sekcji `Użytkownicy`, etykiety dostępności i angielskie nazwy pozycji `Imports & Exports` oraz `Imports`.
+- Naprawiono konflikt warstw na urządzeniach mobilnych, podnosząc `z-index` mobilnego draweru ponad pływające menu administracyjne, dzięki czemu przyciski zmiany języka, motywu i koloru są ponownie klikalne.

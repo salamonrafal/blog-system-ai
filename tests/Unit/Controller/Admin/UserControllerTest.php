@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Controller\Admin;
 use App\Controller\Admin\UserController;
 use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Service\UserLanguageResolver;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Form\Extension\HttpFoundation\HttpFoundationExtension;
@@ -80,6 +81,7 @@ final class UserControllerTest extends TestCase
             new \Symfony\Component\HttpFoundation\Request(),
             $this->createMock(\Doctrine\ORM\EntityManagerInterface::class),
             $this->createMock(\Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface::class),
+            $this->createMock(UserLanguageResolver::class),
         );
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());

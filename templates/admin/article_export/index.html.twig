@@ -19,7 +19,7 @@
                         <p class="lede" data-i18n="admin_exports_lede">Lista pokazuje gotowe paczki eksportu artykułów zapisane przez zadanie działające w tle. Każdy wpis zawiera plik gotowy do ponownego importu.</p>
                     </div>
                     <div class="actions">
-                        <a class="button secondary" href="{{ path('admin_article_export_index') }}">Odśwież</a>
+                        <a class="button secondary" href="{{ path('admin_article_export_index') }}" data-i18n="admin_refresh">Odśwież</a>
                         {% if exports is not empty %}
                             <form method="post" action="{{ path('admin_article_export_clear') }}">
                                 <input type="hidden" name="_token" value="{{ csrf_token('clear_article_exports') }}">
@@ -80,6 +80,7 @@
                                             href="{{ path('admin_article_export_download', {id: export.id}) }}"
                                             data-i18n-tooltip="admin_exports_download"
                                             data-tooltip="Pobierz plik eksportu"
+                                            data-i18n-aria="admin_exports_download"
                                             aria-label="Pobierz plik eksportu"
                                         >
                                             <span class="article-action-icon is-export" aria-hidden="true"></span>
@@ -93,6 +94,7 @@
                                                 data-export-file="{{ export.filePath }}"
                                                 data-i18n-tooltip="admin_table_delete"
                                                 data-tooltip="Usuń"
+                                                data-i18n-aria="admin_table_delete"
                                                 aria-label="Usuń"
                                             >
                                                 <span class="article-action-icon is-delete" aria-hidden="true"></span>

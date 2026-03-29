@@ -9,6 +9,7 @@ use App\Enum\ArticleExportStatus;
 use App\Repository\ArticleExportRepository;
 use App\Service\ArticleExportFileWriter;
 use App\Service\ManagedFilePathResolver;
+use App\Service\UserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -35,11 +36,11 @@ class ArticleExportController extends AbstractController
     }
 
     #[Route('/{id}/download', name: 'admin_article_export_download', methods: ['GET'])]
-    public function download(ArticleExport $articleExport, EntityManagerInterface $entityManager): Response
+    public function download(ArticleExport $articleExport, EntityManagerInterface $entityManager, UserLanguageResolver $userLanguageResolver): Response
     {
         $absolutePath = $this->managedFilePathResolver->resolveExportPath($articleExport->getFilePath());
         if (null === $absolutePath || !is_file($absolutePath)) {
-            $this->addFlash('error', 'Plik eksportu nie jest dostępny do pobrania.');
+            $this->addFlash('error', $this->translateFlash($userLanguageResolver, 'Plik eksportu nie jest dostępny do pobrania.', 'The export file is not available for download.'));
 
             return $this->redirectToRoute('admin_article_export_index');
         }
@@ -72,6 +73,7 @@ class ArticleExportController extends AbstractController
         ArticleExport $articleExport,
         Request $request,
         EntityManagerInterface $entityManager,
+        UserLanguageResolver $userLanguageResolver,
     ): Response {
         if (!$this->isCsrfTokenValid('delete_article_export_'.$articleExport->getId(), (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Invalid CSRF token.');
@@ -81,7 +83,7 @@ class ArticleExportController extends AbstractController
         $entityManager->remove($articleExport);
         $entityManager->flush();
 
-        $this->addFlash('success', 'Eksport został usunięty.');
+        $this->addFlash('success', $this->translateFlash($userLanguageResolver, 'Eksport został usunięty.', 'The export has been deleted.'));
 
         return $this->redirectToRoute('admin_article_export_index');
     }
@@ -91,6 +93,7 @@ class ArticleExportController extends AbstractController
         Request $request,
         ArticleExportRepository $articleExportRepository,
         EntityManagerInterface $entityManager,
+        UserLanguageResolver $userLanguageResolver,
     ): Response {
         if (!$this->isCsrfTokenValid('clear_article_exports', (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Invalid CSRF token.');
@@ -107,8 +110,13 @@ class ArticleExportController extends AbstractController
 
         $entityManager->flush();
 
-        $this->addFlash('success', 'Wszystkie eksporty zostały usunięte.');
+        $this->addFlash('success', $this->translateFlash($userLanguageResolver, 'Wszystkie eksporty zostały usunięte.', 'All exports have been deleted.'));
 
         return $this->redirectToRoute('admin_article_export_index');
+    }
+
+    private function translateFlash(UserLanguageResolver $userLanguageResolver, string $polish, string $english): string
+    {
+        return 'pl' === $userLanguageResolver->getLanguage() ? $polish : $english;
     }
 }

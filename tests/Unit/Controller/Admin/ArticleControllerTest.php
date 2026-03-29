@@ -315,6 +315,11 @@ final class ArticleControllerTest extends TestCase
             ->method('enqueuePending')
             ->with($article, $currentUser)
             ->willReturn(true);
+        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
+        $userLanguageResolver
+            ->expects($this->once())
+            ->method('getLanguage')
+            ->willReturn('pl');
 
         $controller = new TestArticleController();
         $controller->authenticatedUser = $currentUser;
@@ -324,11 +329,11 @@ final class ArticleControllerTest extends TestCase
             '_token' => 'valid-token',
         ]);
 
-        $response = $controller->export($article, $request, $queueRepository);
+        $response = $controller->export($article, $request, $queueRepository, $userLanguageResolver);
 
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertSame('/admin/articles', $response->getTargetUrl());
-        $this->assertSame([['success', 'Article export added to the queue.']], $controller->flashes);
+        $this->assertSame([['success', 'Eksport artykułu został dodany do kolejki.']], $controller->flashes);
     }
 
     public function testExportReportsAlreadyQueuedWhenAtomicEnqueueRejectsDuplicate(): void
@@ -344,6 +349,11 @@ final class ArticleControllerTest extends TestCase
             ->method('enqueuePending')
             ->with($article, null)
             ->willReturn(false);
+        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
+        $userLanguageResolver
+            ->expects($this->once())
+            ->method('getLanguage')
+            ->willReturn('pl');
 
         $controller = new TestArticleController();
         $controller->csrfTokenIsValid = true;
@@ -352,11 +362,11 @@ final class ArticleControllerTest extends TestCase
             '_token' => 'valid-token',
         ]);
 
-        $response = $controller->export($article, $request, $queueRepository);
+        $response = $controller->export($article, $request, $queueRepository, $userLanguageResolver);
 
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertSame('/admin/articles', $response->getTargetUrl());
-        $this->assertSame([['success', 'Article export is already queued.']], $controller->flashes);
+        $this->assertSame([['success', 'Eksport artykułu jest już w kolejce.']], $controller->flashes);
     }
 
     private function setEntityId(object $entity, int $id): void

@@ -13,28 +13,28 @@
             </div>
 
             <div class="dashboard-feed-intro">
-                <h1>Edytuj użytkownika</h1>
-                <p class="lede">Zmieniaj adres e-mail, zakres dostępu i stan konta. Hasło aktualizuj tylko wtedy, gdy jest to potrzebne.</p>
+                <h1 data-i18n="admin_user_edit_title">Edytuj użytkownika</h1>
+                <p class="lede" data-i18n="admin_user_edit_lede">Zmieniaj adres e-mail, zakres dostępu i stan konta. Hasło aktualizuj tylko wtedy, gdy jest to potrzebne.</p>
 
-                <section class="article-edit-meta-panel article-edit-meta-panel-compact" aria-label="Metadane użytkownika">
+                <section class="article-edit-meta-panel article-edit-meta-panel-compact" data-i18n-aria="admin_user_metadata_aria" aria-label="Metadane użytkownika">
                     <div class="article-edit-meta-header">
                         <span class="pill">admin://user-metadata</span>
                     </div>
                     <dl class="article-edit-meta-list article-edit-meta-list-compact">
                         <div class="article-edit-meta-item">
-                            <dt class="article-edit-meta-label">Identyfikator</dt>
+                            <dt class="article-edit-meta-label" data-i18n="admin_user_metadata_id">Identyfikator</dt>
                             <dd class="article-edit-meta-value">#{{ managed_user.id }}</dd>
                         </div>
                         <div class="article-edit-meta-item">
-                            <dt class="article-edit-meta-label">Aktualny login</dt>
+                            <dt class="article-edit-meta-label" data-i18n="admin_user_metadata_login">Aktualny login</dt>
                             <dd class="article-edit-meta-value">{{ managed_user.email }}</dd>
                         </div>
                         <div class="article-edit-meta-item">
-                            <dt class="article-edit-meta-label">Nazwa wyswietlana</dt>
-                            <dd class="article-edit-meta-value">{{ managed_user.fullName ?? managed_user.nickname ?? 'Brak' }}</dd>
+                            <dt class="article-edit-meta-label" data-i18n="admin_user_metadata_display_name">Nazwa wyswietlana</dt>
+                            <dd class="article-edit-meta-value"{% if not managed_user.fullName and not managed_user.nickname %} data-i18n="admin_user_metadata_missing"{% endif %}>{{ managed_user.fullName ?? managed_user.nickname ?? 'Brak' }}</dd>
                         </div>
                         <div class="article-edit-meta-item">
-                            <dt class="article-edit-meta-label">Utworzono</dt>
+                            <dt class="article-edit-meta-label" data-i18n="admin_table_created">Utworzono</dt>
                             <dd class="article-edit-meta-value">{{ managed_user.createdAt|user_date }}</dd>
                         </div>
                     </dl>
@@ -43,6 +43,7 @@
 
             {% include 'admin/user/_form.html.twig' with {
                 form: form,
+                submit_label_key: 'user_form_submit_save',
                 submit_label: 'Zapisz użytkownika'
             } %}
         </div>

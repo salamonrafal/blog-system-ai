@@ -19,10 +19,11 @@ class ArticleImportType extends AbstractType
     {
         $builder->add('importFile', FileType::class, [
             'label' => 'Plik importu',
+            'label_attr' => ['data-i18n' => 'admin_import_form_file'],
             'mapped' => false,
             'constraints' => [
                 new NotNull([
-                    'message' => 'Wybierz plik importu.',
+                    'message' => 'validation_import_file_required',
                 ]),
                 new Callback([
                     'callback' => static function (mixed $value, ExecutionContextInterface $context): void {
@@ -31,7 +32,7 @@ class ArticleImportType extends AbstractType
                         }
 
                         if ($value->getSize() > 10 * 1024 * 1024) {
-                            $context->buildViolation('Plik importu nie może być większy niż 10 MB.')
+                            $context->buildViolation('validation_import_file_too_large')
                                 ->addViolation();
 
                             return;
@@ -39,7 +40,7 @@ class ArticleImportType extends AbstractType
 
                         $extension = strtolower(pathinfo($value->getClientOriginalName(), PATHINFO_EXTENSION));
                         if ('json' !== $extension) {
-                            $context->buildViolation('Prześlij poprawny plik JSON z eksportem.')
+                            $context->buildViolation('validation_import_file_invalid')
                                 ->addViolation();
                         }
                     },

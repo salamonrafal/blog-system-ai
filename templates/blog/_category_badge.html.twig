@@ -8,18 +8,12 @@
 
 {% if route_params %}
     <a class="{{ badge_classes|join(' ') }}" href="{{ path('blog_category', route_params) }}">
-        <span class="article-headline-category-label">
-            <span data-lang="pl">Kategoria</span>
-            <span data-lang="en">Category</span>
-        </span>
+        <span class="article-headline-category-label" data-i18n="blog_category_label">Kategoria</span>
         <span class="article-headline-category-name">{{ category.localizedTitle(user_language) }}</span>
     </a>
 {% else %}
     <span class="{{ badge_classes|join(' ') }}" role="note">
-        <span class="article-headline-category-label">
-            <span data-lang="pl">Kategoria</span>
-            <span data-lang="en">Category</span>
-        </span>
+        <span class="article-headline-category-label" data-i18n="blog_category_label">Kategoria</span>
         <span class="article-headline-category-name">{{ category.localizedTitle(user_language) }}</span>
     </span>
 {% endif %}

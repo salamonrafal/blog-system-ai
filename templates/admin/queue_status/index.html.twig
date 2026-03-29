@@ -19,7 +19,7 @@
                         <p class="lede" data-i18n="admin_queue_status_lede">Lista pokazuje elementy gotowe do przetworzenia przez zadanie w tle. Widoczne są tylko wpisy oczekujące w kolejkach eksportu i importu.</p>
                     </div>
                     <div class="actions">
-                        <a class="button secondary" href="{{ path('admin_queue_status') }}">Odśwież</a>
+                        <a class="button secondary" href="{{ path('admin_queue_status') }}" data-i18n="admin_refresh">Odśwież</a>
                         {% if has_pending_queue_items %}
                             <form method="post" action="{{ path('admin_queue_status_clear') }}">
                                 <input type="hidden" name="_token" value="{{ csrf_token('clear_queue_items') }}">
@@ -41,7 +41,7 @@
                 {% if pending_export_queue_items is not empty %}
                     <div class="dashboard-feed-intro">
                         <div class="queue-status-intro-copy">
-                            <h2>Eksporty oczekujące</h2>
+                            <h2 data-i18n="admin_queue_pending_exports">Eksporty oczekujące</h2>
                         </div>
                     </div>
                     <div class="table-wrap article-index-table-wrap">
@@ -98,7 +98,7 @@
                 {% if pending_import_queue_items is not empty %}
                     <div class="dashboard-feed-intro">
                         <div class="queue-status-intro-copy">
-                            <h2>Importy oczekujące</h2>
+                            <h2 data-i18n="admin_queue_pending_imports">Importy oczekujące</h2>
                         </div>
                     </div>
                     <div class="table-wrap article-index-table-wrap">
@@ -137,6 +137,7 @@
                                                 <button
                                                     class="button secondary button-danger article-action-button"
                                                     type="submit"
+                                                    data-i18n-tooltip="admin_queue_delete"
                                                     data-tooltip="Usuń z kolejki"
                                                     aria-label="Usuń z kolejki"
                                                 >
@@ -153,7 +154,7 @@
                 {% endif %}
             {% elseif has_pending_queue_items %}
                 <div class="blog-empty-state">
-                    <p class="meta blog-empty-state-message" role="status">W kolejce są ukryte lub osierocone wpisy. Użyj przycisku Wyczyść kolejkę, aby usunąć wszystkie oczekujące elementy.</p>
+                    <p class="meta blog-empty-state-message" role="status" data-i18n="admin_queue_hidden_items">W kolejce są ukryte lub osierocone wpisy. Użyj przycisku Wyczyść kolejkę, aby usunąć wszystkie oczekujące elementy.</p>
                 </div>
             {% else %}
                 <div class="blog-empty-state">
