@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller\Admin;
 
+use App\Entity\BlogSettings;
 use App\Enum\ArticleExportStatus;
 use App\Enum\ArticleExportType;
 use App\Enum\ArticleExportQueueStatus;
@@ -182,8 +183,8 @@ class DashboardController extends AbstractController
                     'description_key' => 'admin_dashboard_panel_settings_description',
                     'description' => 'Konfiguracja nazwy bloga, SEO strony głównej i liczby wpisów na stronę.',
                     'meta_cards' => [
-                        $this->dashboardMetaCard('admin_dashboard_meta_blog_title', 'Tytuł bloga', null !== $settings ? $settings->getBlogTitle() : 'Blog System AI'),
-                        $this->dashboardMetaCard('admin_dashboard_meta_articles_per_page', 'Artykułów na stronę', null !== $settings ? (string) $settings->getArticlesPerPage() : '5'),
+                        $this->dashboardMetaCard('admin_dashboard_meta_blog_title', 'Tytuł bloga', null !== $settings ? $settings->getBlogTitle() : BlogSettings::DEFAULT_BLOG_TITLE),
+                        $this->dashboardMetaCard('admin_dashboard_meta_articles_per_page', 'Artykułów na stronę', null !== $settings ? (string) $settings->getArticlesPerPage() : (string) BlogSettings::DEFAULT_ARTICLES_PER_PAGE),
                         $this->dashboardMetaCard('admin_dashboard_meta_last_update', 'Ostatnia aktualizacja', null !== $settings
                             ? $settings->getUpdatedAt()->format('Y-m-d H:i')
                             : 'Brak zapisanych zmian'),
