@@ -369,6 +369,10 @@ Fullstack Developer</span>
     </div>
 </footer>
 
+<script>
+    globalThis.__APP_VALIDATION_I18N__ = {{ validation_i18n_json|raw }};
+</script>
+
 {% if app_env == 'prod' %}
     <script type="module" src="/assets/build/app.min.js"></script>
 {% else %}

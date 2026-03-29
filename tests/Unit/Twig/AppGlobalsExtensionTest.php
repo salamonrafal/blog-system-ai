@@ -102,6 +102,7 @@ final class AppGlobalsExtensionTest extends TestCase
         $this->assertSame('test', $globals['app_env']);
         $this->assertSame('en', $globals['user_language']);
         $this->assertSame('Europe/Warsaw', $globals['user_timezone']);
+        $this->assertJson($globals['validation_i18n_json']);
         $this->assertSame([
             'queue_status' => 5,
             'imports' => 2,
