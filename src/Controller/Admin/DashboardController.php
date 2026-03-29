@@ -41,6 +41,7 @@ class DashboardController extends AbstractController
         return $this->render('admin/dashboard/index.html.twig', [
             'dashboard_user' => [
                 'email' => $user instanceof UserInterface ? $user->getUserIdentifier() : 'Nieznany użytkownik',
+                'email_key' => $user instanceof UserInterface ? null : 'admin_dashboard_user_unknown',
                 'email_label_key' => 'admin_dashboard_user_label',
                 'email_label' => 'Użytkownik',
                 'role' => $this->resolveRoleLabel($user),
@@ -187,7 +188,7 @@ class DashboardController extends AbstractController
                         $this->dashboardMetaCard('admin_dashboard_meta_articles_per_page', 'Artykułów na stronę', null !== $settings ? (string) $settings->getArticlesPerPage() : (string) BlogSettings::DEFAULT_ARTICLES_PER_PAGE),
                         $this->dashboardMetaCard('admin_dashboard_meta_last_update', 'Ostatnia aktualizacja', null !== $settings
                             ? $settings->getUpdatedAt()->format('Y-m-d H:i')
-                            : 'Brak zapisanych zmian'),
+                            : 'Brak zapisanych zmian', null === $settings ? 'admin_dashboard_meta_no_saved_changes' : null),
                     ],
                     'meta' => [],
                     'primary_action' => $this->dashboardAction('admin_dashboard_action_edit', 'Edytuj', 'admin_blog_settings'),
@@ -252,12 +253,13 @@ class DashboardController extends AbstractController
         ];
     }
 
-    private function dashboardMetaCard(string $labelKey, string $label, string $value): array
+    private function dashboardMetaCard(string $labelKey, string $label, string $value, ?string $valueKey = null): array
     {
         return [
             'label_key' => $labelKey,
             'label' => $label,
             'value' => $value,
+            'value_key' => $valueKey,
         ];
     }
 

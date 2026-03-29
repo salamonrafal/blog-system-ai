@@ -18,7 +18,7 @@
                 <div class="dashboard-user-summary" data-i18n-aria="admin_dashboard_user_summary_aria" aria-label="Informacje o zalogowanym użytkowniku">
                     <div class="dashboard-user-summary-item">
                         <span data-i18n="{{ dashboard_user.email_label_key }}">{{ dashboard_user.email_label }}</span>
-                        <strong>{{ dashboard_user.email }}</strong>
+                        <strong{% if dashboard_user.email_key is not empty %} data-i18n="{{ dashboard_user.email_key }}"{% endif %}>{{ dashboard_user.email }}</strong>
                     </div>
                     <div class="dashboard-user-summary-item">
                         <span data-i18n="{{ dashboard_user.role_label_key }}">{{ dashboard_user.role_label }}</span>
@@ -100,7 +100,7 @@
                             {% for item in panel.meta_cards %}
                                 <div class="dashboard-overview-meta-card">
                                     <span data-i18n="{{ item.label_key }}">{{ item.label }}</span>
-                                    <strong>{{ item.value }}</strong>
+                                    <strong{% if item.value_key is not empty %} data-i18n="{{ item.value_key }}"{% endif %}>{{ item.value }}</strong>
                                 </div>
                             {% endfor %}
                         </div>

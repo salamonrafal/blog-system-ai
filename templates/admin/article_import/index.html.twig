@@ -36,18 +36,11 @@
                     </div>
                 </div>
             </div>
-
-            {% set import_validation_messages = {
-                'validation_import_file_required': 'Wybierz plik importu.',
-                'validation_import_file_too_large': 'Plik importu nie może być większy niż 10 MB.',
-                'validation_import_file_invalid': 'Prześlij poprawny plik JSON z eksportem.'
-            } %}
-
             {{ form_start(form, { attr: { class: 'article-editor-form' } }) }}
                 {% if form.vars.errors|length > 0 %}
                     <div class="form-errors article-editor-errors" role="alert">
                         {% for error in form.vars.errors %}
-                            <p data-i18n="{{ error.message }}">{{ import_validation_messages[error.message] ?? error.message }}</p>
+                            <p data-i18n="{{ error.message }}">{{ i18n_fallback(error.message) }}</p>
                         {% endfor %}
                     </div>
                 {% endif %}
@@ -69,7 +62,7 @@
                         {% if import_file_has_errors %}
                             <div id="{{ import_file_error_id }}" class="article-editor-error-message" role="alert">
                                 {% for error in form.importFile.vars.errors %}
-                                    <p data-i18n="{{ error.message }}">{{ import_validation_messages[error.message] ?? error.message }}</p>
+                                    <p data-i18n="{{ error.message }}">{{ i18n_fallback(error.message) }}</p>
                                 {% endfor %}
                             </div>
                         {% endif %}

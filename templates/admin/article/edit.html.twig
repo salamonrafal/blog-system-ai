@@ -42,11 +42,11 @@
                         </div>
                         <div class="article-edit-meta-item">
                             <dt class="article-edit-meta-label">Utworzyl</dt>
-                            <dd class="article-edit-meta-value">{{ article.createdBy ? article.createdBy.displayName : 'Brak danych' }}</dd>
+                            <dd class="article-edit-meta-value"{% if not article.createdBy %} data-i18n="admin_article_metadata_missing"{% endif %}>{{ article.createdBy ? article.createdBy.displayName : 'Brak danych' }}</dd>
                         </div>
                         <div class="article-edit-meta-item">
                             <dt class="article-edit-meta-label">Ostatnio aktualizowal</dt>
-                            <dd class="article-edit-meta-value">{{ article.updatedBy ? article.updatedBy.displayName : 'Brak danych' }}</dd>
+                            <dd class="article-edit-meta-value"{% if not article.updatedBy %} data-i18n="admin_article_metadata_missing"{% endif %}>{{ article.updatedBy ? article.updatedBy.displayName : 'Brak danych' }}</dd>
                         </div>
                     </dl>
                 </section>

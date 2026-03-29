@@ -159,9 +159,9 @@ final class DashboardControllerTest extends TestCase
         $this->assertSame('Ustawienia bloga', $panels[6]['title']);
         $this->assertSame('admin_dashboard_panel_settings_title', $panels[6]['title_key']);
         $this->assertSame([
-            ['label_key' => 'admin_dashboard_meta_blog_title', 'label' => 'Tytuł bloga', 'value' => 'AI Ops Blog'],
-            ['label_key' => 'admin_dashboard_meta_articles_per_page', 'label' => 'Artykułów na stronę', 'value' => '9'],
-            ['label_key' => 'admin_dashboard_meta_last_update', 'label' => 'Ostatnia aktualizacja', 'value' => $settings->getUpdatedAt()->format('Y-m-d H:i')],
+            ['label_key' => 'admin_dashboard_meta_blog_title', 'label' => 'Tytuł bloga', 'value' => 'AI Ops Blog', 'value_key' => null],
+            ['label_key' => 'admin_dashboard_meta_articles_per_page', 'label' => 'Artykułów na stronę', 'value' => '9', 'value_key' => null],
+            ['label_key' => 'admin_dashboard_meta_last_update', 'label' => 'Ostatnia aktualizacja', 'value' => $settings->getUpdatedAt()->format('Y-m-d H:i'), 'value_key' => null],
         ], $panels[6]['meta_cards']);
     }
 
@@ -227,9 +227,9 @@ final class DashboardControllerTest extends TestCase
         $settingsPanel = $panels[6];
 
         $this->assertSame([
-            ['label_key' => 'admin_dashboard_meta_blog_title', 'label' => 'Tytuł bloga', 'value' => BlogSettings::DEFAULT_BLOG_TITLE],
-            ['label_key' => 'admin_dashboard_meta_articles_per_page', 'label' => 'Artykułów na stronę', 'value' => (string) BlogSettings::DEFAULT_ARTICLES_PER_PAGE],
-            ['label_key' => 'admin_dashboard_meta_last_update', 'label' => 'Ostatnia aktualizacja', 'value' => 'Brak zapisanych zmian'],
+            ['label_key' => 'admin_dashboard_meta_blog_title', 'label' => 'Tytuł bloga', 'value' => BlogSettings::DEFAULT_BLOG_TITLE, 'value_key' => null],
+            ['label_key' => 'admin_dashboard_meta_articles_per_page', 'label' => 'Artykułów na stronę', 'value' => (string) BlogSettings::DEFAULT_ARTICLES_PER_PAGE, 'value_key' => null],
+            ['label_key' => 'admin_dashboard_meta_last_update', 'label' => 'Ostatnia aktualizacja', 'value' => 'Brak zapisanych zmian', 'value_key' => 'admin_dashboard_meta_no_saved_changes'],
         ], $settingsPanel['meta_cards']);
     }
 
