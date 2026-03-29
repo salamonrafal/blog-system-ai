@@ -77,7 +77,7 @@
                 attr: form.avatar.vars.attr|merge(avatar_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.avatar.vars.id ~ '-error'} : {})
             }) }}
             <div class="article-editor-field-meta">
-                <span class="article-editor-field-hint" data-i18n="user_form_avatar_hint">Moze to byc pelny URL albo nazwa pliku graficznego przechowywanego lokalnie.</span>
+                <span class="article-editor-field-hint" data-i18n="user_form_avatar_hint">Może to być pełny URL albo nazwa pliku graficznego przechowywanego lokalnie.</span>
             </div>
             {% if avatar_has_errors %}
                 <div id="{{ form.avatar.vars.id }}-error" class="article-editor-error-message" role="alert">

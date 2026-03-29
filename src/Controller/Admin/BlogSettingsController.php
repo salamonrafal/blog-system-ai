@@ -36,7 +36,7 @@ class BlogSettingsController extends AbstractController
 
             $entityManager->flush();
 
-            $this->addFlash('success', $this->translateFlash($userLanguageResolver, 'Ustawienia bloga zostały zapisane.', 'Blog settings have been saved.'));
+            $this->addFlash('success', $userLanguageResolver->translate('Ustawienia bloga zostały zapisane.', 'Blog settings have been saved.'));
 
             return $this->redirectToRoute('admin_blog_settings');
         }
@@ -47,8 +47,4 @@ class BlogSettingsController extends AbstractController
         ]);
     }
 
-    private function translateFlash(UserLanguageResolver $userLanguageResolver, string $polish, string $english): string
-    {
-        return 'pl' === $userLanguageResolver->getLanguage() ? $polish : $english;
-    }
 }

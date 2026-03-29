@@ -84,4 +84,19 @@ final class BlogSettingsTest extends TestCase
         $this->assertGreaterThan(0, $validator->validate($pathSettings)->count());
         $this->assertGreaterThan(0, $validator->validate($querySettings)->count());
     }
+
+    public function testBlogSettingsValidationUsesTranslationKeys(): void
+    {
+        $validator = Validation::createValidatorBuilder()
+            ->enableAttributeMapping()
+            ->getValidator();
+
+        $missingHostViolations = $validator->validate((new BlogSettings())->setAppUrl('https:///'));
+        $pathViolations = $validator->validate((new BlogSettings())->setAppUrl('https://example.com/blog'));
+        $emptyTitleViolations = $validator->validate((new BlogSettings())->setBlogTitle(''));
+
+        $this->assertSame('validation_blog_settings_app_url_origin_invalid', $missingHostViolations->get(0)->getMessage());
+        $this->assertSame('validation_blog_settings_app_url_origin_only', $pathViolations->get(0)->getMessage());
+        $this->assertSame('validation_blog_settings_blog_title_required', $emptyTitleViolations->get(0)->getMessage());
+    }
 }

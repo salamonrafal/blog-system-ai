@@ -55,7 +55,7 @@ class ArticleImportController extends AbstractController
             $entityManager->persist($queueItem);
             $entityManager->flush();
 
-            $this->addFlash('success', $this->translateFlash($userLanguageResolver, 'Plik importu został dodany do kolejki.', 'The import file has been added to the queue.'));
+            $this->addFlash('success', $userLanguageResolver->translate('Plik importu został dodany do kolejki.', 'The import file has been added to the queue.'));
 
             return $this->redirectToRoute('admin_article_import_index');
         }
@@ -71,7 +71,7 @@ class ArticleImportController extends AbstractController
     {
         $absolutePath = $this->managedFilePathResolver->resolveImportPath($articleImportQueue->getFilePath());
         if (null === $absolutePath || !is_file($absolutePath)) {
-            $this->addFlash('error', $this->translateFlash($userLanguageResolver, 'Plik importu nie jest dostępny do pobrania.', 'The import file is not available for download.'));
+            $this->addFlash('error', $userLanguageResolver->translate('Plik importu nie jest dostępny do pobrania.', 'The import file is not available for download.'));
 
             return $this->redirectToRoute('admin_article_import_index');
         }
@@ -110,7 +110,7 @@ class ArticleImportController extends AbstractController
         $entityManager->remove($articleImportQueue);
         $entityManager->flush();
 
-        $this->addFlash('success', $this->translateFlash($userLanguageResolver, 'Import został usunięty.', 'The import has been deleted.'));
+        $this->addFlash('success', $userLanguageResolver->translate('Import został usunięty.', 'The import has been deleted.'));
 
         return $this->redirectToRoute('admin_article_import_index');
     }
@@ -142,13 +142,8 @@ class ArticleImportController extends AbstractController
 
         $entityManager->flush();
 
-        $this->addFlash('success', $this->translateFlash($userLanguageResolver, 'Wszystkie importy zostały usunięte.', 'All imports have been deleted.'));
+        $this->addFlash('success', $userLanguageResolver->translate('Wszystkie importy zostały usunięte.', 'All imports have been deleted.'));
 
         return $this->redirectToRoute('admin_article_import_index');
-    }
-
-    private function translateFlash(UserLanguageResolver $userLanguageResolver, string $polish, string $english): string
-    {
-        return 'pl' === $userLanguageResolver->getLanguage() ? $polish : $english;
     }
 }

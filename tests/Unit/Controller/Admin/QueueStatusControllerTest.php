@@ -109,11 +109,7 @@ final class QueueStatusControllerTest extends TestCase
 
         $controller = $this->createController($pathResolver, $fileDeleter);
         $controller->csrfTokenIsValid = true;
-        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
-        $userLanguageResolver
-            ->expects($this->once())
-            ->method('getLanguage')
-            ->willReturn('en');
+        $userLanguageResolver = $this->createUserLanguageResolverMock('en');
 
         $response = $controller->clear(new Request([], ['_token' => 'valid']), $exportRepository, $importRepository, $entityManager, $userLanguageResolver);
 
@@ -154,11 +150,7 @@ final class QueueStatusControllerTest extends TestCase
 
         $controller = $this->createController($pathResolver, $fileDeleter);
         $controller->csrfTokenIsValid = true;
-        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
-        $userLanguageResolver
-            ->expects($this->once())
-            ->method('getLanguage')
-            ->willReturn('en');
+        $userLanguageResolver = $this->createUserLanguageResolverMock('en');
 
         $response = $controller->deleteImport($queueItem, new Request([], ['_token' => 'valid']), $entityManager, $userLanguageResolver);
 
@@ -179,10 +171,7 @@ final class QueueStatusControllerTest extends TestCase
 
         $controller = $this->createController();
         $controller->csrfTokenIsValid = false;
-        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
-        $userLanguageResolver
-            ->expects($this->never())
-            ->method('getLanguage');
+        $userLanguageResolver = $this->createUserLanguageResolverMock('pl');
 
         $this->expectException(AccessDeniedException::class);
         $this->expectExceptionMessage('Invalid CSRF token.');
@@ -204,6 +193,16 @@ final class QueueStatusControllerTest extends TestCase
     {
         $reflectionProperty = new \ReflectionProperty($entity, 'id');
         $reflectionProperty->setValue($entity, $id);
+    }
+
+    private function createUserLanguageResolverMock(string $language): UserLanguageResolver
+    {
+        $resolver = $this->createMock(UserLanguageResolver::class);
+        $resolver
+            ->method('translate')
+            ->willReturnCallback(static fn (string $polish, string $english): string => 'pl' === $language ? $polish : $english);
+
+        return $resolver;
     }
 }
 

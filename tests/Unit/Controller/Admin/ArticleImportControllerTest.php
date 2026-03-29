@@ -57,9 +57,7 @@ final class ArticleImportControllerTest extends TestCase
         );
 
         $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
-        $userLanguageResolver
-            ->expects($this->never())
-            ->method('getLanguage');
+        $userLanguageResolver->expects($this->never())->method('translate');
 
         $response = $controller->index(new Request(), $entityManager, $repository, $storage, $userLanguageResolver);
 

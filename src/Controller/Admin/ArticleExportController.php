@@ -40,7 +40,7 @@ class ArticleExportController extends AbstractController
     {
         $absolutePath = $this->managedFilePathResolver->resolveExportPath($articleExport->getFilePath());
         if (null === $absolutePath || !is_file($absolutePath)) {
-            $this->addFlash('error', $this->translateFlash($userLanguageResolver, 'Plik eksportu nie jest dostępny do pobrania.', 'The export file is not available for download.'));
+            $this->addFlash('error', $userLanguageResolver->translate('Plik eksportu nie jest dostępny do pobrania.', 'The export file is not available for download.'));
 
             return $this->redirectToRoute('admin_article_export_index');
         }
@@ -83,7 +83,7 @@ class ArticleExportController extends AbstractController
         $entityManager->remove($articleExport);
         $entityManager->flush();
 
-        $this->addFlash('success', $this->translateFlash($userLanguageResolver, 'Eksport został usunięty.', 'The export has been deleted.'));
+        $this->addFlash('success', $userLanguageResolver->translate('Eksport został usunięty.', 'The export has been deleted.'));
 
         return $this->redirectToRoute('admin_article_export_index');
     }
@@ -110,13 +110,8 @@ class ArticleExportController extends AbstractController
 
         $entityManager->flush();
 
-        $this->addFlash('success', $this->translateFlash($userLanguageResolver, 'Wszystkie eksporty zostały usunięte.', 'All exports have been deleted.'));
+        $this->addFlash('success', $userLanguageResolver->translate('Wszystkie eksporty zostały usunięte.', 'All exports have been deleted.'));
 
         return $this->redirectToRoute('admin_article_export_index');
-    }
-
-    private function translateFlash(UserLanguageResolver $userLanguageResolver, string $polish, string $english): string
-    {
-        return 'pl' === $userLanguageResolver->getLanguage() ? $polish : $english;
     }
 }

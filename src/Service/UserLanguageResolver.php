@@ -31,4 +31,9 @@ class UserLanguageResolver
             ? $language
             : self::DEFAULT_LANGUAGE;
     }
+
+    public function translate(string $polish, string $english): string
+    {
+        return 'pl' === $this->getLanguage() ? $polish : $english;
+    }
 }

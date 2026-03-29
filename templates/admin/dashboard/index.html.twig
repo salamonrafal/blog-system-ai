@@ -38,13 +38,14 @@
         <div class="dashboard-overview-grid">
             {% for panel in dashboard_panels %}
                 <article class="dashboard-overview-panel">
+                    {% set panel_title_id = 'dashboard-panel-title-' ~ loop.index %}
                     <div class="dashboard-overview-panel-header">
                         <span class="pill">{{ panel.label }}</span>
-                        <h2 data-i18n="{{ panel.title_key }}">{{ panel.title }}</h2>
+                        <h2 id="{{ panel_title_id }}" data-i18n="{{ panel.title_key }}">{{ panel.title }}</h2>
                     </div>
                     <p class="dashboard-overview-panel-description" data-i18n="{{ panel.description_key }}">{{ panel.description }}</p>
                     {% if panel.stats is defined %}
-                        <div class="dashboard-overview-stats" data-i18n-aria="admin_dashboard_section_stats_aria" aria-label="Statystyki sekcji {{ panel.title }}">
+                        <div class="dashboard-overview-stats" aria-labelledby="{{ panel_title_id }}">
                             {% for stat in panel.stats %}
                                 <div class="dashboard-overview-stat">
                                     <strong>{{ stat.value }}</strong>
@@ -55,7 +56,7 @@
                     {% endif %}
                     {% if panel.sections is defined %}
                         <div class="dashboard-overview-carousel" data-dashboard-carousel>
-                            <div class="dashboard-overview-carousel-tabs" role="tablist" data-i18n-aria="admin_dashboard_section_tabs_aria" aria-label="Typy kolejek sekcji {{ panel.title }}">
+                            <div class="dashboard-overview-carousel-tabs" role="tablist" aria-labelledby="{{ panel_title_id }}">
                                 {% for section in panel.sections %}
                                     <button
                                         type="button"
@@ -95,7 +96,7 @@
                         </div>
                     {% endif %}
                     {% if panel.meta_cards is defined %}
-                        <div class="dashboard-overview-meta-cards" data-i18n-aria="admin_dashboard_section_details_aria" aria-label="Szczegóły sekcji {{ panel.title }}">
+                        <div class="dashboard-overview-meta-cards" aria-labelledby="{{ panel_title_id }}">
                             {% for item in panel.meta_cards %}
                                 <div class="dashboard-overview-meta-card">
                                     <span data-i18n="{{ item.label_key }}">{{ item.label }}</span>

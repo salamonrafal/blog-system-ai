@@ -43,7 +43,7 @@ class ArticleCategoryController extends AbstractController
             $entityManager->persist($category);
             $entityManager->flush();
 
-            $this->addFlash('success', $this->translateFlash($userLanguageResolver, 'Kategoria została dodana.', 'Category created.'));
+            $this->addFlash('success', $userLanguageResolver->translate('Kategoria została dodana.', 'Category created.'));
 
             return $this->redirectToRoute('admin_article_category_index');
         }
@@ -67,7 +67,7 @@ class ArticleCategoryController extends AbstractController
             $this->syncTranslations($category, $form);
             $entityManager->flush();
 
-            $this->addFlash('success', $this->translateFlash($userLanguageResolver, 'Kategoria została zaktualizowana.', 'Category updated.'));
+            $this->addFlash('success', $userLanguageResolver->translate('Kategoria została zaktualizowana.', 'Category updated.'));
 
             return $this->redirectToRoute('admin_article_category_index');
         }
@@ -92,7 +92,7 @@ class ArticleCategoryController extends AbstractController
         $entityManager->remove($category);
         $entityManager->flush();
 
-        $this->addFlash('success', $this->translateFlash($userLanguageResolver, 'Kategoria została usunięta.', 'Category deleted.'));
+        $this->addFlash('success', $userLanguageResolver->translate('Kategoria została usunięta.', 'Category deleted.'));
 
         return $this->redirectToRoute('admin_article_category_index');
     }
@@ -109,8 +109,4 @@ class ArticleCategoryController extends AbstractController
             ->setDescriptions($descriptions);
     }
 
-    private function translateFlash(UserLanguageResolver $userLanguageResolver, string $polish, string $english): string
-    {
-        return 'pl' === $userLanguageResolver->getLanguage() ? $polish : $english;
-    }
 }

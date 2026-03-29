@@ -65,7 +65,7 @@ class UserController extends AbstractController
             $entityManager->persist($user);
             $entityManager->flush();
 
-            $this->addFlash('success', $this->translateFlash($userLanguageResolver, 'Użytkownik został utworzony.', 'User created.'));
+            $this->addFlash('success', $userLanguageResolver->translate('Użytkownik został utworzony.', 'User created.'));
 
             return $this->redirectToRoute('admin_user_index');
         }
@@ -114,7 +114,7 @@ class UserController extends AbstractController
 
             $entityManager->flush();
 
-            $this->addFlash('success', $this->translateFlash($userLanguageResolver, 'Użytkownik został zaktualizowany.', 'User updated.'));
+            $this->addFlash('success', $userLanguageResolver->translate('Użytkownik został zaktualizowany.', 'User updated.'));
 
             return $this->redirectToRoute('admin_user_index');
         }
@@ -156,13 +156,8 @@ class UserController extends AbstractController
         $entityManager->remove($managedUser);
         $entityManager->flush();
 
-        $this->addFlash('success', $this->translateFlash($userLanguageResolver, 'Użytkownik został usunięty.', 'User deleted.'));
+        $this->addFlash('success', $userLanguageResolver->translate('Użytkownik został usunięty.', 'User deleted.'));
 
         return $this->redirectToRoute('admin_user_index');
-    }
-
-    private function translateFlash(UserLanguageResolver $userLanguageResolver, string $polish, string $english): string
-    {
-        return 'pl' === $userLanguageResolver->getLanguage() ? $polish : $english;
     }
 }

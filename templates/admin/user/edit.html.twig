@@ -30,7 +30,7 @@
                             <dd class="article-edit-meta-value">{{ managed_user.email }}</dd>
                         </div>
                         <div class="article-edit-meta-item">
-                            <dt class="article-edit-meta-label" data-i18n="admin_user_metadata_display_name">Nazwa wyswietlana</dt>
+                            <dt class="article-edit-meta-label" data-i18n="admin_user_metadata_display_name">Nazwa wyświetlana</dt>
                             <dd class="article-edit-meta-value"{% if not managed_user.fullName and not managed_user.nickname %} data-i18n="admin_user_metadata_missing"{% endif %}>{{ managed_user.fullName ?? managed_user.nickname ?? 'Brak' }}</dd>
                         </div>
                         <div class="article-edit-meta-item">

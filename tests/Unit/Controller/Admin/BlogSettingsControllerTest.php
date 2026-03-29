@@ -40,10 +40,7 @@ final class BlogSettingsControllerTest extends TestCase
             ->method('flush');
 
         $controller = new TestBlogSettingsController();
-        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
-        $userLanguageResolver
-            ->expects($this->never())
-            ->method('getLanguage');
+        $userLanguageResolver = $this->createUserLanguageResolverMock('pl');
         $response = $controller->index(new Request(), $repository, $entityManager, $userLanguageResolver);
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
@@ -88,11 +85,7 @@ final class BlogSettingsControllerTest extends TestCase
         ], [], [], [], ['REQUEST_METHOD' => 'POST']);
 
         $controller = new TestBlogSettingsController();
-        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
-        $userLanguageResolver
-            ->expects($this->once())
-            ->method('getLanguage')
-            ->willReturn('en');
+        $userLanguageResolver = $this->createUserLanguageResolverMock('en');
         $response = $controller->index($request, $repository, $entityManager, $userLanguageResolver);
 
         $this->assertInstanceOf(RedirectResponse::class, $response);
@@ -132,11 +125,7 @@ final class BlogSettingsControllerTest extends TestCase
         ], [], [], [], ['REQUEST_METHOD' => 'POST']);
 
         $controller = new TestBlogSettingsController();
-        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
-        $userLanguageResolver
-            ->expects($this->once())
-            ->method('getLanguage')
-            ->willReturn('pl');
+        $userLanguageResolver = $this->createUserLanguageResolverMock('pl');
         $response = $controller->index($request, $repository, $entityManager, $userLanguageResolver);
 
         $this->assertInstanceOf(RedirectResponse::class, $response);
@@ -150,6 +139,16 @@ final class BlogSettingsControllerTest extends TestCase
     {
         $reflectionProperty = new \ReflectionProperty($entity, 'id');
         $reflectionProperty->setValue($entity, $id);
+    }
+
+    private function createUserLanguageResolverMock(string $language): UserLanguageResolver
+    {
+        $resolver = $this->createMock(UserLanguageResolver::class);
+        $resolver
+            ->method('translate')
+            ->willReturnCallback(static fn (string $polish, string $english): string => 'pl' === $language ? $polish : $english);
+
+        return $resolver;
     }
 }
 

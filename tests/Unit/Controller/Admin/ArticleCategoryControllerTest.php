@@ -64,10 +64,7 @@ final class ArticleCategoryControllerTest extends TestCase
     public function testNewRendersCategoryCreationTemplate(): void
     {
         $controller = new TestArticleCategoryController();
-        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
-        $userLanguageResolver
-            ->expects($this->never())
-            ->method('getLanguage');
+        $userLanguageResolver = $this->createUserLanguageResolverMock('pl');
         $response = $controller->new(
             new Request(),
             $this->createMock(EntityManagerInterface::class),
@@ -100,11 +97,7 @@ final class ArticleCategoryControllerTest extends TestCase
             ->method('flush');
 
         $controller = new TestArticleCategoryController();
-        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
-        $userLanguageResolver
-            ->expects($this->once())
-            ->method('getLanguage')
-            ->willReturn('en');
+        $userLanguageResolver = $this->createUserLanguageResolverMock('en');
 
         $request = new Request([], [
             'article_category' => [
@@ -141,10 +134,7 @@ final class ArticleCategoryControllerTest extends TestCase
             ->method('flush');
 
         $controller = new TestArticleCategoryController();
-        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
-        $userLanguageResolver
-            ->expects($this->never())
-            ->method('getLanguage');
+        $userLanguageResolver = $this->createUserLanguageResolverMock('pl');
 
         $request = new Request([], [
             'article_category' => [
@@ -188,11 +178,7 @@ final class ArticleCategoryControllerTest extends TestCase
             ->method('flush');
 
         $controller = new TestArticleCategoryController();
-        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
-        $userLanguageResolver
-            ->expects($this->once())
-            ->method('getLanguage')
-            ->willReturn('en');
+        $userLanguageResolver = $this->createUserLanguageResolverMock('en');
 
         $request = new Request([], [
             'article_category' => [
@@ -241,11 +227,7 @@ final class ArticleCategoryControllerTest extends TestCase
 
         $controller = new TestArticleCategoryController();
         $controller->csrfTokenIsValid = true;
-        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
-        $userLanguageResolver
-            ->expects($this->once())
-            ->method('getLanguage')
-            ->willReturn('en');
+        $userLanguageResolver = $this->createUserLanguageResolverMock('en');
 
         $request = new Request([], [
             '_token' => 'valid-token',
@@ -273,10 +255,7 @@ final class ArticleCategoryControllerTest extends TestCase
 
         $controller = new TestArticleCategoryController();
         $controller->csrfTokenIsValid = false;
-        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
-        $userLanguageResolver
-            ->expects($this->never())
-            ->method('getLanguage');
+        $userLanguageResolver = $this->createUserLanguageResolverMock('pl');
 
         $request = new Request([], [
             '_token' => 'invalid-token',
@@ -292,6 +271,16 @@ final class ArticleCategoryControllerTest extends TestCase
     {
         $reflectionProperty = new \ReflectionProperty($entity, 'id');
         $reflectionProperty->setValue($entity, $id);
+    }
+
+    private function createUserLanguageResolverMock(string $language): UserLanguageResolver
+    {
+        $resolver = $this->createMock(UserLanguageResolver::class);
+        $resolver
+            ->method('translate')
+            ->willReturnCallback(static fn (string $polish, string $english): string => 'pl' === $language ? $polish : $english);
+
+        return $resolver;
     }
 }
 

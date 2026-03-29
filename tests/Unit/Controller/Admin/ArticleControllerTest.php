@@ -237,11 +237,7 @@ final class ArticleControllerTest extends TestCase
         $entityManager
             ->expects($this->once())
             ->method('flush');
-        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
-        $userLanguageResolver
-            ->expects($this->once())
-            ->method('getLanguage')
-            ->willReturn('pl');
+        $userLanguageResolver = $this->createUserLanguageResolverMock('pl');
 
         $controller = new TestArticleController();
         $controller->authenticatedUser = $currentUser;
@@ -277,11 +273,7 @@ final class ArticleControllerTest extends TestCase
         $entityManager
             ->expects($this->never())
             ->method('flush');
-        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
-        $userLanguageResolver
-            ->expects($this->once())
-            ->method('getLanguage')
-            ->willReturn('pl');
+        $userLanguageResolver = $this->createUserLanguageResolverMock('pl');
 
         $controller = new TestArticleController();
         $controller->authenticatedUser = $currentUser;
@@ -315,11 +307,7 @@ final class ArticleControllerTest extends TestCase
             ->method('enqueuePending')
             ->with($article, $currentUser)
             ->willReturn(true);
-        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
-        $userLanguageResolver
-            ->expects($this->once())
-            ->method('getLanguage')
-            ->willReturn('pl');
+        $userLanguageResolver = $this->createUserLanguageResolverMock('pl');
 
         $controller = new TestArticleController();
         $controller->authenticatedUser = $currentUser;
@@ -349,11 +337,7 @@ final class ArticleControllerTest extends TestCase
             ->method('enqueuePending')
             ->with($article, null)
             ->willReturn(false);
-        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
-        $userLanguageResolver
-            ->expects($this->once())
-            ->method('getLanguage')
-            ->willReturn('pl');
+        $userLanguageResolver = $this->createUserLanguageResolverMock('pl');
 
         $controller = new TestArticleController();
         $controller->csrfTokenIsValid = true;
@@ -373,6 +357,16 @@ final class ArticleControllerTest extends TestCase
     {
         $reflectionProperty = new \ReflectionProperty($entity, 'id');
         $reflectionProperty->setValue($entity, $id);
+    }
+
+    private function createUserLanguageResolverMock(string $language): UserLanguageResolver
+    {
+        $resolver = $this->createMock(UserLanguageResolver::class);
+        $resolver
+            ->method('translate')
+            ->willReturnCallback(static fn (string $polish, string $english): string => 'pl' === $language ? $polish : $english);
+
+        return $resolver;
     }
 }
 

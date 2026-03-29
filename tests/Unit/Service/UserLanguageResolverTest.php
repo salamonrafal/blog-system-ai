@@ -40,4 +40,18 @@ final class UserLanguageResolverTest extends TestCase
 
         $this->assertSame('pl', $resolver->getLanguage());
     }
+
+    public function testTranslateReturnsTextForResolvedLanguage(): void
+    {
+        $polishRequestStack = new RequestStack();
+        $polishRequestStack->push(new Request());
+        $polishResolver = new UserLanguageResolver($polishRequestStack);
+
+        $englishRequestStack = new RequestStack();
+        $englishRequestStack->push(new Request(cookies: ['user_language' => 'en']));
+        $englishResolver = new UserLanguageResolver($englishRequestStack);
+
+        $this->assertSame('Wiadomość po polsku.', $polishResolver->translate('Wiadomość po polsku.', 'English message.'));
+        $this->assertSame('English message.', $englishResolver->translate('Wiadomość po polsku.', 'English message.'));
+    }
 }

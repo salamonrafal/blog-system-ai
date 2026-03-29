@@ -76,7 +76,7 @@ class QueueStatusController extends AbstractController
 
         $entityManager->flush();
 
-        $this->addFlash('success', $this->translateFlash($userLanguageResolver, 'Kolejka oczekujących elementów została wyczyszczona.', 'The pending queue has been cleared.'));
+        $this->addFlash('success', $userLanguageResolver->translate('Kolejka oczekujących elementów została wyczyszczona.', 'The pending queue has been cleared.'));
 
         return $this->redirectToRoute('admin_queue_status');
     }
@@ -95,7 +95,7 @@ class QueueStatusController extends AbstractController
         $entityManager->remove($queueItem);
         $entityManager->flush();
 
-        $this->addFlash('success', $this->translateFlash($userLanguageResolver, 'Element został usunięty z kolejki.', 'The item has been removed from the queue.'));
+        $this->addFlash('success', $userLanguageResolver->translate('Element został usunięty z kolejki.', 'The item has been removed from the queue.'));
 
         return $this->redirectToRoute('admin_queue_status');
     }
@@ -116,13 +116,8 @@ class QueueStatusController extends AbstractController
         $entityManager->remove($queueItem);
         $entityManager->flush();
 
-        $this->addFlash('success', $this->translateFlash($userLanguageResolver, 'Element został usunięty z kolejki.', 'The item has been removed from the queue.'));
+        $this->addFlash('success', $userLanguageResolver->translate('Element został usunięty z kolejki.', 'The item has been removed from the queue.'));
 
         return $this->redirectToRoute('admin_queue_status');
-    }
-
-    private function translateFlash(UserLanguageResolver $userLanguageResolver, string $polish, string $english): string
-    {
-        return 'pl' === $userLanguageResolver->getLanguage() ? $polish : $english;
     }
 }
