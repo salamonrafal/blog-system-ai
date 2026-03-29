@@ -54,7 +54,7 @@ class UserController extends AbstractController
             $plainPassword = $form->get('plainPassword')->getData();
 
             if (!is_string($plainPassword) || '' === trim($plainPassword)) {
-                $this->addFlash('error', 'Hasło jest wymagane dla nowego użytkownika.');
+                $this->addFlash('error', $userLanguageResolver->translate('Hasło jest wymagane dla nowego użytkownika.', 'Password is required for a new user.'));
 
                 return $this->redirectToRoute('admin_user_new');
             }
@@ -94,13 +94,13 @@ class UserController extends AbstractController
             $isCurrentUser = $currentUser instanceof User && $currentUser->getId() === $managedUser->getId();
 
             if ($isCurrentUser && !$isAdmin) {
-                $this->addFlash('error', 'Nie możesz odebrać sobie roli administratora.');
+                $this->addFlash('error', $userLanguageResolver->translate('Nie możesz odebrać sobie roli administratora.', 'You cannot remove your own administrator role.'));
 
                 return $this->redirectToRoute('admin_user_edit', ['id' => $managedUser->getId()]);
             }
 
             if ($isCurrentUser && !$managedUser->isActive()) {
-                $this->addFlash('error', 'Nie możesz dezaktywować aktualnie zalogowanego konta.');
+                $this->addFlash('error', $userLanguageResolver->translate('Nie możesz dezaktywować aktualnie zalogowanego konta.', 'You cannot deactivate the currently signed-in account.'));
 
                 return $this->redirectToRoute('admin_user_edit', ['id' => $managedUser->getId()]);
             }
@@ -140,7 +140,7 @@ class UserController extends AbstractController
 
         $firstAdministrator = $userRepository->findFirstAdministrator();
         if (null !== $firstAdministrator && $firstAdministrator->getId() === $managedUser->getId()) {
-            $this->addFlash('error', 'Nie możesz usunąć pierwszego administratora.');
+            $this->addFlash('error', $userLanguageResolver->translate('Nie możesz usunąć pierwszego administratora.', 'You cannot delete the first administrator.'));
 
             return $this->redirectToRoute('admin_user_index');
         }
