@@ -15,6 +15,7 @@ use App\Repository\ArticleImportQueueRepository;
 use App\Service\ManagedFileDeleter;
 use App\Service\ManagedFilePathResolver;
 use App\Service\UserLanguageResolver;
+use App\Tests\Unit\Support\MocksUserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -24,6 +25,8 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 final class QueueStatusControllerTest extends TestCase
 {
+    use MocksUserLanguageResolver;
+
     public function testIndexBuildsQueueOverview(): void
     {
         $exportQueueItem = new ArticleExportQueue((new Article())->setTitle('Export')->setSlug('export'));
@@ -195,15 +198,6 @@ final class QueueStatusControllerTest extends TestCase
         $reflectionProperty->setValue($entity, $id);
     }
 
-    private function createUserLanguageResolverMock(string $language): UserLanguageResolver
-    {
-        $resolver = $this->createMock(UserLanguageResolver::class);
-        $resolver
-            ->method('translate')
-            ->willReturnCallback(static fn (string $polish, string $english): string => 'pl' === $language ? $polish : $english);
-
-        return $resolver;
-    }
 }
 
 final class TestQueueStatusController extends QueueStatusController

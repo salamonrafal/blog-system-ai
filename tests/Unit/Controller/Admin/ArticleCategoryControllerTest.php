@@ -8,6 +8,7 @@ use App\Controller\Admin\ArticleCategoryController;
 use App\Entity\ArticleCategory;
 use App\Repository\ArticleCategoryRepository;
 use App\Service\UserLanguageResolver;
+use App\Tests\Unit\Support\MocksUserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -23,6 +24,8 @@ use Symfony\Component\Validator\Validation;
 
 final class ArticleCategoryControllerTest extends TestCase
 {
+    use MocksUserLanguageResolver;
+
     public function testIndexBuildsExpectedCategoryStatistics(): void
     {
         $firstCategory = (new ArticleCategory())->setName('PHP');
@@ -273,15 +276,6 @@ final class ArticleCategoryControllerTest extends TestCase
         $reflectionProperty->setValue($entity, $id);
     }
 
-    private function createUserLanguageResolverMock(string $language): UserLanguageResolver
-    {
-        $resolver = $this->createMock(UserLanguageResolver::class);
-        $resolver
-            ->method('translate')
-            ->willReturnCallback(static fn (string $polish, string $english): string => 'pl' === $language ? $polish : $english);
-
-        return $resolver;
-    }
 }
 
 final class TestArticleCategoryController extends ArticleCategoryController

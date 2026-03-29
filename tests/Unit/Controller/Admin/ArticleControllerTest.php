@@ -15,6 +15,7 @@ use App\Repository\ArticleRepository;
 use App\Service\BlogSettingsProvider;
 use App\Service\PaginationBuilder;
 use App\Service\UserLanguageResolver;
+use App\Tests\Unit\Support\MocksUserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -23,6 +24,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 final class ArticleControllerTest extends TestCase
 {
+    use MocksUserLanguageResolver;
+
     public function testIndexBuildsPaginatedArticleListUsingDedicatedAdminSetting(): void
     {
         $settings = (new BlogSettings())
@@ -359,15 +362,6 @@ final class ArticleControllerTest extends TestCase
         $reflectionProperty->setValue($entity, $id);
     }
 
-    private function createUserLanguageResolverMock(string $language): UserLanguageResolver
-    {
-        $resolver = $this->createMock(UserLanguageResolver::class);
-        $resolver
-            ->method('translate')
-            ->willReturnCallback(static fn (string $polish, string $english): string => 'pl' === $language ? $polish : $english);
-
-        return $resolver;
-    }
 }
 
 final class TestArticleController extends ArticleController

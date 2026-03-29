@@ -4972,6 +4972,7 @@ tbody tr:last-child td {
     overflow-x: auto;
     overflow-y: hidden;
     padding-bottom: .3rem;
+    scroll-snap-type: x proximity;
     scroll-padding-inline: 1.15rem;
     scrollbar-width: thin;
     -webkit-overflow-scrolling: touch;

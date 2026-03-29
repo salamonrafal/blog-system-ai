@@ -8,6 +8,7 @@ use App\Controller\Admin\BlogSettingsController;
 use App\Entity\BlogSettings;
 use App\Repository\BlogSettingsRepository;
 use App\Service\UserLanguageResolver;
+use App\Tests\Unit\Support\MocksUserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Form\Extension\HttpFoundation\HttpFoundationExtension;
@@ -21,6 +22,8 @@ use Symfony\Component\Validator\Validation;
 
 final class BlogSettingsControllerTest extends TestCase
 {
+    use MocksUserLanguageResolver;
+
     public function testIndexRendersCurrentSettings(): void
     {
         $settings = (new BlogSettings())->setBlogTitle('Configured blog');
@@ -141,15 +144,6 @@ final class BlogSettingsControllerTest extends TestCase
         $reflectionProperty->setValue($entity, $id);
     }
 
-    private function createUserLanguageResolverMock(string $language): UserLanguageResolver
-    {
-        $resolver = $this->createMock(UserLanguageResolver::class);
-        $resolver
-            ->method('translate')
-            ->willReturnCallback(static fn (string $polish, string $english): string => 'pl' === $language ? $polish : $english);
-
-        return $resolver;
-    }
 }
 
 final class TestBlogSettingsController extends BlogSettingsController
