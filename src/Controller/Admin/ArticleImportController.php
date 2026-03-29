@@ -10,6 +10,7 @@ use App\Repository\ArticleImportQueueRepository;
 use App\Service\ArticleImportStorage;
 use App\Service\ManagedFileDeleter;
 use App\Service\ManagedFilePathResolver;
+use App\Service\UserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -36,6 +37,7 @@ class ArticleImportController extends AbstractController
         EntityManagerInterface $entityManager,
         ArticleImportQueueRepository $articleImportQueueRepository,
         ArticleImportStorage $articleImportStorage,
+        UserLanguageResolver $userLanguageResolver,
     ): Response {
         $form = $this->createForm(ArticleImportType::class);
         $form->handleRequest($request);
@@ -53,7 +55,7 @@ class ArticleImportController extends AbstractController
             $entityManager->persist($queueItem);
             $entityManager->flush();
 
-            $this->addFlash('success', 'Plik importu został dodany do kolejki.');
+            $this->addFlash('success', $userLanguageResolver->translate('Plik importu został dodany do kolejki.', 'The import file has been added to the queue.'));
 
             return $this->redirectToRoute('admin_article_import_index');
         }
@@ -65,11 +67,11 @@ class ArticleImportController extends AbstractController
     }
 
     #[Route('/{id}/download', name: 'admin_article_import_download', methods: ['GET'])]
-    public function download(ArticleImportQueue $articleImportQueue): Response
+    public function download(ArticleImportQueue $articleImportQueue, UserLanguageResolver $userLanguageResolver): Response
     {
         $absolutePath = $this->managedFilePathResolver->resolveImportPath($articleImportQueue->getFilePath());
         if (null === $absolutePath || !is_file($absolutePath)) {
-            $this->addFlash('error', 'Plik importu nie jest dostępny do pobrania.');
+            $this->addFlash('error', $userLanguageResolver->translate('Plik importu nie jest dostępny do pobrania.', 'The import file is not available for download.'));
 
             return $this->redirectToRoute('admin_article_import_index');
         }
@@ -97,6 +99,7 @@ class ArticleImportController extends AbstractController
         ArticleImportQueue $articleImportQueue,
         Request $request,
         EntityManagerInterface $entityManager,
+        UserLanguageResolver $userLanguageResolver,
     ): Response {
         if (!$this->isCsrfTokenValid('delete_article_import_'.$articleImportQueue->getId(), (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Invalid CSRF token.');
@@ -107,7 +110,7 @@ class ArticleImportController extends AbstractController
         $entityManager->remove($articleImportQueue);
         $entityManager->flush();
 
-        $this->addFlash('success', 'Import został usunięty.');
+        $this->addFlash('success', $userLanguageResolver->translate('Import został usunięty.', 'The import has been deleted.'));
 
         return $this->redirectToRoute('admin_article_import_index');
     }
@@ -117,6 +120,7 @@ class ArticleImportController extends AbstractController
         Request $request,
         ArticleImportQueueRepository $articleImportQueueRepository,
         EntityManagerInterface $entityManager,
+        UserLanguageResolver $userLanguageResolver,
     ): Response {
         if (!$this->isCsrfTokenValid('clear_article_imports', (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Invalid CSRF token.');
@@ -138,7 +142,7 @@ class ArticleImportController extends AbstractController
 
         $entityManager->flush();
 
-        $this->addFlash('success', 'Wszystkie importy zostały usunięte.');
+        $this->addFlash('success', $userLanguageResolver->translate('Wszystkie importy zostały usunięte.', 'All imports have been deleted.'));
 
         return $this->redirectToRoute('admin_article_import_index');
     }

@@ -15,6 +15,7 @@ use App\Repository\ArticleRepository;
 use App\Service\BlogSettingsProvider;
 use App\Service\PaginationBuilder;
 use App\Service\UserLanguageResolver;
+use App\Tests\Unit\Support\MocksUserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -23,6 +24,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 final class ArticleControllerTest extends TestCase
 {
+    use MocksUserLanguageResolver;
+
     public function testIndexBuildsPaginatedArticleListUsingDedicatedAdminSetting(): void
     {
         $settings = (new BlogSettings())
@@ -237,11 +240,7 @@ final class ArticleControllerTest extends TestCase
         $entityManager
             ->expects($this->once())
             ->method('flush');
-        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
-        $userLanguageResolver
-            ->expects($this->once())
-            ->method('getLanguage')
-            ->willReturn('pl');
+        $userLanguageResolver = $this->createUserLanguageResolverMock('pl');
 
         $controller = new TestArticleController();
         $controller->authenticatedUser = $currentUser;
@@ -277,11 +276,7 @@ final class ArticleControllerTest extends TestCase
         $entityManager
             ->expects($this->never())
             ->method('flush');
-        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
-        $userLanguageResolver
-            ->expects($this->once())
-            ->method('getLanguage')
-            ->willReturn('pl');
+        $userLanguageResolver = $this->createUserLanguageResolverMock('pl');
 
         $controller = new TestArticleController();
         $controller->authenticatedUser = $currentUser;
@@ -315,6 +310,7 @@ final class ArticleControllerTest extends TestCase
             ->method('enqueuePending')
             ->with($article, $currentUser)
             ->willReturn(true);
+        $userLanguageResolver = $this->createUserLanguageResolverMock('pl');
 
         $controller = new TestArticleController();
         $controller->authenticatedUser = $currentUser;
@@ -324,11 +320,11 @@ final class ArticleControllerTest extends TestCase
             '_token' => 'valid-token',
         ]);
 
-        $response = $controller->export($article, $request, $queueRepository);
+        $response = $controller->export($article, $request, $queueRepository, $userLanguageResolver);
 
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertSame('/admin/articles', $response->getTargetUrl());
-        $this->assertSame([['success', 'Article export added to the queue.']], $controller->flashes);
+        $this->assertSame([['success', 'Eksport artykułu został dodany do kolejki.']], $controller->flashes);
     }
 
     public function testExportReportsAlreadyQueuedWhenAtomicEnqueueRejectsDuplicate(): void
@@ -344,6 +340,7 @@ final class ArticleControllerTest extends TestCase
             ->method('enqueuePending')
             ->with($article, null)
             ->willReturn(false);
+        $userLanguageResolver = $this->createUserLanguageResolverMock('pl');
 
         $controller = new TestArticleController();
         $controller->csrfTokenIsValid = true;
@@ -352,11 +349,11 @@ final class ArticleControllerTest extends TestCase
             '_token' => 'valid-token',
         ]);
 
-        $response = $controller->export($article, $request, $queueRepository);
+        $response = $controller->export($article, $request, $queueRepository, $userLanguageResolver);
 
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertSame('/admin/articles', $response->getTargetUrl());
-        $this->assertSame([['success', 'Article export is already queued.']], $controller->flashes);
+        $this->assertSame([['success', 'Eksport artykułu jest już w kolejce.']], $controller->flashes);
     }
 
     private function setEntityId(object $entity, int $id): void
@@ -364,6 +361,7 @@ final class ArticleControllerTest extends TestCase
         $reflectionProperty = new \ReflectionProperty($entity, 'id');
         $reflectionProperty->setValue($entity, $id);
     }
+
 }
 
 final class TestArticleController extends ArticleController

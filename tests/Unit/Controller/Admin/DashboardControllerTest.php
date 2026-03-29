@@ -95,63 +95,73 @@ final class DashboardControllerTest extends TestCase
         $this->assertCount(7, $panels);
 
         $this->assertSame('Artykuły', $panels[0]['title']);
+        $this->assertSame('admin_dashboard_panel_articles_title', $panels[0]['title_key']);
         $this->assertSame([
-            ['value' => 11, 'label' => 'Wszystkie'],
-            ['value' => 2, 'label' => 'Szkice'],
-            ['value' => 3, 'label' => 'W recenzji'],
-            ['value' => 4, 'label' => 'Opublikowane'],
-            ['value' => 2, 'label' => 'Archiwum'],
+            ['value' => 11, 'label_key' => 'admin_dashboard_stat_all', 'label' => 'Wszystkie'],
+            ['value' => 2, 'label_key' => 'admin_dashboard_stat_drafts', 'label' => 'Szkice'],
+            ['value' => 3, 'label_key' => 'admin_dashboard_stat_review', 'label' => 'W recenzji'],
+            ['value' => 4, 'label_key' => 'admin_dashboard_stat_published', 'label' => 'Opublikowane'],
+            ['value' => 2, 'label_key' => 'admin_dashboard_stat_archived', 'label' => 'Archiwum'],
         ], $panels[0]['stats']);
 
         $this->assertSame('Kategorie', $panels[1]['title']);
+        $this->assertSame('admin_dashboard_panel_categories_title', $panels[1]['title_key']);
         $this->assertSame([
-            ['value' => 5, 'label' => 'Wszystkie'],
-            ['value' => 4, 'label' => 'Aktywne'],
-            ['value' => 1, 'label' => 'Nieaktywne'],
+            ['value' => 5, 'label_key' => 'admin_dashboard_stat_all', 'label' => 'Wszystkie'],
+            ['value' => 4, 'label_key' => 'admin_dashboard_stat_active', 'label' => 'Aktywne'],
+            ['value' => 1, 'label_key' => 'admin_dashboard_stat_inactive', 'label' => 'Nieaktywne'],
         ], $panels[1]['stats']);
 
         $this->assertSame('Importy', $panels[2]['title']);
+        $this->assertSame('admin_dashboard_panel_imports_title', $panels[2]['title_key']);
         $this->assertSame([
-            ['value' => 8, 'label' => 'Wszystkie'],
-            ['value' => 2, 'label' => 'Oczekujące'],
-            ['value' => 1, 'label' => 'W trakcie'],
-            ['value' => 4, 'label' => 'Zakończone'],
-            ['value' => 1, 'label' => 'Błędy'],
+            ['value' => 8, 'label_key' => 'admin_dashboard_stat_all', 'label' => 'Wszystkie'],
+            ['value' => 2, 'label_key' => 'admin_dashboard_stat_pending', 'label' => 'Oczekujące'],
+            ['value' => 1, 'label_key' => 'admin_dashboard_stat_processing', 'label' => 'W trakcie'],
+            ['value' => 4, 'label_key' => 'admin_dashboard_stat_completed', 'label' => 'Zakończone'],
+            ['value' => 1, 'label_key' => 'admin_dashboard_stat_errors', 'label' => 'Błędy'],
         ], $panels[2]['stats']);
 
         $this->assertSame('Eksporty', $panels[3]['title']);
+        $this->assertSame('admin_dashboard_panel_exports_title', $panels[3]['title_key']);
         $this->assertSame([
-            ['value' => 6, 'label' => 'Wszystkie'],
-            ['value' => 6, 'label' => 'Artykuły'],
-            ['value' => 4, 'label' => 'Nowe'],
-            ['value' => 2, 'label' => 'Pobrane'],
+            ['value' => 6, 'label_key' => 'admin_dashboard_stat_all', 'label' => 'Wszystkie'],
+            ['value' => 6, 'label_key' => 'admin_dashboard_stat_articles', 'label' => 'Artykuły'],
+            ['value' => 4, 'label_key' => 'admin_dashboard_stat_new', 'label' => 'Nowe'],
+            ['value' => 2, 'label_key' => 'admin_dashboard_stat_downloaded', 'label' => 'Pobrane'],
         ], $panels[3]['stats']);
 
         $this->assertSame('Stan kolejek', $panels[4]['title']);
+        $this->assertSame('admin_dashboard_panel_queue_title', $panels[4]['title_key']);
         $this->assertSame('all', $panels[4]['sections'][0]['key']);
         $this->assertSame('import', $panels[4]['sections'][1]['key']);
         $this->assertSame('export', $panels[4]['sections'][2]['key']);
+        $this->assertSame('admin_dashboard_stat_all', $panels[4]['sections'][0]['title_key']);
+        $this->assertSame('admin_dashboard_queue_import', $panels[4]['sections'][1]['title_key']);
+        $this->assertSame('admin_dashboard_queue_export', $panels[4]['sections'][2]['title_key']);
         $this->assertSame([
-            ['value' => 13, 'label' => 'Wszystkie'],
-            ['value' => 3, 'label' => 'Oczekujące'],
-            ['value' => 3, 'label' => 'W trakcie'],
-            ['value' => 5, 'label' => 'Zakończone'],
-            ['value' => 2, 'label' => 'Błędy'],
+            ['value' => 13, 'label_key' => 'admin_dashboard_stat_all', 'label' => 'Wszystkie'],
+            ['value' => 3, 'label_key' => 'admin_dashboard_stat_pending', 'label' => 'Oczekujące'],
+            ['value' => 3, 'label_key' => 'admin_dashboard_stat_processing', 'label' => 'W trakcie'],
+            ['value' => 5, 'label_key' => 'admin_dashboard_stat_completed', 'label' => 'Zakończone'],
+            ['value' => 2, 'label_key' => 'admin_dashboard_stat_errors', 'label' => 'Błędy'],
         ], $panels[4]['sections'][0]['stats']);
 
         $this->assertSame('Użytkownicy', $panels[5]['title']);
+        $this->assertSame('admin_dashboard_panel_users_title', $panels[5]['title_key']);
         $this->assertSame([
-            ['value' => 4, 'label' => 'Wszystkie'],
-            ['value' => 3, 'label' => 'Aktywne'],
-            ['value' => 1, 'label' => 'Nieaktywne'],
-            ['value' => 2, 'label' => 'Admini'],
+            ['value' => 4, 'label_key' => 'admin_dashboard_stat_all', 'label' => 'Wszystkie'],
+            ['value' => 3, 'label_key' => 'admin_dashboard_stat_active', 'label' => 'Aktywne'],
+            ['value' => 1, 'label_key' => 'admin_dashboard_stat_inactive', 'label' => 'Nieaktywne'],
+            ['value' => 2, 'label_key' => 'admin_dashboard_stat_admins', 'label' => 'Admini'],
         ], $panels[5]['stats']);
 
         $this->assertSame('Ustawienia bloga', $panels[6]['title']);
+        $this->assertSame('admin_dashboard_panel_settings_title', $panels[6]['title_key']);
         $this->assertSame([
-            ['label' => 'Tytuł bloga', 'value' => 'AI Ops Blog'],
-            ['label' => 'Artykułów na stronę', 'value' => '9'],
-            ['label' => 'Ostatnia aktualizacja', 'value' => $settings->getUpdatedAt()->format('Y-m-d H:i')],
+            ['label_key' => 'admin_dashboard_meta_blog_title', 'label' => 'Tytuł bloga', 'value' => 'AI Ops Blog', 'value_key' => null],
+            ['label_key' => 'admin_dashboard_meta_articles_per_page', 'label' => 'Artykułów na stronę', 'value' => '9', 'value_key' => null],
+            ['label_key' => 'admin_dashboard_meta_last_update', 'label' => 'Ostatnia aktualizacja', 'value' => $settings->getUpdatedAt()->format('Y-m-d H:i'), 'value_key' => null],
         ], $panels[6]['meta_cards']);
     }
 
@@ -217,9 +227,9 @@ final class DashboardControllerTest extends TestCase
         $settingsPanel = $panels[6];
 
         $this->assertSame([
-            ['label' => 'Tytuł bloga', 'value' => BlogSettings::DEFAULT_BLOG_TITLE],
-            ['label' => 'Artykułów na stronę', 'value' => (string) BlogSettings::DEFAULT_ARTICLES_PER_PAGE],
-            ['label' => 'Ostatnia aktualizacja', 'value' => 'Brak zapisanych zmian'],
+            ['label_key' => 'admin_dashboard_meta_blog_title', 'label' => 'Tytuł bloga', 'value' => BlogSettings::DEFAULT_BLOG_TITLE, 'value_key' => null],
+            ['label_key' => 'admin_dashboard_meta_articles_per_page', 'label' => 'Artykułów na stronę', 'value' => (string) BlogSettings::DEFAULT_ARTICLES_PER_PAGE, 'value_key' => null],
+            ['label_key' => 'admin_dashboard_meta_last_update', 'label' => 'Ostatnia aktualizacja', 'value' => 'Brak zapisanych zmian', 'value_key' => 'admin_dashboard_meta_no_saved_changes'],
         ], $settingsPanel['meta_cards']);
     }
 

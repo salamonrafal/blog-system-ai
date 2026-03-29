@@ -38,7 +38,7 @@
 >
 <header class="topbar">
     <div class="topbar-inner">
-        <a class="brand" href="{{ path('blog_index') }}" aria-label="Home">
+        <a class="brand" href="{{ path('blog_index') }}" data-i18n-aria="site_home_aria" aria-label="Strona główna">
             <img src="/assets/img/logo.svg" alt="RS logo">
             <div class="title">
                 <strong>Rafał Salamon</strong>
@@ -47,7 +47,7 @@ Fullstack Developer</span>
             </div>
         </a>
 
-        <nav class="nav" aria-label="Primary">
+        <nav class="nav" data-i18n-aria="site_primary_navigation_aria" aria-label="Nawigacja główna">
             <a href="https://www.salamonrafal.pl/" data-i18n="nav_home">Start</a>
             <a href="https://www.salamonrafal.pl/about.html" data-i18n="nav_about">O mnie</a>
             <a href="https://www.salamonrafal.pl/projects.html" data-i18n="nav_projects">Moje projekty</a>
@@ -62,14 +62,14 @@ Fullstack Developer</span>
                 <div class="prefs-actions">
                     <button type="button" data-action="toggle-lang" data-i18n-tooltip="prefs_lang_hint" data-tooltip="Przełącza język strony">PL</button>
                     <button type="button" data-action="toggle-theme" data-i18n-tooltip="prefs_theme_hint" data-tooltip="Przełącza motyw jasny/ciemny">🌙</button>
-                    <span class="prefs-color-wrap" data-i18n-tooltip="prefs_color_hint" data-tooltip="Zmienia kolor akcentu interfejsu"><input class="color-input" type="color" data-action="accent-color" value="#39ff14" aria-label="Accent color"></span>
+                    <span class="prefs-color-wrap" data-i18n-tooltip="prefs_color_hint" data-tooltip="Zmienia kolor akcentu interfejsu"><input class="color-input" type="color" data-action="accent-color" value="#39ff14" data-i18n-aria="prefs_accent_color_aria" aria-label="Kolor akcentu"></span>
                 </div>
             </div>
         </div>
     </div>
 </header>
 
-<div class="mobile-drawer" role="dialog" aria-label="Mobile menu">
+<div class="mobile-drawer" role="dialog" data-i18n-aria="site_mobile_menu_aria" aria-label="Menu mobilne">
     <a href="https://www.salamonrafal.pl/" data-i18n="nav_home">Start</a>
     <a href="https://www.salamonrafal.pl/about.html" data-i18n="nav_about">O mnie</a>
     <a href="https://www.salamonrafal.pl/projects.html" data-i18n="nav_projects">Moje projekty</a>
@@ -82,7 +82,7 @@ Fullstack Developer</span>
             <div class="prefs-actions">
                 <button type="button" data-action="toggle-lang">PL</button>
                 <button type="button" data-action="toggle-theme">🌙</button>
-                <input class="color-input" type="color" data-action="accent-color" value="#39ff14" aria-label="Accent color">
+                <input class="color-input" type="color" data-action="accent-color" value="#39ff14" data-i18n-aria="prefs_accent_color_aria" aria-label="Kolor akcentu">
             </div>
         </div>
     </div>
@@ -116,7 +116,7 @@ Fullstack Developer</span>
 {% set is_login_route = app.request.attributes.get('_route') == 'app_login' %}
 {% if app.user or not is_login_route %}
     <details class="admin-shortcuts"{% if not app.user %} hidden{% endif %}>
-        <summary class="admin-shortcuts-toggle" aria-label="Admin shortcuts">
+        <summary class="admin-shortcuts-toggle" data-i18n-aria="admin_shortcut_menu_label" aria-label="Skróty administratora">
             <span class="admin-shortcuts-gear" aria-hidden="true">
                 <svg viewBox="0 0 32 32">
                     <path d="M13.2 4h5.6l.7 3.2c.9.3 1.8.7 2.6 1.3l3.1-1.1 2.8 4.8-2.5 2.2c.1.5.1 1 .1 1.6s0 1.1-.1 1.6l2.5 2.2-2.8 4.8-3.1-1.1c-.8.6-1.7 1-2.6 1.3l-.7 3.2h-5.6l-.7-3.2c-.9-.3-1.8-.7-2.6-1.3l-3.1 1.1-2.8-4.8 2.5-2.2a9.2 9.2 0 0 1 0-3.2l-2.5-2.2 2.8-4.8 3.1 1.1c.8-.6 1.7-1 2.6-1.3Z"></path>
@@ -124,7 +124,7 @@ Fullstack Developer</span>
                 </svg>
             </span>
         </summary>
-        <nav class="admin-shortcuts-menu" aria-label="Admin shortcuts" data-admin-shortcuts data-authenticated="{{ app.user ? 'true' : 'false' }}">
+        <nav class="admin-shortcuts-menu" data-i18n-aria="admin_shortcut_menu_label" aria-label="Skróty administratora" data-admin-shortcuts data-authenticated="{{ app.user ? 'true' : 'false' }}">
             {% if app.user %}
                 <div class="admin-shortcuts-section">
                     <a class="admin-shortcuts-link primary" href="{{ path('admin_article_new') }}">
@@ -199,14 +199,14 @@ Fullstack Developer</span>
                                     <path d="M17 25c.7-2.8 3.1-5 6-5 2.2 0 4.2 1.2 5 3"></path>
                                 </svg>
                             </span>
-                            <span>Użytkownicy</span>
+                            <span data-i18n="admin_shortcut_users_title">Użytkownicy</span>
                             <span class="admin-shortcuts-submenu-caret" aria-hidden="true">
                                 <svg viewBox="0 0 32 32">
                                     <path d="M10 13l6 6 6-6"></path>
                                 </svg>
                             </span>
                         </button>
-                        <div class="admin-shortcuts-submenu-panel" id="admin-shortcuts-users-panel" aria-label="Użytkownicy">
+                        <div class="admin-shortcuts-submenu-panel" id="admin-shortcuts-users-panel" data-i18n-aria="admin_shortcut_users_title" aria-label="Użytkownicy">
                             <a class="admin-shortcuts-link admin-shortcuts-sublink" href="{{ path('admin_user_new') }}">
                                 <span class="admin-shortcuts-link-icon" aria-hidden="true">
                                     <svg viewBox="0 0 32 32">
@@ -216,7 +216,7 @@ Fullstack Developer</span>
                                         <path d="M19 14h8"></path>
                                     </svg>
                                 </span>
-                                <span>Dodaj użytkownika</span>
+                                <span data-i18n="admin_shortcut_user_new">Dodaj użytkownika</span>
                             </a>
                             <a class="admin-shortcuts-link admin-shortcuts-sublink" href="{{ path('admin_user_index') }}">
                                 <span class="admin-shortcuts-link-icon" aria-hidden="true">
@@ -227,7 +227,7 @@ Fullstack Developer</span>
                                         <path d="M17 25c.7-2.8 3.1-5 6-5 2.2 0 4.2 1.2 5 3"></path>
                                     </svg>
                                 </span>
-                                <span>Zarządzanie użytkownikami</span>
+                                <span data-i18n="admin_shortcut_user_index">Zarządzanie użytkownikami</span>
                             </a>
                         </div>
                     </div>
@@ -250,7 +250,7 @@ Fullstack Developer</span>
                                 </svg>
                             </span>
                         </button>
-                        <div class="admin-shortcuts-submenu-panel" id="admin-shortcuts-import-export-panel" aria-label="Importy i eksporty">
+                        <div class="admin-shortcuts-submenu-panel" id="admin-shortcuts-import-export-panel" data-i18n-aria="admin_shortcut_import_export_title" aria-label="Importy i eksporty">
                             <a class="admin-shortcuts-link admin-shortcuts-sublink" href="{{ path('admin_queue_status') }}">
                                 <span class="admin-shortcuts-link-icon" aria-hidden="true">
                                     <svg viewBox="0 0 32 32">
@@ -308,7 +308,7 @@ Fullstack Developer</span>
                         <span data-i18n="admin_shortcut_logout">Wyloguj</span>
                     </a>
                 </div>
-                <section class="admin-shortcuts-section admin-shortcuts-settings" aria-label="Quick settings">
+                <section class="admin-shortcuts-section admin-shortcuts-settings" data-i18n-aria="admin_shortcut_settings_title" aria-label="Szybkie ustawienia">
                     <p class="admin-shortcuts-section-title" data-i18n="admin_shortcut_settings_title">Szybkie ustawienia</p>
                     <button type="button" class="admin-shortcuts-link admin-shortcuts-button" data-action="toggle-device-login" aria-pressed="false">
                         <span class="admin-shortcuts-link-icon" aria-hidden="true">
@@ -360,7 +360,7 @@ Fullstack Developer</span>
             <span class="footer-break" aria-hidden="true"></span>
             <a class="footer-sub-link" href="{{ app_url ~ '/evaluation.html' }}">Zobacz ewolucję strony</a>
         </div>
-        <div class="footer-icons" aria-label="Social links">
+        <div class="footer-icons" data-i18n-aria="site_social_links_aria" aria-label="Linki społecznościowe">
             <a class="footer-icon-link" href="https://github.com/salamonrafal" target="_blank" rel="noreferrer" aria-label="GitHub" title="GitHub"><span class="footer-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 5C9.9 5 5 9.9 5 16c0 4.9 3.2 9 7.6 10.4.6.1.8-.3.8-.6v-2.2c-3.1.7-3.8-1.3-3.8-1.3-.5-1.3-1.2-1.7-1.2-1.7-1-.7.1-.7.1-.7 1.1.1 1.7 1.2 1.7 1.2 1 .1 1.7.9 2 1.4.9.2 1.8.2 2.6-.1.1-.7.4-1.3.8-1.7-2.5-.3-5.1-1.2-5.1-5.4 0-1.2.4-2.2 1.1-3-.1-.3-.5-1.4.1-2.9 0 0 .9-.3 3 .1.9-.3 1.9-.4 2.9-.4s2 .1 2.9.4c2.1-.4 3-.1 3-.1.6 1.5.2 2.6.1 2.9.7.8 1.1 1.8 1.1 3 0 4.2-2.6 5.1-5.1 5.4.5.5.9 1.3.9 2.5v3.7c0 .3.2.7.8.6A11 11 0 0 0 27 16c0-6.1-4.9-11-11-11Z" stroke-width="1.7" stroke-linejoin="round"></path></svg></span></a>
             <a class="footer-icon-link" href="https://www.linkedin.com/in/rafalsalamon/" target="_blank" rel="noreferrer" aria-label="LinkedIn" title="LinkedIn"><span class="footer-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><rect x="5" y="11" width="5" height="16" stroke-width="2"></rect><circle cx="7.5" cy="6.5" r="2.5" stroke-width="2"></circle><path d="M15 11v16M15 17c0-3.3 2.2-6 5.6-6 3.1 0 5.4 2.1 5.4 6.6V27h-5v-8.2c0-1.8-.7-3-2.4-3-1.9 0-3 1.4-3 3.4V27h-5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></a>
             <a class="footer-icon-link" href="https://buymeacoffee.com/salamonrafal" target="_blank" rel="noreferrer" aria-label="Buy Me a Coffee" title="Buy Me a Coffee"><span class="footer-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M8 13h14v6a7 7 0 0 1-7 7 7 7 0 0 1-7-7Z" stroke-width="2" stroke-linejoin="round"></path><path d="M22 15h1.5a3.5 3.5 0 0 1 0 7H22" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 9c0 1.7-1.3 2.4-1.3 3.8M17 9c0 1.7-1.3 2.4-1.3 3.8" stroke-width="2" stroke-linecap="round"></path></svg></span></a>
@@ -368,6 +368,10 @@ Fullstack Developer</span>
         </div>
     </div>
 </footer>
+
+<script>
+    globalThis.__APP_VALIDATION_I18N__ = {{ validation_i18n_json|raw }};
+</script>
 
 {% if app_env == 'prod' %}
     <script type="module" src="/assets/build/app.min.js"></script>

@@ -15,11 +15,11 @@
             <div class="dashboard-feed-intro">
                 <div class="queue-status-intro-header">
                     <div class="queue-status-intro-copy">
-                        <h1>Importy</h1>
-                        <p class="lede">Prześlij plik eksportu JSON, aby dodać go do kolejki przetwarzanej przez zadanie działające w tle.</p>
+                        <h1 data-i18n="admin_imports_title">Importy</h1>
+                        <p class="lede" data-i18n="admin_imports_lede">Prześlij plik eksportu JSON, aby dodać go do kolejki przetwarzanej przez zadanie działające w tle.</p>
                     </div>
                     <div class="actions">
-                        <a class="button secondary" href="{{ path('admin_article_import_index') }}">Odśwież</a>
+                        <a class="button secondary" href="{{ path('admin_article_import_index') }}" data-i18n="admin_refresh">Odśwież</a>
                         {% if imports is not empty %}
                             <form method="post" action="{{ path('admin_article_import_clear') }}">
                                 <input type="hidden" name="_token" value="{{ csrf_token('clear_article_imports') }}">
@@ -27,6 +27,7 @@
                                     class="button secondary button-danger"
                                     type="button"
                                     data-action="confirm-clear-imports"
+                                    data-i18n="admin_imports_clear"
                                 >
                                     Usuń wszystko
                                 </button>
@@ -35,12 +36,11 @@
                     </div>
                 </div>
             </div>
-
             {{ form_start(form, { attr: { class: 'article-editor-form' } }) }}
                 {% if form.vars.errors|length > 0 %}
                     <div class="form-errors article-editor-errors" role="alert">
                         {% for error in form.vars.errors %}
-                            <p>{{ error.message }}</p>
+                            <p data-i18n="{{ error.message }}">{{ i18n_fallback(error.message) }}</p>
                         {% endfor %}
                     </div>
                 {% endif %}
@@ -57,12 +57,12 @@
                             'aria-describedby': import_file_described_by
                         }|merge(import_file_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
                         <div class="article-editor-field-meta">
-                            <span id="{{ import_file_hint_id }}" class="article-editor-field-hint article-editor-field-hint-help">Obsługiwany jest plik JSON wygenerowany przez moduł eksportu artykułów.</span>
+                            <span id="{{ import_file_hint_id }}" class="article-editor-field-hint article-editor-field-hint-help" data-i18n="admin_import_form_file_hint">Obsługiwany jest plik JSON wygenerowany przez moduł eksportu artykułów.</span>
                         </div>
                         {% if import_file_has_errors %}
                             <div id="{{ import_file_error_id }}" class="article-editor-error-message" role="alert">
                                 {% for error in form.importFile.vars.errors %}
-                                    <p>{{ error.message }}</p>
+                                    <p data-i18n="{{ error.message }}">{{ i18n_fallback(error.message) }}</p>
                                 {% endfor %}
                             </div>
                         {% endif %}
@@ -70,8 +70,8 @@
                 </div>
 
                 <div class="actions article-editor-actions">
-                    <button type="submit" class="button">Importuj</button>
-                    <a class="button secondary" href="{{ path('admin_queue_status') }}">Zobacz stan kolejek</a>
+                    <button type="submit" class="button" data-i18n="admin_import_form_submit">Importuj</button>
+                    <a class="button secondary" href="{{ path('admin_queue_status') }}" data-i18n="admin_import_form_view_queue">Zobacz stan kolejek</a>
                 </div>
             {{ form_end(form) }}
 
@@ -129,7 +129,9 @@
                                         <a
                                             class="button secondary article-action-button"
                                             href="{{ path('admin_article_import_download', {id: import.id}) }}"
+                                            data-i18n-tooltip="admin_imports_download"
                                             data-tooltip="Pobierz plik importu"
+                                            data-i18n-aria="admin_imports_download"
                                             aria-label="Pobierz plik importu"
                                         >
                                             <span class="article-action-icon is-export" aria-hidden="true"></span>
@@ -141,7 +143,9 @@
                                                 type="button"
                                                 data-action="confirm-delete-import"
                                                 data-import-file="{{ import.originalFilename }}"
+                                                data-i18n-tooltip="admin_table_delete"
                                                 data-tooltip="Usuń"
+                                                data-i18n-aria="admin_table_delete"
                                                 aria-label="Usuń"
                                             >
                                                 <span class="article-action-icon is-delete" aria-hidden="true"></span>
@@ -156,7 +160,7 @@
                 </div>
             {% else %}
                 <div class="blog-empty-state">
-                    <p class="meta blog-empty-state-message" role="status">Brak plików dodanych do kolejki importu.</p>
+                    <p class="meta blog-empty-state-message" role="status" data-i18n="admin_imports_no_items">Brak plików dodanych do kolejki importu.</p>
                 </div>
             {% endif %}
         </div>

@@ -7,6 +7,8 @@ namespace App\Tests\Unit\Controller\Admin;
 use App\Controller\Admin\ArticleCategoryController;
 use App\Entity\ArticleCategory;
 use App\Repository\ArticleCategoryRepository;
+use App\Service\UserLanguageResolver;
+use App\Tests\Unit\Support\MocksUserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -22,6 +24,8 @@ use Symfony\Component\Validator\Validation;
 
 final class ArticleCategoryControllerTest extends TestCase
 {
+    use MocksUserLanguageResolver;
+
     public function testIndexBuildsExpectedCategoryStatistics(): void
     {
         $firstCategory = (new ArticleCategory())->setName('PHP');
@@ -63,9 +67,11 @@ final class ArticleCategoryControllerTest extends TestCase
     public function testNewRendersCategoryCreationTemplate(): void
     {
         $controller = new TestArticleCategoryController();
+        $userLanguageResolver = $this->createUserLanguageResolverMock('pl');
         $response = $controller->new(
             new Request(),
             $this->createMock(EntityManagerInterface::class),
+            $userLanguageResolver,
         );
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
@@ -94,6 +100,7 @@ final class ArticleCategoryControllerTest extends TestCase
             ->method('flush');
 
         $controller = new TestArticleCategoryController();
+        $userLanguageResolver = $this->createUserLanguageResolverMock('en');
 
         $request = new Request([], [
             'article_category' => [
@@ -112,11 +119,11 @@ final class ArticleCategoryControllerTest extends TestCase
             ],
         ], [], [], [], ['REQUEST_METHOD' => 'POST']);
 
-        $response = $controller->new($request, $entityManager);
+        $response = $controller->new($request, $entityManager, $userLanguageResolver);
 
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertSame('/admin/categories', $response->getTargetUrl());
-        $this->assertSame([['success', 'Kategoria została dodana.']], $controller->flashes);
+        $this->assertSame([['success', 'Category created.']], $controller->flashes);
     }
 
     public function testNewRerendersTemplateWhenTranslationsAreInvalid(): void
@@ -130,6 +137,7 @@ final class ArticleCategoryControllerTest extends TestCase
             ->method('flush');
 
         $controller = new TestArticleCategoryController();
+        $userLanguageResolver = $this->createUserLanguageResolverMock('pl');
 
         $request = new Request([], [
             'article_category' => [
@@ -148,7 +156,7 @@ final class ArticleCategoryControllerTest extends TestCase
             ],
         ], [], [], [], ['REQUEST_METHOD' => 'POST']);
 
-        $response = $controller->new($request, $entityManager);
+        $response = $controller->new($request, $entityManager, $userLanguageResolver);
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
         $this->assertSame('admin/article_category/new.html.twig', $controller->capturedView);
@@ -173,6 +181,7 @@ final class ArticleCategoryControllerTest extends TestCase
             ->method('flush');
 
         $controller = new TestArticleCategoryController();
+        $userLanguageResolver = $this->createUserLanguageResolverMock('en');
 
         $request = new Request([], [
             'article_category' => [
@@ -191,7 +200,7 @@ final class ArticleCategoryControllerTest extends TestCase
             ],
         ], [], [], [], ['REQUEST_METHOD' => 'POST']);
 
-        $response = $controller->edit($category, $request, $entityManager);
+        $response = $controller->edit($category, $request, $entityManager, $userLanguageResolver);
 
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertSame('/admin/categories', $response->getTargetUrl());
@@ -202,7 +211,7 @@ final class ArticleCategoryControllerTest extends TestCase
         $this->assertSame('Zaktualizowany opis pomocniczy.', $category->getShortDescription());
         $this->assertSame('/assets/img/php.svg', $category->getIcon());
         $this->assertSame('inactive', $category->getStatus()->value);
-        $this->assertSame([['success', 'Kategoria została zaktualizowana.']], $controller->flashes);
+        $this->assertSame([['success', 'Category updated.']], $controller->flashes);
     }
 
     public function testDeleteRemovesCategoryWhenCsrfTokenIsValid(): void
@@ -221,16 +230,17 @@ final class ArticleCategoryControllerTest extends TestCase
 
         $controller = new TestArticleCategoryController();
         $controller->csrfTokenIsValid = true;
+        $userLanguageResolver = $this->createUserLanguageResolverMock('en');
 
         $request = new Request([], [
             '_token' => 'valid-token',
         ]);
 
-        $response = $controller->delete($category, $request, $entityManager);
+        $response = $controller->delete($category, $request, $entityManager, $userLanguageResolver);
 
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertSame('/admin/categories', $response->getTargetUrl());
-        $this->assertSame([['success', 'Kategoria została usunięta.']], $controller->flashes);
+        $this->assertSame([['success', 'Category deleted.']], $controller->flashes);
     }
 
     public function testDeleteThrowsAccessDeniedWhenCsrfTokenIsInvalid(): void
@@ -248,6 +258,7 @@ final class ArticleCategoryControllerTest extends TestCase
 
         $controller = new TestArticleCategoryController();
         $controller->csrfTokenIsValid = false;
+        $userLanguageResolver = $this->createUserLanguageResolverMock('pl');
 
         $request = new Request([], [
             '_token' => 'invalid-token',
@@ -256,7 +267,7 @@ final class ArticleCategoryControllerTest extends TestCase
         $this->expectException(AccessDeniedException::class);
         $this->expectExceptionMessage('Invalid CSRF token.');
 
-        $controller->delete($category, $request, $entityManager);
+        $controller->delete($category, $request, $entityManager, $userLanguageResolver);
     }
 
     private function setEntityId(object $entity, int $id): void
@@ -264,6 +275,7 @@ final class ArticleCategoryControllerTest extends TestCase
         $reflectionProperty = new \ReflectionProperty($entity, 'id');
         $reflectionProperty->setValue($entity, $id);
     }
+
 }
 
 final class TestArticleCategoryController extends ArticleCategoryController

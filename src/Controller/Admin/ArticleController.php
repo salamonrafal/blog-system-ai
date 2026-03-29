@@ -130,6 +130,7 @@ class ArticleController extends AbstractController
         Article $article,
         Request $request,
         EntityManagerInterface $entityManager,
+        UserLanguageResolver $userLanguageResolver,
     ): Response {
         if (!$this->isCsrfTokenValid('archive_article_'.$article->getId(), (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Invalid CSRF token.');
@@ -142,7 +143,7 @@ class ArticleController extends AbstractController
 
         $entityManager->flush();
 
-        $this->addFlash('success', 'Article archived.');
+        $this->addFlash('success', $userLanguageResolver->translate('Artykuł został zarchiwizowany.', 'Article archived.'));
 
         return $this->redirectToRoute('admin_article_index');
     }
@@ -153,13 +154,14 @@ class ArticleController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         ArticlePublisher $articlePublisher,
+        UserLanguageResolver $userLanguageResolver,
     ): Response {
         if (!$this->isCsrfTokenValid('publish_article_'.$article->getId(), (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Invalid CSRF token.');
         }
 
         if (ArticleStatus::PUBLISHED === $article->getStatus()) {
-            $this->addFlash('error', 'Article is already published.');
+            $this->addFlash('error', $userLanguageResolver->translate('Artykuł jest już opublikowany.', 'Article is already published.'));
 
             return $this->redirectToRoute('admin_article_index');
         }
@@ -170,7 +172,7 @@ class ArticleController extends AbstractController
 
         $entityManager->flush();
 
-        $this->addFlash('success', 'Article published.');
+        $this->addFlash('success', $userLanguageResolver->translate('Artykuł został opublikowany.', 'Article published.'));
 
         return $this->redirectToRoute('admin_article_index');
     }
@@ -180,6 +182,7 @@ class ArticleController extends AbstractController
         Article $article,
         Request $request,
         ArticleExportQueueRepository $articleExportQueueRepository,
+        UserLanguageResolver $userLanguageResolver,
     ): Response {
         if (!$this->isCsrfTokenValid('export_article_'.$article->getId(), (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Invalid CSRF token.');
@@ -188,12 +191,12 @@ class ArticleController extends AbstractController
         $result = $this->queueArticles([$article], $articleExportQueueRepository, $this->resolveAuthenticatedUser());
 
         if (0 === $result['queued']) {
-            $this->addFlash('success', 'Article export is already queued.');
+            $this->addFlash('success', $userLanguageResolver->translate('Eksport artykułu jest już w kolejce.', 'Article export is already queued.'));
 
             return $this->redirectToRoute('admin_article_index');
         }
 
-        $this->addFlash('success', 'Article export added to the queue.');
+        $this->addFlash('success', $userLanguageResolver->translate('Eksport artykułu został dodany do kolejki.', 'Article export added to the queue.'));
 
         return $this->redirectToRoute('admin_article_index');
     }
@@ -217,9 +220,7 @@ class ArticleController extends AbstractController
         if (null !== $article->getCreatedBy()) {
             $this->addFlash(
                 'error',
-                'pl' === $userLanguageResolver->getLanguage()
-                    ? 'Artykuł ma już przypisanego autora.'
-                    : 'Article already has an author assigned.'
+                $userLanguageResolver->translate('Artykuł ma już przypisanego autora.', 'Article already has an author assigned.')
             );
 
             return $this->redirectToRoute('admin_article_index');
@@ -233,9 +234,7 @@ class ArticleController extends AbstractController
 
         $this->addFlash(
             'success',
-            'pl' === $userLanguageResolver->getLanguage()
-                ? 'Autor artykułu został przypisany.'
-                : 'Article author assigned.'
+            $userLanguageResolver->translate('Autor artykułu został przypisany.', 'Article author assigned.')
         );
 
         return $this->redirectToRoute('admin_article_index');
@@ -246,6 +245,7 @@ class ArticleController extends AbstractController
         Request $request,
         ArticleRepository $articleRepository,
         ArticleExportQueueRepository $articleExportQueueRepository,
+        UserLanguageResolver $userLanguageResolver,
     ): Response {
         if (!$this->isCsrfTokenValid('export_articles_bulk', (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Invalid CSRF token.');
@@ -257,7 +257,7 @@ class ArticleController extends AbstractController
         )));
 
         if ([] === $articleIds) {
-            $this->addFlash('error', 'Select at least one article to export.');
+            $this->addFlash('error', $userLanguageResolver->translate('Wybierz co najmniej jeden artykuł do eksportu.', 'Select at least one article to export.'));
 
             return $this->redirectToRoute('admin_article_index');
         }
@@ -266,23 +266,36 @@ class ArticleController extends AbstractController
         $result = $this->queueArticles($articles, $articleExportQueueRepository, $this->resolveAuthenticatedUser());
 
         if (0 === $result['queued']) {
-            $this->addFlash('success', 'Selected article exports are already queued.');
+            $this->addFlash('success', $userLanguageResolver->translate('Eksport zaznaczonych artykułów jest już w kolejce.', 'Selected article exports are already queued.'));
 
             return $this->redirectToRoute('admin_article_index');
         }
 
         if (0 === $result['skipped']) {
-            $this->addFlash('success', sprintf('%d article export(s) added to the queue.', $result['queued']));
+            $this->addFlash(
+                'success',
+                $userLanguageResolver->translate(
+                    sprintf('%d eksport(ów) artykułów dodano do kolejki.', $result['queued']),
+                    sprintf('%d article export(s) added to the queue.', $result['queued'])
+                )
+            );
 
             return $this->redirectToRoute('admin_article_index');
         }
 
         $this->addFlash(
             'success',
-            sprintf(
-                '%d article export(s) added to the queue. %d already queued item(s) skipped.',
-                $result['queued'],
-                $result['skipped'],
+            $userLanguageResolver->translate(
+                sprintf(
+                    '%d eksport(ów) artykułów dodano do kolejki. Pominięto %d element(y) już będące w kolejce.',
+                    $result['queued'],
+                    $result['skipped'],
+                ),
+                sprintf(
+                    '%d article export(s) added to the queue. %d already queued item(s) skipped.',
+                    $result['queued'],
+                    $result['skipped'],
+                )
             )
         );
 
@@ -295,13 +308,14 @@ class ArticleController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         ArticleExportQueueRepository $articleExportQueueRepository,
+        UserLanguageResolver $userLanguageResolver,
     ): Response {
         if (!$this->isCsrfTokenValid('delete_article_'.$article->getId(), (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Invalid CSRF token.');
         }
 
         if (ArticleStatus::ARCHIVED !== $article->getStatus()) {
-            $this->addFlash('error', 'Usunąć można tylko zarchiwizowany artykuł.');
+            $this->addFlash('error', $userLanguageResolver->translate('Usunąć można tylko zarchiwizowany artykuł.', 'Only archived articles can be deleted.'));
 
             return $this->redirectToRoute('admin_article_index');
         }
@@ -313,7 +327,7 @@ class ArticleController extends AbstractController
         $entityManager->remove($article);
         $entityManager->flush();
 
-        $this->addFlash('success', 'Article deleted.');
+        $this->addFlash('success', $userLanguageResolver->translate('Artykuł został usunięty.', 'Article deleted.'));
 
         return $this->redirectToRoute('admin_article_index');
     }
@@ -369,4 +383,5 @@ class ArticleController extends AbstractController
             'categories' => $articleCategoryRepository->findForAdminIndex(),
         ]);
     }
+
 }

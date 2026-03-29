@@ -77,7 +77,7 @@
                 attr: form.avatar.vars.attr|merge(avatar_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.avatar.vars.id ~ '-error'} : {})
             }) }}
             <div class="article-editor-field-meta">
-                <span class="article-editor-field-hint">Moze to byc pelny URL albo nazwa pliku graficznego przechowywanego lokalnie.</span>
+                <span class="article-editor-field-hint" data-i18n="user_form_avatar_hint">Może to być pełny URL albo nazwa pliku graficznego przechowywanego lokalnie.</span>
             </div>
             {% if avatar_has_errors %}
                 <div id="{{ form.avatar.vars.id }}-error" class="article-editor-error-message" role="alert">
@@ -93,8 +93,8 @@
             <div class="field article-editor-field{{ is_admin_has_errors ? ' has-error' : '' }}">
                 <div class="article-editor-switch-row">
                     <div class="article-editor-switch-copy">
-                        <span class="article-editor-switch-label">{{ form.isAdmin.vars.label }}</span>
-                        <span class="article-editor-switch-hint">Nadaje dostęp do całej sekcji `/admin`.</span>
+                        <span class="article-editor-switch-label" data-i18n="user_form_is_admin">{{ form.isAdmin.vars.label }}</span>
+                        <span class="article-editor-switch-hint" data-i18n="user_form_is_admin_hint">Nadaje dostęp do całej sekcji `/admin`.</span>
                     </div>
                     <label class="article-editor-switch">
                         {{ form_widget(form.isAdmin, { attr: { class: 'article-editor-switch-input' } }) }}
@@ -114,8 +114,8 @@
             <div class="field article-editor-field{{ is_active_has_errors ? ' has-error' : '' }}">
                 <div class="article-editor-switch-row">
                     <div class="article-editor-switch-copy">
-                        <span class="article-editor-switch-label">{{ form.isActive.vars.label }}</span>
-                        <span class="article-editor-switch-hint">Nieaktywne konto nie przejdzie walidacji przy logowaniu.</span>
+                        <span class="article-editor-switch-label" data-i18n="user_form_is_active">{{ form.isActive.vars.label }}</span>
+                        <span class="article-editor-switch-hint" data-i18n="user_form_is_active_hint">Nieaktywne konto nie przejdzie walidacji przy logowaniu.</span>
                     </div>
                     <label class="article-editor-switch">
                         {{ form_widget(form.isActive, { attr: { class: 'article-editor-switch-input' } }) }}
@@ -139,7 +139,7 @@
                 attr: form.plainPassword.vars.attr|merge(password_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.plainPassword.vars.id ~ '-error'} : {})
             }) }}
             <div class="article-editor-field-meta">
-                <span class="article-editor-field-hint">Hasło jest opcjonalne. Uzupełnij tylko wtedy, gdy chcesz je zmienić.</span>
+                <span class="article-editor-field-hint" data-i18n="user_form_password_hint">Hasło jest opcjonalne. Uzupełnij tylko wtedy, gdy chcesz je zmienić.</span>
             </div>
             {% if password_has_errors %}
                 <div id="{{ form.plainPassword.vars.id }}-error" class="article-editor-error-message" role="alert">
@@ -154,7 +154,7 @@
     {{ form_rest(form) }}
 
     <div class="actions article-editor-actions">
-        <button class="button" type="submit">{{ submit_label|default('Zapisz użytkownika') }}</button>
-        <a class="button secondary" href="{{ path('admin_user_index') }}">Wróć do listy</a>
+        <button class="button" type="submit" data-i18n="{{ submit_label_key|default('user_form_submit_save') }}">{{ submit_label|default('Zapisz użytkownika') }}</button>
+        <a class="button secondary" href="{{ path('admin_user_index') }}" data-i18n="user_form_back_to_list">Wróć do listy</a>
     </div>
 {{ form_end(form) }}

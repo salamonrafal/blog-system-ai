@@ -16,6 +16,33 @@ use PHPUnit\Framework\TestCase;
 
 final class AppGlobalsExtensionTest extends TestCase
 {
+    public function testGetI18nFallbackReturnsTranslatedValidationMessage(): void
+    {
+        $provider = $this->createMock(BlogSettingsProvider::class);
+        $languageResolver = $this->createMock(UserLanguageResolver::class);
+        $languageResolver
+            ->method('getLanguage')
+            ->willReturn('en');
+
+        $timeZoneResolver = $this->createMock(UserTimeZoneResolver::class);
+        $importQueueRepository = $this->createMock(ArticleImportQueueRepository::class);
+        $exportQueueRepository = $this->createMock(ArticleExportQueueRepository::class);
+        $exportRepository = $this->createMock(ArticleExportRepository::class);
+
+        $extension = new AppGlobalsExtension(
+            $provider,
+            $languageResolver,
+            $timeZoneResolver,
+            $importQueueRepository,
+            $exportQueueRepository,
+            $exportRepository,
+            'test',
+        );
+
+        $this->assertSame('Select an import file.', $extension->getI18nFallback('validation_import_file_required'));
+        $this->assertSame('unknown_key', $extension->getI18nFallback('unknown_key'));
+    }
+
     public function testGetGlobalsExposesAppNameAndBlogSettings(): void
     {
         $settings = (new BlogSettings())
@@ -75,6 +102,7 @@ final class AppGlobalsExtensionTest extends TestCase
         $this->assertSame('test', $globals['app_env']);
         $this->assertSame('en', $globals['user_language']);
         $this->assertSame('Europe/Warsaw', $globals['user_timezone']);
+        $this->assertJson($globals['validation_i18n_json']);
         $this->assertSame([
             'queue_status' => 5,
             'imports' => 2,

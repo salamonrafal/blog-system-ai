@@ -28,47 +28,47 @@ class BlogSettings
     #[ORM\Column]
     private ?int $id = null;
 
-    #[Assert\NotBlank(message: 'URL aplikacji jest wymagany.')]
-    #[Assert\Length(max: 255, maxMessage: 'URL aplikacji może mieć maksymalnie 255 znaków.')]
+    #[Assert\NotBlank(message: 'validation_blog_settings_app_url_required')]
+    #[Assert\Length(max: 255, maxMessage: 'validation_blog_settings_app_url_too_long')]
     #[Assert\Url(
         protocols: ['http', 'https'],
         requireTld: false,
-        message: 'Podaj poprawny pełny URL aplikacji zaczynający się od http:// lub https://.'
+        message: 'validation_blog_settings_app_url_invalid'
     )]
     #[ORM\Column(length: 255)]
     private string $appUrl = self::DEFAULT_APP_URL;
 
-    #[Assert\NotBlank(message: 'Tytuł bloga jest wymagany.')]
-    #[Assert\Length(max: 255, maxMessage: 'Tytuł bloga może mieć maksymalnie 255 znaków.')]
+    #[Assert\NotBlank(message: 'validation_blog_settings_blog_title_required')]
+    #[Assert\Length(max: 255, maxMessage: 'validation_blog_settings_blog_title_too_long')]
     #[ORM\Column(length: 255)]
     private string $blogTitle = self::DEFAULT_BLOG_TITLE;
 
-    #[Assert\NotBlank(message: 'Opis SEO strony głównej jest wymagany.')]
-    #[Assert\Length(max: 320, maxMessage: 'Opis SEO strony głównej może mieć maksymalnie 320 znaków.')]
+    #[Assert\NotBlank(message: 'validation_blog_settings_homepage_seo_description_required')]
+    #[Assert\Length(max: 320, maxMessage: 'validation_blog_settings_homepage_seo_description_too_long')]
     #[ORM\Column(length: 320)]
     private string $homepageSeoDescription = self::DEFAULT_SEO_DESCRIPTION;
 
-    #[Assert\NotBlank(message: 'Obrazek dla strony głównej jest wymagany.')]
-    #[Assert\Length(max: 500, maxMessage: 'Obrazek dla strony głównej może mieć maksymalnie 500 znaków.')]
+    #[Assert\NotBlank(message: 'validation_blog_settings_homepage_social_image_required')]
+    #[Assert\Length(max: 500, maxMessage: 'validation_blog_settings_homepage_social_image_too_long')]
     #[Assert\Regex(
         pattern: '/^(https?:\/\/|\/).+/',
-        message: 'Podaj pełny URL obrazu albo ścieżkę zaczynającą się od /.'
+        message: 'validation_blog_settings_homepage_social_image_invalid'
     )]
     #[ORM\Column(length: 500)]
     private string $homepageSocialImage = self::DEFAULT_SOCIAL_IMAGE;
 
-    #[Assert\NotBlank(message: 'Słowa kluczowe SEO są wymagane.')]
-    #[Assert\Length(max: 500, maxMessage: 'Słowa kluczowe SEO mogą mieć maksymalnie 500 znaków.')]
+    #[Assert\NotBlank(message: 'validation_blog_settings_homepage_seo_keywords_required')]
+    #[Assert\Length(max: 500, maxMessage: 'validation_blog_settings_homepage_seo_keywords_too_long')]
     #[ORM\Column(length: 500)]
     private string $homepageSeoKeywords = self::DEFAULT_SEO_KEYWORDS;
 
-    #[Assert\NotNull(message: 'Ilość artykułów na stronę jest wymagana.')]
-    #[Assert\Positive(message: 'Ilość artykułów na stronę musi być większa od zera.')]
+    #[Assert\NotNull(message: 'validation_blog_settings_articles_per_page_required')]
+    #[Assert\Positive(message: 'validation_blog_settings_articles_per_page_positive')]
     #[ORM\Column]
     private int $articlesPerPage = self::DEFAULT_ARTICLES_PER_PAGE;
 
-    #[Assert\NotNull(message: 'Ilość artykułów w panelu administracyjnym jest wymagana.')]
-    #[Assert\Positive(message: 'Ilość artykułów w panelu administracyjnym musi być większa od zera.')]
+    #[Assert\NotNull(message: 'validation_blog_settings_admin_articles_per_page_required')]
+    #[Assert\Positive(message: 'validation_blog_settings_admin_articles_per_page_positive')]
     #[ORM\Column]
     private int $adminArticlesPerPage = self::DEFAULT_ADMIN_ARTICLES_PER_PAGE;
 
@@ -218,7 +218,7 @@ class BlogSettings
 
         if (false === $parts || !isset($parts['scheme'], $parts['host'])) {
             $context
-                ->buildViolation('Podaj poprawny origin aplikacji w formacie http(s)://domena.')
+                ->buildViolation('validation_blog_settings_app_url_origin_invalid')
                 ->atPath('appUrl')
                 ->addViolation();
 
@@ -233,7 +233,7 @@ class BlogSettings
             isset($parts['pass'])
         ) {
             $context
-                ->buildViolation('URL aplikacji musi wskazywać wyłącznie origin bez ścieżki, parametrów, fragmentu i danych użytkownika.')
+                ->buildViolation('validation_blog_settings_app_url_origin_only')
                 ->atPath('appUrl')
                 ->addViolation();
         }

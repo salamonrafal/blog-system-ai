@@ -12,6 +12,7 @@ use App\Repository\ArticleExportQueueRepository;
 use App\Repository\ArticleImportQueueRepository;
 use App\Service\ManagedFileDeleter;
 use App\Service\ManagedFilePathResolver;
+use App\Service\UserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -49,6 +50,7 @@ class QueueStatusController extends AbstractController
         ArticleExportQueueRepository $articleExportQueueRepository,
         ArticleImportQueueRepository $articleImportQueueRepository,
         EntityManagerInterface $entityManager,
+        UserLanguageResolver $userLanguageResolver,
     ): Response {
         if (!$this->isCsrfTokenValid('clear_queue_items', (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Invalid CSRF token.');
@@ -74,7 +76,7 @@ class QueueStatusController extends AbstractController
 
         $entityManager->flush();
 
-        $this->addFlash('success', 'Kolejka oczekujących elementów została wyczyszczona.');
+        $this->addFlash('success', $userLanguageResolver->translate('Kolejka oczekujących elementów została wyczyszczona.', 'The pending queue has been cleared.'));
 
         return $this->redirectToRoute('admin_queue_status');
     }
@@ -84,6 +86,7 @@ class QueueStatusController extends AbstractController
         ArticleExportQueue $queueItem,
         Request $request,
         EntityManagerInterface $entityManager,
+        UserLanguageResolver $userLanguageResolver,
     ): Response {
         if (!$this->isCsrfTokenValid('delete_queue_item_'.$queueItem->getId(), (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Invalid CSRF token.');
@@ -92,7 +95,7 @@ class QueueStatusController extends AbstractController
         $entityManager->remove($queueItem);
         $entityManager->flush();
 
-        $this->addFlash('success', 'Element został usunięty z kolejki.');
+        $this->addFlash('success', $userLanguageResolver->translate('Element został usunięty z kolejki.', 'The item has been removed from the queue.'));
 
         return $this->redirectToRoute('admin_queue_status');
     }
@@ -102,6 +105,7 @@ class QueueStatusController extends AbstractController
         ArticleImportQueue $queueItem,
         Request $request,
         EntityManagerInterface $entityManager,
+        UserLanguageResolver $userLanguageResolver,
     ): Response {
         if (!$this->isCsrfTokenValid('delete_import_queue_item_'.$queueItem->getId(), (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Invalid CSRF token.');
@@ -112,7 +116,7 @@ class QueueStatusController extends AbstractController
         $entityManager->remove($queueItem);
         $entityManager->flush();
 
-        $this->addFlash('success', 'Element został usunięty z kolejki.');
+        $this->addFlash('success', $userLanguageResolver->translate('Element został usunięty z kolejki.', 'The item has been removed from the queue.'));
 
         return $this->redirectToRoute('admin_queue_status');
     }

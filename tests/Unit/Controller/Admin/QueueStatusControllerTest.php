@@ -14,6 +14,8 @@ use App\Repository\ArticleExportQueueRepository;
 use App\Repository\ArticleImportQueueRepository;
 use App\Service\ManagedFileDeleter;
 use App\Service\ManagedFilePathResolver;
+use App\Service\UserLanguageResolver;
+use App\Tests\Unit\Support\MocksUserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -23,6 +25,8 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 final class QueueStatusControllerTest extends TestCase
 {
+    use MocksUserLanguageResolver;
+
     public function testIndexBuildsQueueOverview(): void
     {
         $exportQueueItem = new ArticleExportQueue((new Article())->setTitle('Export')->setSlug('export'));
@@ -108,12 +112,13 @@ final class QueueStatusControllerTest extends TestCase
 
         $controller = $this->createController($pathResolver, $fileDeleter);
         $controller->csrfTokenIsValid = true;
+        $userLanguageResolver = $this->createUserLanguageResolverMock('en');
 
-        $response = $controller->clear(new Request([], ['_token' => 'valid']), $exportRepository, $importRepository, $entityManager);
+        $response = $controller->clear(new Request([], ['_token' => 'valid']), $exportRepository, $importRepository, $entityManager, $userLanguageResolver);
 
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertSame('/admin/queues/status', $response->getTargetUrl());
-        $this->assertSame([['success', 'Kolejka oczekujących elementów została wyczyszczona.']], $controller->flashes);
+        $this->assertSame([['success', 'The pending queue has been cleared.']], $controller->flashes);
         $this->assertSame([$exportQueueItem, $importQueueItem], $removedEntities);
     }
 
@@ -148,12 +153,13 @@ final class QueueStatusControllerTest extends TestCase
 
         $controller = $this->createController($pathResolver, $fileDeleter);
         $controller->csrfTokenIsValid = true;
+        $userLanguageResolver = $this->createUserLanguageResolverMock('en');
 
-        $response = $controller->deleteImport($queueItem, new Request([], ['_token' => 'valid']), $entityManager);
+        $response = $controller->deleteImport($queueItem, new Request([], ['_token' => 'valid']), $entityManager, $userLanguageResolver);
 
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertSame('/admin/queues/status', $response->getTargetUrl());
-        $this->assertSame([['success', 'Element został usunięty z kolejki.']], $controller->flashes);
+        $this->assertSame([['success', 'The item has been removed from the queue.']], $controller->flashes);
     }
 
     public function testDeleteExportThrowsWhenCsrfTokenIsInvalid(): void
@@ -168,11 +174,12 @@ final class QueueStatusControllerTest extends TestCase
 
         $controller = $this->createController();
         $controller->csrfTokenIsValid = false;
+        $userLanguageResolver = $this->createUserLanguageResolverMock('pl');
 
         $this->expectException(AccessDeniedException::class);
         $this->expectExceptionMessage('Invalid CSRF token.');
 
-        $controller->deleteExport($queueItem, new Request([], ['_token' => 'invalid']), $entityManager);
+        $controller->deleteExport($queueItem, new Request([], ['_token' => 'invalid']), $entityManager, $userLanguageResolver);
     }
 
     private function createController(
@@ -190,6 +197,7 @@ final class QueueStatusControllerTest extends TestCase
         $reflectionProperty = new \ReflectionProperty($entity, 'id');
         $reflectionProperty->setValue($entity, $id);
     }
+
 }
 
 final class TestQueueStatusController extends QueueStatusController

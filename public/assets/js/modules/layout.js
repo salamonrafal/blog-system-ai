@@ -126,6 +126,33 @@ export function setupNav(){
   });
 }
 
+export function setupBlogCategoryScroller(){
+  const categorySection = qs('.blog-category-links');
+
+  if(!categorySection) return;
+
+  const activeCategory = qs('.blog-category-link.is-current', categorySection);
+  if(!activeCategory) return;
+
+  const syncActiveCategory = ()=>{
+    const sectionRect = categorySection.getBoundingClientRect();
+    const activeRect = activeCategory.getBoundingClientRect();
+    const isOutsideViewport = activeRect.left < sectionRect.left || activeRect.right > sectionRect.right;
+
+    if(!isOutsideViewport) return;
+
+    activeCategory.scrollIntoView({
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+      block: 'nearest',
+      inline: 'center',
+    });
+  };
+
+  syncActiveCategory();
+  window.addEventListener('resize', syncActiveCategory, { passive: true });
+  window.addEventListener('orientationchange', syncActiveCategory);
+}
+
 function fastScrollToTop(){
   if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){
     window.scrollTo(0, 0);

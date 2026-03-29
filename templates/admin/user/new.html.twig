@@ -13,12 +13,13 @@
             </div>
 
             <div class="dashboard-feed-intro">
-                <h1>Dodaj użytkownika</h1>
-                <p class="lede">Utwórz nowe konto redakcyjne lub administracyjne i od razu ustaw podstawowe dane profilu.</p>
+                <h1 data-i18n="admin_user_new_title">Dodaj użytkownika</h1>
+                <p class="lede" data-i18n="admin_user_new_lede">Utwórz nowe konto redakcyjne lub administracyjne i od razu ustaw podstawowe dane profilu.</p>
             </div>
 
             {% include 'admin/user/_form.html.twig' with {
                 form: form,
+                submit_label_key: 'user_form_submit_create',
                 submit_label: 'Dodaj użytkownika'
             } %}
         </div>

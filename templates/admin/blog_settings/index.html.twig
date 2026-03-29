@@ -16,29 +16,29 @@
                 <h1 data-i18n="admin_blog_settings_title">Ustawienia bloga</h1>
                 <p class="lede" data-i18n="admin_blog_settings_lede">Zarządzaj danymi, które wpływają na nazwę bloga i metadane strony głównej widoczne w wyszukiwarkach oraz po udostępnieniu linku.</p>
 
-                <section class="article-edit-meta-panel" aria-label="Blog settings preview">
+                <section class="article-edit-meta-panel" data-i18n-aria="admin_blog_settings_preview_aria" aria-label="Podgląd ustawień bloga">
                     <div class="article-edit-meta-header">
                         <span class="pill">admin://seo-preview</span>
                     </div>
                     <dl class="article-edit-meta-list">
                         <div class="article-edit-meta-item">
-                            <dt class="article-edit-meta-label">URL aplikacji</dt>
+                            <dt class="article-edit-meta-label" data-i18n="blog_settings_app_url">URL aplikacji</dt>
                             <dd class="article-edit-meta-value">{{ settings.appUrl }}</dd>
                         </div>
                         <div class="article-edit-meta-item">
-                            <dt class="article-edit-meta-label">Aktualny tytuł bloga</dt>
+                            <dt class="article-edit-meta-label" data-i18n="admin_blog_settings_current_title">Aktualny tytuł bloga</dt>
                             <dd class="article-edit-meta-value">{{ settings.blogTitle }}</dd>
                         </div>
                         <div class="article-edit-meta-item">
-                            <dt class="article-edit-meta-label">Obrazek społecznościowy</dt>
+                            <dt class="article-edit-meta-label" data-i18n="admin_blog_settings_social_image">Obrazek społecznościowy</dt>
                             <dd class="article-edit-meta-value">{{ settings.homepageSocialImage }}</dd>
                         </div>
                         <div class="article-edit-meta-item">
-                            <dt class="article-edit-meta-label">Ostatnia aktualizacja</dt>
+                            <dt class="article-edit-meta-label" data-i18n="admin_blog_settings_last_update">Ostatnia aktualizacja</dt>
                             <dd class="article-edit-meta-value">{{ settings.updatedAt|date('Y-m-d H:i') }}</dd>
                         </div>
                         <div class="article-edit-meta-item">
-                            <dt class="article-edit-meta-label">Artykułów na stronę</dt>
+                            <dt class="article-edit-meta-label" data-i18n="blog_settings_articles_per_page">Artykułów na stronę</dt>
                             <dd class="article-edit-meta-value">{{ settings.articlesPerPage }}</dd>
                         </div>
                     </dl>

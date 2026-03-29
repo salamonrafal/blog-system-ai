@@ -8,6 +8,7 @@ use App\Entity\User;
 use App\Form\UserType;
 use App\Repository\ArticleRepository;
 use App\Repository\UserRepository;
+use App\Service\UserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -40,6 +41,7 @@ class UserController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         UserPasswordHasherInterface $passwordHasher,
+        UserLanguageResolver $userLanguageResolver,
     ): Response {
         $user = new User();
         $form = $this->createForm(UserType::class, $user, [
@@ -52,7 +54,7 @@ class UserController extends AbstractController
             $plainPassword = $form->get('plainPassword')->getData();
 
             if (!is_string($plainPassword) || '' === trim($plainPassword)) {
-                $this->addFlash('error', 'Hasło jest wymagane dla nowego użytkownika.');
+                $this->addFlash('error', $userLanguageResolver->translate('Hasło jest wymagane dla nowego użytkownika.', 'Password is required for a new user.'));
 
                 return $this->redirectToRoute('admin_user_new');
             }
@@ -63,7 +65,7 @@ class UserController extends AbstractController
             $entityManager->persist($user);
             $entityManager->flush();
 
-            $this->addFlash('success', 'User created.');
+            $this->addFlash('success', $userLanguageResolver->translate('Użytkownik został utworzony.', 'User created.'));
 
             return $this->redirectToRoute('admin_user_index');
         }
@@ -79,6 +81,7 @@ class UserController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         UserPasswordHasherInterface $passwordHasher,
+        UserLanguageResolver $userLanguageResolver,
     ): Response {
         $currentUser = $this->getUser();
         $form = $this->createForm(UserType::class, $managedUser, [
@@ -91,13 +94,13 @@ class UserController extends AbstractController
             $isCurrentUser = $currentUser instanceof User && $currentUser->getId() === $managedUser->getId();
 
             if ($isCurrentUser && !$isAdmin) {
-                $this->addFlash('error', 'Nie możesz odebrać sobie roli administratora.');
+                $this->addFlash('error', $userLanguageResolver->translate('Nie możesz odebrać sobie roli administratora.', 'You cannot remove your own administrator role.'));
 
                 return $this->redirectToRoute('admin_user_edit', ['id' => $managedUser->getId()]);
             }
 
             if ($isCurrentUser && !$managedUser->isActive()) {
-                $this->addFlash('error', 'Nie możesz dezaktywować aktualnie zalogowanego konta.');
+                $this->addFlash('error', $userLanguageResolver->translate('Nie możesz dezaktywować aktualnie zalogowanego konta.', 'You cannot deactivate the currently signed-in account.'));
 
                 return $this->redirectToRoute('admin_user_edit', ['id' => $managedUser->getId()]);
             }
@@ -111,7 +114,7 @@ class UserController extends AbstractController
 
             $entityManager->flush();
 
-            $this->addFlash('success', 'User updated.');
+            $this->addFlash('success', $userLanguageResolver->translate('Użytkownik został zaktualizowany.', 'User updated.'));
 
             return $this->redirectToRoute('admin_user_index');
         }
@@ -129,6 +132,7 @@ class UserController extends AbstractController
         UserRepository $userRepository,
         ArticleRepository $articleRepository,
         EntityManagerInterface $entityManager,
+        UserLanguageResolver $userLanguageResolver,
     ): Response {
         if (!$this->isCsrfTokenValid('delete_user_'.$managedUser->getId(), (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Invalid CSRF token.');
@@ -136,7 +140,7 @@ class UserController extends AbstractController
 
         $firstAdministrator = $userRepository->findFirstAdministrator();
         if (null !== $firstAdministrator && $firstAdministrator->getId() === $managedUser->getId()) {
-            $this->addFlash('error', 'Nie możesz usunąć pierwszego administratora.');
+            $this->addFlash('error', $userLanguageResolver->translate('Nie możesz usunąć pierwszego administratora.', 'You cannot delete the first administrator.'));
 
             return $this->redirectToRoute('admin_user_index');
         }
@@ -152,7 +156,7 @@ class UserController extends AbstractController
         $entityManager->remove($managedUser);
         $entityManager->flush();
 
-        $this->addFlash('success', 'User deleted.');
+        $this->addFlash('success', $userLanguageResolver->translate('Użytkownik został usunięty.', 'User deleted.'));
 
         return $this->redirectToRoute('admin_user_index');
     }

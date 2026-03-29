@@ -7,6 +7,7 @@ namespace App\Controller\Admin;
 use App\Entity\BlogSettings;
 use App\Form\BlogSettingsType;
 use App\Repository\BlogSettingsRepository;
+use App\Service\UserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,6 +22,7 @@ class BlogSettingsController extends AbstractController
         Request $request,
         BlogSettingsRepository $blogSettingsRepository,
         EntityManagerInterface $entityManager,
+        UserLanguageResolver $userLanguageResolver,
     ): Response {
         $settings = $blogSettingsRepository->findCurrent() ?? new BlogSettings();
 
@@ -34,7 +36,7 @@ class BlogSettingsController extends AbstractController
 
             $entityManager->flush();
 
-            $this->addFlash('success', 'Ustawienia bloga zostały zapisane.');
+            $this->addFlash('success', $userLanguageResolver->translate('Ustawienia bloga zostały zapisane.', 'Blog settings have been saved.'));
 
             return $this->redirectToRoute('admin_blog_settings');
         }
@@ -44,4 +46,5 @@ class BlogSettingsController extends AbstractController
             'settings' => $settings,
         ]);
     }
+
 }

@@ -84,4 +84,32 @@ final class BlogSettingsTest extends TestCase
         $this->assertGreaterThan(0, $validator->validate($pathSettings)->count());
         $this->assertGreaterThan(0, $validator->validate($querySettings)->count());
     }
+
+    public function testBlogSettingsValidationUsesTranslationKeys(): void
+    {
+        $validator = Validation::createValidatorBuilder()
+            ->enableAttributeMapping()
+            ->getValidator();
+
+        $missingHostViolations = $validator->validate((new BlogSettings())->setAppUrl('https:///'));
+        $pathViolations = $validator->validate((new BlogSettings())->setAppUrl('https://example.com/blog'));
+        $emptyTitleViolations = $validator->validate((new BlogSettings())->setBlogTitle(''));
+
+        $missingHostMessages = array_map(
+            static fn (mixed $violation): string => $violation->getMessage(),
+            iterator_to_array($missingHostViolations)
+        );
+        $pathMessages = array_map(
+            static fn (mixed $violation): string => $violation->getMessage(),
+            iterator_to_array($pathViolations)
+        );
+        $emptyTitleMessages = array_map(
+            static fn (mixed $violation): string => $violation->getMessage(),
+            iterator_to_array($emptyTitleViolations)
+        );
+
+        $this->assertContains('validation_blog_settings_app_url_origin_invalid', $missingHostMessages);
+        $this->assertContains('validation_blog_settings_app_url_origin_only', $pathMessages);
+        $this->assertContains('validation_blog_settings_blog_title_required', $emptyTitleMessages);
+    }
 }

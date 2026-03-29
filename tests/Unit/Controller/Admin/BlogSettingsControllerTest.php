@@ -7,6 +7,8 @@ namespace App\Tests\Unit\Controller\Admin;
 use App\Controller\Admin\BlogSettingsController;
 use App\Entity\BlogSettings;
 use App\Repository\BlogSettingsRepository;
+use App\Service\UserLanguageResolver;
+use App\Tests\Unit\Support\MocksUserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Form\Extension\HttpFoundation\HttpFoundationExtension;
@@ -20,6 +22,8 @@ use Symfony\Component\Validator\Validation;
 
 final class BlogSettingsControllerTest extends TestCase
 {
+    use MocksUserLanguageResolver;
+
     public function testIndexRendersCurrentSettings(): void
     {
         $settings = (new BlogSettings())->setBlogTitle('Configured blog');
@@ -39,7 +43,8 @@ final class BlogSettingsControllerTest extends TestCase
             ->method('flush');
 
         $controller = new TestBlogSettingsController();
-        $response = $controller->index(new Request(), $repository, $entityManager);
+        $userLanguageResolver = $this->createUserLanguageResolverMock('pl');
+        $response = $controller->index(new Request(), $repository, $entityManager, $userLanguageResolver);
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
         $this->assertSame('admin/blog_settings/index.html.twig', $controller->capturedView);
@@ -83,11 +88,12 @@ final class BlogSettingsControllerTest extends TestCase
         ], [], [], [], ['REQUEST_METHOD' => 'POST']);
 
         $controller = new TestBlogSettingsController();
-        $response = $controller->index($request, $repository, $entityManager);
+        $userLanguageResolver = $this->createUserLanguageResolverMock('en');
+        $response = $controller->index($request, $repository, $entityManager, $userLanguageResolver);
 
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertSame('/admin/settings/blog', $response->getTargetUrl());
-        $this->assertSame([['success', 'Ustawienia bloga zostały zapisane.']], $controller->flashes);
+        $this->assertSame([['success', 'Blog settings have been saved.']], $controller->flashes);
     }
 
     public function testIndexUpdatesExistingSettingsWithoutPersistingAgain(): void
@@ -122,7 +128,8 @@ final class BlogSettingsControllerTest extends TestCase
         ], [], [], [], ['REQUEST_METHOD' => 'POST']);
 
         $controller = new TestBlogSettingsController();
-        $response = $controller->index($request, $repository, $entityManager);
+        $userLanguageResolver = $this->createUserLanguageResolverMock('pl');
+        $response = $controller->index($request, $repository, $entityManager, $userLanguageResolver);
 
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertSame('/admin/settings/blog', $response->getTargetUrl());
@@ -136,6 +143,7 @@ final class BlogSettingsControllerTest extends TestCase
         $reflectionProperty = new \ReflectionProperty($entity, 'id');
         $reflectionProperty->setValue($entity, $id);
     }
+
 }
 
 final class TestBlogSettingsController extends BlogSettingsController
