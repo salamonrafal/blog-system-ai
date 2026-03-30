@@ -23,6 +23,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Validator\Validation;
+use Symfony\Contracts\Cache\CacheInterface;
 
 final class TopMenuItemControllerTest extends TestCase
 {
@@ -68,6 +69,10 @@ final class TopMenuItemControllerTest extends TestCase
             ->expects($this->once())
             ->method('findRecentForTopMenuSelection')
             ->willReturn([]);
+        $cache = $this->createMock(CacheInterface::class);
+        $cache
+            ->expects($this->exactly(2))
+            ->method('delete');
 
         $request = new Request([], [
             'top_menu_item' => [
@@ -86,6 +91,7 @@ final class TopMenuItemControllerTest extends TestCase
             $this->createMock(ArticleCategoryRepository::class),
             $articleRepository,
             $this->createUserLanguageResolverMock('en'),
+            $cache,
         );
 
         $this->assertInstanceOf(RedirectResponse::class, $response);
@@ -109,6 +115,7 @@ final class TopMenuItemControllerTest extends TestCase
             new Request([], ['_token' => 'invalid']),
             $this->createMock(EntityManagerInterface::class),
             $this->createUserLanguageResolverMock('pl'),
+            $this->createMock(CacheInterface::class),
         );
     }
 

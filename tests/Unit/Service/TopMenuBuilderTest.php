@@ -52,6 +52,8 @@ final class TopMenuBuilderTest extends TestCase
 
         $this->assertCount(2, $tree);
         $this->assertSame('Blog', $tree[0]['label']);
+        $this->assertSame('Blog', $tree[0]['label_pl']);
+        $this->assertSame('Blog', $tree[0]['label_en']);
         $this->assertSame('/', $tree[0]['url']);
         $this->assertCount(1, $tree[0]['children']);
         $this->assertSame('/category/php', $tree[0]['children'][0]['url']);

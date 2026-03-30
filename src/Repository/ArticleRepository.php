@@ -140,9 +140,13 @@ class ArticleRepository extends ServiceEntityRepository
      */
     public function findRecentForTopMenuSelection(int $limit = self::TOP_MENU_SELECTION_LIMIT): array
     {
+        if ($limit <= 0) {
+            return [];
+        }
+
         /** @var list<Article> $articles */
         $articles = $this->createPublishedOrderedByDateQueryBuilder(null, null)
-            ->setMaxResults(max(1, $limit))
+            ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
 

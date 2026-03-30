@@ -15,6 +15,8 @@ use App\Service\UserLanguageResolver;
 use App\Service\UserTimeZoneResolver;
 use App\Twig\AppGlobalsExtension;
 use PHPUnit\Framework\TestCase;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 
 final class AppGlobalsExtensionTest extends TestCase
 {
@@ -32,6 +34,7 @@ final class AppGlobalsExtensionTest extends TestCase
         $exportRepository = $this->createMock(ArticleExportRepository::class);
         $topMenuRepository = $this->createMock(TopMenuItemRepository::class);
         $topMenuBuilder = $this->createMock(TopMenuBuilder::class);
+        $appCache = $this->createMock(CacheInterface::class);
 
         $extension = new AppGlobalsExtension(
             $provider,
@@ -42,6 +45,7 @@ final class AppGlobalsExtensionTest extends TestCase
             $exportRepository,
             $topMenuRepository,
             $topMenuBuilder,
+            $appCache,
             'test',
         );
 
@@ -101,6 +105,25 @@ final class AppGlobalsExtensionTest extends TestCase
             ->method('buildActiveTree')
             ->with([])
             ->willReturn([['label' => 'Blog', 'url' => '/', 'children' => [], 'has_children' => false, 'external' => false]]);
+        $cacheItem = $this->createMock(ItemInterface::class);
+        $cacheItem
+            ->expects($this->once())
+            ->method('expiresAfter')
+            ->with(3600)
+            ->willReturnSelf();
+        $appCache = $this->createMock(CacheInterface::class);
+        $appCache
+            ->expects($this->once())
+            ->method('get')
+            ->with(
+                'twig.top_menu_items.en',
+                $this->callback(function (callable $callback) use ($cacheItem): bool {
+                    $result = $callback($cacheItem);
+
+                    return [['label' => 'Blog', 'url' => '/', 'children' => [], 'has_children' => false, 'external' => false]] === $result;
+                })
+            )
+            ->willReturn([['label' => 'Blog', 'url' => '/', 'children' => [], 'has_children' => false, 'external' => false]]);
 
         $extension = new AppGlobalsExtension(
             $provider,
@@ -111,6 +134,7 @@ final class AppGlobalsExtensionTest extends TestCase
             $exportRepository,
             $topMenuRepository,
             $topMenuBuilder,
+            $appCache,
             'test',
         );
         $globals = $extension->getGlobals();

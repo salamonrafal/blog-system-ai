@@ -85,6 +85,9 @@ class TopMenuBuilder
             return null;
         }
 
+        $labelPl = $item->getLabel('pl', 'en') ?? $label;
+        $labelEn = $item->getLabel('en', 'pl') ?? $label;
+
         $url = match ($item->getTargetType()) {
             TopMenuItemTargetType::EXTERNAL_URL => $item->getExternalUrl(),
             TopMenuItemTargetType::BLOG_HOME => $this->urlGenerator->generate('blog_index'),
@@ -99,6 +102,8 @@ class TopMenuBuilder
         return [
             'id' => $item->getId(),
             'label' => $label,
+            'label_pl' => $labelPl,
+            'label_en' => $labelEn,
             'url' => $url,
             'external' => TopMenuItemTargetType::EXTERNAL_URL === $item->getTargetType(),
         ];
