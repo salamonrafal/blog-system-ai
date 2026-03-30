@@ -152,7 +152,10 @@ export function setupNav(){
 
   const openMobileSubmenu = (item)=>{
     if(!item) return;
-    qsa('.mobile-menu-item.has-children.is-open', drawer).forEach((openItem)=>{
+    const siblingContainer = item.parentElement;
+    if(!siblingContainer) return;
+
+    qsa(':scope > .mobile-menu-item.has-children.is-open', siblingContainer).forEach((openItem)=>{
       if(openItem !== item){
         closeMobileSubmenu(openItem);
       }
