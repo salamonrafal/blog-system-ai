@@ -277,7 +277,25 @@ final class ProcessArticleExportQueueCommandTest extends TestCase
             ->with(ArticleExportQueue::class)
             ->willReturn($recoveredEntityManager);
 
-        $queueRepository = $this->createQueueRepositoryMock([$queueItem]);
+        /** @var ArticleExportQueueRepository&MockObject $queueRepository */
+        $queueRepository = $this->createMock(ArticleExportQueueRepository::class);
+        $queueRepository
+            ->expects($this->once())
+            ->method('claimNextPending')
+            ->willReturn($queueItem);
+
+        /** @var ArticleExportQueueRepository&MockObject $refreshedQueueRepository */
+        $refreshedQueueRepository = $this->createMock(ArticleExportQueueRepository::class);
+        $refreshedQueueRepository
+            ->expects($this->once())
+            ->method('claimNextPending')
+            ->willReturn(null);
+        $managerRegistry
+            ->expects($this->once())
+            ->method('getRepository')
+            ->with(ArticleExportQueue::class)
+            ->willReturn($refreshedQueueRepository);
+
         $writer = $this->createMock(ArticleExportFileWriter::class);
         $writer
             ->expects($this->once())

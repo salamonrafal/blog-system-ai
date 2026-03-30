@@ -80,6 +80,95 @@ final class ProcessCategoryExportQueueCommandTest extends TestCase
         $this->assertSame(ArticleExportQueueStatus::COMPLETED, $queueItem->getStatus());
     }
 
+    public function testExecuteRefreshesQueueRepositoryAfterResettingClosedEntityManager(): void
+    {
+        $queueItem = new CategoryExportQueue((new ArticleCategory())->setName('AI'));
+        $managedQueueItem = new CategoryExportQueue((new ArticleCategory())->setName('AI'));
+        $queueItem->setStatus(ArticleExportQueueStatus::PROCESSING);
+        $managedQueueItem->setStatus(ArticleExportQueueStatus::PROCESSING);
+        $this->setEntityId($queueItem, 24);
+        $this->setEntityId($managedQueueItem, 24);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager
+            ->expects($this->once())
+            ->method('persist');
+        $entityManager
+            ->expects($this->once())
+            ->method('flush')
+            ->willThrowException(new \RuntimeException('Database write failed.'));
+        $entityManager
+            ->expects($this->once())
+            ->method('isOpen')
+            ->willReturn(false);
+
+        $recoveredEntityManager = $this->createMock(EntityManagerInterface::class);
+        $recoveredEntityManager
+            ->expects($this->once())
+            ->method('find')
+            ->with(CategoryExportQueue::class, 24)
+            ->willReturn($managedQueueItem);
+        $recoveredEntityManager
+            ->expects($this->once())
+            ->method('flush');
+
+        /** @var CategoryExportQueueRepository&MockObject $queueRepository */
+        $queueRepository = $this->createMock(CategoryExportQueueRepository::class);
+        $queueRepository
+            ->expects($this->once())
+            ->method('claimNextPending')
+            ->willReturn($queueItem);
+
+        /** @var CategoryExportQueueRepository&MockObject $refreshedQueueRepository */
+        $refreshedQueueRepository = $this->createMock(CategoryExportQueueRepository::class);
+        $refreshedQueueRepository
+            ->expects($this->once())
+            ->method('claimNextPending')
+            ->willReturn(null);
+
+        $writer = $this->createMock(CategoryExportFileWriter::class);
+        $writer
+            ->expects($this->once())
+            ->method('write')
+            ->with($queueItem)
+            ->willReturn('var/exports/category-1-export.json');
+        $writer
+            ->expects($this->once())
+            ->method('delete')
+            ->with('var/exports/category-1-export.json');
+
+        $managerRegistry = $this->createMock(ManagerRegistry::class);
+        $managerRegistry
+            ->expects($this->once())
+            ->method('resetManager');
+        $managerRegistry
+            ->expects($this->once())
+            ->method('getManagerForClass')
+            ->with(CategoryExportQueue::class)
+            ->willReturn($recoveredEntityManager);
+        $managerRegistry
+            ->expects($this->once())
+            ->method('getRepository')
+            ->with(CategoryExportQueue::class)
+            ->willReturn($refreshedQueueRepository);
+
+        $notificationService = $this->createMock(UserNotificationService::class);
+        $notificationService
+            ->expects($this->once())
+            ->method('notifyExportCompleted')
+            ->with(null, false);
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())->method('error');
+        $logger->expects($this->never())->method('warning');
+
+        $tester = new CommandTester(new ProcessCategoryExportQueueCommand($entityManager, $managerRegistry, $queueRepository, $writer, $notificationService, $logger));
+        $exitCode = $tester->execute([]);
+
+        $this->assertSame(Command::FAILURE, $exitCode);
+        $this->assertSame(ArticleExportQueueStatus::FAILED, $managedQueueItem->getStatus());
+        $this->assertStringContainsString('Category export failed for queue item 24: Database write failed.', $tester->getDisplay());
+    }
+
     /**
      * @param list<CategoryExportQueue> $queueItems
      */
@@ -92,5 +181,11 @@ final class ProcessCategoryExportQueueCommandTest extends TestCase
             ->willReturnOnConsecutiveCalls(...array_merge($queueItems, [null]));
 
         return $repository;
+    }
+
+    private function setEntityId(CategoryExportQueue $queueItem, int $id): void
+    {
+        $reflectionProperty = new \ReflectionProperty($queueItem, 'id');
+        $reflectionProperty->setValue($queueItem, $id);
     }
 }

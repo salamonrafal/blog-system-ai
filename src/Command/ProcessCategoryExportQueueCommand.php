@@ -43,7 +43,9 @@ class ProcessCategoryExportQueueCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $queueItem = $this->categoryExportQueueRepository->claimNextPending();
+        $entityManager = $this->entityManager;
+        $queueRepository = $this->categoryExportQueueRepository;
+        $queueItem = $queueRepository->claimNextPending();
 
         if (null === $queueItem) {
             $io->success('No queued category exports to process.');
@@ -71,8 +73,8 @@ class ProcessCategoryExportQueueCommand extends Command
                     ->setStatus(ArticleExportQueueStatus::COMPLETED)
                     ->setProcessedAt($this->utcNow());
 
-                $this->entityManager->persist($articleExport);
-                $this->entityManager->flush();
+                $entityManager->persist($articleExport);
+                $entityManager->flush();
                 $this->notifyExportCompletion($queueItem->getRequestedBy()?->getId(), true, $queueItem, $filePath);
                 ++$processedCount;
             } catch (\Throwable $exception) {
@@ -88,7 +90,11 @@ class ProcessCategoryExportQueueCommand extends Command
                     'exception' => $exception,
                 ]);
 
-                $this->markQueueItemAsFailed($queueItem);
+                [$entityManager, $queueRepository] = $this->markQueueItemAsFailed(
+                    $queueItem,
+                    $entityManager,
+                    $queueRepository,
+                );
                 $this->notifyExportCompletion($queueItem->getRequestedBy()?->getId(), false, $queueItem, $filePath);
                 ++$failedCount;
 
@@ -99,7 +105,7 @@ class ProcessCategoryExportQueueCommand extends Command
                 ));
             }
 
-            $queueItem = $this->categoryExportQueueRepository->claimNextPending();
+            $queueItem = $queueRepository->claimNextPending();
         }
 
         if (0 === $failedCount) {
@@ -122,13 +128,17 @@ class ProcessCategoryExportQueueCommand extends Command
         return new \DateTimeImmutable('now', new \DateTimeZone(self::STORAGE_TIMEZONE));
     }
 
-    private function markQueueItemAsFailed(CategoryExportQueue $queueItem): void
+    private function markQueueItemAsFailed(
+        CategoryExportQueue $queueItem,
+        EntityManagerInterface $entityManager,
+        CategoryExportQueueRepository $queueRepository,
+    ): array
     {
-        if ($this->entityManager->isOpen()) {
+        if ($entityManager->isOpen()) {
             $queueItem->setStatus(ArticleExportQueueStatus::FAILED);
-            $this->entityManager->flush();
+            $entityManager->flush();
 
-            return;
+            return [$entityManager, $queueRepository];
         }
 
         $this->managerRegistry->resetManager();
@@ -148,6 +158,18 @@ class ProcessCategoryExportQueueCommand extends Command
 
         $managedQueueItem->setStatus(ArticleExportQueueStatus::FAILED);
         $entityManager->flush();
+
+        return [$entityManager, $this->refreshQueueRepository()];
+    }
+
+    private function refreshQueueRepository(): CategoryExportQueueRepository
+    {
+        $repository = $this->managerRegistry->getRepository(CategoryExportQueue::class);
+        if (!$repository instanceof CategoryExportQueueRepository) {
+            throw new \RuntimeException('Category export queue repository is not available.');
+        }
+
+        return $repository;
     }
 
     private function deleteWrittenExportFile(string $filePath, CategoryExportQueue $queueItem): void
