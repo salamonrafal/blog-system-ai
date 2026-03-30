@@ -249,3 +249,9 @@
 - Rozszerzono dashboard oraz pływające skróty administracyjne o szybki dostęp do modułu `Top menu`.
 - Uzupełniono tłumaczenia i18n, komunikaty walidacyjne, style oraz JavaScript potrzebne do obsługi zakładek typu linku, submenu i akcji usuwania elementów menu.
 - Dodano zestaw testów jednostkowych dla nowych klas i integracji z dashboardem oraz globalami Twiga.
+- Uproszczono listę elementów na `admin_top_menu_index`, usuwając z tabeli dodatkowe informacje o tłumaczeniach `PL/EN` oraz szczegóły adresu docelowego, dzięki czemu widok skupia się na nazwie elementu i typie celu.
+- Rozszerzono konfigurację celu top menu o opcję `Brak`, która pozwala tworzyć elementy pełniące wyłącznie rolę rodzica submenu bez przekierowania, wraz z pełną obsługą w formularzach, i18n, builderze menu i testach regresyjnych.
+- Dodano dla celu `Inna strona WWW` przełącznik `Otwórz w nowym oknie`, zapis nowego ustawienia w bazie danych, logikę renderowania `target="_blank"` tylko dla zaznaczonych elementów oraz zgodność widoków ze starszymi rekordami menu.
+- Dopracowano formularze tworzenia i edycji top menu, poprawiając wyśrodkowanie tabów wyboru celu, kształt paneli `Tłumaczenia` i `Przekierowanie` oraz automatyczne przełączanie na zakładkę zawierającą ukryte pole z błędem walidacji.
+- Przebudowano zachowanie i styl desktopowego submenu top menu, dopasowując pozycjonowanie względem rodzica, pełną szerokość elementów podrzędnych, ikonę rozwijania, tło oraz cień do aktualnego motywu interfejsu.
+- Zmieniono mobilne submenu top menu na akordeon, w którym elementy z dziećmi rozwijają własną listę, a otwarcie jednego submenu automatycznie zwija wcześniej aktywny panel.

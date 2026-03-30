@@ -58,6 +58,7 @@ final class TopMenuItemControllerTest extends TestCase
                 $this->assertSame('Kontakt', $item->getLabel('pl'));
                 $this->assertSame('Contact', $item->getLabel('en'));
                 $this->assertSame('https://example.com/contact', $item->getExternalUrl());
+                $this->assertTrue($item->isExternalUrlOpenInNewWindow());
 
                 return true;
             }));
@@ -79,6 +80,7 @@ final class TopMenuItemControllerTest extends TestCase
                 'labels' => ['pl' => 'Kontakt', 'en' => 'Contact'],
                 'targetType' => 'external_url',
                 'externalUrl' => 'https://example.com/contact',
+                'externalUrlOpenInNewWindow' => '1',
                 'position' => '20',
                 'status' => 'active',
             ],

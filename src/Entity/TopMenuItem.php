@@ -36,6 +36,9 @@ class TopMenuItem
     #[ORM\Column(length: 500, nullable: true)]
     private ?string $externalUrl = null;
 
+    #[ORM\Column(options: ['default' => false])]
+    private bool $externalUrlOpenInNewWindow = false;
+
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?ArticleCategory $articleCategory = null;
@@ -169,6 +172,18 @@ class TopMenuItem
         return $this;
     }
 
+    public function isExternalUrlOpenInNewWindow(): bool
+    {
+        return $this->externalUrlOpenInNewWindow;
+    }
+
+    public function setExternalUrlOpenInNewWindow(bool $externalUrlOpenInNewWindow): self
+    {
+        $this->externalUrlOpenInNewWindow = $externalUrlOpenInNewWindow;
+
+        return $this;
+    }
+
     public function getArticleCategory(): ?ArticleCategory
     {
         return $this->articleCategory;
@@ -275,6 +290,7 @@ class TopMenuItem
     public function validate(ExecutionContextInterface $context): void
     {
         match ($this->targetType) {
+            TopMenuItemTargetType::NONE => null,
             TopMenuItemTargetType::EXTERNAL_URL => $this->validateExternalUrl($context),
             TopMenuItemTargetType::ARTICLE_CATEGORY => $this->validateArticleCategory($context),
             TopMenuItemTargetType::ARTICLE => $this->validateArticle($context),

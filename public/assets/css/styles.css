@@ -118,8 +118,9 @@ main.container{flex:1;}
   backdrop-filter: blur(12px);
   background: color-mix(in oklab, var(--bg) 74%, transparent);
   border-bottom:1px solid var(--border);
+  overflow:visible;
 }
-.topbar-inner{display:flex; align-items:center; justify-content:space-between; gap:14px; padding:12px 20px; max-width:var(--maxw); margin:0 auto;}
+.topbar-inner{display:flex; align-items:center; justify-content:space-between; gap:14px; padding:12px 20px; max-width:var(--maxw); margin:0 auto; overflow:visible;}
 .brand{
   display:flex;
   align-items:center;
@@ -157,7 +158,22 @@ main.container{flex:1;}
   display:flex;
   align-items:center;
 }
-.nav a{
+.nav-item.has-children > .nav-link{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+.nav-item.has-children > .nav-link::after{
+  content:"";
+  width:0;
+  height:0;
+  flex:0 0 auto;
+  border-left:4px solid transparent;
+  border-right:4px solid transparent;
+  border-top:5px solid currentColor;
+  opacity:.82;
+}
+.nav .nav-link{
   position:relative;
   padding:10px 12px;
   border:none;
@@ -166,15 +182,18 @@ main.container{flex:1;}
   background:transparent;
   white-space:nowrap;
   text-decoration:none;
+  font:inherit;
+  line-height:inherit;
+  cursor:pointer;
   transition: background-color .18s ease, border-color .18s ease, color .18s ease, box-shadow .18s ease;
 }
-.nav a.active{
+.nav .nav-link.active{
   color:var(--topbar-accent-strong);
   font-weight:700;
   background:transparent;
   box-shadow:none;
 }
-.nav a.active::after{
+.nav .nav-link.active::after{
   content:"";
   position:absolute;
   left:10px;
@@ -184,8 +203,8 @@ main.container{flex:1;}
   border-radius:999px;
   background:var(--accent);
 }
-.nav a:hover,
-.nav a:focus-visible{
+.nav .nav-link:hover,
+.nav .nav-link:focus-visible{
   background: color-mix(in oklab, var(--panel) 82%, var(--accent) 18%);
   box-shadow:none;
   text-decoration:none;
@@ -193,25 +212,49 @@ main.container{flex:1;}
 .nav-submenu{
   position:absolute;
   top:calc(100% + 8px);
-  left:0;
+  left:50%;
   min-width:220px;
-  padding:8px;
+  padding:0;
   display:none;
   flex-direction:column;
-  gap:4px;
-  border:1px solid var(--border);
+  gap:0;
   border-radius:14px;
-  background: color-mix(in oklab, var(--panel) 96%, transparent);
-  box-shadow: var(--shadow);
+  overflow:hidden;
+  background: color-mix(in oklab, var(--bg) 100%, black 0%);
+  box-shadow:
+    8px 10px 20px color-mix(in oklab, var(--panel-2) 22%, transparent),
+    0 18px 36px color-mix(in oklab, var(--panel-2) 34%, transparent);
+  transform:translateX(-50%);
+}
+
+[data-theme="light"] .nav-submenu{
+  box-shadow:
+    8px 10px 18px rgba(13,21,32,.08),
+    0 14px 30px rgba(13,21,32,.14);
+}
+.nav > .nav-item > .nav-submenu{
+  top:100%;
+  padding-top:0;
+  border-top-left-radius:0;
+  border-top-right-radius:0;
 }
 .nav-item.has-children:hover > .nav-submenu,
 .nav-item.has-children:focus-within > .nav-submenu{
   display:flex;
 }
+.nav > .nav-item.has-children:hover > .nav-link,
+.nav > .nav-item.has-children:focus-within > .nav-link{
+  justify-content:center;
+  background: color-mix(in oklab, var(--panel) 96%, transparent);
+  border-bottom-left-radius:0;
+  border-bottom-right-radius:0;
+}
 .nav-submenu .nav-item{
+  display:flex;
   width:100%;
 }
-.nav-submenu .nav-item > a{
+.nav-submenu .nav-item > .nav-link{
+  display:flex;
   width:100%;
 }
 
@@ -304,7 +347,7 @@ main.container{flex:1;}
 .mobile-drawer:not(.open){display:none;}
 .mobile-drawer.open{display:flex; animation: pop .14s ease-out;}
 @keyframes pop{from{transform:translateY(-8px); opacity:.0;}to{transform:translateY(0); opacity:1;}}
-.mobile-menu-item a{
+.mobile-menu-item .mobile-menu-link{
   display:block;
   width:100%;
   padding:12px 12px;
@@ -320,21 +363,47 @@ main.container{flex:1;}
   overflow-wrap:anywhere;
   word-break:break-word;
   line-height:1.35;
+  font:inherit;
+  text-align:left;
+  cursor:pointer;
 }
-.mobile-drawer > .mobile-menu-item:first-child > a{
+.mobile-menu-item.has-children > .mobile-menu-link{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.mobile-menu-item.has-children > .mobile-menu-link::after{
+  content:"";
+  width:0;
+  height:0;
+  flex:0 0 auto;
+  border-left:4px solid transparent;
+  border-right:4px solid transparent;
+  border-top:5px solid currentColor;
+  opacity:.78;
+  transition:transform .18s ease;
+}
+.mobile-menu-item.has-children.is-open > .mobile-menu-link::after{
+  transform:rotate(180deg);
+}
+.mobile-drawer > .mobile-menu-item:first-child > .mobile-menu-link{
   padding-top:14px;
   padding-bottom:14px;
 }
-.mobile-drawer > .mobile-menu-item:not(:first-child) > a{
+.mobile-drawer > .mobile-menu-item:not(:first-child) > .mobile-menu-link{
   padding-top:9px;
   padding-bottom:9px;
 }
-.mobile-menu-item + .mobile-menu-item > a{border-top:none;}
+.mobile-menu-item + .mobile-menu-item > .mobile-menu-link{border-top:none;}
 .mobile-menu-children{
   padding-left:16px;
   min-width:0;
 }
-.mobile-menu-children .mobile-menu-item > a{
+.mobile-menu-children[hidden]{
+  display:none;
+}
+.mobile-menu-children .mobile-menu-item > .mobile-menu-link{
   font-size:14px;
   color:var(--muted);
   padding-top:8px;
@@ -1537,7 +1606,7 @@ input:focus, textarea:focus{outline:3px solid var(--focus); outline-offset:2px;}
     margin-bottom:20px;
   }
   .mobile-drawer > a:last-of-type,
-  .mobile-drawer > .mobile-menu-item:last-of-type > a{
+  .mobile-drawer > .mobile-menu-item:last-of-type > .mobile-menu-link{
     margin-bottom:50px;
   }
   .mobile-controls .chip{
@@ -3672,6 +3741,12 @@ select {
   z-index:2;
 }
 
+[data-menu-target-tabs] .article-category-translation-tab{
+  align-items:center;
+  justify-items:center;
+  text-align:center;
+}
+
 .article-category-translation-tab.is-active .article-category-translation-tab-scope{
   color:color-mix(in oklab, var(--text) 78%, var(--accent) 22%);
 }
@@ -3683,7 +3758,7 @@ select {
 .article-category-translation-panel{
   padding:22px;
   border:1px solid color-mix(in oklab, var(--accent) 24%, var(--border));
-  border-radius:0 24px 24px 24px;
+  border-radius:0 0 14px 14px;
   background:
     radial-gradient(circle at top right, color-mix(in oklab, var(--accent) 12%, transparent), transparent 42%),
     linear-gradient(180deg, color-mix(in oklab, var(--panel) 96%, transparent), color-mix(in oklab, var(--panel-2) 94%, transparent));
