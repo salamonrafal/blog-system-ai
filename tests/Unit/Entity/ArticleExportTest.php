@@ -23,13 +23,13 @@ final class ArticleExportTest extends TestCase
             ->setStatus(ArticleExportStatus::NEW)
             ->setType(ArticleExportType::ARTICLES)
             ->setFilePath('var/exports/articles-export.json')
-            ->setArticleCount(3);
+            ->setItemsCount(3);
 
         $this->assertSame('Eksporter', $articleExport->getRequestedBy()?->getDisplayName());
         $this->assertSame(ArticleExportStatus::NEW, $articleExport->getStatus());
         $this->assertSame(ArticleExportType::ARTICLES, $articleExport->getType());
         $this->assertSame('var/exports/articles-export.json', $articleExport->getFilePath());
-        $this->assertSame(3, $articleExport->getArticleCount());
+        $this->assertSame(3, $articleExport->getItemsCount());
     }
 
     public function testLifecycleCallbacksRefreshTimestamps(): void

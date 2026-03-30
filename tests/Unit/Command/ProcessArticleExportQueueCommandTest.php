@@ -103,7 +103,7 @@ final class ProcessArticleExportQueueCommandTest extends TestCase
         $this->assertSame(ArticleExportStatus::NEW, $capturedExports[0]->getStatus());
         $this->assertSame(ArticleExportType::ARTICLES, $capturedExports[0]->getType());
         $this->assertSame('var/exports/article-1-export.json', $capturedExports[0]->getFilePath());
-        $this->assertSame(1, $capturedExports[0]->getArticleCount());
+        $this->assertSame(1, $capturedExports[0]->getItemsCount());
         $this->assertSame($requestedBy, $capturedExports[0]->getRequestedBy());
         $this->assertNull($capturedExports[1]->getRequestedBy());
         $this->assertSame('var/exports/article-2-export.json', $capturedExports[1]->getFilePath());

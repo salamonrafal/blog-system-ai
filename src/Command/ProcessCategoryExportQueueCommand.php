@@ -64,7 +64,7 @@ class ProcessCategoryExportQueueCommand extends Command
                     ->setStatus(ArticleExportStatus::NEW)
                     ->setType(ArticleExportType::CATEGORIES)
                     ->setFilePath($filePath)
-                    ->setArticleCount(1)
+                    ->setItemsCount(1)
                     ->setRequestedBy($queueItem->getRequestedBy());
 
                 $queueItem

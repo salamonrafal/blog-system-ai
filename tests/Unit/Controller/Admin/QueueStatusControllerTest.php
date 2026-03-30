@@ -37,6 +37,8 @@ final class QueueStatusControllerTest extends TestCase
         $importQueueItem = (new ArticleImportQueue())
             ->setOriginalFilename('import.json')
             ->setFilePath('var/imports/import.json');
+        $this->setEntityId($exportQueueItem, 11);
+        $this->setEntityId($categoryExportQueueItem, 12);
 
         $exportRepository = $this->createMock(ArticleExportQueueRepository::class);
         $exportRepository
@@ -73,6 +75,8 @@ final class QueueStatusControllerTest extends TestCase
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
         $this->assertSame('admin/queue_status/index.html.twig', $controller->capturedView);
         $this->assertCount(2, $controller->capturedParameters['pending_export_queue_items']);
+        $this->assertSame('delete_queue_item_'.$exportQueueItem->getId(), $controller->capturedParameters['pending_export_queue_items'][0]['csrf_token_id']);
+        $this->assertSame('delete_category_export_queue_item_'.$categoryExportQueueItem->getId(), $controller->capturedParameters['pending_export_queue_items'][1]['csrf_token_id']);
         $this->assertSame([$importQueueItem], $controller->capturedParameters['pending_import_queue_items']);
         $this->assertTrue($controller->capturedParameters['has_pending_queue_items']);
     }

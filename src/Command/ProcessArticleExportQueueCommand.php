@@ -6,6 +6,7 @@ namespace App\Command;
 
 use App\Entity\ArticleExport;
 use App\Entity\ArticleExportQueue;
+use App\Enum\ArticleExportType;
 use App\Enum\ArticleExportQueueStatus;
 use App\Enum\ArticleExportStatus;
 use App\Repository\ArticleExportQueueRepository;
@@ -61,9 +62,9 @@ class ProcessArticleExportQueueCommand extends Command
 
                 $articleExport = (new ArticleExport())
                     ->setStatus(ArticleExportStatus::NEW)
-                    ->setType(\App\Enum\ArticleExportType::ARTICLES)
+                    ->setType(ArticleExportType::ARTICLES)
                     ->setFilePath($filePath)
-                    ->setArticleCount(1)
+                    ->setItemsCount(1)
                     ->setRequestedBy($queueItem->getRequestedBy());
 
                 $queueItem

@@ -60,6 +60,14 @@ final class ArticleExportFileWriterTest extends TestCase
             $this->assertSame('en', $payload['article'][0]['language']);
             $this->assertSame('published', $payload['article'][0]['status']);
             $this->assertSame('Pelna tresc', $payload['article'][0]['content']);
+            $this->assertSame(
+                basename($relativePath, '.json'),
+                sprintf(
+                    'article-eksportowany-artykul-export-%s-%s',
+                    (new \DateTimeImmutable($payload['exported_at']))->setTimezone(new \DateTimeZone('UTC'))->format('Ymd-His'),
+                    substr((string) preg_replace('/^article-eksportowany-artykul-export-\d{8}-\d{6}-/', '', basename($relativePath, '.json')), 0)
+                )
+            );
         } finally {
             $this->removeDirectory($projectDir);
         }
@@ -96,7 +104,6 @@ final class ArticleExportFileWriterTest extends TestCase
             $this->removeDirectory($projectDir);
         }
     }
-
 
     public function testDeleteRemovesExistingExportFile(): void
     {

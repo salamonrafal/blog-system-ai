@@ -42,6 +42,14 @@ final class CategoryExportFileWriterTest extends TestCase
             $this->assertSame(18, $payload['category'][0]['queue_item_id']);
             $this->assertSame('AI & Data', $payload['category'][0]['name']);
             $this->assertSame('AI and data', $payload['category'][0]['titles']['en']);
+            $this->assertSame(
+                basename($relativePath, '.json'),
+                sprintf(
+                    'category-AI-Data-export-%s-%s',
+                    (new \DateTimeImmutable($payload['exported_at']))->setTimezone(new \DateTimeZone('UTC'))->format('Ymd-His'),
+                    substr((string) preg_replace('/^category-AI-Data-export-\d{8}-\d{6}-/', '', basename($relativePath, '.json')), 0)
+                )
+            );
         } finally {
             $this->removeDirectory($projectDir);
         }

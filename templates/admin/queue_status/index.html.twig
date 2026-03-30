@@ -75,7 +75,7 @@
                                     <td>
                                         <div class="actions">
                                             <form method="post" action="{{ path(queue_item.delete_route, {id: queue_item.id}) }}">
-                                                <input type="hidden" name="_token" value="{{ csrf_token(queue_item.type.value == 'articles' ? 'delete_queue_item_' ~ queue_item.id : 'delete_category_export_queue_item_' ~ queue_item.id) }}">
+                                                <input type="hidden" name="_token" value="{{ csrf_token(queue_item.csrf_token_id) }}">
                                                 <button
                                                     class="button secondary button-danger article-action-button"
                                                     type="submit"

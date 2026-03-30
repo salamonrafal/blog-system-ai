@@ -24,6 +24,7 @@ class ArticleExportFileWriter
     public function write(ArticleExportQueue $queueItem): string
     {
         $absoluteDirectory = $this->projectDir.'/'.$this->exportDirectory;
+        $now = $this->utcNow();
 
         if (!is_dir($absoluteDirectory) && !mkdir($absoluteDirectory, 0775, true) && !is_dir($absoluteDirectory)) {
             throw new \RuntimeException(sprintf('Unable to create export directory "%s".', $absoluteDirectory));
@@ -33,7 +34,7 @@ class ArticleExportFileWriter
         $fileName = sprintf(
             'article-%s-export-%s-%s.json',
             $this->sanitizeSlugForFileName($article->getSlug()),
-            $this->utcNow()->format('Ymd-His'),
+            $now->format('Ymd-His'),
             bin2hex(random_bytes(4))
         );
         $relativePath = rtrim($this->exportDirectory, '/').'/'.$fileName;
@@ -42,7 +43,7 @@ class ArticleExportFileWriter
         $payload = [
             'format' => 'article-export',
             'version' => 1,
-            'exported_at' => $this->utcNow()->format(\DateTimeInterface::ATOM),
+            'exported_at' => $now->format(\DateTimeInterface::ATOM),
             'exported_by' => $this->normalizeUser($queueItem->getRequestedBy()),
             'article_count' => 1,
             'article' => [$this->normalizeArticle($article, $queueItem)],

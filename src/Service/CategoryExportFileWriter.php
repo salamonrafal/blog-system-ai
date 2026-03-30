@@ -24,6 +24,7 @@ class CategoryExportFileWriter
     public function write(CategoryExportQueue $queueItem): string
     {
         $absoluteDirectory = $this->projectDir.'/'.$this->exportDirectory;
+        $now = $this->utcNow();
 
         if (!is_dir($absoluteDirectory) && !mkdir($absoluteDirectory, 0775, true) && !is_dir($absoluteDirectory)) {
             throw new \RuntimeException(sprintf('Unable to create export directory "%s".', $absoluteDirectory));
@@ -33,7 +34,7 @@ class CategoryExportFileWriter
         $fileName = sprintf(
             'category-%s-export-%s-%s.json',
             $this->sanitizeSlugForFileName($category->getName()),
-            $this->utcNow()->format('Ymd-His'),
+            $now->format('Ymd-His'),
             bin2hex(random_bytes(4))
         );
         $relativePath = rtrim($this->exportDirectory, '/').'/'.$fileName;
@@ -42,7 +43,7 @@ class CategoryExportFileWriter
         $payload = [
             'format' => 'category-export',
             'version' => 1,
-            'exported_at' => $this->utcNow()->format(\DateTimeInterface::ATOM),
+            'exported_at' => $now->format(\DateTimeInterface::ATOM),
             'exported_by' => $this->normalizeUser($queueItem->getRequestedBy()),
             'category_count' => 1,
             'category' => [$this->normalizeCategory($category, $queueItem)],
