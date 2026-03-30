@@ -97,12 +97,15 @@
                         <div class="article-category-translation-panel-header">
                             <h2 data-i18n="{{ choice.data.translationKey }}">{{ choice.label }}</h2>
                             <p
-                                {% if choice.value == 'external_url' %}data-i18n="top_menu_target_panel_external_lede"
+                                {% if choice.value == 'none' %}data-i18n="top_menu_target_panel_none_lede"
+                                {% elseif choice.value == 'external_url' %}data-i18n="top_menu_target_panel_external_lede"
                                 {% elseif choice.value == 'blog_home' %}data-i18n="top_menu_target_panel_blog_lede"
                                 {% elseif choice.value == 'article_category' %}data-i18n="top_menu_target_panel_category_lede"
                                 {% else %}data-i18n="top_menu_target_panel_article_lede"{% endif %}
                             >
-                                {% if choice.value == 'external_url' %}
+                                {% if choice.value == 'none' %}
+                                    Element nie będzie nigdzie przekierowywać i może służyć jako rodzic dla submenu.
+                                {% elseif choice.value == 'external_url' %}
                                     Przekierowanie do zewnętrznej strony internetowej.
                                 {% elseif choice.value == 'blog_home' %}
                                     Odnośnik do strony głównej bloga.
@@ -128,6 +131,18 @@
                                         {% endfor %}
                                     </div>
                                 {% endif %}
+                            </div>
+                            <div class="field article-editor-field article-editor-field-switch">
+                                <div class="article-editor-switch-row">
+                                    <div class="article-editor-switch-copy">
+                                        {{ form_label(form.externalUrlOpenInNewWindow, null, { label_attr: { class: 'article-editor-switch-label', 'data-i18n': 'top_menu_form_external_url_open_in_new_window' } }) }}
+                                        <span class="article-editor-switch-hint" data-i18n="top_menu_form_external_url_open_in_new_window_hint">Po kliknięciu link otworzy się w osobnym oknie lub karcie przeglądarki.</span>
+                                    </div>
+                                    <label class="article-editor-switch" for="{{ form.externalUrlOpenInNewWindow.vars.id }}">
+                                        {{ form_widget(form.externalUrlOpenInNewWindow, { attr: { class: 'article-editor-switch-input' } }) }}
+                                        <span class="article-editor-switch-slider" aria-hidden="true"></span>
+                                    </label>
+                                </div>
                             </div>
                         {% elseif choice.value == 'article_category' %}
                             {% set article_category_has_errors = form.articleCategory.vars.errors|length > 0 %}

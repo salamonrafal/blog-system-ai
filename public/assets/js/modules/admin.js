@@ -177,6 +177,19 @@ function setupTabbedPanels(rootSelector, tabAttribute, panelAttribute){
         nextTab.focus({ preventScroll: true });
       });
     });
+
+    root.addEventListener('invalid', (event)=>{
+      const field = event.target;
+      if(!(field instanceof HTMLElement)) return;
+
+      const panel = field.closest(`[${panelAttribute}]`);
+      if(!panel) return;
+
+      const panelName = panel.getAttribute(panelAttribute);
+      if(!panelName) return;
+
+      activateTab(panelName);
+    }, true);
   });
 }
 

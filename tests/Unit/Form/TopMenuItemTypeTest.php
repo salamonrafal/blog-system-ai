@@ -6,7 +6,9 @@ namespace App\Tests\Unit\Form;
 
 use App\Entity\TopMenuItem;
 use App\Form\TopMenuItemType;
+use App\Enum\TopMenuItemTargetType;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
@@ -47,8 +49,10 @@ final class TopMenuItemTypeTest extends TestCase
         $this->assertContainsOnlyInstancesOf(Length::class, [$form->get('labels')->get('pl')->getConfig()->getOption('constraints')[1]]);
 
         $this->assertInstanceOf(EnumType::class, $form->get('targetType')->getConfig()->getType()->getInnerType());
+        $this->assertContains(TopMenuItemTargetType::NONE, $form->get('targetType')->getConfig()->getOption('class')::cases());
         $this->assertInstanceOf(TextType::class, $form->get('externalUrl')->getConfig()->getType()->getInnerType());
         $this->assertSame(500, $form->get('externalUrl')->getConfig()->getOption('attr')['maxlength']);
+        $this->assertInstanceOf(CheckboxType::class, $form->get('externalUrlOpenInNewWindow')->getConfig()->getType()->getInnerType());
         $this->assertInstanceOf(ChoiceType::class, $form->get('articleCategory')->getConfig()->getType()->getInnerType());
         $this->assertInstanceOf(ChoiceType::class, $form->get('article')->getConfig()->getType()->getInnerType());
         $this->assertInstanceOf(ChoiceType::class, $form->get('parent')->getConfig()->getType()->getInnerType());

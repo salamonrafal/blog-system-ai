@@ -10,6 +10,7 @@ use App\Entity\TopMenuItem;
 use App\Enum\TopMenuItemStatus;
 use App\Enum\TopMenuItemTargetType;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
@@ -51,6 +52,11 @@ class TopMenuItemType extends AbstractType
                     'data-i18n-placeholder' => 'top_menu_form_external_url_placeholder',
                     'placeholder' => 'https://example.com',
                 ],
+            ])
+            ->add('externalUrlOpenInNewWindow', CheckboxType::class, [
+                'label' => 'Otwórz w nowym oknie',
+                'label_attr' => ['data-i18n' => 'top_menu_form_external_url_open_in_new_window'],
+                'required' => false,
             ])
             ->add('articleCategory', ChoiceType::class, [
                 'label' => 'Kategoria artykułów',

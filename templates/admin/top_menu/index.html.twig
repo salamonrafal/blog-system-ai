@@ -57,25 +57,12 @@
                     <tbody>
                     {% for item in menu_items %}
                         {% set target_label = item.targetType.label %}
-                        {% set target_details = item.targetType.value == 'external_url'
-                            ? item.externalUrl
-                            : item.targetType.value == 'blog_home'
-                                ? path('blog_index')
-                                : item.targetType.value == 'article_category'
-                                    ? (item.articleCategory ? item.articleCategory.localizedTitle(user_language) : '—')
-                                    : (item.article ? item.article.title : '—')
-                        %}
                         <tr>
                             <td class="user-index-email-cell">
                                 <strong>{{ item.localizedLabel(user_language) }}</strong>
-                                <div class="article-index-updated-cell">
-                                    <span data-lang="pl">PL: {{ item.label('pl', null) ?? '—' }}</span>
-                                    <span data-lang="en">EN: {{ item.label('en', null) ?? '—' }}</span>
-                                </div>
                             </td>
                             <td>
                                 <strong data-i18n="{{ item.targetType.translationKey }}">{{ target_label }}</strong>
-                                <div class="article-index-updated-cell">{{ target_details ?? '—' }}</div>
                             </td>
                             <td>{{ item.parent ? item.parent.localizedLabel(user_language) : '—' }}</td>
                             <td>{{ item.position }}</td>

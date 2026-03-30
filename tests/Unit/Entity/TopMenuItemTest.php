@@ -25,6 +25,7 @@ final class TopMenuItemTest extends TestCase
             ->setLabels(['pl' => 'Kontakt', 'en' => 'Contact'])
             ->setTargetType(TopMenuItemTargetType::EXTERNAL_URL)
             ->setExternalUrl('https://example.com/contact')
+            ->setExternalUrlOpenInNewWindow(true)
             ->setArticleCategory($category)
             ->setArticle($article)
             ->setParent($parent)
@@ -35,6 +36,7 @@ final class TopMenuItemTest extends TestCase
         $this->assertSame('Contact', $menuItem->getLocalizedLabel('en'));
         $this->assertSame(TopMenuItemTargetType::EXTERNAL_URL, $menuItem->getTargetType());
         $this->assertSame('https://example.com/contact', $menuItem->getExternalUrl());
+        $this->assertTrue($menuItem->isExternalUrlOpenInNewWindow());
         $this->assertSame($category, $menuItem->getArticleCategory());
         $this->assertSame($article, $menuItem->getArticle());
         $this->assertSame($parent, $menuItem->getParent());
@@ -48,10 +50,12 @@ final class TopMenuItemTest extends TestCase
         $menuItem = (new TopMenuItem())
             ->setLabels([' PL ' => '  Start  ', 'en' => '  Home  ', 'de' => '   '])
             ->setExternalUrl('  https://example.com  ')
+            ->setExternalUrlOpenInNewWindow(true)
             ->setPosition(-5);
 
         $this->assertSame(['en' => 'Home', 'pl' => 'Start'], $menuItem->getLabels());
         $this->assertSame('https://example.com', $menuItem->getExternalUrl());
+        $this->assertTrue($menuItem->isExternalUrlOpenInNewWindow());
         $this->assertSame(-5, $menuItem->getPosition());
     }
 
@@ -76,6 +80,19 @@ final class TopMenuItemTest extends TestCase
         $violations = $validator->validate($externalItem);
         $this->assertGreaterThan(0, $violations->count());
         $this->assertSame('validation_top_menu_external_url_invalid', $violations[0]->getMessage());
+    }
+
+    public function testNoneTargetDoesNotRequireRedirectTarget(): void
+    {
+        $validator = Validation::createValidatorBuilder()
+            ->enableAttributeMapping()
+            ->getValidator();
+
+        $menuItem = (new TopMenuItem())
+            ->setLabels(['pl' => 'Usługi', 'en' => 'Services'])
+            ->setTargetType(TopMenuItemTargetType::NONE);
+
+        $this->assertSame(0, $validator->validate($menuItem)->count());
     }
 
     public function testNegativePositionTriggersValidationError(): void

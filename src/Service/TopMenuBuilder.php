@@ -87,15 +87,17 @@ class TopMenuBuilder
 
         $labelPl = $item->getLabel('pl', 'en') ?? $label;
         $labelEn = $item->getLabel('en', 'pl') ?? $label;
+        $targetType = $item->getTargetType();
 
-        $url = match ($item->getTargetType()) {
+        $url = match ($targetType) {
+            TopMenuItemTargetType::NONE => null,
             TopMenuItemTargetType::EXTERNAL_URL => $item->getExternalUrl(),
             TopMenuItemTargetType::BLOG_HOME => $this->urlGenerator->generate('blog_index'),
             TopMenuItemTargetType::ARTICLE_CATEGORY => $this->resolveCategoryUrl($item),
             TopMenuItemTargetType::ARTICLE => $this->resolveArticleUrl($item),
         };
 
-        if (null === $url || '' === $url) {
+        if (TopMenuItemTargetType::NONE !== $targetType && (null === $url || '' === $url)) {
             return null;
         }
 
@@ -105,7 +107,8 @@ class TopMenuBuilder
             'label_pl' => $labelPl,
             'label_en' => $labelEn,
             'url' => $url,
-            'external' => TopMenuItemTargetType::EXTERNAL_URL === $item->getTargetType(),
+            'external' => TopMenuItemTargetType::EXTERNAL_URL === $targetType,
+            'open_in_new_window' => TopMenuItemTargetType::EXTERNAL_URL === $targetType && $item->isExternalUrlOpenInNewWindow(),
         ];
     }
 
