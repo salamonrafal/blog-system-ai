@@ -109,7 +109,7 @@
                             <td class="article-index-updated-cell">{{ category.updatedAt|user_date }}</td>
                             <td>
                                 <div class="actions">
-                                    <a class="button secondary article-action-button" href="{{ path('admin_article_category_edit', {id: category.id}) }}" data-i18n-title="admin_table_edit" data-i18n-tooltip="admin_table_edit" data-tooltip="Edytuj" aria-label="Edytuj kategorię">
+                                    <a class="button secondary article-action-button" href="{{ path('admin_article_category_edit', {id: category.id}) }}" data-i18n-title="admin_table_edit" data-i18n-tooltip="admin_table_edit" data-i18n-aria="admin_table_edit" data-tooltip="Edytuj" aria-label="Edytuj kategorię">
                                         <span class="article-action-icon is-edit" aria-hidden="true"></span>
                                     </a>
                                     <form method="post" action="{{ path('admin_article_category_export', {id: category.id}) }}">
@@ -118,6 +118,7 @@
                                             class="button secondary article-action-button"
                                             type="submit"
                                             data-i18n-tooltip="admin_table_export"
+                                            data-i18n-aria="admin_table_export"
                                             data-tooltip="Eksport"
                                             aria-label="Eksport"
                                         >
@@ -133,6 +134,7 @@
                                             data-category-name="{{ category.name }}"
                                             data-i18n-title="admin_table_delete"
                                             data-i18n-tooltip="admin_table_delete"
+                                            data-i18n-aria="admin_table_delete"
                                             data-tooltip="Usuń"
                                             aria-label="Usuń kategorię"
                                         >

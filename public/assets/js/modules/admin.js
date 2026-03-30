@@ -305,7 +305,7 @@ export function setupArticleBulkExport(){
   });
 }
 
-export function setupArticleCategoryFilter(){
+export function setupAdminListingFilters(){
   const filterConfigs = [
     {
       dropdownSelector: '[data-article-category-filter]',
