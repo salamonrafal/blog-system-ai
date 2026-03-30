@@ -34,9 +34,13 @@ class TopMenuBuilder
             }
 
             $parent = $item->getParent();
-            if (null === $parent || !$parent->isActive()) {
+            if (null === $parent) {
                 $roots[] = $item;
 
+                continue;
+            }
+
+            if (!$parent->isActive()) {
                 continue;
             }
 
@@ -115,7 +119,7 @@ class TopMenuBuilder
     private function resolveArticleUrl(TopMenuItem $item): ?string
     {
         $article = $item->getArticle();
-        if (null === $article) {
+        if (null === $article || !$article->isPublished()) {
             return null;
         }
 

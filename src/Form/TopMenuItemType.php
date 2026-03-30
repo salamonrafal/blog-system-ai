@@ -25,6 +25,7 @@ class TopMenuItemType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $menuItem = $builder->getData();
+        $isEnglish = 'en' === $options['admin_language'];
 
         $builder
             ->add('targetType', EnumType::class, [
@@ -55,7 +56,7 @@ class TopMenuItemType extends AbstractType
                 'label' => 'Kategoria artykułów',
                 'label_attr' => ['data-i18n' => 'top_menu_form_article_category'],
                 'required' => false,
-                'placeholder' => 'Wybierz kategorię',
+                'placeholder' => $isEnglish ? 'Select a category' : 'Wybierz kategorię',
                 'choice_translation_domain' => false,
                 'choices' => $options['article_categories'],
                 'choice_label' => static fn (ArticleCategory $category): string => $category->getName(),
@@ -67,7 +68,7 @@ class TopMenuItemType extends AbstractType
                 'label' => 'Artykuł',
                 'label_attr' => ['data-i18n' => 'top_menu_form_article'],
                 'required' => false,
-                'placeholder' => 'Wybierz artykuł',
+                'placeholder' => $isEnglish ? 'Select an article' : 'Wybierz artykuł',
                 'choice_translation_domain' => false,
                 'choices' => $options['articles'],
                 'choice_label' => static fn (Article $article): string => sprintf('%s (%s)', $article->getTitle(), strtoupper($article->getLanguage()->value)),
@@ -79,10 +80,10 @@ class TopMenuItemType extends AbstractType
                 'label' => 'Element nadrzędny',
                 'label_attr' => ['data-i18n' => 'top_menu_form_parent'],
                 'required' => false,
-                'placeholder' => 'Poziom główny',
+                'placeholder' => $isEnglish ? 'Top level' : 'Poziom główny',
                 'choice_translation_domain' => false,
                 'choices' => $options['parent_items'],
-                'choice_label' => static fn (TopMenuItem $parent): string => $parent->getLocalizedLabel('pl'),
+                'choice_label' => static fn (TopMenuItem $parent): string => $parent->getLocalizedLabel($options['admin_language']),
                 'attr' => [
                     'class' => 'article-editor-input article-editor-select',
                 ],
@@ -148,12 +149,14 @@ class TopMenuItemType extends AbstractType
                 'pl' => 'Polski (PL)',
                 'en' => 'English (EN)',
             ],
+            'admin_language' => 'pl',
             'parent_items' => [],
             'article_categories' => [],
             'articles' => [],
         ]);
 
         $resolver->setAllowedTypes('translation_languages', 'array');
+        $resolver->setAllowedTypes('admin_language', 'string');
         $resolver->setAllowedTypes('parent_items', 'array');
         $resolver->setAllowedTypes('article_categories', 'array');
         $resolver->setAllowedTypes('articles', 'array');

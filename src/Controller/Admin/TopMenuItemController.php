@@ -43,7 +43,7 @@ class TopMenuItemController extends AbstractController
         UserLanguageResolver $userLanguageResolver,
     ): Response {
         $menuItem = new TopMenuItem();
-        $form = $this->createEditorForm($menuItem, $topMenuItemRepository, $articleCategoryRepository, $articleRepository);
+        $form = $this->createEditorForm($menuItem, $topMenuItemRepository, $articleCategoryRepository, $articleRepository, $userLanguageResolver);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -71,7 +71,7 @@ class TopMenuItemController extends AbstractController
         ArticleRepository $articleRepository,
         UserLanguageResolver $userLanguageResolver,
     ): Response {
-        $form = $this->createEditorForm($menuItem, $topMenuItemRepository, $articleCategoryRepository, $articleRepository);
+        $form = $this->createEditorForm($menuItem, $topMenuItemRepository, $articleCategoryRepository, $articleRepository, $userLanguageResolver);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -113,6 +113,7 @@ class TopMenuItemController extends AbstractController
         TopMenuItemRepository $topMenuItemRepository,
         ArticleCategoryRepository $articleCategoryRepository,
         ArticleRepository $articleRepository,
+        UserLanguageResolver $userLanguageResolver,
     ): FormInterface {
         $parentItems = array_values(array_filter(
             $topMenuItemRepository->findForAdminIndex(),
@@ -120,8 +121,9 @@ class TopMenuItemController extends AbstractController
         ));
 
         return $this->createForm(TopMenuItemType::class, $menuItem, [
+            'admin_language' => $userLanguageResolver->getLanguage(),
             'parent_items' => $parentItems,
-            'article_categories' => $articleCategoryRepository->findForAdminIndex(),
+            'article_categories' => $articleCategoryRepository->findActiveOrderedByName(),
             'articles' => $articleRepository->findRecentForTopMenuSelection(),
         ]);
     }

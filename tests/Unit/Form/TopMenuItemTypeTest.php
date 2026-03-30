@@ -55,4 +55,42 @@ final class TopMenuItemTypeTest extends TestCase
         $this->assertInstanceOf(IntegerType::class, $form->get('position')->getConfig()->getType()->getInnerType());
         $this->assertInstanceOf(EnumType::class, $form->get('status')->getConfig()->getType()->getInnerType());
     }
+
+    public function testParentChoiceLabelUsesConfiguredAdminLanguage(): void
+    {
+        $validator = Validation::createValidator();
+        $factory = Forms::createFormFactoryBuilder()
+            ->addExtension(new ValidatorExtension($validator))
+            ->getFormFactory();
+
+        $parent = (new TopMenuItem())
+            ->setLabel('pl', 'Kontakt')
+            ->setLabel('en', 'Contact');
+
+        $form = $factory->create(TopMenuItemType::class, new TopMenuItem(), [
+            'admin_language' => 'en',
+            'parent_items' => [$parent],
+        ]);
+
+        $choiceLabel = $form->get('parent')->getConfig()->getOption('choice_label');
+
+        $this->assertIsCallable($choiceLabel);
+        $this->assertSame('Contact', $choiceLabel($parent));
+    }
+
+    public function testChoicePlaceholdersUseConfiguredAdminLanguage(): void
+    {
+        $validator = Validation::createValidator();
+        $factory = Forms::createFormFactoryBuilder()
+            ->addExtension(new ValidatorExtension($validator))
+            ->getFormFactory();
+
+        $form = $factory->create(TopMenuItemType::class, new TopMenuItem(), [
+            'admin_language' => 'en',
+        ]);
+
+        $this->assertSame('Select a category', $form->get('articleCategory')->getConfig()->getOption('placeholder'));
+        $this->assertSame('Select an article', $form->get('article')->getConfig()->getOption('placeholder'));
+        $this->assertSame('Top level', $form->get('parent')->getConfig()->getOption('placeholder'));
+    }
 }

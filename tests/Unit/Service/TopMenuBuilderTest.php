@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Service;
 use App\Entity\Article;
 use App\Entity\ArticleCategory;
 use App\Entity\TopMenuItem;
+use App\Enum\ArticleStatus;
 use App\Enum\TopMenuItemTargetType;
 use App\Service\ArticleSlugger;
 use App\Service\TopMenuBuilder;
@@ -37,7 +38,10 @@ final class TopMenuBuilderTest extends TestCase
             });
 
         $category = (new ArticleCategory())->setName('PHP')->setTitle('en', 'PHP');
-        $article = (new Article())->setTitle('Article')->setSlug('article');
+        $article = (new Article())
+            ->setTitle('Article')
+            ->setSlug('article')
+            ->setStatus(ArticleStatus::PUBLISHED);
         $parent = (new TopMenuItem())->setLabel('en', 'Blog')->setTargetType(TopMenuItemTargetType::BLOG_HOME);
         $this->setEntityId($parent, 1);
         $child = (new TopMenuItem())->setLabel('en', 'PHP')->setTargetType(TopMenuItemTargetType::ARTICLE_CATEGORY)->setArticleCategory($category)->setParent($parent);
@@ -52,6 +56,68 @@ final class TopMenuBuilderTest extends TestCase
         $this->assertCount(1, $tree[0]['children']);
         $this->assertSame('/category/php', $tree[0]['children'][0]['url']);
         $this->assertSame('/articles/article', $tree[1]['url']);
+    }
+
+    public function testBuildActiveTreeSkipsChildrenOfInactiveParent(): void
+    {
+        $languageResolver = $this->createMock(UserLanguageResolver::class);
+        $languageResolver->method('getLanguage')->willReturn('en');
+
+        $slugger = $this->createMock(ArticleSlugger::class);
+        $slugger->method('slugify')->willReturn('php');
+
+        $urlGenerator = $this->createMock(UrlGeneratorInterface::class);
+        $urlGenerator
+            ->method('generate')
+            ->willReturnCallback(static function (string $route, array $parameters = []): string {
+                return match ($route) {
+                    'blog_index' => '/',
+                    'blog_category' => '/category/'.$parameters['slug'],
+                    default => '',
+                };
+            });
+
+        $category = (new ArticleCategory())->setName('PHP')->setTitle('en', 'PHP');
+        $inactiveParent = (new TopMenuItem())
+            ->setLabel('en', 'Hidden')
+            ->setTargetType(TopMenuItemTargetType::BLOG_HOME)
+            ->setStatus(\App\Enum\TopMenuItemStatus::INACTIVE);
+        $this->setEntityId($inactiveParent, 10);
+
+        $child = (new TopMenuItem())
+            ->setLabel('en', 'PHP')
+            ->setTargetType(TopMenuItemTargetType::ARTICLE_CATEGORY)
+            ->setArticleCategory($category)
+            ->setParent($inactiveParent);
+
+        $builder = new TopMenuBuilder($languageResolver, $slugger, $urlGenerator);
+        $tree = $builder->buildActiveTree([$inactiveParent, $child]);
+
+        $this->assertSame([], $tree);
+    }
+
+    public function testBuildActiveTreeSkipsUnpublishedArticleLinks(): void
+    {
+        $languageResolver = $this->createMock(UserLanguageResolver::class);
+        $languageResolver->method('getLanguage')->willReturn('en');
+
+        $slugger = $this->createMock(ArticleSlugger::class);
+        $urlGenerator = $this->createMock(UrlGeneratorInterface::class);
+
+        $article = (new Article())
+            ->setTitle('Draft article')
+            ->setSlug('draft-article')
+            ->setStatus(ArticleStatus::DRAFT);
+
+        $articleItem = (new TopMenuItem())
+            ->setLabel('en', 'Draft article')
+            ->setTargetType(TopMenuItemTargetType::ARTICLE)
+            ->setArticle($article);
+
+        $builder = new TopMenuBuilder($languageResolver, $slugger, $urlGenerator);
+        $tree = $builder->buildActiveTree([$articleItem]);
+
+        $this->assertSame([], $tree);
     }
 
     private function setEntityId(object $entity, int $id): void
