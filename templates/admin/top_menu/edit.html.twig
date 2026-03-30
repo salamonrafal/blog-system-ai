@@ -1,0 +1,27 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edycja elementu menu | {{ app_name }}{% endblock %}
+
+{% block body %}
+    <section class="section">
+        <div class="card">
+            <div class="card-header">
+                <div class="window-dots" aria-hidden="true">
+                    <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                </div>
+                <span class="pill">admin://top-menu/{{ menu_item.id }}</span>
+            </div>
+
+            <div class="dashboard-feed-intro">
+                <h1 data-i18n="admin_top_menu_edit_title">Edytuj element top menu</h1>
+                <p class="lede" data-i18n="admin_top_menu_edit_lede">Zmieniaj tłumaczenia, pozycję, stan oraz powiązanie elementu z nadrzędnym wpisem menu.</p>
+            </div>
+
+            {% include 'admin/top_menu/_form.html.twig' with {
+                form: form,
+                submit_key: 'top_menu_form_submit_save',
+                submit_label: 'Zapisz element menu'
+            } %}
+        </div>
+    </section>
+{% endblock %}

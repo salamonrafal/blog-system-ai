@@ -8,11 +8,15 @@ use App\Entity\BlogSettings;
 use App\Repository\ArticleExportQueueRepository;
 use App\Repository\ArticleExportRepository;
 use App\Repository\ArticleImportQueueRepository;
+use App\Repository\TopMenuItemRepository;
 use App\Service\BlogSettingsProvider;
+use App\Service\TopMenuBuilder;
 use App\Service\UserLanguageResolver;
 use App\Service\UserTimeZoneResolver;
 use App\Twig\AppGlobalsExtension;
 use PHPUnit\Framework\TestCase;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 
 final class AppGlobalsExtensionTest extends TestCase
 {
@@ -28,6 +32,9 @@ final class AppGlobalsExtensionTest extends TestCase
         $importQueueRepository = $this->createMock(ArticleImportQueueRepository::class);
         $exportQueueRepository = $this->createMock(ArticleExportQueueRepository::class);
         $exportRepository = $this->createMock(ArticleExportRepository::class);
+        $topMenuRepository = $this->createMock(TopMenuItemRepository::class);
+        $topMenuBuilder = $this->createMock(TopMenuBuilder::class);
+        $appCache = $this->createMock(CacheInterface::class);
 
         $extension = new AppGlobalsExtension(
             $provider,
@@ -36,6 +43,9 @@ final class AppGlobalsExtensionTest extends TestCase
             $importQueueRepository,
             $exportQueueRepository,
             $exportRepository,
+            $topMenuRepository,
+            $topMenuBuilder,
+            $appCache,
             'test',
         );
 
@@ -84,6 +94,36 @@ final class AppGlobalsExtensionTest extends TestCase
             ->expects($this->once())
             ->method('countNew')
             ->willReturn(4);
+        $topMenuRepository = $this->createMock(TopMenuItemRepository::class);
+        $topMenuRepository
+            ->expects($this->once())
+            ->method('findActiveOrdered')
+            ->willReturn([]);
+        $topMenuBuilder = $this->createMock(TopMenuBuilder::class);
+        $topMenuBuilder
+            ->expects($this->once())
+            ->method('buildActiveTree')
+            ->with([])
+            ->willReturn([['label' => 'Blog', 'url' => '/', 'children' => [], 'has_children' => false, 'external' => false]]);
+        $cacheItem = $this->createMock(ItemInterface::class);
+        $cacheItem
+            ->expects($this->once())
+            ->method('expiresAfter')
+            ->with(3600)
+            ->willReturnSelf();
+        $appCache = $this->createMock(CacheInterface::class);
+        $appCache
+            ->expects($this->once())
+            ->method('get')
+            ->with(
+                'twig.top_menu_items.en',
+                $this->callback(function (callable $callback) use ($cacheItem): bool {
+                    $result = $callback($cacheItem);
+
+                    return [['label' => 'Blog', 'url' => '/', 'children' => [], 'has_children' => false, 'external' => false]] === $result;
+                })
+            )
+            ->willReturn([['label' => 'Blog', 'url' => '/', 'children' => [], 'has_children' => false, 'external' => false]]);
 
         $extension = new AppGlobalsExtension(
             $provider,
@@ -92,6 +132,9 @@ final class AppGlobalsExtensionTest extends TestCase
             $importQueueRepository,
             $exportQueueRepository,
             $exportRepository,
+            $topMenuRepository,
+            $topMenuBuilder,
+            $appCache,
             'test',
         );
         $globals = $extension->getGlobals();
@@ -109,5 +152,6 @@ final class AppGlobalsExtensionTest extends TestCase
             'exports' => 4,
             'import_export' => 9,
         ], $globals['admin_shortcut_badges']);
+        $this->assertCount(1, $globals['top_menu_items']);
     }
 }

@@ -152,6 +152,11 @@ main.container{flex:1;}
 }
 
 .nav{display:flex; align-items:center; gap:10px;}
+.nav-item{
+  position:relative;
+  display:flex;
+  align-items:center;
+}
 .nav a{
   position:relative;
   padding:10px 12px;
@@ -184,6 +189,30 @@ main.container{flex:1;}
   background: color-mix(in oklab, var(--panel) 82%, var(--accent) 18%);
   box-shadow:none;
   text-decoration:none;
+}
+.nav-submenu{
+  position:absolute;
+  top:calc(100% + 8px);
+  left:0;
+  min-width:220px;
+  padding:8px;
+  display:none;
+  flex-direction:column;
+  gap:4px;
+  border:1px solid var(--border);
+  border-radius:14px;
+  background: color-mix(in oklab, var(--panel) 96%, transparent);
+  box-shadow: var(--shadow);
+}
+.nav-item.has-children:hover > .nav-submenu,
+.nav-item.has-children:focus-within > .nav-submenu{
+  display:flex;
+}
+.nav-submenu .nav-item{
+  width:100%;
+}
+.nav-submenu .nav-item > a{
+  width:100%;
 }
 
 .actions{display:flex; align-items:center; gap:10px;}
@@ -275,8 +304,42 @@ main.container{flex:1;}
 .mobile-drawer:not(.open){display:none;}
 .mobile-drawer.open{display:flex; animation: pop .14s ease-out;}
 @keyframes pop{from{transform:translateY(-8px); opacity:.0;}to{transform:translateY(0); opacity:1;}}
-.mobile-drawer a{display:block; width:100%; padding:12px 12px; border-top:1px solid var(--border); border-bottom:1px solid var(--border); border-left:none; border-right:none; border-radius:0; margin:0; color:var(--text); background:var(--panel);} 
-.mobile-drawer a + a{border-top:none;}
+.mobile-menu-item a{
+  display:block;
+  width:100%;
+  padding:12px 12px;
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  border-left:none;
+  border-right:none;
+  border-radius:0;
+  margin:0;
+  color:var(--text);
+  background:var(--panel);
+  white-space:normal;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+  line-height:1.35;
+}
+.mobile-drawer > .mobile-menu-item:first-child > a{
+  padding-top:14px;
+  padding-bottom:14px;
+}
+.mobile-drawer > .mobile-menu-item:not(:first-child) > a{
+  padding-top:9px;
+  padding-bottom:9px;
+}
+.mobile-menu-item + .mobile-menu-item > a{border-top:none;}
+.mobile-menu-children{
+  padding-left:16px;
+  min-width:0;
+}
+.mobile-menu-children .mobile-menu-item > a{
+  font-size:14px;
+  color:var(--muted);
+  padding-top:8px;
+  padding-bottom:8px;
+}
 .mobile-controls{display:none;}
 
 /* Main */
@@ -1473,7 +1536,8 @@ input:focus, textarea:focus{outline:3px solid var(--focus); outline-offset:2px;}
     background:linear-gradient(90deg, transparent 0%, var(--border) 18%, var(--border) 82%, transparent 100%);
     margin-bottom:20px;
   }
-  .mobile-drawer a:last-of-type{
+  .mobile-drawer > a:last-of-type,
+  .mobile-drawer > .mobile-menu-item:last-of-type > a{
     margin-bottom:50px;
   }
   .mobile-controls .chip{

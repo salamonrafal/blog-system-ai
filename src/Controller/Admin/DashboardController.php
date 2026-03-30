@@ -16,6 +16,7 @@ use App\Repository\ArticleExportQueueRepository;
 use App\Repository\ArticleImportQueueRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\BlogSettingsRepository;
+use App\Repository\TopMenuItemRepository;
 use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -32,6 +33,7 @@ class DashboardController extends AbstractController
         ArticleExportRepository $articleExportRepository,
         ArticleExportQueueRepository $articleExportQueueRepository,
         BlogSettingsRepository $blogSettingsRepository,
+        TopMenuItemRepository $topMenuItemRepository,
         UserRepository $userRepository,
     ): Response
     {
@@ -176,6 +178,21 @@ class DashboardController extends AbstractController
                     'meta' => [],
                     'primary_action' => $this->dashboardAction('admin_dashboard_action_browse', 'Przeglądaj', 'admin_user_index'),
                     'secondary_action' => $this->dashboardAction('admin_dashboard_action_add', 'Dodaj', 'admin_user_new'),
+                ],
+                [
+                    'label' => 'admin://top-menu',
+                    'title_key' => 'admin_dashboard_panel_top_menu_title',
+                    'title' => 'Top menu',
+                    'description_key' => 'admin_dashboard_panel_top_menu_description',
+                    'description' => 'Zarządzanie główną nawigacją bloga, linkami zewnętrznymi i strukturą submenu.',
+                    'stats' => [
+                        $this->dashboardStat($topMenuItemRepository->count([]), 'admin_dashboard_stat_all', 'Wszystkie'),
+                        $this->dashboardStat($topMenuItemRepository->countActive(), 'admin_dashboard_stat_active', 'Aktywne'),
+                        $this->dashboardStat($topMenuItemRepository->countInactive(), 'admin_dashboard_stat_inactive', 'Nieaktywne'),
+                    ],
+                    'meta' => [],
+                    'primary_action' => $this->dashboardAction('admin_dashboard_action_browse', 'Przeglądaj', 'admin_top_menu_index'),
+                    'secondary_action' => $this->dashboardAction('admin_dashboard_action_add', 'Dodaj', 'admin_top_menu_new'),
                 ],
                 [
                     'label' => 'admin://blog-settings',

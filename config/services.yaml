@@ -16,4 +16,5 @@ services:
 
     App\Twig\AppGlobalsExtension:
         arguments:
+            $appCache: '@cache.app'
             $appEnv: '%kernel.environment%'

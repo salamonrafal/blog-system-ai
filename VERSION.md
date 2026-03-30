@@ -239,3 +239,13 @@
 - Rozszerzono internacjonalizację widoków administracyjnych, uzupełniając brakujące tłumaczenia na stronach `admin_dashboard`, `admin_article_import_index`, `admin_article_export_index`, `admin_queue_status`, `admin_blog_settings` oraz formularzach dodawania i edycji użytkownika.
 - Dopracowano internacjonalizację pływającego menu administracyjnego, podpinając brakujące elementy sekcji `Użytkownicy`, etykiety dostępności i angielskie nazwy pozycji `Imports & Exports` oraz `Imports`.
 - Naprawiono konflikt warstw na urządzeniach mobilnych, podnosząc `z-index` mobilnego draweru ponad pływające menu administracyjne, dzięki czemu przyciski zmiany języka, motywu i koloru są ponownie klikalne.
+
+## 2026-03-30
+
+- Dodano nowy moduł zarządzania górnym menu bloga w panelu administracyjnym pod trasą `/admin/top-menu`, obejmujący listę elementów, formularze tworzenia i edycji oraz usuwanie wpisów z potwierdzeniem.
+- Wprowadzono encję `TopMenuItem`, repozytorium, formularz, migrację bazy danych oraz mechanizm budowania drzewa menu z relacjami `parent/children`, statusem aktywności i pozycją pozwalającą ustalać kolejność elementów.
+- Rozszerzono konfigurację elementów menu o internacjonalizowane nazwy `PL/EN` oraz typy celu wybierane w zakładkach: zewnętrzny adres URL, strona główna bloga, konkretna kategoria artykułów albo konkretny artykuł.
+- Podłączono top menu do globalnych danych Twiga i layoutu aplikacji, zastępując twardo wpisaną nawigację dynamicznym renderowaniem w desktopowym topbarze i mobilnym drawerze wraz z obsługą zagnieżdżonych submenu.
+- Rozszerzono dashboard oraz pływające skróty administracyjne o szybki dostęp do modułu `Top menu`.
+- Uzupełniono tłumaczenia i18n, komunikaty walidacyjne, style oraz JavaScript potrzebne do obsługi zakładek typu linku, submenu i akcji usuwania elementów menu.
+- Dodano zestaw testów jednostkowych dla nowych klas i integracji z dashboardem oraz globalami Twiga.

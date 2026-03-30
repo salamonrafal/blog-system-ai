@@ -105,6 +105,16 @@ export function applyI18n(lang){
     }
   });
 
+  qsa('[data-menu-label-pl][data-menu-label-en]').forEach((element)=>{
+    const nextLabel = lang === 'en'
+      ? element.getAttribute('data-menu-label-en')
+      : element.getAttribute('data-menu-label-pl');
+
+    if(nextLabel){
+      element.textContent = nextLabel;
+    }
+  });
+
   const terminal = qs('#terminal');
   if(terminal){
     terminal.innerHTML = '';

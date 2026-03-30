@@ -14,6 +14,8 @@ import {
   setupImportDeleteConfirmation,
   setupImportMessageDialog,
   setupQueueClearConfirmation,
+  setupTopMenuDeleteConfirmation,
+  setupTopMenuTargetTabs,
   setupTranslationTabs,
   setupUserDeleteConfirmation,
 } from './modules/admin.js';
@@ -43,6 +45,7 @@ function init(){
   setupCharacterCounters();
   setupHeadlineImageToggle();
   setupTranslationTabs();
+  setupTopMenuTargetTabs();
   setupCategoryTranslationCopy();
   setupDashboardCarousels();
   setupArticleBulkExport();
@@ -51,6 +54,7 @@ function init(){
   setupImagePreview();
   setupDeleteConfirmation();
   setupCategoryDeleteConfirmation();
+  setupTopMenuDeleteConfirmation();
   setupUserDeleteConfirmation();
   setupExportDeleteConfirmation();
   setupExportClearConfirmation();

@@ -18,6 +18,8 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class ArticleRepository extends ServiceEntityRepository
 {
+    public const TOP_MENU_SELECTION_LIMIT = 100;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Article::class);
@@ -131,6 +133,24 @@ class ArticleRepository extends ServiceEntityRepository
         return (int) $queryBuilder
             ->getQuery()
             ->getSingleScalarResult() > 0;
+    }
+
+    /**
+     * @return list<Article>
+     */
+    public function findRecentForTopMenuSelection(int $limit = self::TOP_MENU_SELECTION_LIMIT): array
+    {
+        if ($limit <= 0) {
+            return [];
+        }
+
+        /** @var list<Article> $articles */
+        $articles = $this->createPublishedOrderedByDateQueryBuilder(null, null)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        return $articles;
     }
 
     private function createPublishedOrderedByDateQueryBuilder(?ArticleLanguage $language, ?ArticleCategory $category): QueryBuilder

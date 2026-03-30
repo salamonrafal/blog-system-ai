@@ -1,0 +1,27 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nowy element menu | {{ app_name }}{% endblock %}
+
+{% block body %}
+    <section class="section">
+        <div class="card">
+            <div class="card-header">
+                <div class="window-dots" aria-hidden="true">
+                    <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                </div>
+                <span class="pill">admin://top-menu/new</span>
+            </div>
+
+            <div class="dashboard-feed-intro">
+                <h1 data-i18n="admin_top_menu_new_title">Nowy element top menu</h1>
+                <p class="lede" data-i18n="admin_top_menu_new_lede">Dodaj nowy odnośnik i zdecyduj, czy ma prowadzić do strony zewnętrznej, strony głównej bloga, kategorii albo artykułu.</p>
+            </div>
+
+            {% include 'admin/top_menu/_form.html.twig' with {
+                form: form,
+                submit_key: 'top_menu_form_submit_create',
+                submit_label: 'Dodaj element menu'
+            } %}
+        </div>
+    </section>
+{% endblock %}

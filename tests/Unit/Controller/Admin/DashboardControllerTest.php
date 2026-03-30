@@ -18,6 +18,7 @@ use App\Repository\ArticleExportRepository;
 use App\Repository\ArticleImportQueueRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\BlogSettingsRepository;
+use App\Repository\TopMenuItemRepository;
 use App\Repository\UserRepository;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -69,6 +70,11 @@ final class DashboardControllerTest extends TestCase
             ->expects($this->once())
             ->method('findCurrent')
             ->willReturn($settings);
+        $topMenuItemRepository = $this->createTopMenuRepositoryMock([
+            'all' => 6,
+            'active' => 5,
+            'inactive' => 1,
+        ]);
         $userRepository = $this->createUserRepositoryMock([
             'all' => 4,
             'active' => 3,
@@ -84,6 +90,7 @@ final class DashboardControllerTest extends TestCase
             $articleExportRepository,
             $articleExportQueueRepository,
             $blogSettingsRepository,
+            $topMenuItemRepository,
             $userRepository,
         );
 
@@ -92,7 +99,7 @@ final class DashboardControllerTest extends TestCase
 
         $panels = $controller->capturedParameters['dashboard_panels'] ?? null;
         $this->assertIsArray($panels);
-        $this->assertCount(7, $panels);
+        $this->assertCount(8, $panels);
 
         $this->assertSame('Artykuły', $panels[0]['title']);
         $this->assertSame('admin_dashboard_panel_articles_title', $panels[0]['title_key']);
@@ -156,13 +163,21 @@ final class DashboardControllerTest extends TestCase
             ['value' => 2, 'label_key' => 'admin_dashboard_stat_admins', 'label' => 'Admini'],
         ], $panels[5]['stats']);
 
-        $this->assertSame('Ustawienia bloga', $panels[6]['title']);
-        $this->assertSame('admin_dashboard_panel_settings_title', $panels[6]['title_key']);
+        $this->assertSame('Top menu', $panels[6]['title']);
+        $this->assertSame('admin_dashboard_panel_top_menu_title', $panels[6]['title_key']);
+        $this->assertSame([
+            ['value' => 6, 'label_key' => 'admin_dashboard_stat_all', 'label' => 'Wszystkie'],
+            ['value' => 5, 'label_key' => 'admin_dashboard_stat_active', 'label' => 'Aktywne'],
+            ['value' => 1, 'label_key' => 'admin_dashboard_stat_inactive', 'label' => 'Nieaktywne'],
+        ], $panels[6]['stats']);
+
+        $this->assertSame('Ustawienia bloga', $panels[7]['title']);
+        $this->assertSame('admin_dashboard_panel_settings_title', $panels[7]['title_key']);
         $this->assertSame([
             ['label_key' => 'admin_dashboard_meta_blog_title', 'label' => 'Tytuł bloga', 'value' => 'AI Ops Blog', 'value_key' => null],
             ['label_key' => 'admin_dashboard_meta_articles_per_page', 'label' => 'Artykułów na stronę', 'value' => '9', 'value_key' => null],
             ['label_key' => 'admin_dashboard_meta_last_update', 'label' => 'Ostatnia aktualizacja', 'value' => $settings->getUpdatedAt()->format('Y-m-d H:i'), 'value_key' => null],
-        ], $panels[6]['meta_cards']);
+        ], $panels[7]['meta_cards']);
     }
 
     public function testIndexUsesDefaultFallbackValuesWhenBlogSettingsAreMissing(): void
@@ -205,6 +220,11 @@ final class DashboardControllerTest extends TestCase
             ->expects($this->once())
             ->method('findCurrent')
             ->willReturn(null);
+        $topMenuItemRepository = $this->createTopMenuRepositoryMock([
+            'all' => 0,
+            'active' => 0,
+            'inactive' => 0,
+        ]);
         $userRepository = $this->createUserRepositoryMock([
             'all' => 0,
             'active' => 0,
@@ -220,11 +240,12 @@ final class DashboardControllerTest extends TestCase
             $articleExportRepository,
             $articleExportQueueRepository,
             $blogSettingsRepository,
+            $topMenuItemRepository,
             $userRepository,
         );
 
         $panels = $controller->capturedParameters['dashboard_panels'];
-        $settingsPanel = $panels[6];
+        $settingsPanel = $panels[7];
 
         $this->assertSame([
             ['label_key' => 'admin_dashboard_meta_blog_title', 'label' => 'Tytuł bloga', 'value' => BlogSettings::DEFAULT_BLOG_TITLE, 'value_key' => null],
@@ -255,6 +276,28 @@ final class DashboardControllerTest extends TestCase
         $repository
             ->method('countInactive')
             ->willReturn($counts[ArticleCategoryStatus::INACTIVE->value] ?? 0);
+
+        return $repository;
+    }
+
+    /**
+     * @param array<string, int> $counts
+     */
+    private function createTopMenuRepositoryMock(array $counts): TopMenuItemRepository
+    {
+        /** @var TopMenuItemRepository&MockObject $repository */
+        $repository = $this->createMock(TopMenuItemRepository::class);
+        $repository
+            ->method('count')
+            ->willReturnCallback(static function (array $criteria) use ($counts): int {
+                if ([] === $criteria) {
+                    return $counts['all'];
+                }
+
+                return $counts[$criteria['status']->value] ?? 0;
+            });
+        $repository->method('countActive')->willReturn($counts['active'] ?? 0);
+        $repository->method('countInactive')->willReturn($counts['inactive'] ?? 0);
 
         return $repository;
     }

@@ -1,0 +1,119 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Top menu | {{ app_name }}{% endblock %}
+
+{% block body %}
+    <section class="section">
+        <div class="card">
+            <div class="card-header">
+                <div class="window-dots" aria-hidden="true">
+                    <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                </div>
+                <span class="pill">admin://top-menu</span>
+            </div>
+
+            <div class="dashboard-feed-intro">
+                <h1 data-i18n="admin_top_menu_index_title">Zarządzanie górnym menu bloga</h1>
+                <p class="lede" data-i18n="admin_top_menu_index_lede">Twórz elementy nawigacji, kontroluj ich aktywność, pozycję oraz relacje parent-child potrzebne do budowy submenu.</p>
+
+                <div class="actions">
+                    <a class="button" href="{{ path('admin_top_menu_new') }}" data-i18n="top_menu_form_submit_create">Dodaj element menu</a>
+                </div>
+
+                <section class="article-edit-meta-panel article-edit-meta-panel-compact" data-i18n-aria="admin_top_menu_overview_aria" aria-label="Podsumowanie top menu">
+                    <div class="article-edit-meta-header">
+                        <span class="pill">admin://top-menu-overview</span>
+                    </div>
+                    <dl class="article-edit-meta-list article-edit-meta-list-compact">
+                        <div class="article-edit-meta-item">
+                            <dt class="article-edit-meta-label" data-i18n="admin_top_menu_overview_all">Wszystkie elementy</dt>
+                            <dd class="article-edit-meta-value">{{ menu_stats.all }}</dd>
+                        </div>
+                        <div class="article-edit-meta-item">
+                            <dt class="article-edit-meta-label" data-i18n="admin_top_menu_overview_active">Aktywne</dt>
+                            <dd class="article-edit-meta-value">{{ menu_stats.active }}</dd>
+                        </div>
+                        <div class="article-edit-meta-item">
+                            <dt class="article-edit-meta-label" data-i18n="admin_top_menu_overview_inactive">Nieaktywne</dt>
+                            <dd class="article-edit-meta-value">{{ menu_stats.inactive }}</dd>
+                        </div>
+                    </dl>
+                </section>
+            </div>
+
+            <div class="table-wrap article-index-table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th data-i18n="admin_top_menu_table_label">Nazwa</th>
+                        <th data-i18n="admin_top_menu_table_target">Cel</th>
+                        <th data-i18n="admin_top_menu_table_parent">Rodzic</th>
+                        <th data-i18n="admin_top_menu_table_position">Pozycja</th>
+                        <th data-i18n="admin_table_status">Stan</th>
+                        <th data-i18n="admin_table_updated">Aktualizacja</th>
+                        <th data-i18n="admin_table_action">Akcja</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for item in menu_items %}
+                        {% set target_label = item.targetType.label %}
+                        {% set target_details = item.targetType.value == 'external_url'
+                            ? item.externalUrl
+                            : item.targetType.value == 'blog_home'
+                                ? path('blog_index')
+                                : item.targetType.value == 'article_category'
+                                    ? (item.articleCategory ? item.articleCategory.localizedTitle(user_language) : '—')
+                                    : (item.article ? item.article.title : '—')
+                        %}
+                        <tr>
+                            <td class="user-index-email-cell">
+                                <strong>{{ item.localizedLabel(user_language) }}</strong>
+                                <div class="article-index-updated-cell">
+                                    <span data-lang="pl">PL: {{ item.label('pl', null) ?? '—' }}</span>
+                                    <span data-lang="en">EN: {{ item.label('en', null) ?? '—' }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <strong data-i18n="{{ item.targetType.translationKey }}">{{ target_label }}</strong>
+                                <div class="article-index-updated-cell">{{ target_details ?? '—' }}</div>
+                            </td>
+                            <td>{{ item.parent ? item.parent.localizedLabel(user_language) : '—' }}</td>
+                            <td>{{ item.position }}</td>
+                            <td class="article-index-status-cell">
+                                <span data-i18n="{{ item.status.translationKey }}">{{ item.status.label }}</span>
+                            </td>
+                            <td class="article-index-updated-cell">{{ item.updatedAt|user_date }}</td>
+                            <td>
+                                <div class="actions">
+                                    <a class="button secondary article-action-button" href="{{ path('admin_top_menu_edit', {id: item.id}) }}" data-i18n-title="admin_table_edit" data-i18n-tooltip="admin_table_edit" data-tooltip="Edytuj" aria-label="Edytuj element menu">
+                                        <span class="article-action-icon is-edit" aria-hidden="true"></span>
+                                    </a>
+                                    <form method="post" action="{{ path('admin_top_menu_delete', {id: item.id}) }}" data-delete-form>
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete_top_menu_item_' ~ item.id) }}">
+                                        <button
+                                            class="button secondary button-danger article-action-button"
+                                            type="button"
+                                            data-action="confirm-delete-top-menu-item"
+                                            data-top-menu-item-name="{{ item.localizedLabel(user_language) }}"
+                                            data-i18n-title="admin_table_delete"
+                                            data-i18n-tooltip="admin_table_delete"
+                                            data-tooltip="Usuń"
+                                            aria-label="Usuń element menu"
+                                        >
+                                            <span class="article-action-icon is-delete" aria-hidden="true"></span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="7" data-i18n="admin_top_menu_table_empty">Nie znaleziono elementów menu.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+{% endblock %}

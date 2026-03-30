@@ -188,6 +188,55 @@ export function setupTranslationTabs(){
   setupTabbedPanels('[data-translation-tabs]', 'data-translation-tab', 'data-translation-panel');
 }
 
+export function setupTopMenuTargetTabs(){
+  qsa('[data-menu-target-tabs]').forEach((root)=>{
+    const tabs = qsa('[data-menu-target-tab]', root);
+    const panels = qsa('[data-menu-target-panel]', root);
+    const form = root.closest('form');
+    const input = form ? qs('[data-menu-target-input]', form) : null;
+    if(!tabs.length || !panels.length || !input) return;
+
+    const activateTab = (value)=>{
+      input.value = value;
+
+      tabs.forEach((tab)=>{
+        const isActive = tab.getAttribute('data-menu-target-tab') === value;
+        tab.classList.toggle('is-active', isActive);
+        tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        tab.setAttribute('tabindex', isActive ? '0' : '-1');
+      });
+
+      panels.forEach((panel)=>{
+        const isActive = panel.getAttribute('data-menu-target-panel') === value;
+        panel.classList.toggle('is-active', isActive);
+        panel.hidden = !isActive;
+      });
+    };
+
+    tabs.forEach((tab)=>{
+      tab.addEventListener('click', ()=>{
+        activateTab(tab.getAttribute('data-menu-target-tab') || '');
+      });
+
+      tab.addEventListener('keydown', (event)=>{
+        if(event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+
+        event.preventDefault();
+        const currentIndex = tabs.indexOf(tab);
+        const direction = event.key === 'ArrowRight' ? 1 : -1;
+        const nextIndex = (currentIndex + direction + tabs.length) % tabs.length;
+        const nextTab = tabs[nextIndex];
+        if(!nextTab) return;
+
+        activateTab(nextTab.getAttribute('data-menu-target-tab') || '');
+        nextTab.focus({ preventScroll: true });
+      });
+    });
+
+    activateTab(root.getAttribute('data-menu-target-active') || input.value || tabs[0]?.getAttribute('data-menu-target-tab') || '');
+  });
+}
+
 export function setupCategoryTranslationCopy(){
   qsa('[data-translation-tabs]').forEach((tabsRoot)=>{
     const basicTitle = qs('[data-category-basic-title]', tabsRoot);
@@ -496,6 +545,29 @@ export function setupCategoryDeleteConfirmation(){
     cancelFallback: 'Przerwij',
     submitI18n: 'admin_categories_delete_popup_confirm',
     submitFallback: 'Usuń kategorię',
+    closeI18n: 'admin_close_alert',
+    closeFallback: 'Zamknij alert',
+  });
+}
+
+export function setupTopMenuDeleteConfirmation(){
+  setupDangerConfirmation({
+    triggerSelector: '[data-action="confirm-delete-top-menu-item"]',
+    modalClass: 'confirm-delete-top-menu-item-modal',
+    modalIdPrefix: 'confirm-delete-top-menu-item',
+    titleI18n: 'admin_top_menu_delete_popup_title',
+    titleFallback: 'Usunąć element menu?',
+    textI18n: 'admin_top_menu_delete_popup_text',
+    textFallback: 'Ta operacja usunie element z top menu oraz odłączy jego dzieci od struktury nadrzędnej.',
+    detailsClass: 'confirm-delete-top-menu-item-name',
+    detailsText: (trigger)=> trigger.getAttribute('data-top-menu-item-name') || '',
+    cancelAction: 'cancel-delete-top-menu-item',
+    submitAction: 'submit-delete-top-menu-item',
+    closeAction: 'close-delete-top-menu-item',
+    cancelI18n: 'admin_top_menu_delete_popup_cancel',
+    cancelFallback: 'Przerwij',
+    submitI18n: 'admin_top_menu_delete_popup_confirm',
+    submitFallback: 'Usuń element',
     closeI18n: 'admin_close_alert',
     closeFallback: 'Zamknij alert',
   });
