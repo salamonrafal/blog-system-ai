@@ -207,7 +207,7 @@ main.container{flex:1;}
   background:transparent;
   box-shadow:none;
 }
-.nav .nav-link.active::after{
+.nav .nav-link.active::before{
   content:"";
   position:absolute;
   left:10px;
