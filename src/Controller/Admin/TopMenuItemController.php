@@ -122,7 +122,7 @@ class TopMenuItemController extends AbstractController
         return $this->createForm(TopMenuItemType::class, $menuItem, [
             'parent_items' => $parentItems,
             'article_categories' => $articleCategoryRepository->findForAdminIndex(),
-            'articles' => $articleRepository->findBy([], ['createdAt' => 'DESC', 'id' => 'DESC']),
+            'articles' => $articleRepository->findRecentForTopMenuSelection(),
         ]);
     }
 

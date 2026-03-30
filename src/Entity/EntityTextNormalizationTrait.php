@@ -32,6 +32,10 @@ trait EntityTextNormalizationTrait
                 continue;
             }
 
+            if (!is_scalar($value) && null !== $value) {
+                continue;
+            }
+
             $normalizedValue = $this->normalizeNullableText(null !== $value ? (string) $value : null);
             if (null === $normalizedValue) {
                 continue;

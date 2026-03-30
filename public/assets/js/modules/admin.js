@@ -217,6 +217,20 @@ export function setupTopMenuTargetTabs(){
       tab.addEventListener('click', ()=>{
         activateTab(tab.getAttribute('data-menu-target-tab') || '');
       });
+
+      tab.addEventListener('keydown', (event)=>{
+        if(event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+
+        event.preventDefault();
+        const currentIndex = tabs.indexOf(tab);
+        const direction = event.key === 'ArrowRight' ? 1 : -1;
+        const nextIndex = (currentIndex + direction + tabs.length) % tabs.length;
+        const nextTab = tabs[nextIndex];
+        if(!nextTab) return;
+
+        activateTab(nextTab.getAttribute('data-menu-target-tab') || '');
+        nextTab.focus({ preventScroll: true });
+      });
     });
 
     activateTab(root.getAttribute('data-menu-target-active') || input.value || tabs[0]?.getAttribute('data-menu-target-tab') || '');

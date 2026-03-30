@@ -63,6 +63,12 @@ final class TopMenuItemControllerTest extends TestCase
         $entityManager->expects($this->once())->method('flush');
 
         $controller = new TestTopMenuItemController();
+        $articleRepository = $this->createMock(ArticleRepository::class);
+        $articleRepository
+            ->expects($this->once())
+            ->method('findRecentForTopMenuSelection')
+            ->willReturn([]);
+
         $request = new Request([], [
             'top_menu_item' => [
                 'labels' => ['pl' => 'Kontakt', 'en' => 'Contact'],
@@ -78,7 +84,7 @@ final class TopMenuItemControllerTest extends TestCase
             $entityManager,
             $this->createTopMenuRepositoryMock([]),
             $this->createMock(ArticleCategoryRepository::class),
-            $this->createMock(ArticleRepository::class),
+            $articleRepository,
             $this->createUserLanguageResolverMock('en'),
         );
 
