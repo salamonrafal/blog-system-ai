@@ -69,8 +69,8 @@
                             <td class="user-index-email-cell">
                                 <strong>{{ item.localizedLabel(user_language) }}</strong>
                                 <div class="article-index-updated-cell">
-                                    <span data-lang="pl">PL: {{ item.label('pl') ?? '—' }}</span>
-                                    <span data-lang="en">EN: {{ item.label('en') ?? '—' }}</span>
+                                    <span data-lang="pl">PL: {{ item.label('pl', null) ?? '—' }}</span>
+                                    <span data-lang="en">EN: {{ item.label('en', null) ?? '—' }}</span>
                                 </div>
                             </td>
                             <td>

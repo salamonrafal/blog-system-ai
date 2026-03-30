@@ -248,4 +248,4 @@
 - Podłączono top menu do globalnych danych Twiga i layoutu aplikacji, zastępując twardo wpisaną nawigację dynamicznym renderowaniem w desktopowym topbarze i mobilnym drawerze wraz z obsługą zagnieżdżonych submenu.
 - Rozszerzono dashboard oraz pływające skróty administracyjne o szybki dostęp do modułu `Top menu`.
 - Uzupełniono tłumaczenia i18n, komunikaty walidacyjne, style oraz JavaScript potrzebne do obsługi zakładek typu linku, submenu i akcji usuwania elementów menu.
-- Dodano domyślne rekordy obecnej nawigacji w migracji oraz zestaw testów jednostkowych dla nowych klas i integracji z dashboardem oraz globalami Twiga.
+- Dodano zestaw testów jednostkowych dla nowych klas i integracji z dashboardem oraz globalami Twiga.

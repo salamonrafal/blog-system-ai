@@ -33,8 +33,6 @@ class TopMenuItem
     #[ORM\Column(enumType: TopMenuItemTargetType::class)]
     private TopMenuItemTargetType $targetType = TopMenuItemTargetType::BLOG_HOME;
 
-    #[Assert\Length(max: 500, maxMessage: 'validation_top_menu_external_url_too_long')]
-    #[Assert\Regex(pattern: '/^(https?:\/\/).+/', message: 'validation_top_menu_external_url_invalid')]
     #[ORM\Column(length: 500, nullable: true)]
     private ?string $externalUrl = null;
 
@@ -202,7 +200,7 @@ class TopMenuItem
 
     public function setPosition(int $position): self
     {
-        $this->position = max(0, $position);
+        $this->position = $position;
 
         return $this;
     }
@@ -329,6 +327,20 @@ class TopMenuItem
     {
         if (null === $this->externalUrl || '' === $this->externalUrl) {
             $context->buildViolation('validation_top_menu_external_url_required')
+                ->atPath('externalUrl')
+                ->addViolation();
+
+            return;
+        }
+
+        if (mb_strlen($this->externalUrl) > 500) {
+            $context->buildViolation('validation_top_menu_external_url_too_long')
+                ->atPath('externalUrl')
+                ->addViolation();
+        }
+
+        if (!preg_match('/^(https?:\/\/).+/', $this->externalUrl)) {
+            $context->buildViolation('validation_top_menu_external_url_invalid')
                 ->atPath('externalUrl')
                 ->addViolation();
         }
