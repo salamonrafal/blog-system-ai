@@ -2,15 +2,36 @@
     <div class="mobile-menu-item{{ item.has_children ? ' has-children' : '' }}">
         {% if item.has_children %}
             {% set submenu_id = 'mobile-menu-children-' ~ (item.id ?? loop.index0) %}
-            <button
-                type="button"
-                class="mobile-menu-link"
-                data-menu-label-pl="{{ item.label_pl }}"
-                data-menu-label-en="{{ item.label_en }}"
-                data-action="toggle-mobile-submenu"
-                aria-expanded="false"
-                aria-controls="{{ submenu_id }}"
-            >{{ item.label }}</button>
+            {% if item.url %}
+                <div class="mobile-menu-link-group">
+                    <a
+                        class="mobile-menu-link"
+                        href="{{ item.url }}"
+                        data-menu-label-pl="{{ item.label_pl }}"
+                        data-menu-label-en="{{ item.label_en }}"
+                        {% if item.open_in_new_window|default(false) %} target="_blank" rel="noreferrer noopener"{% endif %}
+                    >{{ item.label }}</a>
+                    <button
+                        type="button"
+                        class="mobile-menu-toggle"
+                        data-action="toggle-mobile-submenu"
+                        aria-expanded="false"
+                        aria-controls="{{ submenu_id }}"
+                    >
+                        <span class="sr-only">{{ item.label }}</span>
+                    </button>
+                </div>
+            {% else %}
+                <button
+                    type="button"
+                    class="mobile-menu-link"
+                    data-menu-label-pl="{{ item.label_pl }}"
+                    data-menu-label-en="{{ item.label_en }}"
+                    data-action="toggle-mobile-submenu"
+                    aria-expanded="false"
+                    aria-controls="{{ submenu_id }}"
+                >{{ item.label }}</button>
+            {% endif %}
         {% elseif item.url %}
             <a
                 class="mobile-menu-link"

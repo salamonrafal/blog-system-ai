@@ -105,6 +105,34 @@ export function setupNav(){
     }
   });
 
+  qsa('.nav .nav-item.has-children').forEach((item)=>{
+    const trigger = qs('.nav-link', item);
+    if(!trigger) return;
+
+    const setExpanded = (expanded)=>{
+      trigger.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    };
+
+    setExpanded(false);
+
+    item.addEventListener('mouseenter', ()=>{
+      setExpanded(true);
+    });
+
+    item.addEventListener('mouseleave', ()=>{
+      setExpanded(false);
+    });
+
+    item.addEventListener('focusin', ()=>{
+      setExpanded(true);
+    });
+
+    item.addEventListener('focusout', (event)=>{
+      if(item.contains(event.relatedTarget)) return;
+      setExpanded(false);
+    });
+  });
+
   const burger = qs('[data-action="toggle-menu"]');
   const drawer = qs('.mobile-drawer');
   if(!burger || !drawer) return;
@@ -155,7 +183,12 @@ export function setupNav(){
   });
 
   burger.addEventListener('click', ()=>{
-    drawer.classList.toggle('open');
+    const isOpen = drawer.classList.toggle('open');
+    if(!isOpen){
+      qsa('.mobile-menu-item.has-children.is-open', drawer).forEach((item)=>{
+        closeMobileSubmenu(item);
+      });
+    }
   });
 
   qsa('a', drawer).forEach((anchor)=>{
