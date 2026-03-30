@@ -48,12 +48,7 @@ Fullstack Developer</span>
         </a>
 
         <nav class="nav" data-i18n-aria="site_primary_navigation_aria" aria-label="Nawigacja główna">
-            <a href="https://www.salamonrafal.pl/" data-i18n="nav_home">Start</a>
-            <a href="https://www.salamonrafal.pl/about.html" data-i18n="nav_about">O mnie</a>
-            <a href="https://www.salamonrafal.pl/projects.html" data-i18n="nav_projects">Moje projekty</a>
-            <a href="https://www.salamonrafal.pl/tools.html" data-i18n="nav_tools">Moje narzędzia</a>
-            <a href="{{ path('blog_index') }}" data-i18n="nav_blog">Blog</a>
-            <a href="https://www.salamonrafal.pl/contact.html" data-i18n="nav_contact">Kontakt</a>
+            {% include '_top_menu_items.html.twig' with { items: top_menu_items } %}
         </nav>
 
         <div class="actions">
@@ -70,12 +65,7 @@ Fullstack Developer</span>
 </header>
 
 <div class="mobile-drawer" role="dialog" data-i18n-aria="site_mobile_menu_aria" aria-label="Menu mobilne">
-    <a href="https://www.salamonrafal.pl/" data-i18n="nav_home">Start</a>
-    <a href="https://www.salamonrafal.pl/about.html" data-i18n="nav_about">O mnie</a>
-    <a href="https://www.salamonrafal.pl/projects.html" data-i18n="nav_projects">Moje projekty</a>
-    <a href="https://www.salamonrafal.pl/tools.html" data-i18n="nav_tools">Moje narzędzia</a>
-    <a href="{{ path('blog_index') }}" data-i18n="nav_blog">Blog</a>
-    <a href="https://www.salamonrafal.pl/contact.html" data-i18n="nav_contact">Kontakt</a>
+    {% include '_mobile_top_menu_items.html.twig' with { items: top_menu_items } %}
     <div class="mobile-controls">
         <div class="chip mobile-preferences" title="User preferences / Preferencje użytkownika">
             <span data-i18n="chip_prefs">Preferencje</span>
@@ -186,6 +176,17 @@ Fullstack Developer</span>
                                     </svg>
                                 </span>
                                 <span data-i18n="admin_shortcut_categories">Kategorie artykułów</span>
+                            </a>
+                            <a class="admin-shortcuts-link admin-shortcuts-sublink" href="{{ path('admin_top_menu_index') }}">
+                                <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 32 32">
+                                        <path d="M7 10h18"></path>
+                                        <path d="M7 16h12"></path>
+                                        <path d="M7 22h16"></path>
+                                        <circle cx="24" cy="16" r="2"></circle>
+                                    </svg>
+                                </span>
+                                <span data-i18n="admin_shortcut_top_menu">Top menu</span>
                             </a>
                         </div>
                     </div>

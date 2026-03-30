@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Twig;
 
 use App\Service\BlogSettingsProvider;
+use App\Service\TopMenuBuilder;
 use App\Service\UserLanguageResolver;
 use App\Service\UserTimeZoneResolver;
 use App\Repository\ArticleExportQueueRepository;
 use App\Repository\ArticleExportRepository;
 use App\Repository\ArticleImportQueueRepository;
+use App\Repository\TopMenuItemRepository;
 use Twig\Extension\AbstractExtension;
 use Twig\Extension\GlobalsInterface;
 use Twig\TwigFunction;
@@ -27,6 +29,8 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
         private readonly ArticleImportQueueRepository $articleImportQueueRepository,
         private readonly ArticleExportQueueRepository $articleExportQueueRepository,
         private readonly ArticleExportRepository $articleExportRepository,
+        private readonly TopMenuItemRepository $topMenuItemRepository,
+        private readonly TopMenuBuilder $topMenuBuilder,
         private readonly string $appEnv,
     )
     {
@@ -45,6 +49,7 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
         $pendingImportCount = $this->articleImportQueueRepository->countPending();
         $pendingExportQueueCount = $this->articleExportQueueRepository->countPending();
         $newExportCount = $this->articleExportRepository->countNew();
+        $topMenuItems = $this->topMenuBuilder->buildActiveTree($this->topMenuItemRepository->findActiveOrdered());
 
         return [
             'app_name' => $settings->getBlogTitle(),
@@ -63,6 +68,7 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
                 'exports' => $newExportCount,
                 'import_export' => $pendingImportCount + $pendingExportQueueCount + $newExportCount,
             ],
+            'top_menu_items' => $topMenuItems,
         ];
     }
 

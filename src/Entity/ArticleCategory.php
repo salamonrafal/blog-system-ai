@@ -16,6 +16,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[UniqueEntity(fields: ['name'], message: 'Ta nazwa kategorii jest już zajęta.')]
 class ArticleCategory
 {
+    use EntityTextNormalizationTrait;
+
     private const STORAGE_TIMEZONE = 'UTC';
 
     #[ORM\Id]
@@ -268,48 +270,6 @@ class ArticleCategory
     public function onPreUpdate(): void
     {
         $this->updatedAt = self::utcNow();
-    }
-
-    private function normalizeNullableText(?string $value): ?string
-    {
-        if (null === $value) {
-            return null;
-        }
-
-        $value = trim($value);
-
-        return '' === $value ? null : $value;
-    }
-
-    private function normalizeTranslations(array $translations): array
-    {
-        $normalized = [];
-
-        foreach ($translations as $language => $value) {
-            if (!is_string($language)) {
-                continue;
-            }
-
-            $language = strtolower(trim($language));
-            if ('' === $language) {
-                continue;
-            }
-
-            if (!is_scalar($value) && null !== $value) {
-                continue;
-            }
-
-            $normalizedValue = $this->normalizeNullableText(null !== $value ? (string) $value : null);
-            if (null === $normalizedValue) {
-                continue;
-            }
-
-            $normalized[$language] = $normalizedValue;
-        }
-
-        ksort($normalized);
-
-        return $normalized;
     }
 
     private static function utcNow(): \DateTimeImmutable

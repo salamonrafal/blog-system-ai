@@ -1,0 +1,198 @@
+{{ form_start(form, { attr: { class: 'article-editor-form' } }) }}
+    {% if form.vars.errors|length > 0 %}
+        <div class="form-errors article-editor-errors" role="alert">
+            {% for error in form.vars.errors %}
+                <p>{{ i18n_fallback(error.message) }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="article-editor-fields">
+        <section class="article-category-translation-tabs" data-translation-tabs>
+            <div class="article-editor-help-tabs article-category-translation-tab-list" role="tablist" data-i18n-aria="top_menu_translation_tabs_aria" aria-label="Tłumaczenia elementu menu">
+                {% for label_field in form.labels %}
+                    {% set language = label_field.vars.name %}
+                    {% set language_label_key = language == 'pl' ? 'category_language_pl' : language == 'en' ? 'category_language_en' : '' %}
+                    <button
+                        type="button"
+                        class="article-editor-help-tab article-category-translation-tab{{ loop.first ? ' is-active' : '' }}"
+                        data-translation-tab="{{ language }}"
+                        role="tab"
+                        aria-selected="{{ loop.first ? 'true' : 'false' }}"
+                        aria-controls="top-menu-translation-panel-{{ language }}"
+                        id="top-menu-translation-tab-{{ language }}"
+                        tabindex="{{ loop.first ? '0' : '-1' }}"
+                    >
+                        <span class="article-category-translation-tab-language"{% if language_label_key %} data-i18n="{{ language_label_key }}"{% endif %}>{{ language == 'pl' ? 'Polski (PL)' : 'English (EN)' }}</span>
+                        <span class="article-category-translation-tab-scope" data-i18n="top_menu_translation_scope">Nazwa elementu</span>
+                    </button>
+                {% endfor %}
+            </div>
+
+            <div class="article-editor-help-panels article-category-translation-panels">
+                {% for label_field in form.labels %}
+                    {% set language = label_field.vars.name %}
+                    {% set language_label_key = language == 'pl' ? 'category_language_pl' : language == 'en' ? 'category_language_en' : '' %}
+                    {% set has_errors = label_field.vars.errors|length > 0 %}
+                    <section
+                        id="top-menu-translation-panel-{{ language }}"
+                        class="article-editor-help-panel article-category-translation-panel{{ loop.first ? ' is-active' : '' }}"
+                        data-translation-panel="{{ language }}"
+                        role="tabpanel"
+                        aria-labelledby="top-menu-translation-tab-{{ language }}"
+                        {{ loop.first ? '' : 'hidden' }}
+                    >
+                        <div class="article-category-translation-panel-header">
+                            <h2{% if language_label_key %} data-i18n="{{ language_label_key }}"{% endif %}>{{ language == 'pl' ? 'Polski (PL)' : 'English (EN)' }}</h2>
+                            <p data-i18n="top_menu_translation_panel_lede">Zdefiniuj nazwę elementu menu dla wybranego języka.</p>
+                        </div>
+
+                        <div class="field article-editor-field{{ has_errors ? ' has-error' : '' }}">
+                            {{ form_label(label_field) }}
+                            {{ form_widget(label_field, {
+                                attr: label_field.vars.attr|merge(has_errors ? {'aria-invalid': 'true', 'aria-describedby': label_field.vars.id ~ '-error'} : {})
+                            }) }}
+                            {% if has_errors %}
+                                <div id="{{ label_field.vars.id }}-error" class="article-editor-error-message" role="alert">
+                                    {% for error in label_field.vars.errors %}
+                                        <p>{{ i18n_fallback(error.message) }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </section>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="article-category-translation-tabs" data-menu-target-tabs data-menu-target-active="{{ form.targetType.vars.value }}">
+            <div class="article-editor-help-tabs article-category-translation-tab-list" role="tablist" data-i18n-aria="top_menu_target_tabs_aria" aria-label="Typ celu elementu menu">
+                {% for choice in form.targetType.vars.choices %}
+                    <button
+                        type="button"
+                        class="article-editor-help-tab article-category-translation-tab{{ choice.value == form.targetType.vars.value ? ' is-active' : '' }}"
+                        data-menu-target-tab="{{ choice.value }}"
+                        role="tab"
+                        aria-selected="{{ choice.value == form.targetType.vars.value ? 'true' : 'false' }}"
+                        aria-controls="top-menu-target-panel-{{ choice.value }}"
+                        id="top-menu-target-tab-{{ choice.value }}"
+                        tabindex="{{ choice.value == form.targetType.vars.value ? '0' : '-1' }}"
+                    >
+                        <span class="article-category-translation-tab-language" data-i18n="{{ choice.data.translationKey }}">{{ choice.label }}</span>
+                    </button>
+                {% endfor %}
+            </div>
+
+            <div class="article-editor-help-panels article-category-translation-panels">
+                {% for choice in form.targetType.vars.choices %}
+                    {% set is_active = choice.value == form.targetType.vars.value %}
+                    <section
+                        id="top-menu-target-panel-{{ choice.value }}"
+                        class="article-editor-help-panel article-category-translation-panel{{ is_active ? ' is-active' : '' }}"
+                        data-menu-target-panel="{{ choice.value }}"
+                        role="tabpanel"
+                        aria-labelledby="top-menu-target-tab-{{ choice.value }}"
+                        {{ is_active ? '' : 'hidden' }}
+                    >
+                        <div class="article-category-translation-panel-header">
+                            <h2 data-i18n="{{ choice.data.translationKey }}">{{ choice.label }}</h2>
+                            <p
+                                {% if choice.value == 'external_url' %}data-i18n="top_menu_target_panel_external_lede"
+                                {% elseif choice.value == 'blog_home' %}data-i18n="top_menu_target_panel_blog_lede"
+                                {% elseif choice.value == 'article_category' %}data-i18n="top_menu_target_panel_category_lede"
+                                {% else %}data-i18n="top_menu_target_panel_article_lede"{% endif %}
+                            >
+                                {% if choice.value == 'external_url' %}
+                                    Przekierowanie do zewnętrznej strony internetowej.
+                                {% elseif choice.value == 'blog_home' %}
+                                    Odnośnik do strony głównej bloga.
+                                {% elseif choice.value == 'article_category' %}
+                                    Odnośnik do wybranej kategorii artykułów.
+                                {% else %}
+                                    Odnośnik do konkretnego artykułu.
+                                {% endif %}
+                            </p>
+                        </div>
+
+                        {% if choice.value == 'external_url' %}
+                            {% set external_url_has_errors = form.externalUrl.vars.errors|length > 0 %}
+                            <div class="field article-editor-field{{ external_url_has_errors ? ' has-error' : '' }}">
+                                {{ form_label(form.externalUrl) }}
+                                {{ form_widget(form.externalUrl, {
+                                    attr: form.externalUrl.vars.attr|merge(external_url_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.externalUrl.vars.id ~ '-error'} : {})
+                                }) }}
+                                {% if external_url_has_errors %}
+                                    <div id="{{ form.externalUrl.vars.id }}-error" class="article-editor-error-message" role="alert">
+                                        {% for error in form.externalUrl.vars.errors %}
+                                            <p>{{ i18n_fallback(error.message) }}</p>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% elseif choice.value == 'article_category' %}
+                            {% set article_category_has_errors = form.articleCategory.vars.errors|length > 0 %}
+                            <div class="field article-editor-field{{ article_category_has_errors ? ' has-error' : '' }}">
+                                {{ form_label(form.articleCategory) }}
+                                {{ form_widget(form.articleCategory, {
+                                    attr: form.articleCategory.vars.attr|merge(article_category_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.articleCategory.vars.id ~ '-error'} : {})
+                                }) }}
+                                {% if article_category_has_errors %}
+                                    <div id="{{ form.articleCategory.vars.id }}-error" class="article-editor-error-message" role="alert">
+                                        {% for error in form.articleCategory.vars.errors %}
+                                            <p>{{ i18n_fallback(error.message) }}</p>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% elseif choice.value == 'article' %}
+                            {% set article_has_errors = form.article.vars.errors|length > 0 %}
+                            <div class="field article-editor-field{{ article_has_errors ? ' has-error' : '' }}">
+                                {{ form_label(form.article) }}
+                                {{ form_widget(form.article, {
+                                    attr: form.article.vars.attr|merge(article_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.article.vars.id ~ '-error'} : {})
+                                }) }}
+                                {% if article_has_errors %}
+                                    <div id="{{ form.article.vars.id }}-error" class="article-editor-error-message" role="alert">
+                                        {% for error in form.article.vars.errors %}
+                                            <p>{{ i18n_fallback(error.message) }}</p>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </section>
+                {% endfor %}
+            </div>
+        </section>
+
+        <div hidden>
+            {{ form_row(form.targetType) }}
+        </div>
+
+        <div class="article-editor-grid">
+            {% for field in [form.parent, form.position, form.status] %}
+                {% set has_errors = field.vars.errors|length > 0 %}
+                <div class="field article-editor-field{{ has_errors ? ' has-error' : '' }}">
+                    {{ form_label(field) }}
+                    {{ form_widget(field, {
+                        attr: field.vars.attr|merge(has_errors ? {'aria-invalid': 'true', 'aria-describedby': field.vars.id ~ '-error'} : {})
+                    }) }}
+                    {% if has_errors %}
+                        <div id="{{ field.vars.id }}-error" class="article-editor-error-message" role="alert">
+                            {% for error in field.vars.errors %}
+                                <p>{{ i18n_fallback(error.message) }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {{ form_rest(form) }}
+
+    <div class="actions article-editor-actions">
+        <button class="button" type="submit" data-i18n="{{ submit_key|default('top_menu_form_submit_save') }}">{{ submit_label|default('Zapisz element menu') }}</button>
+        <a class="button secondary" href="{{ path('admin_top_menu_index') }}" data-i18n="top_menu_form_back_to_list">Wróć do listy</a>
+    </div>
+{{ form_end(form) }}

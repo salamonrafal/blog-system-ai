@@ -1,0 +1,10 @@
+{% for item in items %}
+    <div class="mobile-menu-item{{ item.has_children ? ' has-children' : '' }}">
+        <a href="{{ item.url }}"{% if item.external %} target="_blank" rel="noreferrer noopener"{% endif %}>{{ item.label }}</a>
+        {% if item.has_children %}
+            <div class="mobile-menu-children">
+                {% include '_mobile_top_menu_items.html.twig' with { items: item.children } %}
+            </div>
+        {% endif %}
+    </div>
+{% endfor %}
