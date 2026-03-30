@@ -6,9 +6,11 @@ namespace App\Tests\Unit\Controller\Admin;
 
 use App\Controller\Admin\ArticleExportController;
 use App\Entity\ArticleExport;
+use App\Entity\BlogSettings;
 use App\Enum\ArticleExportType;
 use App\Repository\ArticleExportRepository;
 use App\Service\ArticleExportFileWriter;
+use App\Service\BlogSettingsProvider;
 use App\Service\ManagedFilePathResolver;
 use App\Service\PaginationBuilder;
 use PHPUnit\Framework\TestCase;
@@ -38,12 +40,17 @@ final class ArticleExportControllerTest extends TestCase
         $repository
             ->expects($this->never())
             ->method('findBy');
+        $blogSettingsProvider = $this->createMock(BlogSettingsProvider::class);
+        $blogSettingsProvider
+            ->expects($this->once())
+            ->method('getSettings')
+            ->willReturn((new BlogSettings())->setAdminListingItemsPerPage(25));
 
         $controller = new TestArticleExportController(
             $this->createStub(ManagedFilePathResolver::class),
             $this->createStub(ArticleExportFileWriter::class),
         );
-        $response = $controller->index(new Request(), $repository, new PaginationBuilder());
+        $response = $controller->index(new Request(), $repository, $blogSettingsProvider, new PaginationBuilder());
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
         $this->assertSame('admin/article_export/index.html.twig', $controller->capturedView);

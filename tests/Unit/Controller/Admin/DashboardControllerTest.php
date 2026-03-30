@@ -350,14 +350,8 @@ final class DashboardControllerTest extends TestCase
         /** @var ArticleImportQueueRepository&MockObject $repository */
         $repository = $this->createMock(ArticleImportQueueRepository::class);
         $repository
-            ->method('count')
-            ->willReturnCallback(static function (array $criteria) use ($counts): int {
-                if ([] === $criteria) {
-                    return $counts['all'];
-                }
-
-                return $counts[$criteria['status']->value] ?? 0;
-            });
+            ->method('countGroupedByStatus')
+            ->willReturn($counts);
 
         return $repository;
     }
@@ -417,14 +411,8 @@ final class DashboardControllerTest extends TestCase
         /** @var ArticleExportQueueRepository&MockObject $repository */
         $repository = $this->createMock(ArticleExportQueueRepository::class);
         $repository
-            ->method('count')
-            ->willReturnCallback(static function (array $criteria) use ($counts): int {
-                if ([] === $criteria) {
-                    return $counts['all'];
-                }
-
-                return $counts[$criteria['status']->value] ?? 0;
-            });
+            ->method('countGroupedByStatus')
+            ->willReturn($counts);
 
         return $repository;
     }
@@ -437,14 +425,8 @@ final class DashboardControllerTest extends TestCase
         /** @var CategoryExportQueueRepository&MockObject $repository */
         $repository = $this->createMock(CategoryExportQueueRepository::class);
         $repository
-            ->method('count')
-            ->willReturnCallback(static function (array $criteria) use ($counts): int {
-                if ([] === $criteria) {
-                    return $counts['all'];
-                }
-
-                return $counts[$criteria['status']->value] ?? 0;
-            });
+            ->method('countGroupedByStatus')
+            ->willReturn($counts);
 
         return $repository;
     }

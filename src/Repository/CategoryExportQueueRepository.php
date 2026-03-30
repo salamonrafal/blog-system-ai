@@ -18,6 +18,8 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class CategoryExportQueueRepository extends ServiceEntityRepository
 {
+    use QueueStatusCountNormalizerTrait;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, CategoryExportQueue::class);
@@ -145,5 +147,31 @@ class CategoryExportQueueRepository extends ServiceEntityRepository
         return $this->count([
             'status' => ArticleExportQueueStatus::PENDING,
         ]);
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    public function countGroupedByStatus(): array
+    {
+        $rows = $this->createQueryBuilder('queue_item')
+            ->select('queue_item.status AS status, COUNT(queue_item.id) AS items_count')
+            ->groupBy('queue_item.status')
+            ->getQuery()
+            ->getArrayResult();
+
+        $counts = ['all' => 0];
+        foreach (ArticleExportQueueStatus::cases() as $status) {
+            $counts[$status->value] = 0;
+        }
+
+        foreach ($rows as $row) {
+            $status = $this->normalizeQueueStatusValue($row['status'] ?? '');
+            $count = (int) ($row['items_count'] ?? 0);
+            $counts[$status] = $count;
+            $counts['all'] += $count;
+        }
+
+        return $counts;
     }
 }

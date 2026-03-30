@@ -41,6 +41,11 @@ class DashboardController extends AbstractController
     {
         $settings = $blogSettingsRepository->findCurrent();
         $user = $this->resolveDashboardUser();
+        $importQueueCounts = $articleImportQueueRepository->countGroupedByStatus();
+        $articleExportQueueCounts = $articleExportQueueRepository->countGroupedByStatus();
+        $categoryExportQueueCounts = $categoryExportQueueRepository->countGroupedByStatus();
+        $exportQueueCounts = $this->mergeQueueCounts($articleExportQueueCounts, $categoryExportQueueCounts);
+        $allQueueCounts = $this->mergeQueueCounts($importQueueCounts, $exportQueueCounts);
 
         return $this->render('admin/dashboard/index.html.twig', [
             'dashboard_user' => [
@@ -93,11 +98,11 @@ class DashboardController extends AbstractController
                     'description_key' => 'admin_dashboard_panel_imports_description',
                     'description' => 'Dodawanie paczek JSON do kolejki i kontrola stanu przetwarzania.',
                     'stats' => [
-                        $this->dashboardStat($articleImportQueueRepository->count([]), 'admin_dashboard_stat_all', 'Wszystkie'),
-                        $this->dashboardStat($articleImportQueueRepository->count(['status' => ArticleImportQueueStatus::PENDING]), 'admin_dashboard_stat_pending', 'Oczekujące'),
-                        $this->dashboardStat($articleImportQueueRepository->count(['status' => ArticleImportQueueStatus::PROCESSING]), 'admin_dashboard_stat_processing', 'W trakcie'),
-                        $this->dashboardStat($articleImportQueueRepository->count(['status' => ArticleImportQueueStatus::COMPLETED]), 'admin_dashboard_stat_completed', 'Zakończone'),
-                        $this->dashboardStat($articleImportQueueRepository->count(['status' => ArticleImportQueueStatus::FAILED]), 'admin_dashboard_stat_errors', 'Błędy'),
+                        $this->dashboardStat($importQueueCounts['all'], 'admin_dashboard_stat_all', 'Wszystkie'),
+                        $this->dashboardStat($importQueueCounts[ArticleImportQueueStatus::PENDING->value], 'admin_dashboard_stat_pending', 'Oczekujące'),
+                        $this->dashboardStat($importQueueCounts[ArticleImportQueueStatus::PROCESSING->value], 'admin_dashboard_stat_processing', 'W trakcie'),
+                        $this->dashboardStat($importQueueCounts[ArticleImportQueueStatus::COMPLETED->value], 'admin_dashboard_stat_completed', 'Zakończone'),
+                        $this->dashboardStat($importQueueCounts[ArticleImportQueueStatus::FAILED->value], 'admin_dashboard_stat_errors', 'Błędy'),
                     ],
                     'meta' => [],
                     'primary_action' => $this->dashboardAction('admin_dashboard_action_browse', 'Przeglądaj', 'admin_article_import_index'),
@@ -131,11 +136,11 @@ class DashboardController extends AbstractController
                             'title_key' => 'admin_dashboard_stat_all',
                             'title' => 'Wszystkie',
                             'stats' => [
-                                $this->dashboardStat($articleImportQueueRepository->count([]) + $articleExportQueueRepository->count([]) + $categoryExportQueueRepository->count([]), 'admin_dashboard_stat_all', 'Wszystkie'),
-                                $this->dashboardStat($articleImportQueueRepository->count(['status' => ArticleImportQueueStatus::PENDING]) + $articleExportQueueRepository->count(['status' => ArticleExportQueueStatus::PENDING]) + $categoryExportQueueRepository->count(['status' => ArticleExportQueueStatus::PENDING]), 'admin_dashboard_stat_pending', 'Oczekujące'),
-                                $this->dashboardStat($articleImportQueueRepository->count(['status' => ArticleImportQueueStatus::PROCESSING]) + $articleExportQueueRepository->count(['status' => ArticleExportQueueStatus::PROCESSING]) + $categoryExportQueueRepository->count(['status' => ArticleExportQueueStatus::PROCESSING]), 'admin_dashboard_stat_processing', 'W trakcie'),
-                                $this->dashboardStat($articleImportQueueRepository->count(['status' => ArticleImportQueueStatus::COMPLETED]) + $articleExportQueueRepository->count(['status' => ArticleExportQueueStatus::COMPLETED]) + $categoryExportQueueRepository->count(['status' => ArticleExportQueueStatus::COMPLETED]), 'admin_dashboard_stat_completed', 'Zakończone'),
-                                $this->dashboardStat($articleImportQueueRepository->count(['status' => ArticleImportQueueStatus::FAILED]) + $articleExportQueueRepository->count(['status' => ArticleExportQueueStatus::FAILED]) + $categoryExportQueueRepository->count(['status' => ArticleExportQueueStatus::FAILED]), 'admin_dashboard_stat_errors', 'Błędy'),
+                                $this->dashboardStat($allQueueCounts['all'], 'admin_dashboard_stat_all', 'Wszystkie'),
+                                $this->dashboardStat($allQueueCounts[ArticleImportQueueStatus::PENDING->value], 'admin_dashboard_stat_pending', 'Oczekujące'),
+                                $this->dashboardStat($allQueueCounts[ArticleImportQueueStatus::PROCESSING->value], 'admin_dashboard_stat_processing', 'W trakcie'),
+                                $this->dashboardStat($allQueueCounts[ArticleImportQueueStatus::COMPLETED->value], 'admin_dashboard_stat_completed', 'Zakończone'),
+                                $this->dashboardStat($allQueueCounts[ArticleImportQueueStatus::FAILED->value], 'admin_dashboard_stat_errors', 'Błędy'),
                             ],
                         ],
                         [
@@ -143,11 +148,11 @@ class DashboardController extends AbstractController
                             'title_key' => 'admin_dashboard_queue_import',
                             'title' => 'Kolejka importu',
                             'stats' => [
-                                $this->dashboardStat($articleImportQueueRepository->count([]), 'admin_dashboard_stat_all', 'Wszystkie'),
-                                $this->dashboardStat($articleImportQueueRepository->count(['status' => ArticleImportQueueStatus::PENDING]), 'admin_dashboard_stat_pending', 'Oczekujące'),
-                                $this->dashboardStat($articleImportQueueRepository->count(['status' => ArticleImportQueueStatus::PROCESSING]), 'admin_dashboard_stat_processing', 'W trakcie'),
-                                $this->dashboardStat($articleImportQueueRepository->count(['status' => ArticleImportQueueStatus::COMPLETED]), 'admin_dashboard_stat_completed', 'Zakończone'),
-                                $this->dashboardStat($articleImportQueueRepository->count(['status' => ArticleImportQueueStatus::FAILED]), 'admin_dashboard_stat_errors', 'Błędy'),
+                                $this->dashboardStat($importQueueCounts['all'], 'admin_dashboard_stat_all', 'Wszystkie'),
+                                $this->dashboardStat($importQueueCounts[ArticleImportQueueStatus::PENDING->value], 'admin_dashboard_stat_pending', 'Oczekujące'),
+                                $this->dashboardStat($importQueueCounts[ArticleImportQueueStatus::PROCESSING->value], 'admin_dashboard_stat_processing', 'W trakcie'),
+                                $this->dashboardStat($importQueueCounts[ArticleImportQueueStatus::COMPLETED->value], 'admin_dashboard_stat_completed', 'Zakończone'),
+                                $this->dashboardStat($importQueueCounts[ArticleImportQueueStatus::FAILED->value], 'admin_dashboard_stat_errors', 'Błędy'),
                             ],
                         ],
                         [
@@ -155,11 +160,11 @@ class DashboardController extends AbstractController
                             'title_key' => 'admin_dashboard_queue_export',
                             'title' => 'Kolejka eksportu',
                             'stats' => [
-                                $this->dashboardStat($articleExportQueueRepository->count([]) + $categoryExportQueueRepository->count([]), 'admin_dashboard_stat_all', 'Wszystkie'),
-                                $this->dashboardStat($articleExportQueueRepository->count(['status' => ArticleExportQueueStatus::PENDING]) + $categoryExportQueueRepository->count(['status' => ArticleExportQueueStatus::PENDING]), 'admin_dashboard_stat_pending', 'Oczekujące'),
-                                $this->dashboardStat($articleExportQueueRepository->count(['status' => ArticleExportQueueStatus::PROCESSING]) + $categoryExportQueueRepository->count(['status' => ArticleExportQueueStatus::PROCESSING]), 'admin_dashboard_stat_processing', 'W trakcie'),
-                                $this->dashboardStat($articleExportQueueRepository->count(['status' => ArticleExportQueueStatus::COMPLETED]) + $categoryExportQueueRepository->count(['status' => ArticleExportQueueStatus::COMPLETED]), 'admin_dashboard_stat_completed', 'Zakończone'),
-                                $this->dashboardStat($articleExportQueueRepository->count(['status' => ArticleExportQueueStatus::FAILED]) + $categoryExportQueueRepository->count(['status' => ArticleExportQueueStatus::FAILED]), 'admin_dashboard_stat_errors', 'Błędy'),
+                                $this->dashboardStat($exportQueueCounts['all'], 'admin_dashboard_stat_all', 'Wszystkie'),
+                                $this->dashboardStat($exportQueueCounts[ArticleExportQueueStatus::PENDING->value], 'admin_dashboard_stat_pending', 'Oczekujące'),
+                                $this->dashboardStat($exportQueueCounts[ArticleExportQueueStatus::PROCESSING->value], 'admin_dashboard_stat_processing', 'W trakcie'),
+                                $this->dashboardStat($exportQueueCounts[ArticleExportQueueStatus::COMPLETED->value], 'admin_dashboard_stat_completed', 'Zakończone'),
+                                $this->dashboardStat($exportQueueCounts[ArticleExportQueueStatus::FAILED->value], 'admin_dashboard_stat_errors', 'Błędy'),
                             ],
                         ],
                     ],
@@ -281,6 +286,23 @@ class DashboardController extends AbstractController
             'value' => $value,
             'value_key' => $valueKey,
         ];
+    }
+
+    /**
+     * @param array<string, int> $left
+     * @param array<string, int> $right
+     *
+     * @return array<string, int>
+     */
+    private function mergeQueueCounts(array $left, array $right): array
+    {
+        $merged = [];
+
+        foreach (array_unique([...array_keys($left), ...array_keys($right)]) as $key) {
+            $merged[$key] = ($left[$key] ?? 0) + ($right[$key] ?? 0);
+        }
+
+        return $merged;
     }
 
     private function resolveDashboardUser(): ?UserInterface

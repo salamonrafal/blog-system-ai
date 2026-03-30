@@ -46,13 +46,13 @@
                             type="button"
                             class="article-index-filter-trigger"
                             data-action="toggle-export-type-filter"
-                            {% if not selected_type %}data-i18n-aria="admin_exports_filter_all_types"{% endif %}
+                            data-i18n-aria="{{ selected_type ? selected_type.translationKey : 'admin_exports_filter_all_types' }}"
                             aria-haspopup="true"
                             aria-expanded="false"
                             aria-controls="article-export-type-filter-panel"
-                            aria-label="{{ selected_type ? selected_type.localizedLabel(user_language) : 'Wszystkie typy' }}"
+                            aria-label="{{ selected_type ? selected_type.label : 'Wszystkie typy' }}"
                         >
-                            <span class="article-index-filter-trigger-label"{% if not selected_type %} data-i18n="admin_exports_filter_all_types"{% endif %}>{{ selected_type ? selected_type.localizedLabel(user_language) : 'Wszystkie typy' }}</span>
+                            <span class="article-index-filter-trigger-label" data-i18n="{{ selected_type ? selected_type.translationKey : 'admin_exports_filter_all_types' }}">{{ selected_type ? selected_type.label : 'Wszystkie typy' }}</span>
                             <span class="article-index-filter-trigger-caret" aria-hidden="true">
                                 <svg viewBox="0 0 24 24">
                                     <path d="m7 10 5 5 5-5"></path>
@@ -69,8 +69,9 @@
                                     class="article-index-filter-option{{ selected_type and selected_type.value == export_type.value ? ' is-selected' : '' }}"
                                     data-export-type-option
                                     data-value="{{ export_type.value }}"
+                                    data-i18n="{{ export_type.translationKey }}"
                                 >
-                                    {{ export_type.localizedLabel(user_language) }}
+                                    {{ export_type.label }}
                                 </button>
                             {% endfor %}
                         </div>

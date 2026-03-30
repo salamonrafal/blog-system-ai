@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Entity\ArticleExport;
-use App\Entity\BlogSettings;
 use App\Enum\ArticleExportType;
 use App\Enum\ArticleExportStatus;
 use App\Repository\ArticleExportRepository;
 use App\Service\ArticleExportFileWriter;
+use App\Service\BlogSettingsProvider;
 use App\Service\ManagedFilePathResolver;
 use App\Service\PaginationBuilder;
 use App\Service\UserLanguageResolver;
@@ -34,11 +34,12 @@ class ArticleExportController extends AbstractController
     public function index(
         Request $request,
         ArticleExportRepository $articleExportRepository,
+        BlogSettingsProvider $blogSettingsProvider,
         PaginationBuilder $paginationBuilder,
     ): Response
     {
         $selectedType = $this->resolveSelectedType($request);
-        $itemsPerPage = BlogSettings::DEFAULT_ADMIN_LISTING_ITEMS_PER_PAGE;
+        $itemsPerPage = max(1, $blogSettingsProvider->getSettings()->getAdminListingItemsPerPage());
         $requestedPage = max(1, $request->query->getInt('page', 1));
         $totalExports = $articleExportRepository->countForAdminIndex($selectedType);
         $totalPages = max(1, (int) ceil($totalExports / $itemsPerPage));
