@@ -42,6 +42,6 @@ final class BlogSettingsProviderTest extends TestCase
         $this->assertSame(BlogSettings::DEFAULT_APP_URL, $settings->getAppUrl());
         $this->assertSame(BlogSettings::DEFAULT_BLOG_TITLE, $settings->getBlogTitle());
         $this->assertSame(BlogSettings::DEFAULT_ARTICLES_PER_PAGE, $settings->getArticlesPerPage());
-        $this->assertSame(BlogSettings::DEFAULT_ADMIN_ARTICLES_PER_PAGE, $settings->getAdminArticlesPerPage());
+        $this->assertSame(BlogSettings::DEFAULT_ADMIN_LISTING_ITEMS_PER_PAGE, $settings->getAdminListingItemsPerPage());
     }
 }

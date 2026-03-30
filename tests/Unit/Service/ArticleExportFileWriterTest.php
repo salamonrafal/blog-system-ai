@@ -97,6 +97,7 @@ final class ArticleExportFileWriterTest extends TestCase
         }
     }
 
+
     public function testDeleteRemovesExistingExportFile(): void
     {
         $projectDir = sys_get_temp_dir().'/article-export-writer-'.bin2hex(random_bytes(4));

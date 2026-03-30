@@ -24,7 +24,7 @@
                             <button
                                 class="button secondary"
                                 type="submit"
-                                data-article-bulk-submit
+                                data-bulk-submit="article"
                                 data-i18n="admin_article_bulk_export"
                             >
                                 Eksportuj zaznaczone
@@ -86,7 +86,7 @@
                             {% if articles is not empty %}
                                 <input
                                     type="checkbox"
-                                    data-article-select-all
+                                    data-select-all="article"
                                     data-i18n-aria="admin_article_select_all"
                                     aria-label="Zaznacz wszystkie artykuły"
                                 >
@@ -108,7 +108,7 @@
                                     name="article_ids[]"
                                     value="{{ article.id }}"
                                     form="article-bulk-export-form"
-                                    data-article-select-item
+                                    data-select-item="article"
                                     data-i18n-aria="admin_article_select"
                                     aria-label="Zaznacz artykuł"
                                 >

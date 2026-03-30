@@ -16,7 +16,7 @@
                 <div class="queue-status-intro-header">
                     <div class="queue-status-intro-copy">
                         <h1 data-i18n="admin_exports_title">Eksporty</h1>
-                        <p class="lede" data-i18n="admin_exports_lede">Lista pokazuje gotowe paczki eksportu artykułów zapisane przez zadanie działające w tle. Każdy wpis zawiera plik gotowy do ponownego importu.</p>
+                        <p class="lede" data-i18n="admin_exports_lede">Lista pokazuje gotowe paczki eksportu artykułów i kategorii zapisane przez zadanie działające w tle. Każdy wpis zawiera plik gotowy do późniejszego importu.</p>
                     </div>
                     <div class="actions">
                         <a class="button secondary" href="{{ path('admin_article_export_index') }}" data-i18n="admin_refresh">Odśwież</a>
@@ -37,6 +37,50 @@
                 </div>
             </div>
 
+            <div class="article-index-toolbar">
+                <form method="get" class="article-index-filter-panel" data-i18n-aria="admin_exports_filters_aria" aria-label="Filtry listy eksportów">
+                    <span class="article-index-filter-label" data-i18n="blog_filters">Filtry</span>
+                    <input type="hidden" name="type" value="{{ selected_type ? selected_type.value : '' }}" data-export-type-filter-input>
+                    <div class="article-index-filter-dropdown" data-export-type-filter>
+                        <button
+                            type="button"
+                            class="article-index-filter-trigger"
+                            data-action="toggle-export-type-filter"
+                            {% if not selected_type %}data-i18n-aria="admin_exports_filter_all_types"{% endif %}
+                            aria-haspopup="true"
+                            aria-expanded="false"
+                            aria-controls="article-export-type-filter-panel"
+                            aria-label="{{ selected_type ? selected_type.localizedLabel(user_language) : 'Wszystkie typy' }}"
+                        >
+                            <span class="article-index-filter-trigger-label"{% if not selected_type %} data-i18n="admin_exports_filter_all_types"{% endif %}>{{ selected_type ? selected_type.localizedLabel(user_language) : 'Wszystkie typy' }}</span>
+                            <span class="article-index-filter-trigger-caret" aria-hidden="true">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="m7 10 5 5 5-5"></path>
+                                </svg>
+                            </span>
+                        </button>
+                        <div class="article-index-filter-options" id="article-export-type-filter-panel" data-i18n-aria="admin_exports_filter_type" aria-label="Typ eksportu" aria-hidden="true" hidden>
+                            <button type="button" class="article-index-filter-option{{ not selected_type ? ' is-selected' : '' }}" data-export-type-option data-value="" data-i18n="admin_exports_filter_all_types">
+                                Wszystkie typy
+                            </button>
+                            {% for export_type in export_types %}
+                                <button
+                                    type="button"
+                                    class="article-index-filter-option{{ selected_type and selected_type.value == export_type.value ? ' is-selected' : '' }}"
+                                    data-export-type-option
+                                    data-value="{{ export_type.value }}"
+                                >
+                                    {{ export_type.localizedLabel(user_language) }}
+                                </button>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% if selected_type %}
+                        <a class="button secondary article-index-filter-reset" href="{{ path('admin_article_export_index') }}" data-i18n="admin_exports_filter_clear">Wyczyść</a>
+                    {% endif %}
+                </form>
+            </div>
+
             {% if exports is not empty %}
                 <div class="table-wrap article-index-table-wrap">
                     <table>
@@ -55,7 +99,7 @@
                             <tr>
                                 <td>{{ export.id }}</td>
                                 <td>
-                                    <span data-i18n="admin_exports_type_articles">Eksport artykułów</span>
+                                    <span data-i18n="{{ export.type.translationKey }}">{{ export.type.label }}</span>
                                 </td>
                                 <td>
                                     {% if export.status.value == 'downloaded' %}
@@ -107,6 +151,41 @@
                         </tbody>
                     </table>
                 </div>
+                {% if total_pages > 1 %}
+                    <nav class="blog-pagination article-index-pagination" aria-label="Paginacja eksportów w panelu administracyjnym">
+                        {% if current_page > 1 %}
+                            <a class="btn blog-pagination-link blog-pagination-link-icon" href="{{ path('admin_article_export_index', pagination_route_params|merge({ page: current_page - 1 })) }}" aria-label="Poprzednia strona">
+                                <span aria-hidden="true">&lsaquo;</span>
+                            </a>
+                        {% else %}
+                            <span class="btn blog-pagination-link blog-pagination-link-icon is-disabled" aria-disabled="true" aria-label="Poprzednia strona">
+                                <span aria-hidden="true">&lsaquo;</span>
+                            </span>
+                        {% endif %}
+
+                        <div class="blog-pagination-pages">
+                            {% for item in pagination_items %}
+                                {% if item == '...' %}
+                                    <span class="blog-pagination-ellipsis" aria-hidden="true">...</span>
+                                {% elseif item == current_page %}
+                                    <span class="btn blog-pagination-link is-current" aria-current="page">{{ item }}</span>
+                                {% else %}
+                                    <a class="btn blog-pagination-link" href="{{ path('admin_article_export_index', pagination_route_params|merge({ page: item })) }}">{{ item }}</a>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        {% if current_page < total_pages %}
+                            <a class="btn blog-pagination-link blog-pagination-link-icon" href="{{ path('admin_article_export_index', pagination_route_params|merge({ page: current_page + 1 })) }}" aria-label="Następna strona">
+                                <span aria-hidden="true">&rsaquo;</span>
+                            </a>
+                        {% else %}
+                            <span class="btn blog-pagination-link blog-pagination-link-icon is-disabled" aria-disabled="true" aria-label="Następna strona">
+                                <span aria-hidden="true">&rsaquo;</span>
+                            </span>
+                        {% endif %}
+                    </nav>
+                {% endif %}
             {% else %}
                 <div class="blog-empty-state">
                     <p class="meta blog-empty-state-message" role="status" data-i18n="admin_exports_no_items">Brak gotowych eksportów.</p>

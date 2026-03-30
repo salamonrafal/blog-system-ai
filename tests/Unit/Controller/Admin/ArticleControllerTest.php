@@ -29,7 +29,7 @@ final class ArticleControllerTest extends TestCase
     public function testIndexBuildsPaginatedArticleListUsingDedicatedAdminSetting(): void
     {
         $settings = (new BlogSettings())
-            ->setAdminArticlesPerPage(25);
+            ->setAdminListingItemsPerPage(25);
         $articles = [
             (new Article())->setTitle('Article 1')->setSlug('article-1'),
             (new Article())->setTitle('Article 2')->setSlug('article-2'),
@@ -85,7 +85,7 @@ final class ArticleControllerTest extends TestCase
     public function testIndexKeepsPaginationStateConsistentWhenThereAreNoArticles(): void
     {
         $settings = (new BlogSettings())
-            ->setAdminArticlesPerPage(25);
+            ->setAdminListingItemsPerPage(25);
         $categoryRepository = $this->createMock(ArticleCategoryRepository::class);
 
         $articleRepository = $this->createMock(ArticleRepository::class);
@@ -128,7 +128,7 @@ final class ArticleControllerTest extends TestCase
     public function testIndexFiltersArticlesBySelectedCategory(): void
     {
         $settings = (new BlogSettings())
-            ->setAdminArticlesPerPage(10);
+            ->setAdminListingItemsPerPage(10);
         $selectedCategory = (new ArticleCategory())->setName('AI');
         $this->setEntityId($selectedCategory, 7);
         $article = (new Article())
@@ -183,7 +183,7 @@ final class ArticleControllerTest extends TestCase
     public function testIndexTreatsEmptyCategoryFilterAsNoFilter(): void
     {
         $settings = (new BlogSettings())
-            ->setAdminArticlesPerPage(10);
+            ->setAdminListingItemsPerPage(10);
 
         $articleRepository = $this->createMock(ArticleRepository::class);
         $articleRepository

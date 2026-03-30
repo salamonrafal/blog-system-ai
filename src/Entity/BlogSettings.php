@@ -20,7 +20,7 @@ class BlogSettings
     public const DEFAULT_SOCIAL_IMAGE = 'https://www.salamonrafal.pl/assets/img/profile.jpg';
     public const DEFAULT_SEO_KEYWORDS = 'blog, programowanie, php, web development, architektura aplikacji, seo, jakość kodu';
     public const DEFAULT_ARTICLES_PER_PAGE = 5;
-    public const DEFAULT_ADMIN_ARTICLES_PER_PAGE = 25;
+    public const DEFAULT_ADMIN_LISTING_ITEMS_PER_PAGE = 25;
     public const DEFAULT_RECOMMENDED_ARTICLES_LIMIT = 5;
 
     #[ORM\Id]
@@ -67,10 +67,10 @@ class BlogSettings
     #[ORM\Column]
     private int $articlesPerPage = self::DEFAULT_ARTICLES_PER_PAGE;
 
-    #[Assert\NotNull(message: 'validation_blog_settings_admin_articles_per_page_required')]
-    #[Assert\Positive(message: 'validation_blog_settings_admin_articles_per_page_positive')]
-    #[ORM\Column]
-    private int $adminArticlesPerPage = self::DEFAULT_ADMIN_ARTICLES_PER_PAGE;
+    #[Assert\NotNull(message: 'validation_blog_settings_admin_listing_items_per_page_required')]
+    #[Assert\Positive(message: 'validation_blog_settings_admin_listing_items_per_page_positive')]
+    #[ORM\Column(name: 'admin_articles_per_page')]
+    private int $adminListingItemsPerPage = self::DEFAULT_ADMIN_LISTING_ITEMS_PER_PAGE;
 
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
@@ -181,14 +181,14 @@ class BlogSettings
         return $this->updatedAt;
     }
 
-    public function getAdminArticlesPerPage(): int
+    public function getAdminListingItemsPerPage(): int
     {
-        return $this->adminArticlesPerPage;
+        return $this->adminListingItemsPerPage;
     }
 
-    public function setAdminArticlesPerPage(int $adminArticlesPerPage): self
+    public function setAdminListingItemsPerPage(int $adminListingItemsPerPage): self
     {
-        $this->adminArticlesPerPage = $adminArticlesPerPage;
+        $this->adminListingItemsPerPage = $adminListingItemsPerPage;
 
         return $this;
     }

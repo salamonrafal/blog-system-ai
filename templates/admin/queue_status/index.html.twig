@@ -61,21 +61,21 @@
                                 <tr>
                                     <td>{{ queue_item.id }}</td>
                                     <td class="queue-status-title-cell">
-                                        <a href="{{ path('admin_article_edit', {id: queue_item.article.id}) }}">{{ queue_item.article.title }}</a>
+                                        <a href="{{ path(queue_item.edit_route, queue_item.edit_route_params) }}">{{ queue_item.label }}</a>
                                     </td>
-                                    <td data-i18n="admin_queue_type_article_export">Eksport artykułu</td>
+                                    <td data-i18n="{{ queue_item.type.queueTranslationKey }}">{{ queue_item.type.label }}</td>
                                     <td>
-                                        {% if queue_item.requestedBy %}
-                                            {{ queue_item.requestedBy.displayName }}
+                                        {% if queue_item.requested_by %}
+                                            {{ queue_item.requested_by.displayName }}
                                         {% else %}
                                             <span data-i18n="admin_table_system">System</span>
                                         {% endif %}
                                     </td>
-                                    <td>{{ queue_item.createdAt|user_date }}</td>
+                                    <td>{{ queue_item.created_at|user_date }}</td>
                                     <td>
                                         <div class="actions">
-                                            <form method="post" action="{{ path('admin_queue_status_export_delete', {id: queue_item.id}) }}">
-                                                <input type="hidden" name="_token" value="{{ csrf_token('delete_queue_item_' ~ queue_item.id) }}">
+                                            <form method="post" action="{{ path(queue_item.delete_route, {id: queue_item.id}) }}">
+                                                <input type="hidden" name="_token" value="{{ csrf_token(queue_item.type.value == 'articles' ? 'delete_queue_item_' ~ queue_item.id : 'delete_category_export_queue_item_' ~ queue_item.id) }}">
                                                 <button
                                                     class="button secondary button-danger article-action-button"
                                                     type="submit"

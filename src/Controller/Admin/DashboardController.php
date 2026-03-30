@@ -13,6 +13,7 @@ use App\Enum\ArticleStatus;
 use App\Repository\ArticleCategoryRepository;
 use App\Repository\ArticleExportRepository;
 use App\Repository\ArticleExportQueueRepository;
+use App\Repository\CategoryExportQueueRepository;
 use App\Repository\ArticleImportQueueRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\BlogSettingsRepository;
@@ -32,6 +33,7 @@ class DashboardController extends AbstractController
         ArticleImportQueueRepository $articleImportQueueRepository,
         ArticleExportRepository $articleExportRepository,
         ArticleExportQueueRepository $articleExportQueueRepository,
+        CategoryExportQueueRepository $categoryExportQueueRepository,
         BlogSettingsRepository $blogSettingsRepository,
         TopMenuItemRepository $topMenuItemRepository,
         UserRepository $userRepository,
@@ -106,10 +108,11 @@ class DashboardController extends AbstractController
                     'title_key' => 'admin_dashboard_panel_exports_title',
                     'title' => 'Eksporty',
                     'description_key' => 'admin_dashboard_panel_exports_description',
-                    'description' => 'Gotowe pliki eksportu artykułów dostępne do pobrania i ponownego importu.',
+                    'description' => 'Gotowe pliki eksportu artykułów i kategorii dostępne do pobrania oraz późniejszego importu.',
                     'stats' => [
                         $this->dashboardStat($articleExportRepository->count([]), 'admin_dashboard_stat_all', 'Wszystkie'),
                         $this->dashboardStat($articleExportRepository->count(['type' => ArticleExportType::ARTICLES]), 'admin_dashboard_stat_articles', 'Artykuły'),
+                        $this->dashboardStat($articleExportRepository->count(['type' => ArticleExportType::CATEGORIES]), 'admin_dashboard_stat_categories', 'Kategorie'),
                         $this->dashboardStat($articleExportRepository->count(['status' => ArticleExportStatus::NEW]), 'admin_dashboard_stat_new', 'Nowe'),
                         $this->dashboardStat($articleExportRepository->count(['status' => ArticleExportStatus::DOWNLOADED]), 'admin_dashboard_stat_downloaded', 'Pobrane'),
                     ],
@@ -128,11 +131,11 @@ class DashboardController extends AbstractController
                             'title_key' => 'admin_dashboard_stat_all',
                             'title' => 'Wszystkie',
                             'stats' => [
-                                $this->dashboardStat($articleImportQueueRepository->count([]) + $articleExportQueueRepository->count([]), 'admin_dashboard_stat_all', 'Wszystkie'),
-                                $this->dashboardStat($articleImportQueueRepository->count(['status' => ArticleImportQueueStatus::PENDING]) + $articleExportQueueRepository->count(['status' => ArticleExportQueueStatus::PENDING]), 'admin_dashboard_stat_pending', 'Oczekujące'),
-                                $this->dashboardStat($articleImportQueueRepository->count(['status' => ArticleImportQueueStatus::PROCESSING]) + $articleExportQueueRepository->count(['status' => ArticleExportQueueStatus::PROCESSING]), 'admin_dashboard_stat_processing', 'W trakcie'),
-                                $this->dashboardStat($articleImportQueueRepository->count(['status' => ArticleImportQueueStatus::COMPLETED]) + $articleExportQueueRepository->count(['status' => ArticleExportQueueStatus::COMPLETED]), 'admin_dashboard_stat_completed', 'Zakończone'),
-                                $this->dashboardStat($articleImportQueueRepository->count(['status' => ArticleImportQueueStatus::FAILED]) + $articleExportQueueRepository->count(['status' => ArticleExportQueueStatus::FAILED]), 'admin_dashboard_stat_errors', 'Błędy'),
+                                $this->dashboardStat($articleImportQueueRepository->count([]) + $articleExportQueueRepository->count([]) + $categoryExportQueueRepository->count([]), 'admin_dashboard_stat_all', 'Wszystkie'),
+                                $this->dashboardStat($articleImportQueueRepository->count(['status' => ArticleImportQueueStatus::PENDING]) + $articleExportQueueRepository->count(['status' => ArticleExportQueueStatus::PENDING]) + $categoryExportQueueRepository->count(['status' => ArticleExportQueueStatus::PENDING]), 'admin_dashboard_stat_pending', 'Oczekujące'),
+                                $this->dashboardStat($articleImportQueueRepository->count(['status' => ArticleImportQueueStatus::PROCESSING]) + $articleExportQueueRepository->count(['status' => ArticleExportQueueStatus::PROCESSING]) + $categoryExportQueueRepository->count(['status' => ArticleExportQueueStatus::PROCESSING]), 'admin_dashboard_stat_processing', 'W trakcie'),
+                                $this->dashboardStat($articleImportQueueRepository->count(['status' => ArticleImportQueueStatus::COMPLETED]) + $articleExportQueueRepository->count(['status' => ArticleExportQueueStatus::COMPLETED]) + $categoryExportQueueRepository->count(['status' => ArticleExportQueueStatus::COMPLETED]), 'admin_dashboard_stat_completed', 'Zakończone'),
+                                $this->dashboardStat($articleImportQueueRepository->count(['status' => ArticleImportQueueStatus::FAILED]) + $articleExportQueueRepository->count(['status' => ArticleExportQueueStatus::FAILED]) + $categoryExportQueueRepository->count(['status' => ArticleExportQueueStatus::FAILED]), 'admin_dashboard_stat_errors', 'Błędy'),
                             ],
                         ],
                         [
@@ -152,11 +155,11 @@ class DashboardController extends AbstractController
                             'title_key' => 'admin_dashboard_queue_export',
                             'title' => 'Kolejka eksportu',
                             'stats' => [
-                                $this->dashboardStat($articleExportQueueRepository->count([]), 'admin_dashboard_stat_all', 'Wszystkie'),
-                                $this->dashboardStat($articleExportQueueRepository->count(['status' => ArticleExportQueueStatus::PENDING]), 'admin_dashboard_stat_pending', 'Oczekujące'),
-                                $this->dashboardStat($articleExportQueueRepository->count(['status' => ArticleExportQueueStatus::PROCESSING]), 'admin_dashboard_stat_processing', 'W trakcie'),
-                                $this->dashboardStat($articleExportQueueRepository->count(['status' => ArticleExportQueueStatus::COMPLETED]), 'admin_dashboard_stat_completed', 'Zakończone'),
-                                $this->dashboardStat($articleExportQueueRepository->count(['status' => ArticleExportQueueStatus::FAILED]), 'admin_dashboard_stat_errors', 'Błędy'),
+                                $this->dashboardStat($articleExportQueueRepository->count([]) + $categoryExportQueueRepository->count([]), 'admin_dashboard_stat_all', 'Wszystkie'),
+                                $this->dashboardStat($articleExportQueueRepository->count(['status' => ArticleExportQueueStatus::PENDING]) + $categoryExportQueueRepository->count(['status' => ArticleExportQueueStatus::PENDING]), 'admin_dashboard_stat_pending', 'Oczekujące'),
+                                $this->dashboardStat($articleExportQueueRepository->count(['status' => ArticleExportQueueStatus::PROCESSING]) + $categoryExportQueueRepository->count(['status' => ArticleExportQueueStatus::PROCESSING]), 'admin_dashboard_stat_processing', 'W trakcie'),
+                                $this->dashboardStat($articleExportQueueRepository->count(['status' => ArticleExportQueueStatus::COMPLETED]) + $categoryExportQueueRepository->count(['status' => ArticleExportQueueStatus::COMPLETED]), 'admin_dashboard_stat_completed', 'Zakończone'),
+                                $this->dashboardStat($articleExportQueueRepository->count(['status' => ArticleExportQueueStatus::FAILED]) + $categoryExportQueueRepository->count(['status' => ArticleExportQueueStatus::FAILED]), 'admin_dashboard_stat_errors', 'Błędy'),
                             ],
                         ],
                     ],

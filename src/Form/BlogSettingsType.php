@@ -69,14 +69,14 @@ class BlogSettingsType extends AbstractType
                     'data-i18n-placeholder' => 'blog_settings_articles_per_page_placeholder',
                 ],
             ])
-            ->add('adminArticlesPerPage', IntegerType::class, [
-                'label' => 'Ilość artykułów na stronę w panelu administracyjnym',
-                'label_attr' => ['data-i18n' => 'blog_settings_admin_articles_per_page'],
+            ->add('adminListingItemsPerPage', IntegerType::class, [
+                'label' => 'Ilość elementów na stronę w panelu administracyjnym',
+                'label_attr' => ['data-i18n' => 'blog_settings_admin_listing_items_per_page'],
                 'attr' => [
                     'min' => 1,
                     'step' => 1,
                     'inputmode' => 'numeric',
-                    'data-i18n-placeholder' => 'blog_settings_admin_articles_per_page_placeholder',
+                    'data-i18n-placeholder' => 'blog_settings_admin_listing_items_per_page_placeholder',
                 ],
             ]);
     }
