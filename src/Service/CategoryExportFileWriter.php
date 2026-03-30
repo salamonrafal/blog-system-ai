@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use App\Entity\Article;
-use App\Entity\ArticleExportQueue;
+use App\Entity\ArticleCategory;
+use App\Entity\CategoryExportQueue;
 use App\Entity\User;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
-class ArticleExportFileWriter
+class CategoryExportFileWriter
 {
     private const STORAGE_TIMEZONE = 'UTC';
 
@@ -21,7 +21,7 @@ class ArticleExportFileWriter
     ) {
     }
 
-    public function write(ArticleExportQueue $queueItem): string
+    public function write(CategoryExportQueue $queueItem): string
     {
         $absoluteDirectory = $this->projectDir.'/'.$this->exportDirectory;
         $now = $this->utcNow();
@@ -30,10 +30,10 @@ class ArticleExportFileWriter
             throw new \RuntimeException(sprintf('Unable to create export directory "%s".', $absoluteDirectory));
         }
 
-        $article = $queueItem->getArticle();
+        $category = $queueItem->getCategory();
         $fileName = sprintf(
-            'article-%s-export-%s-%s.json',
-            $this->sanitizeSlugForFileName($article->getSlug()),
+            'category-%s-export-%s-%s.json',
+            $this->sanitizeSlugForFileName($category->getName()),
             $now->format('Ymd-His'),
             bin2hex(random_bytes(4))
         );
@@ -41,12 +41,12 @@ class ArticleExportFileWriter
         $absolutePath = $this->projectDir.'/'.$relativePath;
 
         $payload = [
-            'format' => 'article-export',
+            'format' => 'category-export',
             'version' => 1,
             'exported_at' => $now->format(\DateTimeInterface::ATOM),
             'exported_by' => $this->normalizeUser($queueItem->getRequestedBy()),
-            'article_count' => 1,
-            'article' => [$this->normalizeArticle($article, $queueItem)],
+            'category_count' => 1,
+            'category' => [$this->normalizeCategory($category, $queueItem)],
         ];
 
         $json = json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
@@ -66,22 +66,19 @@ class ArticleExportFileWriter
         }
     }
 
-    private function normalizeArticle(Article $article, ArticleExportQueue $queueItem): array
+    private function normalizeCategory(ArticleCategory $category, CategoryExportQueue $queueItem): array
     {
         return [
             'queue_item_id' => $queueItem->getId(),
-            'id' => $article->getId(),
-            'title' => $article->getTitle(),
-            'language' => $article->getLanguage()->value,
-            'slug' => $article->getSlug(),
-            'excerpt' => $article->getExcerpt(),
-            'headline_image' => $article->getHeadlineImage(),
-            'headline_image_enabled' => $article->isHeadlineImageEnabled(),
-            'content' => $article->getContent(),
-            'status' => $article->getStatus()->value,
-            'published_at' => $article->getPublishedAt()?->format(\DateTimeInterface::ATOM),
-            'created_at' => $article->getCreatedAt()->format(\DateTimeInterface::ATOM),
-            'updated_at' => $article->getUpdatedAt()->format(\DateTimeInterface::ATOM),
+            'id' => $category->getId(),
+            'name' => $category->getName(),
+            'short_description' => $category->getShortDescription(),
+            'titles' => $category->getTitles(),
+            'descriptions' => $category->getDescriptions(),
+            'icon' => $category->getIcon(),
+            'status' => $category->getStatus()->value,
+            'created_at' => $category->getCreatedAt()->format(\DateTimeInterface::ATOM),
+            'updated_at' => $category->getUpdatedAt()->format(\DateTimeInterface::ATOM),
         ];
     }
 
@@ -107,6 +104,6 @@ class ArticleExportFileWriter
         $sanitizedSlug = preg_replace('/[^A-Za-z0-9._-]+/', '-', $slug);
         $sanitizedSlug = trim((string) $sanitizedSlug, '.-_');
 
-        return '' !== $sanitizedSlug ? $sanitizedSlug : 'article';
+        return '' !== $sanitizedSlug ? $sanitizedSlug : 'category';
     }
 }

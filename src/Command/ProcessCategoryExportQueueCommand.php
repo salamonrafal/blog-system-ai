@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Entity\ArticleExport;
-use App\Entity\ArticleExportQueue;
-use App\Enum\ArticleExportType;
+use App\Entity\CategoryExportQueue;
 use App\Enum\ArticleExportQueueStatus;
 use App\Enum\ArticleExportStatus;
-use App\Repository\ArticleExportQueueRepository;
-use App\Service\ArticleExportFileWriter;
+use App\Enum\ArticleExportType;
+use App\Repository\CategoryExportQueueRepository;
+use App\Service\CategoryExportFileWriter;
 use App\Service\UserNotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
@@ -22,18 +22,18 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
-    name: 'app:article-export:process-queue',
-    description: 'Exports queued articles into a restorable file and registers the export.'
+    name: 'app:category-export:process-queue',
+    description: 'Exports queued categories into a restorable file and registers the export.'
 )]
-class ProcessArticleExportQueueCommand extends Command
+class ProcessCategoryExportQueueCommand extends Command
 {
     private const STORAGE_TIMEZONE = 'UTC';
 
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly ManagerRegistry $managerRegistry,
-        private readonly ArticleExportQueueRepository $articleExportQueueRepository,
-        private readonly ArticleExportFileWriter $articleExportFileWriter,
+        private readonly CategoryExportQueueRepository $categoryExportQueueRepository,
+        private readonly CategoryExportFileWriter $categoryExportFileWriter,
         private readonly UserNotificationService $userNotificationService,
         private readonly LoggerInterface $logger,
     ) {
@@ -44,11 +44,11 @@ class ProcessArticleExportQueueCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
         $entityManager = $this->entityManager;
-        $queueRepository = $this->articleExportQueueRepository;
+        $queueRepository = $this->categoryExportQueueRepository;
         $queueItem = $queueRepository->claimNextPending();
 
         if (null === $queueItem) {
-            $io->success('No queued article exports to process.');
+            $io->success('No queued category exports to process.');
 
             return Command::SUCCESS;
         }
@@ -60,11 +60,11 @@ class ProcessArticleExportQueueCommand extends Command
             $filePath = null;
 
             try {
-                $filePath = $this->articleExportFileWriter->write($queueItem);
+                $filePath = $this->categoryExportFileWriter->write($queueItem);
 
                 $articleExport = (new ArticleExport())
                     ->setStatus(ArticleExportStatus::NEW)
-                    ->setType(ArticleExportType::ARTICLES)
+                    ->setType(ArticleExportType::CATEGORIES)
                     ->setFilePath($filePath)
                     ->setItemsCount(1)
                     ->setRequestedBy($queueItem->getRequestedBy());
@@ -82,9 +82,9 @@ class ProcessArticleExportQueueCommand extends Command
                     $this->deleteWrittenExportFile($filePath, $queueItem);
                 }
 
-                $this->logger->error('Article export failed while processing queue item.', [
+                $this->logger->error('Category export failed while processing queue item.', [
                     'queue_item_id' => $queueItem->getId(),
-                    'article_id' => $queueItem->getArticle()->getId(),
+                    'category_id' => $queueItem->getCategory()->getId(),
                     'requested_by_user_id' => $queueItem->getRequestedBy()?->getId(),
                     'file_path' => $filePath,
                     'exception' => $exception,
@@ -99,7 +99,7 @@ class ProcessArticleExportQueueCommand extends Command
                 ++$failedCount;
 
                 $io->error(sprintf(
-                    'Article export failed for queue item %d: %s',
+                    'Category export failed for queue item %d: %s',
                     $queueItem->getId() ?? 0,
                     $exception->getMessage()
                 ));
@@ -109,13 +109,13 @@ class ProcessArticleExportQueueCommand extends Command
         }
 
         if (0 === $failedCount) {
-            $io->success(sprintf('Exported %d queued article(s) into separate files.', $processedCount));
+            $io->success(sprintf('Exported %d queued category(s) into separate files.', $processedCount));
 
             return Command::SUCCESS;
         }
 
         $io->warning(sprintf(
-            'Processed %d queued article(s), but %d export(s) failed.',
+            'Processed %d queued category(s), but %d export(s) failed.',
             $processedCount,
             $failedCount
         ));
@@ -129,14 +129,13 @@ class ProcessArticleExportQueueCommand extends Command
     }
 
     private function markQueueItemAsFailed(
-        ArticleExportQueue $queueItem,
+        CategoryExportQueue $queueItem,
         EntityManagerInterface $entityManager,
-        ArticleExportQueueRepository $queueRepository,
+        CategoryExportQueueRepository $queueRepository,
     ): array
     {
         if ($entityManager->isOpen()) {
             $queueItem->setStatus(ArticleExportQueueStatus::FAILED);
-
             $entityManager->flush();
 
             return [$entityManager, $queueRepository];
@@ -144,44 +143,43 @@ class ProcessArticleExportQueueCommand extends Command
 
         $this->managerRegistry->resetManager();
 
-        $entityManager = $this->managerRegistry->getManagerForClass(ArticleExportQueue::class);
+        $entityManager = $this->managerRegistry->getManagerForClass(CategoryExportQueue::class);
         if (!$entityManager instanceof EntityManagerInterface) {
-            throw new \RuntimeException('Entity manager for article export queue is not available.');
+            throw new \RuntimeException('Entity manager for category export queue is not available.');
         }
 
-        $managedQueueItem = $entityManager->find(ArticleExportQueue::class, $queueItem->getId());
-        if (!$managedQueueItem instanceof ArticleExportQueue) {
+        $managedQueueItem = $entityManager->find(CategoryExportQueue::class, $queueItem->getId());
+        if (!$managedQueueItem instanceof CategoryExportQueue) {
             throw new \RuntimeException(sprintf(
-                'Unable to reload article export queue item %d after export failure.',
+                'Unable to reload category export queue item %d after export failure.',
                 $queueItem->getId() ?? 0,
             ));
         }
 
         $managedQueueItem->setStatus(ArticleExportQueueStatus::FAILED);
-
         $entityManager->flush();
 
         return [$entityManager, $this->refreshQueueRepository()];
     }
 
-    private function refreshQueueRepository(): ArticleExportQueueRepository
+    private function refreshQueueRepository(): CategoryExportQueueRepository
     {
-        $repository = $this->managerRegistry->getRepository(ArticleExportQueue::class);
-        if (!$repository instanceof ArticleExportQueueRepository) {
-            throw new \RuntimeException('Article export queue repository is not available.');
+        $repository = $this->managerRegistry->getRepository(CategoryExportQueue::class);
+        if (!$repository instanceof CategoryExportQueueRepository) {
+            throw new \RuntimeException('Category export queue repository is not available.');
         }
 
         return $repository;
     }
 
-    private function deleteWrittenExportFile(string $filePath, ArticleExportQueue $queueItem): void
+    private function deleteWrittenExportFile(string $filePath, CategoryExportQueue $queueItem): void
     {
         try {
-            $this->articleExportFileWriter->delete($filePath);
+            $this->categoryExportFileWriter->delete($filePath);
         } catch (\Throwable $cleanupException) {
             $this->logger->warning('Failed to delete written export file after queue processing error.', [
                 'queue_item_id' => $queueItem->getId(),
-                'article_id' => $queueItem->getArticle()->getId(),
+                'category_id' => $queueItem->getCategory()->getId(),
                 'requested_by_user_id' => $queueItem->getRequestedBy()?->getId(),
                 'file_path' => $filePath,
                 'exception' => $cleanupException,
@@ -189,19 +187,14 @@ class ProcessArticleExportQueueCommand extends Command
         }
     }
 
-    private function notifyExportCompletion(
-        ?int $userId,
-        bool $success,
-        ArticleExportQueue $queueItem,
-        ?string $filePath,
-    ): void
+    private function notifyExportCompletion(?int $userId, bool $success, CategoryExportQueue $queueItem, ?string $filePath): void
     {
         try {
             $this->userNotificationService->notifyExportCompleted($userId, $success);
         } catch (\Throwable $exception) {
             $this->logger->warning('Failed to create export completion notification.', [
                 'queue_item_id' => $queueItem->getId(),
-                'article_id' => $queueItem->getArticle()->getId(),
+                'category_id' => $queueItem->getCategory()->getId(),
                 'requested_by_user_id' => $userId,
                 'file_path' => $filePath,
                 'success' => $success,

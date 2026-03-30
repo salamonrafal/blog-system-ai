@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Entity\ArticleExport;
+use App\Enum\ArticleExportType;
 use App\Enum\ArticleExportStatus;
 use App\Repository\ArticleExportRepository;
 use App\Service\ArticleExportFileWriter;
+use App\Service\BlogSettingsProvider;
 use App\Service\ManagedFilePathResolver;
+use App\Service\PaginationBuilder;
 use App\Service\UserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -28,10 +31,30 @@ class ArticleExportController extends AbstractController
     }
 
     #[Route('', name: 'admin_article_export_index', methods: ['GET'])]
-    public function index(ArticleExportRepository $articleExportRepository): Response
+    public function index(
+        Request $request,
+        ArticleExportRepository $articleExportRepository,
+        BlogSettingsProvider $blogSettingsProvider,
+        PaginationBuilder $paginationBuilder,
+    ): Response
     {
+        $selectedType = $this->resolveSelectedType($request);
+        $itemsPerPage = max(1, $blogSettingsProvider->getSettings()->getAdminListingItemsPerPage());
+        $requestedPage = max(1, $request->query->getInt('page', 1));
+        $totalExports = $articleExportRepository->countForAdminIndex($selectedType);
+        $totalPages = max(1, (int) ceil($totalExports / $itemsPerPage));
+        $currentPage = min($requestedPage, $totalPages);
+
         return $this->render('admin/article_export/index.html.twig', [
-            'exports' => $articleExportRepository->findAllForAdminIndex(),
+            'exports' => $articleExportRepository->findPaginatedForAdminIndex($currentPage, $itemsPerPage, $selectedType),
+            'selected_type' => $selectedType,
+            'export_types' => ArticleExportType::cases(),
+            'current_page' => $currentPage,
+            'total_pages' => $totalPages,
+            'pagination_items' => $paginationBuilder->buildPaginationItems($currentPage, $totalPages),
+            'pagination_route_params' => array_filter([
+                'type' => $selectedType?->value,
+            ], static fn (mixed $value): bool => null !== $value && '' !== $value),
         ]);
     }
 
@@ -113,5 +136,15 @@ class ArticleExportController extends AbstractController
         $this->addFlash('success', $userLanguageResolver->translate('Wszystkie eksporty zostały usunięte.', 'All exports have been deleted.'));
 
         return $this->redirectToRoute('admin_article_export_index');
+    }
+
+    private function resolveSelectedType(Request $request): ?ArticleExportType
+    {
+        $type = $request->query->get('type');
+        if (!is_string($type) || '' === trim($type)) {
+            return null;
+        }
+
+        return ArticleExportType::tryFrom(trim($type));
     }
 }

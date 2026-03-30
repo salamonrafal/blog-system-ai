@@ -30,8 +30,8 @@ class ArticleExport
     #[ORM\Column(length: 500)]
     private string $filePath = '';
 
-    #[ORM\Column]
-    private int $articleCount = 0;
+    #[ORM\Column(name: 'article_count')]
+    private int $itemsCount = 0;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
@@ -91,14 +91,14 @@ class ArticleExport
         return $this;
     }
 
-    public function getArticleCount(): int
+    public function getItemsCount(): int
     {
-        return $this->articleCount;
+        return $this->itemsCount;
     }
 
-    public function setArticleCount(int $articleCount): self
+    public function setItemsCount(int $itemsCount): self
     {
-        $this->articleCount = max(0, $articleCount);
+        $this->itemsCount = max(0, $itemsCount);
 
         return $this;
     }

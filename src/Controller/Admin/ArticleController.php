@@ -38,7 +38,7 @@ class ArticleController extends AbstractController
     ): Response
     {
         $settings = $blogSettingsProvider->getSettings();
-        $articlesPerPage = max(1, $settings->getAdminArticlesPerPage());
+        $articlesPerPage = max(1, $settings->getAdminListingItemsPerPage());
         $requestedPage = max(1, $request->query->getInt('page', 1));
         $selectedCategory = $this->resolveSelectedCategory($request, $articleCategoryRepository);
         $totalArticles = $articleRepository->countForAdminIndex($selectedCategory);

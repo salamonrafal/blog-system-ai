@@ -277,41 +277,60 @@ export function setupCategoryTranslationCopy(){
 }
 
 export function setupArticleBulkExport(){
-  const selectAll = qs('[data-article-select-all]');
-  const submit = qs('[data-article-bulk-submit]');
-  const checkboxes = qsa('[data-article-select-item]');
-  if(!selectAll || !submit || !checkboxes.length) return;
+  ['article', 'category'].forEach((scope)=>{
+    const selectAll = qs(`[data-select-all="${scope}"]`);
+    const submit = qs(`[data-bulk-submit="${scope}"]`);
+    const checkboxes = qsa(`[data-select-item="${scope}"]`);
+    if(!selectAll || !submit || !checkboxes.length) return;
 
-  const syncState = ()=>{
-    const checkedCount = checkboxes.filter((checkbox)=> checkbox.checked).length;
-    selectAll.checked = checkedCount === checkboxes.length;
-    selectAll.indeterminate = checkedCount > 0 && checkedCount < checkboxes.length;
-    submit.disabled = checkedCount === 0;
-  };
+    const syncState = ()=>{
+      const checkedCount = checkboxes.filter((checkbox)=> checkbox.checked).length;
+      selectAll.checked = checkedCount === checkboxes.length;
+      selectAll.indeterminate = checkedCount > 0 && checkedCount < checkboxes.length;
+      submit.disabled = checkedCount === 0;
+    };
 
-  selectAll.addEventListener('change', ()=>{
-    checkboxes.forEach((checkbox)=>{
-      checkbox.checked = selectAll.checked;
+    selectAll.addEventListener('change', ()=>{
+      checkboxes.forEach((checkbox)=>{
+        checkbox.checked = selectAll.checked;
+      });
+      syncState();
     });
+
+    checkboxes.forEach((checkbox)=>{
+      checkbox.addEventListener('change', syncState);
+    });
+
     syncState();
   });
-
-  checkboxes.forEach((checkbox)=>{
-    checkbox.addEventListener('change', syncState);
-  });
-
-  syncState();
 }
 
-export function setupArticleCategoryFilter(){
-  const dropdowns = qsa('[data-article-category-filter]');
-  if(!dropdowns.length) return;
+export function setupAdminListingFilters(){
+  const filterConfigs = [
+    {
+      dropdownSelector: '[data-article-category-filter]',
+      triggerSelector: '[data-action="toggle-article-category-filter"]',
+      hiddenInputSelector: '[data-article-category-filter-input]',
+      optionSelector: '[data-article-category-option]',
+    },
+    {
+      dropdownSelector: '[data-export-type-filter]',
+      triggerSelector: '[data-action="toggle-export-type-filter"]',
+      hiddenInputSelector: '[data-export-type-filter-input]',
+      optionSelector: '[data-export-type-option]',
+    },
+  ];
 
-  const closeDropdown = (dropdown, { restoreFocus = false } = {})=>{
-    if(!dropdown) return;
-    dropdown.classList.remove('is-open');
-    const trigger = qs('[data-action="toggle-article-category-filter"]', dropdown);
-    const panel = qs('.article-index-filter-options', dropdown);
+  const dropdownEntries = filterConfigs.flatMap((config)=>{
+    return qsa(config.dropdownSelector).map((dropdown)=> ({ dropdown, config }));
+  });
+  if(!dropdownEntries.length) return;
+
+  const closeDropdown = (entry, { restoreFocus = false } = {})=>{
+    if(!entry?.dropdown) return;
+    entry.dropdown.classList.remove('is-open');
+    const trigger = qs(entry.config.triggerSelector, entry.dropdown);
+    const panel = qs('.article-index-filter-options', entry.dropdown);
     if(trigger){
       trigger.setAttribute('aria-expanded', 'false');
       if(restoreFocus){
@@ -324,19 +343,20 @@ export function setupArticleCategoryFilter(){
     }
   };
 
-  const closeOtherDropdowns = (activeDropdown = null)=>{
-    dropdowns.forEach((dropdown)=>{
-      if(dropdown !== activeDropdown){
-        closeDropdown(dropdown);
+  const closeOtherDropdowns = (activeEntry = null)=>{
+    dropdownEntries.forEach((entry)=>{
+      if(entry !== activeEntry){
+        closeDropdown(entry);
       }
     });
   };
 
-  dropdowns.forEach((dropdown)=>{
-    const trigger = qs('[data-action="toggle-article-category-filter"]', dropdown);
-    const hiddenInput = qs('[data-article-category-filter-input]', dropdown.closest('form'));
+  dropdownEntries.forEach((entry)=>{
+    const { dropdown, config } = entry;
+    const trigger = qs(config.triggerSelector, dropdown);
+    const hiddenInput = qs(config.hiddenInputSelector, dropdown.closest('form'));
     const panel = qs('.article-index-filter-options', dropdown);
-    const options = qsa('[data-article-category-option]', dropdown);
+    const options = qsa(config.optionSelector, dropdown);
     if(!trigger || !hiddenInput || !panel || !options.length) return;
 
     const open = ()=>{
@@ -351,10 +371,10 @@ export function setupArticleCategoryFilter(){
     trigger.addEventListener('click', (event)=>{
       event.preventDefault();
       const isOpen = dropdown.classList.contains('is-open');
-      closeOtherDropdowns(dropdown);
+      closeOtherDropdowns(entry);
 
       if(isOpen){
-        closeDropdown(dropdown);
+        closeDropdown(entry);
       }else{
         open();
       }
@@ -369,9 +389,9 @@ export function setupArticleCategoryFilter(){
   });
 
   document.addEventListener('click', (event)=>{
-    dropdowns.forEach((dropdown)=>{
-      if(!dropdown.contains(event.target)){
-        closeDropdown(dropdown);
+    dropdownEntries.forEach((entry)=>{
+      if(!entry.dropdown.contains(event.target)){
+        closeDropdown(entry);
       }
     });
   });
@@ -379,9 +399,9 @@ export function setupArticleCategoryFilter(){
   document.addEventListener('keydown', (event)=>{
     if(event.key !== 'Escape') return;
 
-    const activeDropdown = dropdowns.find((dropdown)=> dropdown.classList.contains('is-open'));
-    if(activeDropdown){
-      closeDropdown(activeDropdown, { restoreFocus: true });
+    const activeEntry = dropdownEntries.find((entry)=> entry.dropdown.classList.contains('is-open'));
+    if(activeEntry){
+      closeDropdown(activeEntry, { restoreFocus: true });
     }else{
       closeOtherDropdowns();
     }

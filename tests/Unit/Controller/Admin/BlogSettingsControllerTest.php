@@ -67,7 +67,7 @@ final class BlogSettingsControllerTest extends TestCase
                 $this->assertSame('https://example.com', $settings->getAppUrl());
                 $this->assertSame('Nowy blog', $settings->getBlogTitle());
                 $this->assertSame(8, $settings->getArticlesPerPage());
-                $this->assertSame(30, $settings->getAdminArticlesPerPage());
+                $this->assertSame(30, $settings->getAdminListingItemsPerPage());
 
                 return true;
             }));
@@ -83,7 +83,7 @@ final class BlogSettingsControllerTest extends TestCase
                 'homepageSocialImage' => '/assets/img/test-social.jpg',
                 'homepageSeoKeywords' => 'php, test, blog',
                 'articlesPerPage' => '8',
-                'adminArticlesPerPage' => '30',
+                'adminListingItemsPerPage' => '30',
             ],
         ], [], [], [], ['REQUEST_METHOD' => 'POST']);
 
@@ -123,7 +123,7 @@ final class BlogSettingsControllerTest extends TestCase
                 'homepageSocialImage' => 'https://cdn.example.com/social.jpg',
                 'homepageSeoKeywords' => 'blog, update',
                 'articlesPerPage' => '9',
-                'adminArticlesPerPage' => '31',
+                'adminListingItemsPerPage' => '31',
             ],
         ], [], [], [], ['REQUEST_METHOD' => 'POST']);
 
@@ -135,7 +135,7 @@ final class BlogSettingsControllerTest extends TestCase
         $this->assertSame('/admin/settings/blog', $response->getTargetUrl());
         $this->assertSame('Zmieniony blog', $settings->getBlogTitle());
         $this->assertSame(9, $settings->getArticlesPerPage());
-        $this->assertSame(31, $settings->getAdminArticlesPerPage());
+        $this->assertSame(31, $settings->getAdminListingItemsPerPage());
     }
 
     private function setEntityId(object $entity, int $id): void

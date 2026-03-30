@@ -8,6 +8,7 @@ use App\Service\BlogSettingsProvider;
 use App\Service\TopMenuBuilder;
 use App\Service\UserLanguageResolver;
 use App\Service\UserTimeZoneResolver;
+use App\Repository\CategoryExportQueueRepository;
 use App\Repository\ArticleExportQueueRepository;
 use App\Repository\ArticleExportRepository;
 use App\Repository\ArticleImportQueueRepository;
@@ -31,6 +32,7 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
         private readonly UserTimeZoneResolver $userTimeZoneResolver,
         private readonly ArticleImportQueueRepository $articleImportQueueRepository,
         private readonly ArticleExportQueueRepository $articleExportQueueRepository,
+        private readonly CategoryExportQueueRepository $categoryExportQueueRepository,
         private readonly ArticleExportRepository $articleExportRepository,
         private readonly TopMenuItemRepository $topMenuItemRepository,
         private readonly TopMenuBuilder $topMenuBuilder,
@@ -51,7 +53,7 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
     {
         $settings = $this->blogSettingsProvider->getSettings();
         $pendingImportCount = $this->articleImportQueueRepository->countPending();
-        $pendingExportQueueCount = $this->articleExportQueueRepository->countPending();
+        $pendingExportQueueCount = $this->articleExportQueueRepository->countPending() + $this->categoryExportQueueRepository->countPending();
         $newExportCount = $this->articleExportRepository->countNew();
         $language = $this->userLanguageResolver->getLanguage();
         $topMenuItems = $this->appCache->get(

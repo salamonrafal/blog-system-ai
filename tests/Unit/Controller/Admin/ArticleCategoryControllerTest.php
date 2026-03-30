@@ -6,7 +6,9 @@ namespace App\Tests\Unit\Controller\Admin;
 
 use App\Controller\Admin\ArticleCategoryController;
 use App\Entity\ArticleCategory;
+use App\Entity\User;
 use App\Repository\ArticleCategoryRepository;
+use App\Repository\CategoryExportQueueRepository;
 use App\Service\UserLanguageResolver;
 use App\Tests\Unit\Support\MocksUserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
@@ -270,6 +272,57 @@ final class ArticleCategoryControllerTest extends TestCase
         $controller->delete($category, $request, $entityManager, $userLanguageResolver);
     }
 
+    public function testExportAddsCategoryToQueueWhenRepositoryEnqueuesIt(): void
+    {
+        $category = (new ArticleCategory())->setName('PHP');
+        $this->setEntityId($category, 14);
+        $currentUser = (new User())
+            ->setEmail('exporter@example.com')
+            ->setFullName('Eksporter');
+
+        $queueRepository = $this->createMock(CategoryExportQueueRepository::class);
+        $queueRepository
+            ->expects($this->once())
+            ->method('enqueuePending')
+            ->with($category, $currentUser)
+            ->willReturn(true);
+        $userLanguageResolver = $this->createUserLanguageResolverMock('pl');
+
+        $controller = new TestArticleCategoryController();
+        $controller->authenticatedUser = $currentUser;
+        $controller->csrfTokenIsValid = true;
+
+        $response = $controller->export($category, new Request([], ['_token' => 'valid']), $queueRepository, $userLanguageResolver);
+
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertSame('/admin/categories', $response->getTargetUrl());
+        $this->assertSame([['success', 'Eksport kategorii został dodany do kolejki.']], $controller->flashes);
+    }
+
+    public function testExportSelectedRequiresAtLeastOneCategory(): void
+    {
+        $categoryRepository = $this->createMock(ArticleCategoryRepository::class);
+        $categoryRepository->expects($this->never())->method('findBy');
+
+        $queueRepository = $this->createMock(CategoryExportQueueRepository::class);
+        $queueRepository->expects($this->never())->method('enqueuePending');
+        $userLanguageResolver = $this->createUserLanguageResolverMock('en');
+
+        $controller = new TestArticleCategoryController();
+        $controller->csrfTokenIsValid = true;
+
+        $response = $controller->exportSelected(
+            new Request([], ['category_ids' => [], '_token' => 'valid']),
+            $categoryRepository,
+            $queueRepository,
+            $userLanguageResolver,
+        );
+
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertSame('/admin/categories', $response->getTargetUrl());
+        $this->assertSame([['error', 'Select at least one category to export.']], $controller->flashes);
+    }
+
     private function setEntityId(object $entity, int $id): void
     {
         $reflectionProperty = new \ReflectionProperty($entity, 'id');
@@ -280,6 +333,8 @@ final class ArticleCategoryControllerTest extends TestCase
 
 final class TestArticleCategoryController extends ArticleCategoryController
 {
+    public ?User $authenticatedUser = null;
+
     public bool $csrfTokenIsValid = true;
 
     public string $capturedView = '';
@@ -293,6 +348,11 @@ final class TestArticleCategoryController extends ArticleCategoryController
     protected function isCsrfTokenValid(string $id, ?string $token): bool
     {
         return $this->csrfTokenIsValid;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->authenticatedUser;
     }
 
     public function addFlash(string $type, mixed $message): void

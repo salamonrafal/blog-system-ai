@@ -7,10 +7,13 @@ namespace App\Tests\Unit\Controller\Admin;
 use App\Controller\Admin\QueueStatusController;
 use App\Entity\Article;
 use App\Entity\ArticleExportQueue;
+use App\Entity\CategoryExportQueue;
+use App\Entity\ArticleCategory;
 use App\Entity\ArticleImportQueue;
 use App\Enum\ArticleExportQueueStatus;
 use App\Enum\ArticleImportQueueStatus;
 use App\Repository\ArticleExportQueueRepository;
+use App\Repository\CategoryExportQueueRepository;
 use App\Repository\ArticleImportQueueRepository;
 use App\Service\ManagedFileDeleter;
 use App\Service\ManagedFilePathResolver;
@@ -30,9 +33,12 @@ final class QueueStatusControllerTest extends TestCase
     public function testIndexBuildsQueueOverview(): void
     {
         $exportQueueItem = new ArticleExportQueue((new Article())->setTitle('Export')->setSlug('export'));
+        $categoryExportQueueItem = new CategoryExportQueue((new ArticleCategory())->setName('AI'));
         $importQueueItem = (new ArticleImportQueue())
             ->setOriginalFilename('import.json')
             ->setFilePath('var/imports/import.json');
+        $this->setEntityId($exportQueueItem, 11);
+        $this->setEntityId($categoryExportQueueItem, 12);
 
         $exportRepository = $this->createMock(ArticleExportQueueRepository::class);
         $exportRepository
@@ -53,13 +59,24 @@ final class QueueStatusControllerTest extends TestCase
             ->expects($this->once())
             ->method('countPending')
             ->willReturn(0);
+        $categoryExportRepository = $this->createMock(CategoryExportQueueRepository::class);
+        $categoryExportRepository
+            ->expects($this->once())
+            ->method('findPendingOrderedByCreatedAt')
+            ->willReturn([$categoryExportQueueItem]);
+        $categoryExportRepository
+            ->expects($this->once())
+            ->method('countPending')
+            ->willReturn(1);
 
         $controller = $this->createController();
-        $response = $controller->index($exportRepository, $importRepository);
+        $response = $controller->index($exportRepository, $categoryExportRepository, $importRepository);
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
         $this->assertSame('admin/queue_status/index.html.twig', $controller->capturedView);
-        $this->assertSame([$exportQueueItem], $controller->capturedParameters['pending_export_queue_items']);
+        $this->assertCount(2, $controller->capturedParameters['pending_export_queue_items']);
+        $this->assertSame('delete_queue_item_'.$exportQueueItem->getId(), $controller->capturedParameters['pending_export_queue_items'][0]['csrf_token_id']);
+        $this->assertSame('delete_category_export_queue_item_'.$categoryExportQueueItem->getId(), $controller->capturedParameters['pending_export_queue_items'][1]['csrf_token_id']);
         $this->assertSame([$importQueueItem], $controller->capturedParameters['pending_import_queue_items']);
         $this->assertTrue($controller->capturedParameters['has_pending_queue_items']);
     }
@@ -67,6 +84,7 @@ final class QueueStatusControllerTest extends TestCase
     public function testClearRemovesPendingItemsAndDeletesImportFiles(): void
     {
         $exportQueueItem = new ArticleExportQueue((new Article())->setTitle('Export')->setSlug('export'));
+        $categoryExportQueueItem = new CategoryExportQueue((new ArticleCategory())->setName('AI'));
         $importQueueItem = (new ArticleImportQueue())
             ->setOriginalFilename('import.json')
             ->setFilePath('var/imports/import.json');
@@ -77,6 +95,12 @@ final class QueueStatusControllerTest extends TestCase
             ->method('findBy')
             ->with(['status' => ArticleExportQueueStatus::PENDING])
             ->willReturn([$exportQueueItem]);
+        $categoryExportRepository = $this->createMock(CategoryExportQueueRepository::class);
+        $categoryExportRepository
+            ->expects($this->once())
+            ->method('findBy')
+            ->with(['status' => ArticleExportQueueStatus::PENDING])
+            ->willReturn([$categoryExportQueueItem]);
 
         $importRepository = $this->createMock(ArticleImportQueueRepository::class);
         $importRepository
@@ -88,7 +112,7 @@ final class QueueStatusControllerTest extends TestCase
         $removedEntities = [];
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager
-            ->expects($this->exactly(2))
+            ->expects($this->exactly(3))
             ->method('remove')
             ->willReturnCallback(static function (object $entity) use (&$removedEntities): void {
                 $removedEntities[] = $entity;
@@ -114,12 +138,12 @@ final class QueueStatusControllerTest extends TestCase
         $controller->csrfTokenIsValid = true;
         $userLanguageResolver = $this->createUserLanguageResolverMock('en');
 
-        $response = $controller->clear(new Request([], ['_token' => 'valid']), $exportRepository, $importRepository, $entityManager, $userLanguageResolver);
+        $response = $controller->clear(new Request([], ['_token' => 'valid']), $exportRepository, $categoryExportRepository, $importRepository, $entityManager, $userLanguageResolver);
 
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertSame('/admin/queues/status', $response->getTargetUrl());
         $this->assertSame([['success', 'The pending queue has been cleared.']], $controller->flashes);
-        $this->assertSame([$exportQueueItem, $importQueueItem], $removedEntities);
+        $this->assertSame([$exportQueueItem, $categoryExportQueueItem, $importQueueItem], $removedEntities);
     }
 
     public function testDeleteImportDeletesManagedFileAndQueueItem(): void

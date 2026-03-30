@@ -61,6 +61,9 @@
         "article-export:process-queue": [
             "@php bin/console app:article-export:process-queue"
         ],
+        "category-export:process-queue": [
+            "@php bin/console app:category-export:process-queue"
+        ],
         "article-import:process-queue": [
             "@php bin/console app:article-import:process-queue"
         ],

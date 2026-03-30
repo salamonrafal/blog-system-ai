@@ -24,7 +24,7 @@
                             <button
                                 class="button secondary"
                                 type="submit"
-                                data-article-bulk-submit
+                                data-bulk-submit="article"
                                 data-i18n="admin_article_bulk_export"
                             >
                                 Eksportuj zaznaczone
@@ -86,7 +86,7 @@
                             {% if articles is not empty %}
                                 <input
                                     type="checkbox"
-                                    data-article-select-all
+                                    data-select-all="article"
                                     data-i18n-aria="admin_article_select_all"
                                     aria-label="Zaznacz wszystkie artykuły"
                                 >
@@ -108,7 +108,7 @@
                                     name="article_ids[]"
                                     value="{{ article.id }}"
                                     form="article-bulk-export-form"
-                                    data-article-select-item
+                                    data-select-item="article"
                                     data-i18n-aria="admin_article_select"
                                     aria-label="Zaznacz artykuł"
                                 >
@@ -142,6 +142,7 @@
                                         class="button secondary article-action-button"
                                         href="{{ path('admin_article_edit', {id: article.id}) }}"
                                         data-i18n-tooltip="admin_table_edit"
+                                        data-i18n-aria="admin_table_edit"
                                         data-tooltip="Edytuj"
                                         aria-label="Edytuj"
                                     >
@@ -153,6 +154,7 @@
                                             class="button secondary article-action-button"
                                             type="submit"
                                             data-i18n-tooltip="admin_table_export"
+                                            data-i18n-aria="admin_table_export"
                                             data-tooltip="Eksport"
                                             aria-label="Eksport"
                                         >
@@ -166,6 +168,7 @@
                                                 class="button secondary article-action-button"
                                                 type="submit"
                                                 data-i18n-tooltip="admin_table_publish"
+                                                data-i18n-aria="admin_table_publish"
                                                 data-tooltip="Opublikuj"
                                                 aria-label="Opublikuj"
                                             >
@@ -182,6 +185,7 @@
                                                 data-action="confirm-delete-article"
                                                 data-article-title="{{ article.title }}"
                                                 data-i18n-tooltip="admin_table_delete"
+                                                data-i18n-aria="admin_table_delete"
                                                 data-tooltip="Usuń"
                                                 aria-label="Usuń"
                                             >
@@ -195,6 +199,7 @@
                                                 class="button secondary article-action-button"
                                                 type="submit"
                                                 data-i18n-tooltip="admin_table_archive"
+                                                data-i18n-aria="admin_table_archive"
                                                 data-tooltip="Archiwizuj"
                                                 aria-label="Archiwizuj"
                                             >
@@ -215,13 +220,13 @@
             </div>
 
             {% if total_pages > 1 %}
-                <nav class="blog-pagination article-index-pagination" aria-label="Paginacja artykułów w panelu administracyjnym">
+                <nav class="blog-pagination article-index-pagination" data-i18n-aria="admin_listing_pagination_aria" aria-label="Paginacja artykułów w panelu administracyjnym">
                     {% if current_page > 1 %}
-                        <a class="btn blog-pagination-link blog-pagination-link-icon" href="{{ path('admin_article_index', pagination_route_params|merge({ page: current_page - 1 })) }}" aria-label="Poprzednia strona">
+                        <a class="btn blog-pagination-link blog-pagination-link-icon" href="{{ path('admin_article_index', pagination_route_params|merge({ page: current_page - 1 })) }}" data-i18n-aria="admin_pagination_previous_page" aria-label="Poprzednia strona">
                             <span aria-hidden="true">&lsaquo;</span>
                         </a>
                     {% else %}
-                        <span class="btn blog-pagination-link blog-pagination-link-icon is-disabled" aria-disabled="true" aria-label="Poprzednia strona">
+                        <span class="btn blog-pagination-link blog-pagination-link-icon is-disabled" aria-disabled="true" data-i18n-aria="admin_pagination_previous_page" aria-label="Poprzednia strona">
                             <span aria-hidden="true">&lsaquo;</span>
                         </span>
                     {% endif %}
@@ -239,11 +244,11 @@
                     </div>
 
                     {% if current_page < total_pages %}
-                        <a class="btn blog-pagination-link blog-pagination-link-icon" href="{{ path('admin_article_index', pagination_route_params|merge({ page: current_page + 1 })) }}" aria-label="Następna strona">
+                        <a class="btn blog-pagination-link blog-pagination-link-icon" href="{{ path('admin_article_index', pagination_route_params|merge({ page: current_page + 1 })) }}" data-i18n-aria="admin_pagination_next_page" aria-label="Następna strona">
                             <span aria-hidden="true">&rsaquo;</span>
                         </a>
                     {% else %}
-                        <span class="btn blog-pagination-link blog-pagination-link-icon is-disabled" aria-disabled="true" aria-label="Następna strona">
+                        <span class="btn blog-pagination-link blog-pagination-link-icon is-disabled" aria-disabled="true" data-i18n-aria="admin_pagination_next_page" aria-label="Następna strona">
                             <span aria-hidden="true">&rsaquo;</span>
                         </span>
                     {% endif %}

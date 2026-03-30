@@ -72,7 +72,7 @@
                             <td class="article-index-updated-cell">{{ item.updatedAt|user_date }}</td>
                             <td>
                                 <div class="actions">
-                                    <a class="button secondary article-action-button" href="{{ path('admin_top_menu_edit', {id: item.id}) }}" data-i18n-title="admin_table_edit" data-i18n-tooltip="admin_table_edit" data-tooltip="Edytuj" aria-label="Edytuj element menu">
+                                    <a class="button secondary article-action-button" href="{{ path('admin_top_menu_edit', {id: item.id}) }}" data-i18n-title="admin_table_edit" data-i18n-tooltip="admin_table_edit" data-i18n-aria="admin_table_edit" data-tooltip="Edytuj" aria-label="Edytuj element menu">
                                         <span class="article-action-icon is-edit" aria-hidden="true"></span>
                                     </a>
                                     <form method="post" action="{{ path('admin_top_menu_delete', {id: item.id}) }}" data-delete-form>
@@ -84,6 +84,7 @@
                                             data-top-menu-item-name="{{ item.localizedLabel(user_language) }}"
                                             data-i18n-title="admin_table_delete"
                                             data-i18n-tooltip="admin_table_delete"
+                                            data-i18n-aria="admin_table_delete"
                                             data-tooltip="Usuń"
                                             aria-label="Usuń element menu"
                                         >

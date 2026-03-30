@@ -80,7 +80,7 @@
                             <td class="article-index-updated-cell">{{ user.createdAt|user_date }}</td>
                             <td>
                                 <div class="actions">
-                                    <a class="button secondary article-action-button" href="{{ path('admin_user_edit', {id: user.id}) }}" aria-label="Edytuj użytkownika">
+                                    <a class="button secondary article-action-button" href="{{ path('admin_user_edit', {id: user.id}) }}" data-i18n-aria="admin_table_edit" aria-label="Edytuj użytkownika">
                                         <span class="article-action-icon is-edit" aria-hidden="true"></span>
                                     </a>
                                     {% if user.id != first_admin_id %}
@@ -91,6 +91,7 @@
                                                 type="button"
                                                 data-action="confirm-delete-user"
                                                 data-user-name="{{ user.displayName }}"
+                                                data-i18n-aria="admin_table_delete"
                                                 aria-label="Usuń użytkownika"
                                             >
                                                 <span class="article-action-icon is-delete" aria-hidden="true"></span>

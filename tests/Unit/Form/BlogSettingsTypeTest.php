@@ -52,9 +52,9 @@ final class BlogSettingsTypeTest extends TestCase
         $this->assertSame(1, $form->get('articlesPerPage')->getConfig()->getOption('attr')['step']);
         $this->assertSame('numeric', $form->get('articlesPerPage')->getConfig()->getOption('attr')['inputmode']);
 
-        $this->assertInstanceOf(IntegerType::class, $form->get('adminArticlesPerPage')->getConfig()->getType()->getInnerType());
-        $this->assertSame(1, $form->get('adminArticlesPerPage')->getConfig()->getOption('attr')['min']);
-        $this->assertSame(1, $form->get('adminArticlesPerPage')->getConfig()->getOption('attr')['step']);
-        $this->assertSame('numeric', $form->get('adminArticlesPerPage')->getConfig()->getOption('attr')['inputmode']);
+        $this->assertInstanceOf(IntegerType::class, $form->get('adminListingItemsPerPage')->getConfig()->getType()->getInnerType());
+        $this->assertSame(1, $form->get('adminListingItemsPerPage')->getConfig()->getOption('attr')['min']);
+        $this->assertSame(1, $form->get('adminListingItemsPerPage')->getConfig()->getOption('attr')['step']);
+        $this->assertSame('numeric', $form->get('adminListingItemsPerPage')->getConfig()->getOption('attr')['inputmode']);
     }
 }

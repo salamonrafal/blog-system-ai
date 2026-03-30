@@ -4,53 +4,37 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
-use App\Entity\Article;
-use App\Entity\ArticleExportQueue;
+use App\Entity\ArticleCategory;
+use App\Entity\CategoryExportQueue;
 use App\Entity\User;
 use App\Enum\ArticleExportQueueStatus;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\Types\Types;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<ArticleExportQueue>
+ * @extends ServiceEntityRepository<CategoryExportQueue>
  */
-class ArticleExportQueueRepository extends ServiceEntityRepository
+class CategoryExportQueueRepository extends ServiceEntityRepository
 {
     use QueueStatusCountNormalizerTrait;
 
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, ArticleExportQueue::class);
+        parent::__construct($registry, CategoryExportQueue::class);
     }
 
-    public function hasOpenQueueItemForArticle(Article $article): bool
-    {
-        return null !== $this->createQueryBuilder('queue_item')
-            ->select('queue_item.id')
-            ->andWhere('queue_item.article = :article')
-            ->andWhere('queue_item.status IN (:statuses)')
-            ->setParameter('article', $article)
-            ->setParameter('statuses', [
-                ArticleExportQueueStatus::PENDING,
-                ArticleExportQueueStatus::PROCESSING,
-            ])
-            ->setMaxResults(1)
-            ->getQuery()
-            ->getOneOrNullResult();
-    }
-
-    public function enqueuePending(Article $article, ?User $requestedBy = null): bool
+    public function enqueuePending(ArticleCategory $category, ?User $requestedBy = null): bool
     {
         $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
 
         try {
             $insertedRows = $this->getEntityManager()->getConnection()->executeStatement(
-                'INSERT INTO article_export_queue (article_id, requested_by_id, status, processed_at, created_at, updated_at)
-                VALUES (:articleId, :requestedById, :status, :processedAt, :createdAt, :updatedAt)',
+                'INSERT INTO category_export_queue (category_id, requested_by_id, status, processed_at, created_at, updated_at)
+                VALUES (:categoryId, :requestedById, :status, :processedAt, :createdAt, :updatedAt)',
                 [
-                    'articleId' => $article->getId(),
+                    'categoryId' => $category->getId(),
                     'requestedById' => $requestedBy?->getId(),
                     'status' => ArticleExportQueueStatus::PENDING->value,
                     'processedAt' => null,
@@ -71,14 +55,14 @@ class ArticleExportQueueRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return list<ArticleExportQueue>
+     * @return list<CategoryExportQueue>
      */
-    public function findPendingForArticle(Article $article): array
+    public function findPendingForCategory(ArticleCategory $category): array
     {
         return $this->createQueryBuilder('queue_item')
-            ->andWhere('queue_item.article = :article')
+            ->andWhere('queue_item.category = :category')
             ->andWhere('queue_item.status = :status')
-            ->setParameter('article', $article)
+            ->setParameter('category', $category)
             ->setParameter('status', ArticleExportQueueStatus::PENDING)
             ->orderBy('queue_item.createdAt', 'ASC')
             ->getQuery()
@@ -86,13 +70,13 @@ class ArticleExportQueueRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return list<ArticleExportQueue>
+     * @return list<CategoryExportQueue>
      */
     public function findPendingOrderedByCreatedAt(): array
     {
         return $this->createQueryBuilder('queue_item')
-            ->innerJoin('queue_item.article', 'article')
-            ->addSelect('article')
+            ->innerJoin('queue_item.category', 'category')
+            ->addSelect('category')
             ->leftJoin('queue_item.requestedBy', 'requested_by')
             ->addSelect('requested_by')
             ->andWhere('queue_item.status = :status')
@@ -102,7 +86,7 @@ class ArticleExportQueueRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    public function claimNextPending(): ?ArticleExportQueue
+    public function claimNextPending(): ?CategoryExportQueue
     {
         $connection = $this->getEntityManager()->getConnection();
         $updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
@@ -112,7 +96,7 @@ class ArticleExportQueueRepository extends ServiceEntityRepository
         while ($attempt++ < $maxRetries) {
             $queueItemId = $connection->fetchOne(
                 'SELECT id
-                FROM article_export_queue
+                FROM category_export_queue
                 WHERE status = :pendingStatus
                 ORDER BY created_at ASC
                 LIMIT 1',
@@ -126,7 +110,7 @@ class ArticleExportQueueRepository extends ServiceEntityRepository
             }
 
             $updatedRows = $connection->executeStatement(
-                'UPDATE article_export_queue
+                'UPDATE category_export_queue
                 SET status = :processingStatus, updated_at = :updatedAt
                 WHERE id = :id AND status = :pendingStatus',
                 [
@@ -145,8 +129,8 @@ class ArticleExportQueueRepository extends ServiceEntityRepository
             }
 
             return $this->createQueryBuilder('queue_item')
-                ->innerJoin('queue_item.article', 'article')
-                ->addSelect('article')
+                ->innerJoin('queue_item.category', 'category')
+                ->addSelect('category')
                 ->leftJoin('queue_item.requestedBy', 'requested_by')
                 ->addSelect('requested_by')
                 ->andWhere('queue_item.id = :id')
