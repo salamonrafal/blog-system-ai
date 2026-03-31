@@ -30,6 +30,11 @@ class TopMenuItem
     #[ORM\Column(type: 'json')]
     private array $labels = [];
 
+    #[Assert\NotBlank(message: 'validation_top_menu_unique_name_required')]
+    #[Assert\Length(max: 255, maxMessage: 'validation_top_menu_unique_name_too_long')]
+    #[ORM\Column(length: 255, unique: true)]
+    private string $uniqueName = '';
+
     #[ORM\Column(enumType: TopMenuItemTargetType::class)]
     private TopMenuItemTargetType $targetType = TopMenuItemTargetType::BLOG_HOME;
 
@@ -92,6 +97,18 @@ class TopMenuItem
     public function setLabels(array $labels): self
     {
         $this->labels = $this->normalizeTranslations($labels);
+
+        return $this;
+    }
+
+    public function getUniqueName(): string
+    {
+        return $this->uniqueName;
+    }
+
+    public function setUniqueName(string $uniqueName): self
+    {
+        $this->uniqueName = trim($uniqueName);
 
         return $this;
     }
@@ -284,6 +301,30 @@ class TopMenuItem
     public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
+    }
+
+    public function normalizeTargetConfiguration(): self
+    {
+        match ($this->targetType) {
+            TopMenuItemTargetType::NONE, TopMenuItemTargetType::BLOG_HOME => $this
+                ->setExternalUrl(null)
+                ->setExternalUrlOpenInNewWindow(false)
+                ->setArticleCategory(null)
+                ->setArticle(null),
+            TopMenuItemTargetType::EXTERNAL_URL => $this
+                ->setArticleCategory(null)
+                ->setArticle(null),
+            TopMenuItemTargetType::ARTICLE_CATEGORY => $this
+                ->setExternalUrl(null)
+                ->setExternalUrlOpenInNewWindow(false)
+                ->setArticle(null),
+            TopMenuItemTargetType::ARTICLE => $this
+                ->setExternalUrl(null)
+                ->setExternalUrlOpenInNewWindow(false)
+                ->setArticleCategory(null),
+        };
+
+        return $this;
     }
 
     #[Assert\Callback]

@@ -12,7 +12,6 @@ class TopMenuBuilder
 {
     public function __construct(
         private readonly UserLanguageResolver $userLanguageResolver,
-        private readonly ArticleSlugger $articleSlugger,
         private readonly UrlGeneratorInterface $urlGenerator,
     )
     {
@@ -120,7 +119,7 @@ class TopMenuBuilder
         }
 
         return $this->urlGenerator->generate('blog_category', [
-            'slug' => $this->articleSlugger->slugify($category->getName()),
+            'slug' => $category->getSlug(),
         ]);
     }
 

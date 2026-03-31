@@ -31,9 +31,10 @@ class CategoryExportFileWriter
         }
 
         $category = $queueItem->getCategory();
+        $slug = $this->requireSlug($category);
         $fileName = sprintf(
             'category-%s-export-%s-%s.json',
-            $this->sanitizeSlugForFileName($category->getName()),
+            $this->sanitizeSlugForFileName($slug),
             $now->format('Ymd-His'),
             bin2hex(random_bytes(4))
         );
@@ -72,6 +73,7 @@ class CategoryExportFileWriter
             'queue_item_id' => $queueItem->getId(),
             'id' => $category->getId(),
             'name' => $category->getName(),
+            'slug' => $category->getSlug(),
             'short_description' => $category->getShortDescription(),
             'titles' => $category->getTitles(),
             'descriptions' => $category->getDescriptions(),
@@ -105,5 +107,18 @@ class CategoryExportFileWriter
         $sanitizedSlug = trim((string) $sanitizedSlug, '.-_');
 
         return '' !== $sanitizedSlug ? $sanitizedSlug : 'category';
+    }
+
+    private function requireSlug(ArticleCategory $category): string
+    {
+        $slug = trim($category->getSlug());
+        if ('' !== $slug) {
+            return $slug;
+        }
+
+        throw new \RuntimeException(sprintf(
+            'Article category ID %s is missing slug and cannot be exported safely.',
+            $category->getId() ?? 'unknown'
+        ));
     }
 }

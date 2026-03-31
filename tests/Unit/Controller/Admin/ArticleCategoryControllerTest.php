@@ -9,6 +9,7 @@ use App\Entity\ArticleCategory;
 use App\Entity\User;
 use App\Repository\ArticleCategoryRepository;
 use App\Repository\CategoryExportQueueRepository;
+use App\Service\CategorySlugger;
 use App\Service\UserLanguageResolver;
 use App\Tests\Unit\Support\MocksUserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
@@ -74,6 +75,7 @@ final class ArticleCategoryControllerTest extends TestCase
             new Request(),
             $this->createMock(EntityManagerInterface::class),
             $userLanguageResolver,
+            $this->createMock(CategorySlugger::class),
         );
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
@@ -83,11 +85,22 @@ final class ArticleCategoryControllerTest extends TestCase
     public function testNewPersistsCategoryAndTranslationsOnValidSubmit(): void
     {
         $entityManager = $this->createMock(EntityManagerInterface::class);
+        $categorySlugger = $this->createMock(CategorySlugger::class);
+        $categorySlugger
+            ->expects($this->once())
+            ->method('refreshSlug')
+            ->with($this->callback(function (ArticleCategory $category): bool {
+                $category->setSlug('programowanie-w-php');
+
+                return true;
+            }));
+
         $entityManager
             ->expects($this->once())
             ->method('persist')
             ->with($this->callback(function (ArticleCategory $category): bool {
                 $this->assertSame('PHP', $category->getName());
+                $this->assertSame('programowanie-w-php', $category->getSlug());
                 $this->assertSame('Backend i architektura aplikacji.', $category->getShortDescription());
                 $this->assertSame('Programowanie w PHP', $category->getTitle('pl'));
                 $this->assertSame('PHP Development', $category->getTitle('en'));
@@ -121,7 +134,7 @@ final class ArticleCategoryControllerTest extends TestCase
             ],
         ], [], [], [], ['REQUEST_METHOD' => 'POST']);
 
-        $response = $controller->new($request, $entityManager, $userLanguageResolver);
+        $response = $controller->new($request, $entityManager, $userLanguageResolver, $categorySlugger);
 
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertSame('/admin/categories', $response->getTargetUrl());
@@ -140,6 +153,8 @@ final class ArticleCategoryControllerTest extends TestCase
 
         $controller = new TestArticleCategoryController();
         $userLanguageResolver = $this->createUserLanguageResolverMock('pl');
+        $categorySlugger = $this->createMock(CategorySlugger::class);
+        $categorySlugger->expects($this->once())->method('refreshSlug');
 
         $request = new Request([], [
             'article_category' => [
@@ -158,17 +173,36 @@ final class ArticleCategoryControllerTest extends TestCase
             ],
         ], [], [], [], ['REQUEST_METHOD' => 'POST']);
 
-        $response = $controller->new($request, $entityManager, $userLanguageResolver);
+        $response = $controller->new($request, $entityManager, $userLanguageResolver, $categorySlugger);
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
         $this->assertSame('admin/article_category/new.html.twig', $controller->capturedView);
         $this->assertSame([], $controller->flashes);
     }
 
+    public function testRefreshSlugIfMissingSkipsGenerationWhenSlugSourceIsMissing(): void
+    {
+        $controller = new TestArticleCategoryController();
+        $category = new ArticleCategory();
+        $categorySlugger = $this->createMock(CategorySlugger::class);
+        $categorySlugger->expects($this->never())->method('refreshSlug');
+
+        $invoker = \Closure::bind(
+            static function (ArticleCategoryController $controller, ArticleCategory $category, CategorySlugger $categorySlugger): void {
+                $controller->refreshSlugIfMissing($category, $categorySlugger);
+            },
+            null,
+            ArticleCategoryController::class
+        );
+
+        $invoker($controller, $category, $categorySlugger);
+    }
+
     public function testEditUpdatesTranslationsOnValidSubmit(): void
     {
         $category = (new ArticleCategory())
             ->setName('PHP')
+            ->setSlug('stary-slug')
             ->setTitle('pl', 'Stary tytuł')
             ->setTitle('en', 'Old title')
             ->setDescription('pl', 'Stary opis')
@@ -181,6 +215,9 @@ final class ArticleCategoryControllerTest extends TestCase
         $entityManager
             ->expects($this->once())
             ->method('flush');
+
+        $categorySlugger = $this->createMock(CategorySlugger::class);
+        $categorySlugger->expects($this->never())->method('refreshSlug');
 
         $controller = new TestArticleCategoryController();
         $userLanguageResolver = $this->createUserLanguageResolverMock('en');
@@ -202,11 +239,12 @@ final class ArticleCategoryControllerTest extends TestCase
             ],
         ], [], [], [], ['REQUEST_METHOD' => 'POST']);
 
-        $response = $controller->edit($category, $request, $entityManager, $userLanguageResolver);
+        $response = $controller->edit($category, $request, $entityManager, $userLanguageResolver, $categorySlugger);
 
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertSame('/admin/categories', $response->getTargetUrl());
         $this->assertSame('Nowy tytuł PL', $category->getTitle('pl'));
+        $this->assertSame('stary-slug', $category->getSlug());
         $this->assertSame('New title EN', $category->getTitle('en'));
         $this->assertSame('Nowy opis PL.', $category->getDescription('pl'));
         $this->assertSame('New description EN.', $category->getDescription('en'));

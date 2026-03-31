@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Service;
 
 use App\Entity\Article;
+use App\Entity\ArticleCategory;
 use App\Entity\ArticleExportQueue;
 use App\Entity\User;
 use App\Enum\ArticleLanguage;
@@ -24,6 +25,7 @@ final class ArticleExportFileWriterTest extends TestCase
                 ->setTitle('Eksportowany artykul')
                 ->setLanguage(ArticleLanguage::EN)
                 ->setSlug('eksportowany-artykul')
+                ->setCategory((new ArticleCategory())->setName('AI')->setSlug('ai'))
                 ->setExcerpt('Skrot')
                 ->setHeadlineImage('/assets/img/example.png')
                 ->setHeadlineImageEnabled(false)
@@ -58,6 +60,7 @@ final class ArticleExportFileWriterTest extends TestCase
             $this->assertSame(12, $payload['article'][0]['queue_item_id']);
             $this->assertSame('Eksportowany artykul', $payload['article'][0]['title']);
             $this->assertSame('en', $payload['article'][0]['language']);
+            $this->assertSame('ai', $payload['article'][0]['category_slug']);
             $this->assertSame('published', $payload['article'][0]['status']);
             $this->assertSame('Pelna tresc', $payload['article'][0]['content']);
             $this->assertSame(
@@ -100,6 +103,7 @@ final class ArticleExportFileWriterTest extends TestCase
             $payload = json_decode((string) file_get_contents($absolutePath), true, 512, JSON_THROW_ON_ERROR);
 
             $this->assertSame('foo/bar baz', $payload['article'][0]['slug']);
+            $this->assertNull($payload['article'][0]['category_slug']);
         } finally {
             $this->removeDirectory($projectDir);
         }

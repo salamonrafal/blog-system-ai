@@ -10,6 +10,7 @@ use App\Form\TopMenuItemType;
 use App\Repository\ArticleCategoryRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\TopMenuItemRepository;
+use App\Service\TopMenuItemUniqueNameGenerator;
 use App\Service\UserLanguageResolver;
 use App\Twig\AppGlobalsExtension;
 use Doctrine\ORM\EntityManagerInterface;
@@ -46,14 +47,20 @@ class TopMenuItemController extends AbstractController
         ArticleCategoryRepository $articleCategoryRepository,
         ArticleRepository $articleRepository,
         UserLanguageResolver $userLanguageResolver,
+        TopMenuItemUniqueNameGenerator $topMenuItemUniqueNameGenerator,
         CacheInterface $appCache,
     ): Response {
         $menuItem = new TopMenuItem();
         $form = $this->createEditorForm($menuItem, $topMenuItemRepository, $articleCategoryRepository, $articleRepository, $userLanguageResolver);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        if ($form->isSubmitted()) {
             $this->syncTranslations($menuItem, $form);
+            $menuItem->normalizeTargetConfiguration();
+            $this->refreshUniqueNameIfMissing($menuItem, $topMenuItemUniqueNameGenerator);
+        }
+
+        if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($menuItem);
             $entityManager->flush();
             $this->clearTopMenuCache($appCache);
@@ -77,13 +84,19 @@ class TopMenuItemController extends AbstractController
         ArticleCategoryRepository $articleCategoryRepository,
         ArticleRepository $articleRepository,
         UserLanguageResolver $userLanguageResolver,
+        TopMenuItemUniqueNameGenerator $topMenuItemUniqueNameGenerator,
         CacheInterface $appCache,
     ): Response {
         $form = $this->createEditorForm($menuItem, $topMenuItemRepository, $articleCategoryRepository, $articleRepository, $userLanguageResolver);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        if ($form->isSubmitted()) {
             $this->syncTranslations($menuItem, $form);
+            $menuItem->normalizeTargetConfiguration();
+            $this->refreshUniqueNameIfMissing($menuItem, $topMenuItemUniqueNameGenerator);
+        }
+
+        if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
             $this->clearTopMenuCache($appCache);
 
@@ -173,5 +186,19 @@ class TopMenuItemController extends AbstractController
         foreach (AppGlobalsExtension::topMenuCacheKeys() as $cacheKey) {
             $appCache->delete($cacheKey);
         }
+    }
+
+    private function refreshUniqueNameIfMissing(TopMenuItem $menuItem, TopMenuItemUniqueNameGenerator $topMenuItemUniqueNameGenerator): void
+    {
+        if ('' !== trim($menuItem->getUniqueName())) {
+            return;
+        }
+
+        $baseValue = $menuItem->getLabel('pl', null) ?? $menuItem->getLocalizedLabel('pl');
+        if ('' === trim($baseValue)) {
+            return;
+        }
+
+        $topMenuItemUniqueNameGenerator->refreshUniqueName($menuItem);
     }
 }

@@ -19,6 +19,7 @@ final class CategoryExportFileWriterTest extends TestCase
         try {
             $category = (new ArticleCategory())
                 ->setName('AI & Data')
+                ->setSlug('ai-i-dane')
                 ->setShortDescription('Kategoria techniczna')
                 ->setTitles(['pl' => 'AI i dane', 'en' => 'AI and data'])
                 ->setDescriptions(['pl' => 'Opis PL', 'en' => 'Description EN'])
@@ -32,7 +33,7 @@ final class CategoryExportFileWriterTest extends TestCase
             $absolutePath = $projectDir.'/'.$relativePath;
 
             $this->assertFileExists($absolutePath);
-            $this->assertStringStartsWith('var/exports/category-AI-Data-export-', $relativePath);
+            $this->assertStringStartsWith('var/exports/category-ai-i-dane-export-', $relativePath);
 
             /** @var array<string, mixed> $payload */
             $payload = json_decode((string) file_get_contents($absolutePath), true, 512, JSON_THROW_ON_ERROR);
@@ -41,15 +42,39 @@ final class CategoryExportFileWriterTest extends TestCase
             $this->assertSame(1, $payload['category_count']);
             $this->assertSame(18, $payload['category'][0]['queue_item_id']);
             $this->assertSame('AI & Data', $payload['category'][0]['name']);
+            $this->assertSame('ai-i-dane', $payload['category'][0]['slug']);
             $this->assertSame('AI and data', $payload['category'][0]['titles']['en']);
             $this->assertSame(
                 basename($relativePath, '.json'),
                 sprintf(
-                    'category-AI-Data-export-%s-%s',
+                    'category-ai-i-dane-export-%s-%s',
                     (new \DateTimeImmutable($payload['exported_at']))->setTimezone(new \DateTimeZone('UTC'))->format('Ymd-His'),
-                    substr((string) preg_replace('/^category-AI-Data-export-\d{8}-\d{6}-/', '', basename($relativePath, '.json')), 0)
+                    substr((string) preg_replace('/^category-ai-i-dane-export-\d{8}-\d{6}-/', '', basename($relativePath, '.json')), 0)
                 )
             );
+        } finally {
+            $this->removeDirectory($projectDir);
+        }
+    }
+
+    public function testWriteFailsWhenCategorySlugIsMissing(): void
+    {
+        $projectDir = sys_get_temp_dir().'/category-export-writer-'.bin2hex(random_bytes(4));
+        mkdir($projectDir, 0775, true);
+
+        try {
+            $category = (new ArticleCategory())
+                ->setName('AI & Data')
+                ->setTitles(['pl' => 'AI i dane']);
+            $this->setEntityId($category, 21);
+
+            $queueItem = new CategoryExportQueue($category);
+            $writer = new CategoryExportFileWriter($projectDir, 'var/exports');
+
+            $this->expectException(\RuntimeException::class);
+            $this->expectExceptionMessage('missing slug');
+
+            $writer->write($queueItem);
         } finally {
             $this->removeDirectory($projectDir);
         }

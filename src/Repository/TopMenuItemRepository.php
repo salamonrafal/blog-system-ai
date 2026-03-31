@@ -58,6 +58,27 @@ class TopMenuItemRepository extends ServiceEntityRepository
         return $this->count(['status' => TopMenuItemStatus::INACTIVE]);
     }
 
+    public function findOneByUniqueName(string $uniqueName): ?TopMenuItem
+    {
+        return $this->findOneBy(['uniqueName' => $uniqueName]);
+    }
+
+    public function uniqueNameExists(string $uniqueName, ?int $ignoreId = null): bool
+    {
+        $queryBuilder = $this->createQueryBuilder('menu_item')
+            ->select('COUNT(menu_item.id)')
+            ->andWhere('menu_item.uniqueName = :uniqueName')
+            ->setParameter('uniqueName', $uniqueName);
+
+        if (null !== $ignoreId) {
+            $queryBuilder
+                ->andWhere('menu_item.id != :ignoreId')
+                ->setParameter('ignoreId', $ignoreId);
+        }
+
+        return (int) $queryBuilder->getQuery()->getSingleScalarResult() > 0;
+    }
+
     private function createBaseQueryBuilder(): QueryBuilder
     {
         return $this->createQueryBuilder('menu_item')

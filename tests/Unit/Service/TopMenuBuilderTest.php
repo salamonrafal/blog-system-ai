@@ -9,7 +9,6 @@ use App\Entity\ArticleCategory;
 use App\Entity\TopMenuItem;
 use App\Enum\ArticleStatus;
 use App\Enum\TopMenuItemTargetType;
-use App\Service\ArticleSlugger;
 use App\Service\TopMenuBuilder;
 use App\Service\UserLanguageResolver;
 use PHPUnit\Framework\TestCase;
@@ -21,9 +20,6 @@ final class TopMenuBuilderTest extends TestCase
     {
         $languageResolver = $this->createMock(UserLanguageResolver::class);
         $languageResolver->method('getLanguage')->willReturn('en');
-
-        $slugger = $this->createMock(ArticleSlugger::class);
-        $slugger->method('slugify')->with('PHP')->willReturn('php');
 
         $urlGenerator = $this->createMock(UrlGeneratorInterface::class);
         $urlGenerator
@@ -37,7 +33,7 @@ final class TopMenuBuilderTest extends TestCase
                 };
             });
 
-        $category = (new ArticleCategory())->setName('PHP')->setTitle('en', 'PHP');
+        $category = (new ArticleCategory())->setName('PHP')->setSlug('php')->setTitle('en', 'PHP');
         $article = (new Article())
             ->setTitle('Article')
             ->setSlug('article')
@@ -48,7 +44,7 @@ final class TopMenuBuilderTest extends TestCase
         $articleItem = (new TopMenuItem())->setLabel('en', 'Article')->setTargetType(TopMenuItemTargetType::ARTICLE)->setArticle($article);
         $externalItem = (new TopMenuItem())->setLabel('en', 'Docs')->setTargetType(TopMenuItemTargetType::EXTERNAL_URL)->setExternalUrl('https://example.com/docs')->setExternalUrlOpenInNewWindow(true);
 
-        $builder = new TopMenuBuilder($languageResolver, $slugger, $urlGenerator);
+        $builder = new TopMenuBuilder($languageResolver, $urlGenerator);
         $tree = $builder->buildActiveTree([$parent, $child, $articleItem, $externalItem]);
 
         $this->assertCount(3, $tree);
@@ -69,9 +65,6 @@ final class TopMenuBuilderTest extends TestCase
         $languageResolver = $this->createMock(UserLanguageResolver::class);
         $languageResolver->method('getLanguage')->willReturn('en');
 
-        $slugger = $this->createMock(ArticleSlugger::class);
-        $slugger->method('slugify')->willReturn('php');
-
         $urlGenerator = $this->createMock(UrlGeneratorInterface::class);
         $urlGenerator
             ->method('generate')
@@ -83,7 +76,7 @@ final class TopMenuBuilderTest extends TestCase
                 };
             });
 
-        $category = (new ArticleCategory())->setName('PHP')->setTitle('en', 'PHP');
+        $category = (new ArticleCategory())->setName('PHP')->setSlug('php')->setTitle('en', 'PHP');
         $inactiveParent = (new TopMenuItem())
             ->setLabel('en', 'Hidden')
             ->setTargetType(TopMenuItemTargetType::BLOG_HOME)
@@ -96,7 +89,7 @@ final class TopMenuBuilderTest extends TestCase
             ->setArticleCategory($category)
             ->setParent($inactiveParent);
 
-        $builder = new TopMenuBuilder($languageResolver, $slugger, $urlGenerator);
+        $builder = new TopMenuBuilder($languageResolver, $urlGenerator);
         $tree = $builder->buildActiveTree([$inactiveParent, $child]);
 
         $this->assertSame([], $tree);
@@ -107,7 +100,6 @@ final class TopMenuBuilderTest extends TestCase
         $languageResolver = $this->createMock(UserLanguageResolver::class);
         $languageResolver->method('getLanguage')->willReturn('en');
 
-        $slugger = $this->createMock(ArticleSlugger::class);
         $urlGenerator = $this->createMock(UrlGeneratorInterface::class);
 
         $article = (new Article())
@@ -120,7 +112,7 @@ final class TopMenuBuilderTest extends TestCase
             ->setTargetType(TopMenuItemTargetType::ARTICLE)
             ->setArticle($article);
 
-        $builder = new TopMenuBuilder($languageResolver, $slugger, $urlGenerator);
+        $builder = new TopMenuBuilder($languageResolver, $urlGenerator);
         $tree = $builder->buildActiveTree([$articleItem]);
 
         $this->assertSame([], $tree);
@@ -130,9 +122,6 @@ final class TopMenuBuilderTest extends TestCase
     {
         $languageResolver = $this->createMock(UserLanguageResolver::class);
         $languageResolver->method('getLanguage')->willReturn('en');
-
-        $slugger = $this->createMock(ArticleSlugger::class);
-        $slugger->method('slugify')->with('PHP')->willReturn('php');
 
         $urlGenerator = $this->createMock(UrlGeneratorInterface::class);
         $urlGenerator
@@ -144,7 +133,7 @@ final class TopMenuBuilderTest extends TestCase
                 };
             });
 
-        $category = (new ArticleCategory())->setName('PHP')->setTitle('en', 'PHP');
+        $category = (new ArticleCategory())->setName('PHP')->setSlug('php')->setTitle('en', 'PHP');
         $parent = (new TopMenuItem())
             ->setLabel('en', 'Services')
             ->setTargetType(TopMenuItemTargetType::NONE);
@@ -156,7 +145,7 @@ final class TopMenuBuilderTest extends TestCase
             ->setArticleCategory($category)
             ->setParent($parent);
 
-        $builder = new TopMenuBuilder($languageResolver, $slugger, $urlGenerator);
+        $builder = new TopMenuBuilder($languageResolver, $urlGenerator);
         $tree = $builder->buildActiveTree([$parent, $child]);
 
         $this->assertCount(1, $tree);

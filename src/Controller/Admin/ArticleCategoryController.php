@@ -9,6 +9,7 @@ use App\Entity\User;
 use App\Form\ArticleCategoryType;
 use App\Repository\ArticleCategoryRepository;
 use App\Repository\CategoryExportQueueRepository;
+use App\Service\CategorySlugger;
 use App\Service\UserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\FormInterface;
@@ -36,14 +37,18 @@ class ArticleCategoryController extends AbstractController
     }
 
     #[Route('/new', name: 'admin_article_category_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager, UserLanguageResolver $userLanguageResolver): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, UserLanguageResolver $userLanguageResolver, CategorySlugger $categorySlugger): Response
     {
         $category = new ArticleCategory();
         $form = $this->createForm(ArticleCategoryType::class, $category);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        if ($form->isSubmitted()) {
             $this->syncTranslations($category, $form);
+            $this->refreshSlugIfMissing($category, $categorySlugger);
+        }
+
+        if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($category);
             $entityManager->flush();
 
@@ -63,12 +68,17 @@ class ArticleCategoryController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         UserLanguageResolver $userLanguageResolver,
+        CategorySlugger $categorySlugger,
     ): Response {
         $form = $this->createForm(ArticleCategoryType::class, $category);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        if ($form->isSubmitted()) {
             $this->syncTranslations($category, $form);
+            $this->refreshSlugIfMissing($category, $categorySlugger);
+        }
+
+        if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
 
             $this->addFlash('success', $userLanguageResolver->translate('Kategoria została zaktualizowana.', 'Category updated.'));
@@ -196,6 +206,20 @@ class ArticleCategoryController extends AbstractController
         $category
             ->setTitles($titles)
             ->setDescriptions($descriptions);
+    }
+
+    private function refreshSlugIfMissing(ArticleCategory $category, CategorySlugger $categorySlugger): void
+    {
+        if ('' !== trim($category->getSlug())) {
+            return;
+        }
+
+        $baseValue = $category->getTitle('pl', null) ?? $category->getName();
+        if ('' === trim((string) $baseValue)) {
+            return;
+        }
+
+        $categorySlugger->refreshSlug($category);
     }
 
     /**

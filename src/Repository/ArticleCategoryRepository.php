@@ -44,6 +44,22 @@ class ArticleCategoryRepository extends ServiceEntityRepository
         return $this->count(['status' => ArticleCategoryStatus::INACTIVE]);
     }
 
+    public function slugExists(string $slug, ?int $ignoreId = null): bool
+    {
+        $queryBuilder = $this->createQueryBuilder('category')
+            ->select('COUNT(category.id)')
+            ->andWhere('category.slug = :slug')
+            ->setParameter('slug', $slug);
+
+        if (null !== $ignoreId) {
+            $queryBuilder
+                ->andWhere('category.id != :ignoreId')
+                ->setParameter('ignoreId', $ignoreId);
+        }
+
+        return (int) $queryBuilder->getQuery()->getSingleScalarResult() > 0;
+    }
+
     /**
      * @return list<ArticleCategory>
      */
