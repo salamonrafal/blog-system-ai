@@ -74,6 +74,7 @@ class ArticleExportFileWriter
             'title' => $article->getTitle(),
             'language' => $article->getLanguage()->value,
             'slug' => $article->getSlug(),
+            'category_slug' => $article->getCategory()?->getSlug(),
             'excerpt' => $article->getExcerpt(),
             'headline_image' => $article->getHeadlineImage(),
             'headline_image_enabled' => $article->isHeadlineImageEnabled(),

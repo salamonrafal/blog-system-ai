@@ -14,6 +14,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Table(name: 'article_category')]
 #[ORM\HasLifecycleCallbacks]
 #[UniqueEntity(fields: ['name'], message: 'Ta nazwa kategorii jest już zajęta.')]
+#[UniqueEntity(fields: ['slug'], message: 'Slug kategorii jest już zajęty.')]
 class ArticleCategory
 {
     use EntityTextNormalizationTrait;
@@ -33,6 +34,11 @@ class ArticleCategory
     #[Assert\Length(max: 320, maxMessage: 'Krótki opis może mieć maksymalnie 320 znaków.')]
     #[ORM\Column(length: 320, nullable: true)]
     private ?string $shortDescription = null;
+
+    #[Assert\NotBlank(message: 'Slug kategorii jest wymagany.')]
+    #[Assert\Length(max: 255, maxMessage: 'Slug kategorii może mieć maksymalnie 255 znaków.')]
+    #[ORM\Column(length: 255, unique: true)]
+    private string $slug = '';
 
     #[ORM\Column(type: 'json')]
     private array $titles = [];
@@ -85,6 +91,18 @@ class ArticleCategory
     public function setShortDescription(?string $shortDescription): self
     {
         $this->shortDescription = $this->normalizeNullableText($shortDescription);
+
+        return $this;
+    }
+
+    public function getSlug(): string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(string $slug): self
+    {
+        $this->slug = trim($slug);
 
         return $this;
     }

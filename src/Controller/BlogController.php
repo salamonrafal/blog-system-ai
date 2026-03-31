@@ -9,7 +9,6 @@ use App\Enum\ArticleLanguage;
 use App\Enum\ArticleStatus;
 use App\Repository\ArticleCategoryRepository;
 use App\Repository\ArticleRepository;
-use App\Service\ArticleSlugger;
 use App\Service\BlogSettingsProvider;
 use App\Service\PaginationBuilder;
 use App\Service\UserLanguageResolver;
@@ -27,7 +26,6 @@ class BlogController extends AbstractController
         ArticleCategoryRepository $articleCategoryRepository,
         BlogSettingsProvider $blogSettingsProvider,
         PaginationBuilder $paginationBuilder,
-        ArticleSlugger $articleSlugger,
     ): Response
     {
         return $this->renderIndex(
@@ -36,7 +34,6 @@ class BlogController extends AbstractController
             $articleCategoryRepository,
             $blogSettingsProvider,
             $paginationBuilder,
-            $articleSlugger,
         );
     }
 
@@ -48,7 +45,6 @@ class BlogController extends AbstractController
         ArticleCategoryRepository $articleCategoryRepository,
         BlogSettingsProvider $blogSettingsProvider,
         PaginationBuilder $paginationBuilder,
-        ArticleSlugger $articleSlugger,
     ): Response
     {
         return $this->renderIndex(
@@ -57,7 +53,6 @@ class BlogController extends AbstractController
             $articleCategoryRepository,
             $blogSettingsProvider,
             $paginationBuilder,
-            $articleSlugger,
             $slug,
         );
     }
@@ -66,7 +61,6 @@ class BlogController extends AbstractController
     public function show(
         string $slug,
         ArticleRepository $articleRepository,
-        ArticleSlugger $articleSlugger,
         UserLanguageResolver $userLanguageResolver,
     ): Response
     {
@@ -84,7 +78,7 @@ class BlogController extends AbstractController
         $articleCategoryRouteParams = null;
         if (null !== $articleCategory && $articleCategory->isActive()) {
             $articleCategoryRouteParams = [
-                'slug' => $articleSlugger->slugify($articleCategory->getName()),
+                'slug' => $articleCategory->getSlug(),
                 'lang' => $userLanguageResolver->getLanguage(),
             ];
         }
@@ -104,16 +98,12 @@ class BlogController extends AbstractController
         ArticleCategoryRepository $articleCategoryRepository,
         BlogSettingsProvider $blogSettingsProvider,
         PaginationBuilder $paginationBuilder,
-        ArticleSlugger $articleSlugger,
         ?string $categorySlug = null,
     ): Response
     {
         $language = ArticleLanguage::tryFrom((string) $request->query->get('lang', ''));
         $settings = $blogSettingsProvider->getSettings();
-        $categoryLinks = $this->buildCategoryLinks(
-            $articleCategoryRepository->findActiveOrderedByName(),
-            $articleSlugger,
-        );
+        $categoryLinks = $this->buildCategoryLinks($articleCategoryRepository->findActiveOrderedByName());
         $currentCategory = $this->resolveCurrentCategory($categoryLinks, $categorySlug);
 
         if (null !== $categorySlug && null === $currentCategory) {
@@ -149,12 +139,12 @@ class BlogController extends AbstractController
      * @param list<ArticleCategory> $categories
      * @return list<array{category: ArticleCategory, slug: string}>
      */
-    private function buildCategoryLinks(array $categories, ArticleSlugger $articleSlugger): array
+    private function buildCategoryLinks(array $categories): array
     {
         return array_map(
             static fn (ArticleCategory $category): array => [
                 'category' => $category,
-                'slug' => $articleSlugger->slugify($category->getName()),
+                'slug' => $category->getSlug(),
             ],
             $categories,
         );

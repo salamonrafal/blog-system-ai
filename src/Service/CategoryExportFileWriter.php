@@ -18,6 +18,7 @@ class CategoryExportFileWriter
         private readonly string $projectDir,
         #[Autowire('%app.article_export_directory%')]
         private readonly string $exportDirectory,
+        private readonly CategorySlugger $categorySlugger,
     ) {
     }
 
@@ -31,9 +32,12 @@ class CategoryExportFileWriter
         }
 
         $category = $queueItem->getCategory();
+        if ('' === $category->getSlug()) {
+            $this->categorySlugger->refreshSlug($category);
+        }
         $fileName = sprintf(
             'category-%s-export-%s-%s.json',
-            $this->sanitizeSlugForFileName($category->getName()),
+            $this->sanitizeSlugForFileName($category->getSlug()),
             $now->format('Ymd-His'),
             bin2hex(random_bytes(4))
         );
@@ -72,6 +76,7 @@ class CategoryExportFileWriter
             'queue_item_id' => $queueItem->getId(),
             'id' => $category->getId(),
             'name' => $category->getName(),
+            'slug' => $category->getSlug(),
             'short_description' => $category->getShortDescription(),
             'titles' => $category->getTitles(),
             'descriptions' => $category->getDescriptions(),

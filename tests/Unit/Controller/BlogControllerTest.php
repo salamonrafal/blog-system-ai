@@ -12,7 +12,6 @@ use App\Enum\ArticleLanguage;
 use App\Enum\ArticleStatus;
 use App\Repository\ArticleCategoryRepository;
 use App\Repository\ArticleRepository;
-use App\Service\ArticleSlugger;
 use App\Service\BlogSettingsProvider;
 use App\Service\PaginationBuilder;
 use App\Service\UserLanguageResolver;
@@ -30,6 +29,7 @@ final class BlogControllerTest extends TestCase
         $article = (new Article())->setTitle('Article');
         $category = (new ArticleCategory())
             ->setName('Programowanie PHP')
+            ->setSlug('programowanie-php')
             ->setTitle('pl', 'PHP');
 
         $articleRepository = $this->createMock(ArticleRepository::class);
@@ -63,7 +63,6 @@ final class BlogControllerTest extends TestCase
             $categoryRepository,
             $settingsProvider,
             new PaginationBuilder(),
-            new ArticleSlugger(),
         );
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
@@ -84,6 +83,7 @@ final class BlogControllerTest extends TestCase
         $article = (new Article())->setTitle('Article in category');
         $category = (new ArticleCategory())
             ->setName('Sztuczna Inteligencja')
+            ->setSlug('sztuczna-inteligencja')
             ->setTitle('en', 'Artificial Intelligence')
             ->setDescription('en', 'Articles about AI and machine learning.');
 
@@ -119,7 +119,6 @@ final class BlogControllerTest extends TestCase
             $categoryRepository,
             $settingsProvider,
             new PaginationBuilder(),
-            new ArticleSlugger(),
         );
 
         $this->assertSame($category, $controller->capturedParameters['current_category']);
@@ -167,13 +166,12 @@ final class BlogControllerTest extends TestCase
             $categoryRepository,
             $settingsProvider,
             new PaginationBuilder(),
-            new ArticleSlugger(),
         );
     }
 
     public function testShowExposesCategorySlugForLinkedCategoryBadge(): void
     {
-        $category = (new ArticleCategory())->setName('Architektura Systemow');
+        $category = (new ArticleCategory())->setName('Architektura Systemow')->setSlug('architektura-systemow');
         $article = (new Article())
             ->setTitle('Article')
             ->setSlug('article')
@@ -199,7 +197,7 @@ final class BlogControllerTest extends TestCase
             ->willReturn('en');
 
         $controller = new TestBlogController();
-        $response = $controller->show('article', $articleRepository, new ArticleSlugger(), $userLanguageResolver);
+        $response = $controller->show('article', $articleRepository, $userLanguageResolver);
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
         $this->assertSame('blog/show.html.twig', $controller->capturedView);
@@ -215,6 +213,7 @@ final class BlogControllerTest extends TestCase
     {
         $category = (new ArticleCategory())
             ->setName('Architektura Systemow')
+            ->setSlug('architektura-systemow')
             ->setStatus(\App\Enum\ArticleCategoryStatus::INACTIVE);
         $article = (new Article())
             ->setTitle('Article')
@@ -240,7 +239,7 @@ final class BlogControllerTest extends TestCase
             ->method('getLanguage');
 
         $controller = new TestBlogController();
-        $response = $controller->show('article', $articleRepository, new ArticleSlugger(), $userLanguageResolver);
+        $response = $controller->show('article', $articleRepository, $userLanguageResolver);
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
         $this->assertNull($controller->capturedParameters['article_category_route_params']);
@@ -276,7 +275,7 @@ final class BlogControllerTest extends TestCase
             ->method('getLanguage');
 
         $controller = new TestBlogController();
-        $controller->show('article', $articleRepository, new ArticleSlugger(), $userLanguageResolver);
+        $controller->show('article', $articleRepository, $userLanguageResolver);
 
         $this->assertSame([$recommendedArticle], $controller->capturedParameters['recommended_articles']);
     }

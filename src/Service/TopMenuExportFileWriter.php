@@ -16,6 +16,7 @@ class TopMenuExportFileWriter
 
     public function __construct(
         private readonly TopMenuItemRepository $topMenuItemRepository,
+        private readonly TopMenuItemUniqueNameGenerator $topMenuItemUniqueNameGenerator,
         #[Autowire('%kernel.project_dir%')]
         private readonly string $projectDir,
         #[Autowire('%app.article_export_directory%')]
@@ -78,16 +79,29 @@ class TopMenuExportFileWriter
 
     private function normalizeMenuItem(TopMenuItem $item, TopMenuExportQueue $queueItem): array
     {
+        if ('' === $item->getUniqueName()) {
+            $this->topMenuItemUniqueNameGenerator->refreshUniqueName($item);
+        }
+
+        $parent = $item->getParent();
+        if (null !== $parent && '' === $parent->getUniqueName()) {
+            $this->topMenuItemUniqueNameGenerator->refreshUniqueName($parent);
+        }
+
         return [
             'queue_item_id' => $queueItem->getId(),
             'id' => $item->getId(),
-            'parent_id' => $item->getParent()?->getId(),
+            'unique_name' => $item->getUniqueName(),
+            'parent_id' => $parent?->getId(),
+            'parent_unique_name' => $parent?->getUniqueName(),
             'labels' => $item->getLabels(),
             'target_type' => $item->getTargetType()->value,
             'external_url' => $item->getExternalUrl(),
             'external_url_open_in_new_window' => $item->isExternalUrlOpenInNewWindow(),
             'article_category_id' => $item->getArticleCategory()?->getId(),
+            'category_slug' => $item->getArticleCategory()?->getSlug(),
             'article_id' => $item->getArticle()?->getId(),
+            'article_slug' => $item->getArticle()?->getSlug(),
             'position' => $item->getPosition(),
             'status' => $item->getStatus()->value,
             'created_at' => $item->getCreatedAt()->format(\DateTimeInterface::ATOM),

@@ -9,6 +9,7 @@ use App\Entity\User;
 use App\Form\ArticleCategoryType;
 use App\Repository\ArticleCategoryRepository;
 use App\Repository\CategoryExportQueueRepository;
+use App\Service\CategorySlugger;
 use App\Service\UserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\FormInterface;
@@ -36,7 +37,7 @@ class ArticleCategoryController extends AbstractController
     }
 
     #[Route('/new', name: 'admin_article_category_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager, UserLanguageResolver $userLanguageResolver): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, UserLanguageResolver $userLanguageResolver, CategorySlugger $categorySlugger): Response
     {
         $category = new ArticleCategory();
         $form = $this->createForm(ArticleCategoryType::class, $category);
@@ -44,6 +45,7 @@ class ArticleCategoryController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->syncTranslations($category, $form);
+            $categorySlugger->refreshSlug($category);
             $entityManager->persist($category);
             $entityManager->flush();
 
@@ -63,12 +65,14 @@ class ArticleCategoryController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         UserLanguageResolver $userLanguageResolver,
+        CategorySlugger $categorySlugger,
     ): Response {
         $form = $this->createForm(ArticleCategoryType::class, $category);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->syncTranslations($category, $form);
+            $categorySlugger->refreshSlug($category);
             $entityManager->flush();
 
             $this->addFlash('success', $userLanguageResolver->translate('Kategoria została zaktualizowana.', 'Category updated.'));

@@ -3112,6 +3112,12 @@ select {
   display:flex;
   justify-content:flex-end;
   margin:0 20px 8px;
+  position:relative;
+  z-index:2;
+}
+
+.card:has(.article-index-toolbar){
+  overflow:visible;
 }
 
 .article-index-filter-panel {

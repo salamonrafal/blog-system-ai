@@ -167,19 +167,29 @@ Main security files:
 - [src/Controller/SecurityController.php](./src/Controller/SecurityController.php)
 - [templates/security/login.html.twig](./templates/security/login.html.twig)
 
-## Export queue
+## Export queues
 
-The project includes an article export queue for preparing restorable export files in the background.
+The project includes background export queues for:
+- articles
+- article categories
+- top menu
+
+All generated files are stored in:
+[`var/exports/`](./var/exports/)
+
+The admin panel includes:
+- queue view: `/admin/queues/status`
+- export history and download list: `/admin/exports`
+
+### Article export
 
 Flow overview:
 - In the admin article list, exporting an article creates a pending record in `article_export_queue`
-- The console consumer collects all pending queue items and builds one JSON export file with article metadata and content
+- The console consumer collects pending queue items and builds a JSON export file with article metadata and content
 - After processing, the consumer creates a record in `article_export` with status, type and file path
-- Generated files are stored in:
-  [`var/exports/`](./var/exports/)
-- The admin panel includes:
-  - queue view: `/admin/queues/status`
-  - export history and download list: `/admin/exports`
+- The exported article payload includes stable identifiers such as:
+  - article `slug`
+  - assigned category `category_slug`
 
 Important files:
 - [src/Command/ProcessArticleExportQueueCommand.php](./src/Command/ProcessArticleExportQueueCommand.php)
@@ -188,19 +198,7 @@ Important files:
 - [src/Entity/ArticleExport.php](./src/Entity/ArticleExport.php)
 - [src/Controller/Admin/ArticleExportController.php](./src/Controller/Admin/ArticleExportController.php)
 
-### Manual consumer run
-
-Before running the consumer manually, make sure the database exists and migrations are applied:
-
-1. Install dependencies:
-   `composer install`
-2. Create the SQLite database file:
-   `composer db:create`
-3. Run migrations:
-   `composer db:migrate`
-
-Run the queue consumer manually with one of these commands:
-
+Manual run:
 - Composer shortcut:
   `composer article-export:process-queue`
 - Direct Symfony command:
@@ -215,6 +213,66 @@ What the manual run does:
 
 If there are no pending entries, the command exits successfully and prints:
 `No queued article exports to process.`
+
+### Category export
+
+Flow overview:
+- In the admin category list, exporting a category creates a pending record in `category_export_queue`
+- The console consumer builds a JSON export file with category metadata and translations
+- The exported category payload includes a stable category `slug`
+
+Important files:
+- [src/Command/ProcessCategoryExportQueueCommand.php](./src/Command/ProcessCategoryExportQueueCommand.php)
+- [src/Service/CategoryExportFileWriter.php](./src/Service/CategoryExportFileWriter.php)
+- [src/Entity/CategoryExportQueue.php](./src/Entity/CategoryExportQueue.php)
+
+Manual run:
+- Composer shortcut:
+  `composer category-export:process-queue`
+- Direct Symfony command:
+  `php bin/console app:category-export:process-queue`
+
+### Top menu export
+
+Flow overview:
+- In the admin top menu view, exporting creates a pending record in `top_menu_export_queue`
+- The console consumer exports the full menu hierarchy to one JSON file
+- The exported menu item payload includes stable identifiers for cross-environment matching:
+  - item `unique_name`
+  - parent `parent_unique_name`
+  - category target `category_slug`
+  - article target `article_slug`
+
+Important files:
+- [src/Command/ProcessTopMenuExportQueueCommand.php](./src/Command/ProcessTopMenuExportQueueCommand.php)
+- [src/Service/TopMenuExportFileWriter.php](./src/Service/TopMenuExportFileWriter.php)
+- [src/Entity/TopMenuExportQueue.php](./src/Entity/TopMenuExportQueue.php)
+
+Manual run:
+- Composer shortcut:
+  `composer top-menu-export:process-queue`
+- Direct Symfony command:
+  `php bin/console app:top-menu-export:process-queue`
+
+### Scheduled processing with cron
+
+The repository includes a ready cron file:
+- [docker/conf/cron/article-queue](./docker/conf/cron/article-queue)
+
+Current entries process all background queues once per minute:
+- `app:article-export:process-queue`
+- `app:category-export:process-queue`
+- `app:top-menu-export:process-queue`
+- `app:article-import:process-queue`
+
+Before running consumers manually or from cron, make sure the database exists and migrations are applied:
+
+1. Install dependencies:
+   `composer install`
+2. Create the SQLite database file:
+   `composer db:create`
+3. Run migrations:
+   `composer db:migrate`
 
 ## Import queue
 
@@ -268,8 +326,12 @@ What the manual run does:
 If there are no pending entries, the command exits successfully and prints:
 `No queued article imports to process.`
 
-For scheduled background processing you can use the same command in crontab, for example:
-`* * * * * cd /path/to/project && composer article-import:process-queue`
+For a local non-Docker setup you can use equivalent crontab entries, for example:
+
+- `* * * * * cd /path/to/project && composer article-export:process-queue`
+- `* * * * * cd /path/to/project && composer category-export:process-queue`
+- `* * * * * cd /path/to/project && composer top-menu-export:process-queue`
+- `* * * * * cd /path/to/project && composer article-import:process-queue`
 
 ## Next steps
 

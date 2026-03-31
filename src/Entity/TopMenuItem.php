@@ -30,6 +30,11 @@ class TopMenuItem
     #[ORM\Column(type: 'json')]
     private array $labels = [];
 
+    #[Assert\NotBlank(message: 'Unikalna nazwa elementu menu jest wymagana.')]
+    #[Assert\Length(max: 255, maxMessage: 'Unikalna nazwa elementu menu może mieć maksymalnie 255 znaków.')]
+    #[ORM\Column(length: 255, unique: true)]
+    private string $uniqueName = '';
+
     #[ORM\Column(enumType: TopMenuItemTargetType::class)]
     private TopMenuItemTargetType $targetType = TopMenuItemTargetType::BLOG_HOME;
 
@@ -92,6 +97,18 @@ class TopMenuItem
     public function setLabels(array $labels): self
     {
         $this->labels = $this->normalizeTranslations($labels);
+
+        return $this;
+    }
+
+    public function getUniqueName(): string
+    {
+        return $this->uniqueName;
+    }
+
+    public function setUniqueName(string $uniqueName): self
+    {
+        $this->uniqueName = trim($uniqueName);
 
         return $this;
     }

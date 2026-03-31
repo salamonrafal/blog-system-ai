@@ -10,6 +10,7 @@ use App\Form\TopMenuItemType;
 use App\Repository\ArticleCategoryRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\TopMenuItemRepository;
+use App\Service\TopMenuItemUniqueNameGenerator;
 use App\Service\UserLanguageResolver;
 use App\Twig\AppGlobalsExtension;
 use Doctrine\ORM\EntityManagerInterface;
@@ -46,6 +47,7 @@ class TopMenuItemController extends AbstractController
         ArticleCategoryRepository $articleCategoryRepository,
         ArticleRepository $articleRepository,
         UserLanguageResolver $userLanguageResolver,
+        TopMenuItemUniqueNameGenerator $topMenuItemUniqueNameGenerator,
         CacheInterface $appCache,
     ): Response {
         $menuItem = new TopMenuItem();
@@ -54,6 +56,7 @@ class TopMenuItemController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->syncTranslations($menuItem, $form);
+            $topMenuItemUniqueNameGenerator->refreshUniqueName($menuItem);
             $entityManager->persist($menuItem);
             $entityManager->flush();
             $this->clearTopMenuCache($appCache);
@@ -77,6 +80,7 @@ class TopMenuItemController extends AbstractController
         ArticleCategoryRepository $articleCategoryRepository,
         ArticleRepository $articleRepository,
         UserLanguageResolver $userLanguageResolver,
+        TopMenuItemUniqueNameGenerator $topMenuItemUniqueNameGenerator,
         CacheInterface $appCache,
     ): Response {
         $form = $this->createEditorForm($menuItem, $topMenuItemRepository, $articleCategoryRepository, $articleRepository, $userLanguageResolver);
@@ -84,6 +88,7 @@ class TopMenuItemController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->syncTranslations($menuItem, $form);
+            $topMenuItemUniqueNameGenerator->refreshUniqueName($menuItem);
             $entityManager->flush();
             $this->clearTopMenuCache($appCache);
 

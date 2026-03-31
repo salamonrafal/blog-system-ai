@@ -11,6 +11,7 @@ use App\Repository\ArticleCategoryRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\TopMenuItemRepository;
 use App\Repository\TopMenuExportQueueRepository;
+use App\Service\TopMenuItemUniqueNameGenerator;
 use App\Service\UserLanguageResolver;
 use App\Tests\Unit\Support\MocksUserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
@@ -53,12 +54,22 @@ final class TopMenuItemControllerTest extends TestCase
     public function testNewPersistsMenuItemOnValidSubmit(): void
     {
         $entityManager = $this->createMock(EntityManagerInterface::class);
+        $uniqueNameGenerator = $this->createMock(TopMenuItemUniqueNameGenerator::class);
+        $uniqueNameGenerator
+            ->expects($this->once())
+            ->method('refreshUniqueName')
+            ->with($this->callback(function (TopMenuItem $item): bool {
+                $item->setUniqueName('kontakt');
+
+                return true;
+            }));
         $entityManager
             ->expects($this->once())
             ->method('persist')
             ->with($this->callback(function (TopMenuItem $item): bool {
                 $this->assertSame('Kontakt', $item->getLabel('pl'));
                 $this->assertSame('Contact', $item->getLabel('en'));
+                $this->assertSame('kontakt', $item->getUniqueName());
                 $this->assertSame('https://example.com/contact', $item->getExternalUrl());
                 $this->assertTrue($item->isExternalUrlOpenInNewWindow());
 
@@ -95,6 +106,7 @@ final class TopMenuItemControllerTest extends TestCase
             $this->createMock(ArticleCategoryRepository::class),
             $articleRepository,
             $this->createUserLanguageResolverMock('en'),
+            $uniqueNameGenerator,
             $cache,
         );
 

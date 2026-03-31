@@ -23,6 +23,7 @@ final class TopMenuItemTest extends TestCase
 
         $menuItem = (new TopMenuItem())
             ->setLabels(['pl' => 'Kontakt', 'en' => 'Contact'])
+            ->setUniqueName('kontakt')
             ->setTargetType(TopMenuItemTargetType::EXTERNAL_URL)
             ->setExternalUrl('https://example.com/contact')
             ->setExternalUrlOpenInNewWindow(true)
@@ -33,6 +34,7 @@ final class TopMenuItemTest extends TestCase
             ->setStatus(TopMenuItemStatus::INACTIVE);
 
         $this->assertSame('Kontakt', $menuItem->getLabel('pl'));
+        $this->assertSame('kontakt', $menuItem->getUniqueName());
         $this->assertSame('Contact', $menuItem->getLocalizedLabel('en'));
         $this->assertSame(TopMenuItemTargetType::EXTERNAL_URL, $menuItem->getTargetType());
         $this->assertSame('https://example.com/contact', $menuItem->getExternalUrl());
@@ -67,11 +69,13 @@ final class TopMenuItemTest extends TestCase
 
         $blogHomeItem = (new TopMenuItem())
             ->setLabels(['pl' => 'Blog', 'en' => 'Blog'])
+            ->setUniqueName('blog')
             ->setTargetType(TopMenuItemTargetType::BLOG_HOME)
             ->setExternalUrl('not-a-valid-url');
 
         $externalItem = (new TopMenuItem())
             ->setLabels(['pl' => 'Kontakt', 'en' => 'Contact'])
+            ->setUniqueName('kontakt')
             ->setTargetType(TopMenuItemTargetType::EXTERNAL_URL)
             ->setExternalUrl('not-a-valid-url');
 
@@ -90,6 +94,7 @@ final class TopMenuItemTest extends TestCase
 
         $menuItem = (new TopMenuItem())
             ->setLabels(['pl' => 'Usługi', 'en' => 'Services'])
+            ->setUniqueName('uslugi')
             ->setTargetType(TopMenuItemTargetType::NONE);
 
         $this->assertSame(0, $validator->validate($menuItem)->count());
@@ -103,6 +108,7 @@ final class TopMenuItemTest extends TestCase
 
         $menuItem = (new TopMenuItem())
             ->setLabels(['pl' => 'Blog', 'en' => 'Blog'])
+            ->setUniqueName('blog')
             ->setTargetType(TopMenuItemTargetType::BLOG_HOME)
             ->setPosition(-1);
 

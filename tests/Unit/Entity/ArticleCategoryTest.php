@@ -14,6 +14,7 @@ final class ArticleCategoryTest extends TestCase
     {
         $category = (new ArticleCategory())
             ->setName('PHP')
+            ->setSlug('programowanie-w-php')
             ->setShortDescription('Backend i architektura aplikacji.')
             ->setTitle('pl', 'Programowanie w PHP')
             ->setTitle('en', 'PHP Development')
@@ -23,6 +24,7 @@ final class ArticleCategoryTest extends TestCase
             ->setStatus(ArticleCategoryStatus::INACTIVE);
 
         $this->assertSame('PHP', $category->getName());
+        $this->assertSame('programowanie-w-php', $category->getSlug());
         $this->assertSame('Backend i architektura aplikacji.', $category->getShortDescription());
         $this->assertSame('Programowanie w PHP', $category->getTitle('pl'));
         $this->assertSame('PHP Development', $category->getTitle('en'));

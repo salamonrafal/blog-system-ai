@@ -11,6 +11,7 @@ use App\Entity\TopMenuExportQueue;
 use App\Enum\TopMenuItemStatus;
 use App\Enum\TopMenuItemTargetType;
 use App\Repository\TopMenuItemRepository;
+use App\Service\TopMenuItemUniqueNameGenerator;
 use App\Service\TopMenuExportFileWriter;
 use PHPUnit\Framework\TestCase;
 
@@ -24,6 +25,7 @@ final class TopMenuExportFileWriterTest extends TestCase
         try {
             $parent = (new TopMenuItem())
                 ->setLabels(['pl' => 'Blog', 'en' => 'Blog'])
+                ->setUniqueName('blog')
                 ->setTargetType(TopMenuItemTargetType::BLOG_HOME)
                 ->setPosition(1)
                 ->setStatus(TopMenuItemStatus::ACTIVE);
@@ -31,8 +33,9 @@ final class TopMenuExportFileWriterTest extends TestCase
 
             $child = (new TopMenuItem())
                 ->setLabels(['pl' => 'AI', 'en' => 'AI'])
+                ->setUniqueName('ai')
                 ->setTargetType(TopMenuItemTargetType::ARTICLE_CATEGORY)
-                ->setArticleCategory((new ArticleCategory())->setName('AI'))
+                ->setArticleCategory((new ArticleCategory())->setName('AI')->setSlug('ai'))
                 ->setParent($parent)
                 ->setPosition(2)
                 ->setStatus(TopMenuItemStatus::ACTIVE);
@@ -41,6 +44,7 @@ final class TopMenuExportFileWriterTest extends TestCase
 
             $articleItem = (new TopMenuItem())
                 ->setLabels(['pl' => 'Wpis', 'en' => 'Entry'])
+                ->setUniqueName('wpis')
                 ->setTargetType(TopMenuItemTargetType::ARTICLE)
                 ->setArticle((new Article())->setTitle('Hello')->setSlug('hello'))
                 ->setPosition(3)
@@ -57,7 +61,7 @@ final class TopMenuExportFileWriterTest extends TestCase
             $queueItem = new TopMenuExportQueue();
             $this->setEntityId($queueItem, 18);
 
-            $writer = new TopMenuExportFileWriter($repository, $projectDir, 'var/exports');
+            $writer = new TopMenuExportFileWriter($repository, $this->createMock(TopMenuItemUniqueNameGenerator::class), $projectDir, 'var/exports');
             $writtenExport = $writer->write($queueItem);
             $relativePath = $writtenExport['file_path'];
             $absolutePath = $projectDir.'/'.$relativePath;
@@ -73,11 +77,20 @@ final class TopMenuExportFileWriterTest extends TestCase
             $this->assertSame(3, $payload['menu_item_count']);
             $this->assertSame(18, $payload['menu_items'][0]['queue_item_id']);
             $this->assertSame(10, $payload['menu_items'][0]['id']);
+            $this->assertSame('blog', $payload['menu_items'][0]['unique_name']);
             $this->assertNull($payload['menu_items'][0]['parent_id']);
+            $this->assertNull($payload['menu_items'][0]['parent_unique_name']);
             $this->assertSame(10, $payload['menu_items'][1]['parent_id']);
+            $this->assertSame('blog', $payload['menu_items'][1]['parent_unique_name']);
             $this->assertSame(21, $payload['menu_items'][1]['article_category_id']);
+            $this->assertSame('ai', $payload['menu_items'][1]['category_slug']);
+            $this->assertSame('ai', $payload['menu_items'][1]['unique_name']);
             $this->assertSame(31, $payload['menu_items'][2]['article_id']);
+            $this->assertSame('hello', $payload['menu_items'][2]['article_slug']);
+            $this->assertSame('wpis', $payload['menu_items'][2]['unique_name']);
             $this->assertSame('inactive', $payload['menu_items'][2]['status']);
+            $this->assertNull($payload['menu_items'][0]['category_slug']);
+            $this->assertNull($payload['menu_items'][0]['article_slug']);
         } finally {
             $this->removeDirectory($projectDir);
         }

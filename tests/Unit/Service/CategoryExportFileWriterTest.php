@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Service;
 
 use App\Entity\ArticleCategory;
 use App\Entity\CategoryExportQueue;
+use App\Service\CategorySlugger;
 use App\Service\CategoryExportFileWriter;
 use PHPUnit\Framework\TestCase;
 
@@ -19,6 +20,7 @@ final class CategoryExportFileWriterTest extends TestCase
         try {
             $category = (new ArticleCategory())
                 ->setName('AI & Data')
+                ->setSlug('ai-i-dane')
                 ->setShortDescription('Kategoria techniczna')
                 ->setTitles(['pl' => 'AI i dane', 'en' => 'AI and data'])
                 ->setDescriptions(['pl' => 'Opis PL', 'en' => 'Description EN'])
@@ -26,13 +28,13 @@ final class CategoryExportFileWriterTest extends TestCase
 
             $queueItem = new CategoryExportQueue($category);
             $this->setEntityId($queueItem, 18);
-            $writer = new CategoryExportFileWriter($projectDir, 'var/exports');
+            $writer = new CategoryExportFileWriter($projectDir, 'var/exports', $this->createMock(CategorySlugger::class));
 
             $relativePath = $writer->write($queueItem);
             $absolutePath = $projectDir.'/'.$relativePath;
 
             $this->assertFileExists($absolutePath);
-            $this->assertStringStartsWith('var/exports/category-AI-Data-export-', $relativePath);
+            $this->assertStringStartsWith('var/exports/category-ai-i-dane-export-', $relativePath);
 
             /** @var array<string, mixed> $payload */
             $payload = json_decode((string) file_get_contents($absolutePath), true, 512, JSON_THROW_ON_ERROR);
@@ -41,13 +43,14 @@ final class CategoryExportFileWriterTest extends TestCase
             $this->assertSame(1, $payload['category_count']);
             $this->assertSame(18, $payload['category'][0]['queue_item_id']);
             $this->assertSame('AI & Data', $payload['category'][0]['name']);
+            $this->assertSame('ai-i-dane', $payload['category'][0]['slug']);
             $this->assertSame('AI and data', $payload['category'][0]['titles']['en']);
             $this->assertSame(
                 basename($relativePath, '.json'),
                 sprintf(
-                    'category-AI-Data-export-%s-%s',
+                    'category-ai-i-dane-export-%s-%s',
                     (new \DateTimeImmutable($payload['exported_at']))->setTimezone(new \DateTimeZone('UTC'))->format('Ymd-His'),
-                    substr((string) preg_replace('/^category-AI-Data-export-\d{8}-\d{6}-/', '', basename($relativePath, '.json')), 0)
+                    substr((string) preg_replace('/^category-ai-i-dane-export-\d{8}-\d{6}-/', '', basename($relativePath, '.json')), 0)
                 )
             );
         } finally {
