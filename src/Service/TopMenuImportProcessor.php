@@ -155,10 +155,14 @@ class TopMenuImportProcessor
             $visiting[$uniqueName] = true;
             $parentUniqueName = $itemsByUniqueName[$uniqueName]['parent_unique_name'] ?? null;
 
-            if (null === $parentUniqueName || '' === trim((string) $parentUniqueName)) {
+            if (null !== $parentUniqueName && !is_string($parentUniqueName)) {
+                throw new TopMenuImportException(sprintf('Pole menu_items[%d].parent_unique_name musi być tekstem albo null.', $itemsByUniqueName[$uniqueName]['__source_index'] ?? 0));
+            }
+
+            if (null === $parentUniqueName || '' === trim($parentUniqueName)) {
                 $depths[$uniqueName] = 0;
             } else {
-                $parentUniqueName = trim((string) $parentUniqueName);
+                $parentUniqueName = trim($parentUniqueName);
 
                 if (!isset($itemsByUniqueName[$parentUniqueName]) && !isset($existingParentItems[$parentUniqueName])) {
                     throw new TopMenuImportException(sprintf(
@@ -274,7 +278,9 @@ class TopMenuImportProcessor
             foreach ($violations as $violation) {
                 $propertyPath = trim((string) $violation->getPropertyPath());
                 $messages[] = sprintf(
-                    '%s: %s',
+                    'menu_items[%d]%s: %s: %s',
+                    $index,
+                    '' !== $uniqueName ? sprintf(' (%s)', $uniqueName) : '',
                     '' !== $propertyPath ? $propertyPath : 'menu_item',
                     $this->normalizeViolationMessage((string) $violation->getMessage())
                 );
@@ -327,7 +333,7 @@ class TopMenuImportProcessor
      */
     private function resolveParent(mixed $value, string $uniqueName, array $existingItems, int $index): ?TopMenuItem
     {
-        if (null === $value || '' === trim((string) $value)) {
+        if (null === $value) {
             return null;
         }
 
@@ -336,6 +342,10 @@ class TopMenuImportProcessor
         }
 
         $parentUniqueName = trim($value);
+        if ('' === $parentUniqueName) {
+            return null;
+        }
+
         if ($parentUniqueName === $uniqueName) {
             throw new TopMenuImportException(sprintf('Pole menu_items[%d].parent_unique_name nie może wskazywać na ten sam element.', $index));
         }

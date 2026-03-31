@@ -58,7 +58,7 @@ class TopMenuItemController extends AbstractController
             $this->syncTranslations($menuItem, $form);
             $menuItem->normalizeTargetConfiguration();
             $this->refreshUniqueNameIfMissing($menuItem, $topMenuItemUniqueNameGenerator);
-            $this->addUniqueNameErrorIfStillMissing($form, $menuItem);
+            $this->addUniqueNameErrorIfStillMissing($form, $menuItem, $userLanguageResolver);
         }
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -95,7 +95,7 @@ class TopMenuItemController extends AbstractController
             $this->syncTranslations($menuItem, $form);
             $menuItem->normalizeTargetConfiguration();
             $this->refreshUniqueNameIfMissing($menuItem, $topMenuItemUniqueNameGenerator);
-            $this->addUniqueNameErrorIfStillMissing($form, $menuItem);
+            $this->addUniqueNameErrorIfStillMissing($form, $menuItem, $userLanguageResolver);
         }
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -197,12 +197,15 @@ class TopMenuItemController extends AbstractController
         $topMenuItemUniqueNameGenerator->refreshUniqueName($menuItem);
     }
 
-    private function addUniqueNameErrorIfStillMissing(FormInterface $form, TopMenuItem $menuItem): void
+    private function addUniqueNameErrorIfStillMissing(FormInterface $form, TopMenuItem $menuItem, UserLanguageResolver $userLanguageResolver): void
     {
         if ('' !== trim($menuItem->getUniqueName())) {
             return;
         }
 
-        $form->addError(new FormError('Nie udało się wygenerować unikalnej nazwy elementu menu.'));
+        $form->addError(new FormError($userLanguageResolver->translate(
+            'Nie udało się wygenerować unikalnej nazwy elementu menu.',
+            'Failed to generate a unique menu item name.'
+        )));
     }
 }

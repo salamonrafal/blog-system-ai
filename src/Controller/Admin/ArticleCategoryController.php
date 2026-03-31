@@ -47,7 +47,7 @@ class ArticleCategoryController extends AbstractController
         if ($form->isSubmitted()) {
             $this->syncTranslations($category, $form);
             $this->refreshSlugIfMissing($category, $categorySlugger);
-            $this->addSlugErrorIfStillMissing($form, $category);
+            $this->addSlugErrorIfStillMissing($form, $category, $userLanguageResolver);
         }
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -78,7 +78,7 @@ class ArticleCategoryController extends AbstractController
         if ($form->isSubmitted()) {
             $this->syncTranslations($category, $form);
             $this->refreshSlugIfMissing($category, $categorySlugger);
-            $this->addSlugErrorIfStillMissing($form, $category);
+            $this->addSlugErrorIfStillMissing($form, $category, $userLanguageResolver);
         }
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -225,13 +225,16 @@ class ArticleCategoryController extends AbstractController
         $categorySlugger->refreshSlug($category);
     }
 
-    private function addSlugErrorIfStillMissing(FormInterface $form, ArticleCategory $category): void
+    private function addSlugErrorIfStillMissing(FormInterface $form, ArticleCategory $category, UserLanguageResolver $userLanguageResolver): void
     {
         if ('' !== trim($category->getSlug())) {
             return;
         }
 
-        $form->addError(new FormError('Nie udało się wygenerować sluga kategorii.'));
+        $form->addError(new FormError($userLanguageResolver->translate(
+            'Nie udało się wygenerować sluga kategorii.',
+            'Failed to generate a category slug.'
+        )));
     }
 
     /**

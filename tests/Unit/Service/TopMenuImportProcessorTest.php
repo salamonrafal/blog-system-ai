@@ -15,6 +15,7 @@ use App\Service\TopMenuImportProcessor;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\ConstraintViolationList;
+use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final class TopMenuImportProcessorTest extends TestCase
@@ -299,6 +300,128 @@ final class TopMenuImportProcessorTest extends TestCase
 
             $this->expectException(TopMenuImportException::class);
             $this->expectExceptionMessage('Pole menu_items[0].position musi być liczbą całkowitą większą lub równą zero.');
+
+            $processor->process($queueItem);
+        } finally {
+            $this->removeDirectory($projectDir);
+        }
+    }
+
+    public function testProcessRejectsNonStringParentUniqueNameBeforeHierarchySorting(): void
+    {
+        $projectDir = sys_get_temp_dir().'/top-menu-import-processor-'.bin2hex(random_bytes(4));
+        mkdir($projectDir, 0775, true);
+        mkdir($projectDir.'/var/imports', 0775, true);
+
+        try {
+            $relativePath = 'var/imports/top-menu-import.json';
+            file_put_contents($projectDir.'/'.$relativePath, json_encode([
+                'format' => 'top-menu-export',
+                'version' => 1,
+                'menu_items' => [
+                    [
+                        'unique_name' => 'child',
+                        'parent_unique_name' => ['invalid'],
+                        'labels' => ['pl' => 'Child'],
+                        'target_type' => 'blog_home',
+                        'position' => 1,
+                        'status' => 'active',
+                    ],
+                ],
+            ], JSON_THROW_ON_ERROR));
+
+            $queueItem = (new TopMenuImportQueue())
+                ->setOriginalFilename('top-menu-import.json')
+                ->setFilePath($relativePath);
+
+            $repository = $this->createMock(TopMenuItemRepository::class);
+            $repository
+                ->expects($this->once())
+                ->method('findByUniqueNames')
+                ->with(['child'])
+                ->willReturn([]);
+
+            $validator = $this->createMock(ValidatorInterface::class);
+            $validator
+                ->method('validate')
+                ->willReturn(new ConstraintViolationList());
+
+            $processor = new TopMenuImportProcessor(
+                $repository,
+                $this->createMock(ArticleCategoryRepository::class),
+                $this->createMock(ArticleRepository::class),
+                $validator,
+                $this->createMock(EntityManagerInterface::class),
+                new ManagedFilePathResolver($projectDir, 'var/exports', 'var/imports'),
+            );
+
+            $this->expectException(TopMenuImportException::class);
+            $this->expectExceptionMessage('Pole menu_items[0].parent_unique_name musi być tekstem albo null.');
+
+            $processor->process($queueItem);
+        } finally {
+            $this->removeDirectory($projectDir);
+        }
+    }
+
+    public function testProcessPrefixesValidationErrorsWithPayloadIndexAndUniqueName(): void
+    {
+        $projectDir = sys_get_temp_dir().'/top-menu-import-processor-'.bin2hex(random_bytes(4));
+        mkdir($projectDir, 0775, true);
+        mkdir($projectDir.'/var/imports', 0775, true);
+
+        try {
+            $relativePath = 'var/imports/top-menu-import.json';
+            file_put_contents($projectDir.'/'.$relativePath, json_encode([
+                'format' => 'top-menu-export',
+                'version' => 1,
+                'menu_items' => [
+                    [
+                        'unique_name' => 'contact',
+                        'parent_unique_name' => null,
+                        'labels' => ['pl' => 'Kontakt'],
+                        'target_type' => 'blog_home',
+                        'position' => 1,
+                        'status' => 'active',
+                    ],
+                ],
+            ], JSON_THROW_ON_ERROR));
+
+            $queueItem = (new TopMenuImportQueue())
+                ->setOriginalFilename('top-menu-import.json')
+                ->setFilePath($relativePath);
+
+            $repository = $this->createMock(TopMenuItemRepository::class);
+            $repository
+                ->expects($this->once())
+                ->method('findByUniqueNames')
+                ->with(['contact'])
+                ->willReturn([]);
+
+            $violation = $this->createMock(ConstraintViolationInterface::class);
+            $violation
+                ->method('getPropertyPath')
+                ->willReturn('uniqueName');
+            $violation
+                ->method('getMessage')
+                ->willReturn('validation_top_menu_unique_name_too_long');
+
+            $validator = $this->createMock(ValidatorInterface::class);
+            $validator
+                ->method('validate')
+                ->willReturn(new ConstraintViolationList([$violation]));
+
+            $processor = new TopMenuImportProcessor(
+                $repository,
+                $this->createMock(ArticleCategoryRepository::class),
+                $this->createMock(ArticleRepository::class),
+                $validator,
+                $this->createMock(EntityManagerInterface::class),
+                new ManagedFilePathResolver($projectDir, 'var/exports', 'var/imports'),
+            );
+
+            $this->expectException(TopMenuImportException::class);
+            $this->expectExceptionMessage('menu_items[0] (contact): uniqueName: unique_name może mieć maksymalnie 255 znaków.');
 
             $processor->process($queueItem);
         } finally {
