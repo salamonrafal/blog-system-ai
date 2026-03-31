@@ -214,6 +214,11 @@ class ArticleCategoryController extends AbstractController
             return;
         }
 
+        $baseValue = $category->getTitle('pl', null) ?? $category->getName();
+        if ('' === trim((string) $baseValue)) {
+            return;
+        }
+
         $categorySlugger->refreshSlug($category);
     }
 

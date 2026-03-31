@@ -194,6 +194,11 @@ class TopMenuItemController extends AbstractController
             return;
         }
 
+        $baseValue = $menuItem->getLabel('pl', null) ?? $menuItem->getLocalizedLabel('pl');
+        if ('' === trim($baseValue)) {
+            return;
+        }
+
         $topMenuItemUniqueNameGenerator->refreshUniqueName($menuItem);
     }
 }

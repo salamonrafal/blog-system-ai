@@ -180,6 +180,24 @@ final class ArticleCategoryControllerTest extends TestCase
         $this->assertSame([], $controller->flashes);
     }
 
+    public function testRefreshSlugIfMissingSkipsGenerationWhenSlugSourceIsMissing(): void
+    {
+        $controller = new TestArticleCategoryController();
+        $category = new ArticleCategory();
+        $categorySlugger = $this->createMock(CategorySlugger::class);
+        $categorySlugger->expects($this->never())->method('refreshSlug');
+
+        $invoker = \Closure::bind(
+            static function (ArticleCategoryController $controller, ArticleCategory $category, CategorySlugger $categorySlugger): void {
+                $controller->refreshSlugIfMissing($category, $categorySlugger);
+            },
+            null,
+            ArticleCategoryController::class
+        );
+
+        $invoker($controller, $category, $categorySlugger);
+    }
+
     public function testEditUpdatesTranslationsOnValidSubmit(): void
     {
         $category = (new ArticleCategory())

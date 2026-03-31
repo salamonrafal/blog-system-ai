@@ -19,6 +19,8 @@ final class Version20260331123000 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
+        $this->addSql('PRAGMA foreign_keys = OFF');
+        $this->addSql('PRAGMA legacy_alter_table = ON');
         $this->addSql('ALTER TABLE article_category ADD slug VARCHAR(255) DEFAULT NULL');
 
         $slugger = new AsciiSlugger();
@@ -63,10 +65,14 @@ final class Version20260331123000 extends AbstractMigration
         $this->addSql('CREATE UNIQUE INDEX UNIQ_8EEC22795E237E06 ON article_category (name)');
         $this->addSql('CREATE INDEX IDX_8EEC22796BF700BD ON article_category (status)');
         $this->addSql('CREATE UNIQUE INDEX UNIQ_8EEC2279989D9B62 ON article_category (slug)');
+        $this->addSql('PRAGMA legacy_alter_table = OFF');
+        $this->addSql('PRAGMA foreign_keys = ON');
     }
 
     public function down(Schema $schema): void
     {
+        $this->addSql('PRAGMA foreign_keys = OFF');
+        $this->addSql('PRAGMA legacy_alter_table = ON');
         $this->addSql('DROP INDEX UNIQ_8EEC2279989D9B62');
         $this->addSql('DROP INDEX UNIQ_8EEC22795E237E06');
         $this->addSql('DROP INDEX IDX_8EEC22796BF700BD');
@@ -76,6 +82,8 @@ final class Version20260331123000 extends AbstractMigration
         $this->addSql('DROP TABLE article_category_old');
         $this->addSql('CREATE UNIQUE INDEX UNIQ_8EEC22795E237E06 ON article_category (name)');
         $this->addSql('CREATE INDEX IDX_8EEC22796BF700BD ON article_category (status)');
+        $this->addSql('PRAGMA legacy_alter_table = OFF');
+        $this->addSql('PRAGMA foreign_keys = ON');
     }
 
     private function truncateValue(string $value, int $reservedSuffixLength = 0): string

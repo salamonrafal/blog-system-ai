@@ -210,6 +210,24 @@ final class TopMenuItemControllerTest extends TestCase
         $this->assertNull($menuItem->getArticle());
     }
 
+    public function testRefreshUniqueNameIfMissingSkipsGenerationWhenLabelSourceIsMissing(): void
+    {
+        $controller = new TestTopMenuItemController();
+        $menuItem = new TopMenuItem();
+        $uniqueNameGenerator = $this->createMock(TopMenuItemUniqueNameGenerator::class);
+        $uniqueNameGenerator->expects($this->never())->method('refreshUniqueName');
+
+        $invoker = \Closure::bind(
+            static function (TopMenuItemController $controller, TopMenuItem $menuItem, TopMenuItemUniqueNameGenerator $uniqueNameGenerator): void {
+                $controller->refreshUniqueNameIfMissing($menuItem, $uniqueNameGenerator);
+            },
+            null,
+            TopMenuItemController::class
+        );
+
+        $invoker($controller, $menuItem, $uniqueNameGenerator);
+    }
+
     public function testExportQueuesWholeTopMenuHierarchy(): void
     {
         $queueRepository = $this->createMock(TopMenuExportQueueRepository::class);
