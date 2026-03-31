@@ -95,9 +95,17 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
 
     public static function topMenuCacheKeys(): array
     {
+        return array_values(self::topMenuCacheKeysByLanguage());
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function topMenuCacheKeysByLanguage(): array
+    {
         return [
-            self::topMenuCacheKey('pl'),
-            self::topMenuCacheKey('en'),
+            'pl' => self::topMenuCacheKey('pl'),
+            'en' => self::topMenuCacheKey('en'),
         ];
     }
 
