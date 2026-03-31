@@ -18,6 +18,7 @@ use App\Repository\ArticleImportQueueRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\BlogSettingsRepository;
 use App\Repository\TopMenuItemRepository;
+use App\Repository\TopMenuExportQueueRepository;
 use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -34,6 +35,7 @@ class DashboardController extends AbstractController
         ArticleExportRepository $articleExportRepository,
         ArticleExportQueueRepository $articleExportQueueRepository,
         CategoryExportQueueRepository $categoryExportQueueRepository,
+        TopMenuExportQueueRepository $topMenuExportQueueRepository,
         BlogSettingsRepository $blogSettingsRepository,
         TopMenuItemRepository $topMenuItemRepository,
         UserRepository $userRepository,
@@ -44,7 +46,8 @@ class DashboardController extends AbstractController
         $importQueueCounts = $articleImportQueueRepository->countGroupedByStatus();
         $articleExportQueueCounts = $articleExportQueueRepository->countGroupedByStatus();
         $categoryExportQueueCounts = $categoryExportQueueRepository->countGroupedByStatus();
-        $exportQueueCounts = $this->mergeQueueCounts($articleExportQueueCounts, $categoryExportQueueCounts);
+        $topMenuExportQueueCounts = $topMenuExportQueueRepository->countGroupedByStatus();
+        $exportQueueCounts = $this->mergeQueueCounts($this->mergeQueueCounts($articleExportQueueCounts, $categoryExportQueueCounts), $topMenuExportQueueCounts);
         $allQueueCounts = $this->mergeQueueCounts($importQueueCounts, $exportQueueCounts);
 
         return $this->render('admin/dashboard/index.html.twig', [
@@ -113,11 +116,12 @@ class DashboardController extends AbstractController
                     'title_key' => 'admin_dashboard_panel_exports_title',
                     'title' => 'Eksporty',
                     'description_key' => 'admin_dashboard_panel_exports_description',
-                    'description' => 'Gotowe pliki eksportu artykułów i kategorii dostępne do pobrania oraz późniejszego importu.',
+                    'description' => 'Gotowe pliki eksportu artykułów, kategorii i top menu dostępne do pobrania oraz późniejszego importu.',
                     'stats' => [
                         $this->dashboardStat($articleExportRepository->count([]), 'admin_dashboard_stat_all', 'Wszystkie'),
                         $this->dashboardStat($articleExportRepository->count(['type' => ArticleExportType::ARTICLES]), 'admin_dashboard_stat_articles', 'Artykuły'),
                         $this->dashboardStat($articleExportRepository->count(['type' => ArticleExportType::CATEGORIES]), 'admin_dashboard_stat_categories', 'Kategorie'),
+                        $this->dashboardStat($articleExportRepository->count(['type' => ArticleExportType::TOP_MENU]), 'admin_dashboard_stat_top_menu', 'Top menu'),
                         $this->dashboardStat($articleExportRepository->count(['status' => ArticleExportStatus::NEW]), 'admin_dashboard_stat_new', 'Nowe'),
                         $this->dashboardStat($articleExportRepository->count(['status' => ArticleExportStatus::DOWNLOADED]), 'admin_dashboard_stat_downloaded', 'Pobrane'),
                     ],

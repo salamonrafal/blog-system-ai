@@ -10,6 +10,7 @@ use App\Repository\ArticleExportRepository;
 use App\Repository\ArticleImportQueueRepository;
 use App\Repository\CategoryExportQueueRepository;
 use App\Repository\TopMenuItemRepository;
+use App\Repository\TopMenuExportQueueRepository;
 use App\Service\BlogSettingsProvider;
 use App\Service\TopMenuBuilder;
 use App\Service\UserLanguageResolver;
@@ -33,6 +34,7 @@ final class AppGlobalsExtensionTest extends TestCase
         $importQueueRepository = $this->createMock(ArticleImportQueueRepository::class);
         $exportQueueRepository = $this->createMock(ArticleExportQueueRepository::class);
         $categoryExportQueueRepository = $this->createMock(CategoryExportQueueRepository::class);
+        $topMenuExportQueueRepository = $this->createMock(TopMenuExportQueueRepository::class);
         $exportRepository = $this->createMock(ArticleExportRepository::class);
         $topMenuRepository = $this->createMock(TopMenuItemRepository::class);
         $topMenuBuilder = $this->createMock(TopMenuBuilder::class);
@@ -45,6 +47,7 @@ final class AppGlobalsExtensionTest extends TestCase
             $importQueueRepository,
             $exportQueueRepository,
             $categoryExportQueueRepository,
+            $topMenuExportQueueRepository,
             $exportRepository,
             $topMenuRepository,
             $topMenuBuilder,
@@ -96,6 +99,11 @@ final class AppGlobalsExtensionTest extends TestCase
             ->expects($this->once())
             ->method('countPending')
             ->willReturn(1);
+        $topMenuExportQueueRepository = $this->createMock(TopMenuExportQueueRepository::class);
+        $topMenuExportQueueRepository
+            ->expects($this->once())
+            ->method('countPending')
+            ->willReturn(2);
 
         $exportRepository = $this->createMock(ArticleExportRepository::class);
         $exportRepository
@@ -140,6 +148,7 @@ final class AppGlobalsExtensionTest extends TestCase
             $importQueueRepository,
             $exportQueueRepository,
             $categoryExportQueueRepository,
+            $topMenuExportQueueRepository,
             $exportRepository,
             $topMenuRepository,
             $topMenuBuilder,
@@ -156,10 +165,10 @@ final class AppGlobalsExtensionTest extends TestCase
         $this->assertSame('Europe/Warsaw', $globals['user_timezone']);
         $this->assertJson($globals['validation_i18n_json']);
         $this->assertSame([
-            'queue_status' => 6,
+            'queue_status' => 8,
             'imports' => 2,
             'exports' => 4,
-            'import_export' => 10,
+            'import_export' => 12,
         ], $globals['admin_shortcut_badges']);
         $this->assertCount(1, $globals['top_menu_items']);
     }

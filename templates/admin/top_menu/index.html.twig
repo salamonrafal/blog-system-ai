@@ -18,6 +18,10 @@
 
                 <div class="actions">
                     <a class="button" href="{{ path('admin_top_menu_new') }}" data-i18n="top_menu_form_submit_create">Dodaj element menu</a>
+                    <form method="post" action="{{ path('admin_top_menu_export') }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('export_top_menu') }}">
+                        <button class="button secondary" type="submit" data-i18n="admin_top_menu_export_action">Eksportuj hierarchię</button>
+                    </form>
                 </div>
 
                 <section class="article-edit-meta-panel article-edit-meta-panel-compact" data-i18n-aria="admin_top_menu_overview_aria" aria-label="Podsumowanie top menu">

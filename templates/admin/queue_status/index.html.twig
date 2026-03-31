@@ -61,7 +61,7 @@
                                 <tr>
                                     <td>{{ queue_item.id }}</td>
                                     <td class="queue-status-title-cell">
-                                        <a href="{{ path(queue_item.edit_route, queue_item.edit_route_params) }}">{{ queue_item.label }}</a>
+                                        <a href="{{ path(queue_item.edit_route, queue_item.edit_route_params) }}" {% if queue_item.label_key is defined %}data-i18n="{{ queue_item.label_key }}"{% endif %}>{{ queue_item.label }}</a>
                                     </td>
                                     <td data-i18n="{{ queue_item.type.queueTranslationKey }}">{{ queue_item.type.label }}</td>
                                     <td>
