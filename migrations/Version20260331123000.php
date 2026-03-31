@@ -10,6 +10,8 @@ use Symfony\Component\String\Slugger\AsciiSlugger;
 
 final class Version20260331123000 extends AbstractMigration
 {
+    private const MAX_SLUG_LENGTH = 255;
+
     public function getDescription(): string
     {
         return 'Add unique slug to article categories';
@@ -29,7 +31,7 @@ final class Version20260331123000 extends AbstractMigration
                 ? trim($titles['pl'])
                 : trim((string) $row['name']);
 
-            $baseSlug = strtolower($slugger->slug($baseValue)->toString());
+            $baseSlug = $this->truncateValue(strtolower($slugger->slug($baseValue)->toString()));
             if ('' === $baseSlug) {
                 $baseSlug = 'category';
             }
@@ -38,7 +40,8 @@ final class Version20260331123000 extends AbstractMigration
             $counter = 2;
 
             while (isset($usedSlugs[$slug])) {
-                $slug = sprintf('%s-%d', $baseSlug, $counter);
+                $suffix = sprintf('-%d', $counter);
+                $slug = $this->truncateValue($baseSlug, strlen($suffix)).$suffix;
                 ++$counter;
             }
 
@@ -73,5 +76,12 @@ final class Version20260331123000 extends AbstractMigration
         $this->addSql('DROP TABLE article_category_old');
         $this->addSql('CREATE UNIQUE INDEX UNIQ_8EEC22795E237E06 ON article_category (name)');
         $this->addSql('CREATE INDEX IDX_8EEC22796BF700BD ON article_category (status)');
+    }
+
+    private function truncateValue(string $value, int $reservedSuffixLength = 0): string
+    {
+        $maxLength = max(1, self::MAX_SLUG_LENGTH - $reservedSuffixLength);
+
+        return rtrim(substr($value, 0, $maxLength), '-');
     }
 }

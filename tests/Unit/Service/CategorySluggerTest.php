@@ -44,6 +44,24 @@ final class CategorySluggerTest extends TestCase
         $this->assertSame('ai-tools', $category->getSlug());
     }
 
+    public function testRefreshSlugKeepsFinalValueWithinColumnLimitWhenSuffixIsNeeded(): void
+    {
+        $baseTitle = str_repeat('a', 255);
+        $category = (new ArticleCategory())
+            ->setName('Fallback')
+            ->setTitle('pl', $baseTitle);
+
+        $slugger = new CategorySlugger(
+            $this->createRepositoryMock([str_repeat('a', 255)]),
+            new ArticleSlugger(),
+        );
+
+        $slugger->refreshSlug($category);
+
+        $this->assertSame(255, strlen($category->getSlug()));
+        $this->assertStringEndsWith('-2', $category->getSlug());
+    }
+
     /**
      * @param list<string> $existingSlugs
      */

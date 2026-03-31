@@ -44,6 +44,23 @@ final class TopMenuItemUniqueNameGeneratorTest extends TestCase
         $this->assertSame('about-me', $menuItem->getUniqueName());
     }
 
+    public function testRefreshUniqueNameKeepsFinalValueWithinColumnLimitWhenSuffixIsNeeded(): void
+    {
+        $baseLabel = str_repeat('a', 255);
+        $menuItem = (new TopMenuItem())
+            ->setLabel('pl', $baseLabel);
+
+        $generator = new TopMenuItemUniqueNameGenerator(
+            $this->createRepositoryMock([str_repeat('a', 255)]),
+            new ArticleSlugger(),
+        );
+
+        $generator->refreshUniqueName($menuItem);
+
+        $this->assertSame(255, strlen($menuItem->getUniqueName()));
+        $this->assertStringEndsWith('-2', $menuItem->getUniqueName());
+    }
+
     /**
      * @param list<string> $existingUniqueNames
      */

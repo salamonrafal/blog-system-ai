@@ -10,6 +10,8 @@ use Symfony\Component\String\Slugger\AsciiSlugger;
 
 final class Version20260331130000 extends AbstractMigration
 {
+    private const MAX_UNIQUE_NAME_LENGTH = 255;
+
     public function getDescription(): string
     {
         return 'Add unique name to top menu items';
@@ -29,7 +31,7 @@ final class Version20260331130000 extends AbstractMigration
                 ? trim($labels['pl'])
                 : $this->findFirstNonEmptyLabel($labels);
 
-            $baseUniqueName = strtolower($slugger->slug($baseValue)->toString());
+            $baseUniqueName = $this->truncateValue(strtolower($slugger->slug($baseValue)->toString()));
             if ('' === $baseUniqueName) {
                 $baseUniqueName = 'menu-item';
             }
@@ -38,7 +40,8 @@ final class Version20260331130000 extends AbstractMigration
             $counter = 2;
 
             while (isset($usedUniqueNames[$uniqueName])) {
-                $uniqueName = sprintf('%s-%d', $baseUniqueName, $counter);
+                $suffix = sprintf('-%d', $counter);
+                $uniqueName = $this->truncateValue($baseUniqueName, strlen($suffix)).$suffix;
                 ++$counter;
             }
 
@@ -91,5 +94,12 @@ final class Version20260331130000 extends AbstractMigration
         }
 
         return '';
+    }
+
+    private function truncateValue(string $value, int $reservedSuffixLength = 0): string
+    {
+        $maxLength = max(1, self::MAX_UNIQUE_NAME_LENGTH - $reservedSuffixLength);
+
+        return rtrim(substr($value, 0, $maxLength), '-');
     }
 }
