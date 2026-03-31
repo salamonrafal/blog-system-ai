@@ -22,8 +22,8 @@ class TopMenuCacheManager
     {
         $items = $this->topMenuItemRepository->findActiveOrdered();
 
-        foreach (['pl', 'en'] as $language) {
-            $cacheKey = AppGlobalsExtension::topMenuCacheKey($language);
+        foreach (AppGlobalsExtension::topMenuCacheKeys() as $cacheKey) {
+            $language = substr($cacheKey, strrpos($cacheKey, '.') + 1);
             $this->appCache->delete($cacheKey);
             $this->appCache->get($cacheKey, function (ItemInterface $item) use ($items, $language): array {
                 $item->expiresAfter(3600);

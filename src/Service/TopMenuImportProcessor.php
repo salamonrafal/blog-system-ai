@@ -484,6 +484,7 @@ class TopMenuImportProcessor
             'validation_top_menu_unique_name_required' => 'unique_name jest wymagane.',
             'validation_top_menu_unique_name_too_long' => 'unique_name może mieć maksymalnie 255 znaków.',
             'validation_top_menu_external_url_invalid' => 'adres URL jest nieprawidłowy.',
+            'validation_top_menu_category_required' => 'kategoria artykułu jest wymagana.',
             'validation_top_menu_article_category_required' => 'kategoria artykułu jest wymagana.',
             'validation_top_menu_article_required' => 'artykuł jest wymagany.',
             'validation_top_menu_position_non_negative' => 'pozycja musi być większa lub równa zero.',

@@ -318,6 +318,49 @@ export function setupAdminListingFilters(){
     return entry.floatingPanel || qs('.article-index-filter-options', entry.dropdown);
   };
 
+  let floatingPanelSyncFrame = 0;
+  let floatingPanelListenersAttached = false;
+
+  const syncFloatingPanels = ()=>{
+    floatingPanelSyncFrame = 0;
+    dropdownEntries.forEach((entry)=>{
+      if(entry.floatingPanel){
+        updateFloatingPanelPosition(entry);
+      }
+    });
+  };
+
+  const scheduleFloatingPanelSync = ()=>{
+    if(0 !== floatingPanelSyncFrame) return;
+
+    floatingPanelSyncFrame = window.requestAnimationFrame(syncFloatingPanels);
+  };
+
+  const handleViewportChange = ()=>{
+    scheduleFloatingPanelSync();
+  };
+
+  const updateFloatingPanelListeners = ()=>{
+    const hasOpenFloatingPanel = dropdownEntries.some((entry)=> null !== entry.floatingPanel);
+
+    if(hasOpenFloatingPanel && !floatingPanelListenersAttached){
+      window.addEventListener('resize', handleViewportChange);
+      window.addEventListener('scroll', handleViewportChange, true);
+      floatingPanelListenersAttached = true;
+      return;
+    }
+
+    if(!hasOpenFloatingPanel && floatingPanelListenersAttached){
+      window.removeEventListener('resize', handleViewportChange);
+      window.removeEventListener('scroll', handleViewportChange, true);
+      if(0 !== floatingPanelSyncFrame){
+        window.cancelAnimationFrame(floatingPanelSyncFrame);
+        floatingPanelSyncFrame = 0;
+      }
+      floatingPanelListenersAttached = false;
+    }
+  };
+
   const updateFloatingPanelPosition = (entry)=>{
     const trigger = qs('[data-listing-filter-trigger]', entry.dropdown);
     const panel = entry.floatingPanel;
@@ -345,6 +388,7 @@ export function setupAdminListingFilters(){
     entry.floatingPanel = panel;
     panel.classList.add('is-floating');
     document.body.appendChild(panel);
+    updateFloatingPanelListeners();
     updateFloatingPanelPosition(entry);
   };
 
@@ -365,6 +409,7 @@ export function setupAdminListingFilters(){
     entry.floatingPanel = null;
     entry.originalParent = null;
     entry.originalNextSibling = null;
+    updateFloatingPanelListeners();
   };
 
   const closeDropdown = (entry, { restoreFocus = false } = {})=>{
@@ -439,22 +484,6 @@ export function setupAdminListingFilters(){
       }
     });
   });
-
-  window.addEventListener('resize', ()=>{
-    dropdownEntries.forEach((entry)=>{
-      if(entry.floatingPanel){
-        updateFloatingPanelPosition(entry);
-      }
-    });
-  });
-
-  window.addEventListener('scroll', ()=>{
-    dropdownEntries.forEach((entry)=>{
-      if(entry.floatingPanel){
-        updateFloatingPanelPosition(entry);
-      }
-    });
-  }, true);
 
   document.addEventListener('keydown', (event)=>{
     if(event.key !== 'Escape') return;
