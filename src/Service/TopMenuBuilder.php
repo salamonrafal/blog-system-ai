@@ -23,7 +23,15 @@ class TopMenuBuilder
      */
     public function buildActiveTree(array $items): array
     {
-        $language = $this->userLanguageResolver->getLanguage();
+        return $this->buildActiveTreeForLanguage($items, $this->userLanguageResolver->getLanguage());
+    }
+
+    /**
+     * @param list<TopMenuItem> $items
+     * @return list<array<string, mixed>>
+     */
+    public function buildActiveTreeForLanguage(array $items, string $language): array
+    {
         $childrenByParentId = [];
         $roots = [];
 

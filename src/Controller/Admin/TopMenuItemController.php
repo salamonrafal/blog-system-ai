@@ -4,22 +4,21 @@ declare(strict_types=1);
 
 namespace App\Controller\Admin;
 
-use App\Repository\TopMenuExportQueueRepository;
 use App\Entity\TopMenuItem;
 use App\Form\TopMenuItemType;
 use App\Repository\ArticleCategoryRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\TopMenuItemRepository;
+use App\Repository\TopMenuExportQueueRepository;
+use App\Service\TopMenuCacheManager;
 use App\Service\TopMenuItemUniqueNameGenerator;
 use App\Service\UserLanguageResolver;
-use App\Twig\AppGlobalsExtension;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Contracts\Cache\CacheInterface;
 
 #[Route('/admin/top-menu')]
 class TopMenuItemController extends AbstractController
@@ -48,7 +47,7 @@ class TopMenuItemController extends AbstractController
         ArticleRepository $articleRepository,
         UserLanguageResolver $userLanguageResolver,
         TopMenuItemUniqueNameGenerator $topMenuItemUniqueNameGenerator,
-        CacheInterface $appCache,
+        TopMenuCacheManager $topMenuCacheManager,
     ): Response {
         $menuItem = new TopMenuItem();
         $form = $this->createEditorForm($menuItem, $topMenuItemRepository, $articleCategoryRepository, $articleRepository, $userLanguageResolver);
@@ -63,7 +62,7 @@ class TopMenuItemController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($menuItem);
             $entityManager->flush();
-            $this->clearTopMenuCache($appCache);
+            $topMenuCacheManager->refresh();
 
             $this->addFlash('success', $userLanguageResolver->translate('Element menu został dodany.', 'Menu item created.'));
 
@@ -85,7 +84,7 @@ class TopMenuItemController extends AbstractController
         ArticleRepository $articleRepository,
         UserLanguageResolver $userLanguageResolver,
         TopMenuItemUniqueNameGenerator $topMenuItemUniqueNameGenerator,
-        CacheInterface $appCache,
+        TopMenuCacheManager $topMenuCacheManager,
     ): Response {
         $form = $this->createEditorForm($menuItem, $topMenuItemRepository, $articleCategoryRepository, $articleRepository, $userLanguageResolver);
         $form->handleRequest($request);
@@ -98,7 +97,7 @@ class TopMenuItemController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
-            $this->clearTopMenuCache($appCache);
+            $topMenuCacheManager->refresh();
 
             $this->addFlash('success', $userLanguageResolver->translate('Element menu został zaktualizowany.', 'Menu item updated.'));
 
@@ -117,7 +116,7 @@ class TopMenuItemController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         UserLanguageResolver $userLanguageResolver,
-        CacheInterface $appCache,
+        TopMenuCacheManager $topMenuCacheManager,
     ): Response {
         if (!$this->isCsrfTokenValid('delete_top_menu_item_'.$menuItem->getId(), (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Invalid CSRF token.');
@@ -125,7 +124,7 @@ class TopMenuItemController extends AbstractController
 
         $entityManager->remove($menuItem);
         $entityManager->flush();
-        $this->clearTopMenuCache($appCache);
+        $topMenuCacheManager->refresh();
 
         $this->addFlash('success', $userLanguageResolver->translate('Element menu został usunięty.', 'Menu item deleted.'));
 
@@ -179,13 +178,6 @@ class TopMenuItemController extends AbstractController
         $labels = $form->get('labels')->getData();
 
         $menuItem->setLabels($labels);
-    }
-
-    private function clearTopMenuCache(CacheInterface $appCache): void
-    {
-        foreach (AppGlobalsExtension::topMenuCacheKeys() as $cacheKey) {
-            $appCache->delete($cacheKey);
-        }
     }
 
     private function refreshUniqueNameIfMissing(TopMenuItem $menuItem, TopMenuItemUniqueNameGenerator $topMenuItemUniqueNameGenerator): void

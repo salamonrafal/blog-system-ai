@@ -63,6 +63,37 @@ class TopMenuItemRepository extends ServiceEntityRepository
         return $this->findOneBy(['uniqueName' => $uniqueName]);
     }
 
+    /**
+     * @param list<string> $uniqueNames
+     *
+     * @return array<string, TopMenuItem>
+     */
+    public function findByUniqueNames(array $uniqueNames): array
+    {
+        $uniqueNames = array_values(array_filter(array_map(
+            static fn (string $uniqueName): string => trim($uniqueName),
+            $uniqueNames,
+        ), static fn (string $uniqueName): bool => '' !== $uniqueName));
+
+        if ([] === $uniqueNames) {
+            return [];
+        }
+
+        /** @var list<TopMenuItem> $items */
+        $items = $this->createBaseQueryBuilder()
+            ->andWhere('menu_item.uniqueName IN (:uniqueNames)')
+            ->setParameter('uniqueNames', $uniqueNames)
+            ->getQuery()
+            ->getResult();
+
+        $indexedItems = [];
+        foreach ($items as $item) {
+            $indexedItems[$item->getUniqueName()] = $item;
+        }
+
+        return $indexedItems;
+    }
+
     public function uniqueNameExists(string $uniqueName, ?int $ignoreId = null): bool
     {
         $queryBuilder = $this->createQueryBuilder('menu_item')

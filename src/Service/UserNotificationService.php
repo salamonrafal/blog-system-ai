@@ -28,6 +28,14 @@ class UserNotificationService
         );
     }
 
+    public function notifyTopMenuImportCompleted(?int $userId, bool $success): void
+    {
+        $this->createNotification(
+            $userId,
+            $success ? UserNotificationType::TOP_MENU_IMPORT_COMPLETED_SUCCESS : UserNotificationType::TOP_MENU_IMPORT_COMPLETED_ERROR,
+        );
+    }
+
     public function notifyExportCompleted(?int $userId, bool $success): void
     {
         $this->createNotification(

@@ -35,7 +35,6 @@ class ArticleCategory
     #[ORM\Column(length: 320, nullable: true)]
     private ?string $shortDescription = null;
 
-    #[Assert\NotBlank(message: 'Slug kategorii jest wymagany.')]
     #[Assert\Length(max: 255, maxMessage: 'Slug kategorii może mieć maksymalnie 255 znaków.')]
     #[ORM\Column(length: 255, unique: true)]
     private string $slug = '';

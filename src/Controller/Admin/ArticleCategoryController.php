@@ -13,6 +13,7 @@ use App\Service\CategorySlugger;
 use App\Service\UserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\FormInterface;
+use Symfony\Component\Form\FormError;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -46,6 +47,7 @@ class ArticleCategoryController extends AbstractController
         if ($form->isSubmitted()) {
             $this->syncTranslations($category, $form);
             $this->refreshSlugIfMissing($category, $categorySlugger);
+            $this->addSlugErrorIfStillMissing($form, $category);
         }
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -76,6 +78,7 @@ class ArticleCategoryController extends AbstractController
         if ($form->isSubmitted()) {
             $this->syncTranslations($category, $form);
             $this->refreshSlugIfMissing($category, $categorySlugger);
+            $this->addSlugErrorIfStillMissing($form, $category);
         }
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -220,6 +223,15 @@ class ArticleCategoryController extends AbstractController
         }
 
         $categorySlugger->refreshSlug($category);
+    }
+
+    private function addSlugErrorIfStillMissing(FormInterface $form, ArticleCategory $category): void
+    {
+        if ('' !== trim($category->getSlug())) {
+            return;
+        }
+
+        $form->addError(new FormError('Nie udało się wygenerować sluga kategorii.'));
     }
 
     /**

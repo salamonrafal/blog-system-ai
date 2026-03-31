@@ -306,31 +306,72 @@ export function setupArticleBulkExport(){
 }
 
 export function setupAdminListingFilters(){
-  const filterConfigs = [
-    {
-      dropdownSelector: '[data-article-category-filter]',
-      triggerSelector: '[data-action="toggle-article-category-filter"]',
-      hiddenInputSelector: '[data-article-category-filter-input]',
-      optionSelector: '[data-article-category-option]',
-    },
-    {
-      dropdownSelector: '[data-export-type-filter]',
-      triggerSelector: '[data-action="toggle-export-type-filter"]',
-      hiddenInputSelector: '[data-export-type-filter-input]',
-      optionSelector: '[data-export-type-option]',
-    },
-  ];
-
-  const dropdownEntries = filterConfigs.flatMap((config)=>{
-    return qsa(config.dropdownSelector).map((dropdown)=> ({ dropdown, config }));
-  });
+  const dropdownEntries = qsa('[data-listing-filter-dropdown]').map((dropdown)=> ({
+      dropdown,
+      floatingPanel: null,
+      originalParent: null,
+      originalNextSibling: null,
+    }));
   if(!dropdownEntries.length) return;
+
+  const getPanel = (entry)=>{
+    return entry.floatingPanel || qs('.article-index-filter-options', entry.dropdown);
+  };
+
+  const updateFloatingPanelPosition = (entry)=>{
+    const trigger = qs('[data-listing-filter-trigger]', entry.dropdown);
+    const panel = entry.floatingPanel;
+    if(!trigger || !panel) return;
+
+    const triggerRect = trigger.getBoundingClientRect();
+    const panelRect = panel.getBoundingClientRect();
+    const minWidth = triggerRect.width;
+    const panelWidth = Math.max(panelRect.width, minWidth);
+    const viewportPadding = 12;
+    const centeredLeft = window.scrollX + triggerRect.left + ((triggerRect.width - panelWidth) / 2);
+    const maxLeft = window.scrollX + window.innerWidth - panelWidth - viewportPadding;
+    const clampedLeft = Math.max(window.scrollX + viewportPadding, Math.min(centeredLeft, maxLeft));
+
+    panel.style.width = `${panelWidth}px`;
+    panel.style.left = `${clampedLeft}px`;
+    panel.style.top = `${window.scrollY + triggerRect.bottom + 4}px`;
+  };
+
+  const floatPanel = (entry, panel)=>{
+    if(entry.floatingPanel) return;
+
+    entry.originalParent = panel.parentElement;
+    entry.originalNextSibling = panel.nextSibling;
+    entry.floatingPanel = panel;
+    panel.classList.add('is-floating');
+    document.body.appendChild(panel);
+    updateFloatingPanelPosition(entry);
+  };
+
+  const restorePanel = (entry)=>{
+    const panel = entry.floatingPanel;
+    if(!panel || !entry.originalParent) return;
+
+    if(entry.originalNextSibling && entry.originalNextSibling.parentNode === entry.originalParent){
+      entry.originalParent.insertBefore(panel, entry.originalNextSibling);
+    }else{
+      entry.originalParent.appendChild(panel);
+    }
+
+    panel.classList.remove('is-floating');
+    panel.style.removeProperty('width');
+    panel.style.removeProperty('left');
+    panel.style.removeProperty('top');
+    entry.floatingPanel = null;
+    entry.originalParent = null;
+    entry.originalNextSibling = null;
+  };
 
   const closeDropdown = (entry, { restoreFocus = false } = {})=>{
     if(!entry?.dropdown) return;
     entry.dropdown.classList.remove('is-open');
-    const trigger = qs(entry.config.triggerSelector, entry.dropdown);
-    const panel = qs('.article-index-filter-options', entry.dropdown);
+    const trigger = qs('[data-listing-filter-trigger]', entry.dropdown);
+    const panel = getPanel(entry);
     if(trigger){
       trigger.setAttribute('aria-expanded', 'false');
       if(restoreFocus){
@@ -341,6 +382,7 @@ export function setupAdminListingFilters(){
       panel.hidden = true;
       panel.setAttribute('aria-hidden', 'true');
     }
+    restorePanel(entry);
   };
 
   const closeOtherDropdowns = (activeEntry = null)=>{
@@ -352,11 +394,11 @@ export function setupAdminListingFilters(){
   };
 
   dropdownEntries.forEach((entry)=>{
-    const { dropdown, config } = entry;
-    const trigger = qs(config.triggerSelector, dropdown);
-    const hiddenInput = qs(config.hiddenInputSelector, dropdown.closest('form'));
+    const { dropdown } = entry;
+    const trigger = qs('[data-listing-filter-trigger]', dropdown);
+    const hiddenInput = qs('[data-listing-filter-input]', dropdown.closest('form'));
     const panel = qs('.article-index-filter-options', dropdown);
-    const options = qsa(config.optionSelector, dropdown);
+    const options = qsa('[data-listing-filter-option]', dropdown);
     if(!trigger || !hiddenInput || !panel || !options.length) return;
 
     const open = ()=>{
@@ -364,6 +406,7 @@ export function setupAdminListingFilters(){
       trigger.setAttribute('aria-expanded', 'true');
       panel.hidden = false;
       panel.setAttribute('aria-hidden', 'false');
+      floatPanel(entry, panel);
       const selectedOption = qs('.article-index-filter-option.is-selected', panel) || options[0];
       selectedOption?.focus({ preventScroll: true });
     };
@@ -390,11 +433,28 @@ export function setupAdminListingFilters(){
 
   document.addEventListener('click', (event)=>{
     dropdownEntries.forEach((entry)=>{
-      if(!entry.dropdown.contains(event.target)){
+      const panel = getPanel(entry);
+      if(!entry.dropdown.contains(event.target) && !panel?.contains(event.target)){
         closeDropdown(entry);
       }
     });
   });
+
+  window.addEventListener('resize', ()=>{
+    dropdownEntries.forEach((entry)=>{
+      if(entry.floatingPanel){
+        updateFloatingPanelPosition(entry);
+      }
+    });
+  });
+
+  window.addEventListener('scroll', ()=>{
+    dropdownEntries.forEach((entry)=>{
+      if(entry.floatingPanel){
+        updateFloatingPanelPosition(entry);
+      }
+    });
+  }, true);
 
   document.addEventListener('keydown', (event)=>{
     if(event.key !== 'Escape') return;
