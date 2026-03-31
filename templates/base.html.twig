@@ -294,6 +294,9 @@ Fullstack Developer</span>
                                     </svg>
                                 </span>
                                 <span data-i18n="admin_shortcut_import_menu">Import Menu</span>
+                                {% if admin_shortcut_badges.top_menu_imports > 0 %}
+                                    <span class="admin-shortcuts-badge" aria-label="{{ admin_shortcut_badges.top_menu_imports }} oczekujących importów menu">{{ admin_shortcut_badges.top_menu_imports }}</span>
+                                {% endif %}
                             </a>
                             <a class="admin-shortcuts-link admin-shortcuts-sublink" href="{{ path('admin_article_export_index') }}">
                                 <span class="admin-shortcuts-link-icon" aria-hidden="true">

@@ -70,10 +70,10 @@ class TopMenuItemRepository extends ServiceEntityRepository
      */
     public function findByUniqueNames(array $uniqueNames): array
     {
-        $uniqueNames = array_values(array_filter(array_map(
+        $uniqueNames = array_values(array_unique(array_filter(array_map(
             static fn (string $uniqueName): string => trim($uniqueName),
             $uniqueNames,
-        ), static fn (string $uniqueName): bool => '' !== $uniqueName));
+        ), static fn (string $uniqueName): bool => '' !== $uniqueName)));
 
         if ([] === $uniqueNames) {
             return [];

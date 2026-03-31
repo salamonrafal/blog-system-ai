@@ -175,7 +175,8 @@ final class AppGlobalsExtensionTest extends TestCase
         $this->assertJson($globals['validation_i18n_json']);
         $this->assertSame([
             'queue_status' => 9,
-            'imports' => 3,
+            'imports' => 2,
+            'top_menu_imports' => 1,
             'exports' => 4,
             'import_export' => 13,
         ], $globals['admin_shortcut_badges']);

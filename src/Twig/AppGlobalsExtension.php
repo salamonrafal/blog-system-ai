@@ -56,7 +56,9 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
     public function getGlobals(): array
     {
         $settings = $this->blogSettingsProvider->getSettings();
-        $pendingImportCount = $this->articleImportQueueRepository->countPending() + $this->topMenuImportQueueRepository->countPending();
+        $pendingArticleImportCount = $this->articleImportQueueRepository->countPending();
+        $pendingTopMenuImportCount = $this->topMenuImportQueueRepository->countPending();
+        $pendingImportCount = $pendingArticleImportCount + $pendingTopMenuImportCount;
         $pendingExportQueueCount = $this->articleExportQueueRepository->countPending() + $this->categoryExportQueueRepository->countPending() + $this->topMenuExportQueueRepository->countPending();
         $newExportCount = $this->articleExportRepository->countNew();
         $language = $this->userLanguageResolver->getLanguage();
@@ -82,7 +84,8 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
             ) ?: '{"pl":{},"en":{}}',
             'admin_shortcut_badges' => [
                 'queue_status' => $pendingImportCount + $pendingExportQueueCount,
-                'imports' => $pendingImportCount,
+                'imports' => $pendingArticleImportCount,
+                'top_menu_imports' => $pendingTopMenuImportCount,
                 'exports' => $newExportCount,
                 'import_export' => $pendingImportCount + $pendingExportQueueCount + $newExportCount,
             ],
