@@ -7,12 +7,14 @@ namespace App\Controller\Admin;
 use App\Entity\ArticleExportQueue;
 use App\Entity\CategoryExportQueue;
 use App\Entity\ArticleImportQueue;
+use App\Entity\TopMenuExportQueue;
 use App\Enum\ArticleExportQueueStatus;
 use App\Enum\ArticleExportType;
 use App\Enum\ArticleImportQueueStatus;
 use App\Repository\ArticleExportQueueRepository;
 use App\Repository\CategoryExportQueueRepository;
 use App\Repository\ArticleImportQueueRepository;
+use App\Repository\TopMenuExportQueueRepository;
 use App\Service\ManagedFileDeleter;
 use App\Service\ManagedFilePathResolver;
 use App\Service\UserLanguageResolver;
@@ -35,6 +37,7 @@ class QueueStatusController extends AbstractController
     public function index(
         ArticleExportQueueRepository $articleExportQueueRepository,
         CategoryExportQueueRepository $categoryExportQueueRepository,
+        TopMenuExportQueueRepository $topMenuExportQueueRepository,
         ArticleImportQueueRepository $articleImportQueueRepository,
     ): Response
     {
@@ -67,6 +70,21 @@ class QueueStatusController extends AbstractController
                 ],
                 $categoryExportQueueRepository->findPendingOrderedByCreatedAt(),
             ),
+            ...array_map(
+                static fn (TopMenuExportQueue $queueItem): array => [
+                    'id' => $queueItem->getId(),
+                    'type' => ArticleExportType::TOP_MENU,
+                    'label' => 'Cała hierarchia menu',
+                    'label_key' => 'admin_top_menu_export_queue_label',
+                    'edit_route' => 'admin_top_menu_index',
+                    'edit_route_params' => [],
+                    'requested_by' => $queueItem->getRequestedBy(),
+                    'created_at' => $queueItem->getCreatedAt(),
+                    'delete_route' => 'admin_queue_status_top_menu_export_delete',
+                    'csrf_token_id' => 'delete_top_menu_export_queue_item_'.$queueItem->getId(),
+                ],
+                $topMenuExportQueueRepository->findPendingOrderedByCreatedAt(),
+            ),
         ];
         usort(
             $pendingExportQueueItems,
@@ -77,7 +95,7 @@ class QueueStatusController extends AbstractController
         return $this->render('admin/queue_status/index.html.twig', [
             'pending_export_queue_items' => $pendingExportQueueItems,
             'pending_import_queue_items' => $pendingImportQueueItems,
-            'has_pending_queue_items' => $articleExportQueueRepository->countPending() + $categoryExportQueueRepository->countPending() + $articleImportQueueRepository->countPending() > 0,
+            'has_pending_queue_items' => $articleExportQueueRepository->countPending() + $categoryExportQueueRepository->countPending() + $topMenuExportQueueRepository->countPending() + $articleImportQueueRepository->countPending() > 0,
         ]);
     }
 
@@ -86,6 +104,7 @@ class QueueStatusController extends AbstractController
         Request $request,
         ArticleExportQueueRepository $articleExportQueueRepository,
         CategoryExportQueueRepository $categoryExportQueueRepository,
+        TopMenuExportQueueRepository $topMenuExportQueueRepository,
         ArticleImportQueueRepository $articleImportQueueRepository,
         EntityManagerInterface $entityManager,
         UserLanguageResolver $userLanguageResolver,
@@ -98,6 +117,9 @@ class QueueStatusController extends AbstractController
             $entityManager->remove($queueItem);
         }
         foreach ($categoryExportQueueRepository->findBy(['status' => ArticleExportQueueStatus::PENDING]) as $queueItem) {
+            $entityManager->remove($queueItem);
+        }
+        foreach ($topMenuExportQueueRepository->findBy(['status' => ArticleExportQueueStatus::PENDING]) as $queueItem) {
             $entityManager->remove($queueItem);
         }
 
@@ -118,6 +140,25 @@ class QueueStatusController extends AbstractController
         $entityManager->flush();
 
         $this->addFlash('success', $userLanguageResolver->translate('Kolejka oczekujących elementów została wyczyszczona.', 'The pending queue has been cleared.'));
+
+        return $this->redirectToRoute('admin_queue_status');
+    }
+
+    #[Route('/top-menu-exports/{id}/delete', name: 'admin_queue_status_top_menu_export_delete', methods: ['POST'])]
+    public function deleteTopMenuExport(
+        TopMenuExportQueue $queueItem,
+        Request $request,
+        EntityManagerInterface $entityManager,
+        UserLanguageResolver $userLanguageResolver,
+    ): Response {
+        if (!$this->isCsrfTokenValid('delete_top_menu_export_queue_item_'.$queueItem->getId(), (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        $entityManager->remove($queueItem);
+        $entityManager->flush();
+
+        $this->addFlash('success', $userLanguageResolver->translate('Element został usunięty z kolejki.', 'The item has been removed from the queue.'));
 
         return $this->redirectToRoute('admin_queue_status');
     }

@@ -20,6 +20,7 @@ use App\Repository\ArticleImportQueueRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\BlogSettingsRepository;
 use App\Repository\TopMenuItemRepository;
+use App\Repository\TopMenuExportQueueRepository;
 use App\Repository\UserRepository;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -56,6 +57,7 @@ final class DashboardControllerTest extends TestCase
             'all' => 6,
             'type:'.ArticleExportType::ARTICLES->value => 6,
             'type:'.ArticleExportType::CATEGORIES->value => 0,
+            'type:'.ArticleExportType::TOP_MENU->value => 0,
             'status:'.ArticleExportStatus::NEW->value => 4,
             'status:'.ArticleExportStatus::DOWNLOADED->value => 2,
         ]);
@@ -71,6 +73,13 @@ final class DashboardControllerTest extends TestCase
             ArticleExportQueueStatus::PENDING->value => 1,
             ArticleExportQueueStatus::PROCESSING->value => 0,
             ArticleExportQueueStatus::COMPLETED->value => 1,
+            ArticleExportQueueStatus::FAILED->value => 0,
+        ]);
+        $topMenuExportQueueRepository = $this->createTopMenuExportQueueRepositoryMock([
+            'all' => 1,
+            ArticleExportQueueStatus::PENDING->value => 1,
+            ArticleExportQueueStatus::PROCESSING->value => 0,
+            ArticleExportQueueStatus::COMPLETED->value => 0,
             ArticleExportQueueStatus::FAILED->value => 0,
         ]);
 
@@ -99,6 +108,7 @@ final class DashboardControllerTest extends TestCase
             $articleExportRepository,
             $articleExportQueueRepository,
             $categoryExportQueueRepository,
+            $topMenuExportQueueRepository,
             $blogSettingsRepository,
             $topMenuItemRepository,
             $userRepository,
@@ -145,6 +155,7 @@ final class DashboardControllerTest extends TestCase
             ['value' => 6, 'label_key' => 'admin_dashboard_stat_all', 'label' => 'Wszystkie'],
             ['value' => 6, 'label_key' => 'admin_dashboard_stat_articles', 'label' => 'Artykuły'],
             ['value' => 0, 'label_key' => 'admin_dashboard_stat_categories', 'label' => 'Kategorie'],
+            ['value' => 0, 'label_key' => 'admin_dashboard_stat_top_menu', 'label' => 'Top menu'],
             ['value' => 4, 'label_key' => 'admin_dashboard_stat_new', 'label' => 'Nowe'],
             ['value' => 2, 'label_key' => 'admin_dashboard_stat_downloaded', 'label' => 'Pobrane'],
         ], $panels[3]['stats']);
@@ -158,8 +169,8 @@ final class DashboardControllerTest extends TestCase
         $this->assertSame('admin_dashboard_queue_import', $panels[4]['sections'][1]['title_key']);
         $this->assertSame('admin_dashboard_queue_export', $panels[4]['sections'][2]['title_key']);
         $this->assertSame([
-            ['value' => 15, 'label_key' => 'admin_dashboard_stat_all', 'label' => 'Wszystkie'],
-            ['value' => 4, 'label_key' => 'admin_dashboard_stat_pending', 'label' => 'Oczekujące'],
+            ['value' => 16, 'label_key' => 'admin_dashboard_stat_all', 'label' => 'Wszystkie'],
+            ['value' => 5, 'label_key' => 'admin_dashboard_stat_pending', 'label' => 'Oczekujące'],
             ['value' => 3, 'label_key' => 'admin_dashboard_stat_processing', 'label' => 'W trakcie'],
             ['value' => 6, 'label_key' => 'admin_dashboard_stat_completed', 'label' => 'Zakończone'],
             ['value' => 2, 'label_key' => 'admin_dashboard_stat_errors', 'label' => 'Błędy'],
@@ -216,6 +227,7 @@ final class DashboardControllerTest extends TestCase
             'all' => 0,
             'type:'.ArticleExportType::ARTICLES->value => 0,
             'type:'.ArticleExportType::CATEGORIES->value => 0,
+            'type:'.ArticleExportType::TOP_MENU->value => 0,
             'status:'.ArticleExportStatus::NEW->value => 0,
             'status:'.ArticleExportStatus::DOWNLOADED->value => 0,
         ]);
@@ -227,6 +239,13 @@ final class DashboardControllerTest extends TestCase
             ArticleExportQueueStatus::FAILED->value => 0,
         ]);
         $categoryExportQueueRepository = $this->createCategoryExportQueueRepositoryMock([
+            'all' => 0,
+            ArticleExportQueueStatus::PENDING->value => 0,
+            ArticleExportQueueStatus::PROCESSING->value => 0,
+            ArticleExportQueueStatus::COMPLETED->value => 0,
+            ArticleExportQueueStatus::FAILED->value => 0,
+        ]);
+        $topMenuExportQueueRepository = $this->createTopMenuExportQueueRepositoryMock([
             'all' => 0,
             ArticleExportQueueStatus::PENDING->value => 0,
             ArticleExportQueueStatus::PROCESSING->value => 0,
@@ -259,6 +278,7 @@ final class DashboardControllerTest extends TestCase
             $articleExportRepository,
             $articleExportQueueRepository,
             $categoryExportQueueRepository,
+            $topMenuExportQueueRepository,
             $blogSettingsRepository,
             $topMenuItemRepository,
             $userRepository,
@@ -424,6 +444,20 @@ final class DashboardControllerTest extends TestCase
     {
         /** @var CategoryExportQueueRepository&MockObject $repository */
         $repository = $this->createMock(CategoryExportQueueRepository::class);
+        $repository
+            ->method('countGroupedByStatus')
+            ->willReturn($counts);
+
+        return $repository;
+    }
+
+    /**
+     * @param array<string, int> $counts
+     */
+    private function createTopMenuExportQueueRepositoryMock(array $counts): TopMenuExportQueueRepository
+    {
+        /** @var TopMenuExportQueueRepository&MockObject $repository */
+        $repository = $this->createMock(TopMenuExportQueueRepository::class);
         $repository
             ->method('countGroupedByStatus')
             ->willReturn($counts);

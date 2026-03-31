@@ -6,9 +6,11 @@ namespace App\Tests\Unit\Controller\Admin;
 
 use App\Controller\Admin\TopMenuItemController;
 use App\Entity\TopMenuItem;
+use App\Entity\User;
 use App\Repository\ArticleCategoryRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\TopMenuItemRepository;
+use App\Repository\TopMenuExportQueueRepository;
 use App\Service\UserLanguageResolver;
 use App\Tests\Unit\Support\MocksUserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
@@ -121,6 +123,29 @@ final class TopMenuItemControllerTest extends TestCase
         );
     }
 
+    public function testExportQueuesWholeTopMenuHierarchy(): void
+    {
+        $queueRepository = $this->createMock(TopMenuExportQueueRepository::class);
+        $queueRepository
+            ->expects($this->once())
+            ->method('enqueuePending')
+            ->with(null)
+            ->willReturn(true);
+
+        $controller = new TestTopMenuItemController();
+        $controller->csrfTokenIsValid = true;
+
+        $response = $controller->export(
+            new Request([], ['_token' => 'valid']),
+            $queueRepository,
+            $this->createUserLanguageResolverMock('pl'),
+        );
+
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertSame('/admin/top-menu', $response->getTargetUrl());
+        $this->assertSame([['success', 'Eksport top menu został dodany do kolejki.']], $controller->flashes);
+    }
+
     /**
      * @param list<TopMenuItem> $items
      */
@@ -144,6 +169,8 @@ final class TestTopMenuItemController extends TopMenuItemController
 {
     public bool $csrfTokenIsValid = true;
 
+    public ?User $authenticatedUser = null;
+
     public string $capturedView = '';
 
     /** @var array<string, mixed> */
@@ -155,6 +182,11 @@ final class TestTopMenuItemController extends TopMenuItemController
     protected function isCsrfTokenValid(string $id, ?string $token): bool
     {
         return $this->csrfTokenIsValid;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->authenticatedUser;
     }
 
     public function addFlash(string $type, mixed $message): void

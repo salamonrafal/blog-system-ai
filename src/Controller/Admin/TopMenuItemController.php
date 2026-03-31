@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller\Admin;
 
+use App\Repository\TopMenuExportQueueRepository;
 use App\Entity\TopMenuItem;
 use App\Form\TopMenuItemType;
 use App\Repository\ArticleCategoryRepository;
@@ -22,6 +23,8 @@ use Symfony\Contracts\Cache\CacheInterface;
 #[Route('/admin/top-menu')]
 class TopMenuItemController extends AbstractController
 {
+    use AuthenticatedAdminUserTrait;
+
     #[Route('', name: 'admin_top_menu_index', methods: ['GET'])]
     public function index(TopMenuItemRepository $topMenuItemRepository): Response
     {
@@ -112,6 +115,27 @@ class TopMenuItemController extends AbstractController
         $this->clearTopMenuCache($appCache);
 
         $this->addFlash('success', $userLanguageResolver->translate('Element menu został usunięty.', 'Menu item deleted.'));
+
+        return $this->redirectToRoute('admin_top_menu_index');
+    }
+
+    #[Route('/export', name: 'admin_top_menu_export', methods: ['POST'])]
+    public function export(
+        Request $request,
+        TopMenuExportQueueRepository $topMenuExportQueueRepository,
+        UserLanguageResolver $userLanguageResolver,
+    ): Response {
+        if (!$this->isCsrfTokenValid('export_top_menu', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        if (!$topMenuExportQueueRepository->enqueuePending($this->resolveAuthenticatedUser())) {
+            $this->addFlash('success', $userLanguageResolver->translate('Eksport top menu jest już w kolejce.', 'Top menu export is already queued.'));
+
+            return $this->redirectToRoute('admin_top_menu_index');
+        }
+
+        $this->addFlash('success', $userLanguageResolver->translate('Eksport top menu został dodany do kolejki.', 'Top menu export added to the queue.'));
 
         return $this->redirectToRoute('admin_top_menu_index');
     }

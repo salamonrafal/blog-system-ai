@@ -260,3 +260,9 @@
 - Rozbudowano ekran `admin_article_export_index` o filtrowanie po typie eksportu oraz stronicowanie, a następnie dopracowano wygląd filtra typu tak, aby korzystał z tego samego customowego dropdownu i stylu co filtr kategorii na `admin_article_index`.
 - Uogólniono w modelu `BlogSettings` nazwę limitu elementów na stronę w panelu administracyjnym do zastosowań szerszych niż sama lista artykułów, aktualizując formularz ustawień bloga, tłumaczenia i walidację, a listę eksportów spięto z domyślną wartością `25` dla listingów administracyjnych.
 - Uzupełniono proces eksportu kategorii, widoki eksportów i kolejek oraz formularz ustawień bloga o brakujące tłumaczenia `PL/EN`, a także rozszerzono zestaw testów jednostkowych o nowe encje, commandy, writer'y i ścieżki kontrolerów związane z eksportem kategorii i paginacją eksportów.
+
+## 2026-03-31
+
+- Rozszerzono moduł eksportów o pełny eksport hierarchii `Top menu`, dodając akcję `Eksportuj hierarchię` na `admin_top_menu_index`, nowy typ eksportu `top_menu`, osobną kolejkę `top_menu_export_queue`, dedykowany command `app:top-menu-export:process-queue`, writer pliku JSON oraz migrację bazy danych.
+- Zachowano wspólną listę gotowych eksportów na `admin_article_export_index`, jednocześnie uzupełniając filtr typu eksportu o `Top menu` oraz rozszerzając widok `admin_queue_status`, dashboard, badge w skrótach administracyjnych i zadania crona tak, aby uwzględniały także kolejkę eksportu menu.
+- Uzupełniono internacjonalizację `PL/EN`, etykiety i komunikaty flash związane z eksportem `Top menu` oraz dodano testy jednostkowe dla nowej kolejki, writera eksportu, integracji kontrolerów i agregacji globali Twiga.

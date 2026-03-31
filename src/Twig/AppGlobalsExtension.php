@@ -13,6 +13,7 @@ use App\Repository\ArticleExportQueueRepository;
 use App\Repository\ArticleExportRepository;
 use App\Repository\ArticleImportQueueRepository;
 use App\Repository\TopMenuItemRepository;
+use App\Repository\TopMenuExportQueueRepository;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Twig\Extension\AbstractExtension;
@@ -33,6 +34,7 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
         private readonly ArticleImportQueueRepository $articleImportQueueRepository,
         private readonly ArticleExportQueueRepository $articleExportQueueRepository,
         private readonly CategoryExportQueueRepository $categoryExportQueueRepository,
+        private readonly TopMenuExportQueueRepository $topMenuExportQueueRepository,
         private readonly ArticleExportRepository $articleExportRepository,
         private readonly TopMenuItemRepository $topMenuItemRepository,
         private readonly TopMenuBuilder $topMenuBuilder,
@@ -53,7 +55,7 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
     {
         $settings = $this->blogSettingsProvider->getSettings();
         $pendingImportCount = $this->articleImportQueueRepository->countPending();
-        $pendingExportQueueCount = $this->articleExportQueueRepository->countPending() + $this->categoryExportQueueRepository->countPending();
+        $pendingExportQueueCount = $this->articleExportQueueRepository->countPending() + $this->categoryExportQueueRepository->countPending() + $this->topMenuExportQueueRepository->countPending();
         $newExportCount = $this->articleExportRepository->countNew();
         $language = $this->userLanguageResolver->getLanguage();
         $topMenuItems = $this->appCache->get(
