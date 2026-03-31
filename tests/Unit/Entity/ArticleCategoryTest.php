@@ -67,7 +67,9 @@ final class ArticleCategoryTest extends TestCase
 
     public function testLifecycleCallbacksRefreshTimestamps(): void
     {
-        $category = new ArticleCategory();
+        $category = (new ArticleCategory())
+            ->setName('PHP')
+            ->setSlug('php');
         $this->assertSame('UTC', $category->getCreatedAt()->getTimezone()->getName());
         $this->assertSame('UTC', $category->getUpdatedAt()->getTimezone()->getName());
 
@@ -96,5 +98,17 @@ final class ArticleCategoryTest extends TestCase
             (float) $category->getUpdatedAt()->format('U.u'),
         );
         $this->assertSame('UTC', $category->getUpdatedAt()->getTimezone()->getName());
+    }
+
+    public function testLifecycleCallbacksRejectPersistingCategoryWithoutSlug(): void
+    {
+        $category = (new ArticleCategory())
+            ->setName('PHP')
+            ->setTitle('pl', 'Programowanie w PHP');
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('Article category slug cannot be empty when persisting.');
+
+        $category->onPrePersist();
     }
 }

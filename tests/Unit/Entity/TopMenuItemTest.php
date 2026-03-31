@@ -139,4 +139,16 @@ final class TopMenuItemTest extends TestCase
         $this->assertNull($menuItem->getArticleCategory());
         $this->assertNull($menuItem->getArticle());
     }
+
+    public function testLifecycleCallbacksRejectPersistingMenuItemWithoutUniqueName(): void
+    {
+        $menuItem = (new TopMenuItem())
+            ->setLabels(['pl' => 'Kontakt', 'en' => 'Contact'])
+            ->setTargetType(TopMenuItemTargetType::BLOG_HOME);
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('Top menu item uniqueName cannot be empty when persisting.');
+
+        $menuItem->onPrePersist();
+    }
 }

@@ -278,6 +278,7 @@ class ArticleCategory
     #[ORM\PrePersist]
     public function onPrePersist(): void
     {
+        $this->ensureSlugIsPresent();
         $now = self::utcNow();
         $this->createdAt = $now;
         $this->updatedAt = $now;
@@ -286,7 +287,17 @@ class ArticleCategory
     #[ORM\PreUpdate]
     public function onPreUpdate(): void
     {
+        $this->ensureSlugIsPresent();
         $this->updatedAt = self::utcNow();
+    }
+
+    private function ensureSlugIsPresent(): void
+    {
+        if ('' !== trim($this->slug)) {
+            return;
+        }
+
+        throw new \LogicException('Article category slug cannot be empty when persisting.');
     }
 
     private static function utcNow(): \DateTimeImmutable

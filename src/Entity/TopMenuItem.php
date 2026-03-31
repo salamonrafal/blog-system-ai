@@ -353,6 +353,7 @@ class TopMenuItem
     #[ORM\PrePersist]
     public function onPrePersist(): void
     {
+        $this->ensureUniqueNameIsPresent();
         $now = self::utcNow();
         $this->createdAt = $now;
         $this->updatedAt = $now;
@@ -361,7 +362,17 @@ class TopMenuItem
     #[ORM\PreUpdate]
     public function onPreUpdate(): void
     {
+        $this->ensureUniqueNameIsPresent();
         $this->updatedAt = self::utcNow();
+    }
+
+    private function ensureUniqueNameIsPresent(): void
+    {
+        if ('' !== trim($this->uniqueName)) {
+            return;
+        }
+
+        throw new \LogicException('Top menu item uniqueName cannot be empty when persisting.');
     }
 
     private function hasAncestor(self $candidate): bool
