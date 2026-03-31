@@ -38,11 +38,12 @@ class TopMenuImportProcessor
         $existingItems += $existingParentItems;
         $processedCount = 0;
 
-        foreach ($sortedItems as $index => $itemData) {
+        foreach ($sortedItems as $itemData) {
             $uniqueName = (string) $itemData['unique_name'];
             $menuItem = $existingItems[$uniqueName] ?? new TopMenuItem();
+            $sourceIndex = isset($itemData['__source_index']) && is_int($itemData['__source_index']) ? $itemData['__source_index'] : 0;
 
-            $this->hydrateMenuItem($menuItem, $itemData, $index, $existingItems);
+            $this->hydrateMenuItem($menuItem, $itemData, $sourceIndex, $existingItems);
 
             if (null === $menuItem->getId()) {
                 $this->entityManager->persist($menuItem);
@@ -102,6 +103,7 @@ class TopMenuImportProcessor
                 throw new TopMenuImportException(sprintf('Element menu_items[%d] musi być obiektem JSON.', $index));
             }
 
+            $itemData['__source_index'] = $index;
             $normalizedItems[] = $itemData;
         }
 
@@ -431,7 +433,12 @@ class TopMenuImportProcessor
             throw new TopMenuImportException(sprintf('Pole menu_items[%d].position musi być liczbą całkowitą większą lub równą zero.', $index));
         }
 
-        return (int) $value;
+        $position = (int) $value;
+        if ($position < 0) {
+            throw new TopMenuImportException(sprintf('Pole menu_items[%d].position musi być liczbą całkowitą większą lub równą zero.', $index));
+        }
+
+        return $position;
     }
 
     private function parseBoolean(mixed $value, string $field, int $index): bool

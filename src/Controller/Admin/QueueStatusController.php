@@ -112,7 +112,7 @@ class QueueStatusController extends AbstractController
                 static fn (TopMenuImportQueue $queueItem): array => [
                     'id' => $queueItem->getId(),
                     'type_key' => 'admin_queue_type_top_menu_import',
-                    'type_label' => 'Import top menu',
+                    'type_label' => 'Import menu',
                     'original_filename' => $queueItem->getOriginalFilename(),
                     'file_path' => $queueItem->getFilePath(),
                     'requested_by' => $queueItem->getRequestedBy(),

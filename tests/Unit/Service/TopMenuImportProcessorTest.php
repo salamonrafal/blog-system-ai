@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Service;
 
 use App\Entity\TopMenuImportQueue;
 use App\Entity\TopMenuItem;
+use App\Exception\TopMenuImportException;
 use App\Repository\ArticleCategoryRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\TopMenuItemRepository;
@@ -178,6 +179,128 @@ final class TopMenuImportProcessorTest extends TestCase
             $this->assertSame(1, $processedCount);
             $this->assertCount(1, $persistedItems);
             $this->assertSame($existingParent, $persistedItems[0]->getParent());
+        } finally {
+            $this->removeDirectory($projectDir);
+        }
+    }
+
+    public function testProcessRejectsNegativePositionWithReadableContext(): void
+    {
+        $projectDir = sys_get_temp_dir().'/top-menu-import-processor-'.bin2hex(random_bytes(4));
+        mkdir($projectDir, 0775, true);
+        mkdir($projectDir.'/var/imports', 0775, true);
+
+        try {
+            $relativePath = 'var/imports/top-menu-import.json';
+            file_put_contents($projectDir.'/'.$relativePath, json_encode([
+                'format' => 'top-menu-export',
+                'version' => 1,
+                'menu_items' => [
+                    [
+                        'unique_name' => 'parent',
+                        'parent_unique_name' => null,
+                        'labels' => ['pl' => 'Parent'],
+                        'target_type' => 'blog_home',
+                        'position' => -1,
+                        'status' => 'active',
+                    ],
+                ],
+            ], JSON_THROW_ON_ERROR));
+
+            $queueItem = (new TopMenuImportQueue())
+                ->setOriginalFilename('top-menu-import.json')
+                ->setFilePath($relativePath);
+
+            $repository = $this->createMock(TopMenuItemRepository::class);
+            $repository
+                ->expects($this->once())
+                ->method('findByUniqueNames')
+                ->with(['parent'])
+                ->willReturn([]);
+
+            $validator = $this->createMock(ValidatorInterface::class);
+            $validator
+                ->method('validate')
+                ->willReturn(new ConstraintViolationList());
+
+            $processor = new TopMenuImportProcessor(
+                $repository,
+                $this->createMock(ArticleCategoryRepository::class),
+                $this->createMock(ArticleRepository::class),
+                $validator,
+                $this->createMock(EntityManagerInterface::class),
+                new ManagedFilePathResolver($projectDir, 'var/exports', 'var/imports'),
+            );
+
+            $this->expectException(TopMenuImportException::class);
+            $this->expectExceptionMessage('Pole menu_items[0].position musi być liczbą całkowitą większą lub równą zero.');
+
+            $processor->process($queueItem);
+        } finally {
+            $this->removeDirectory($projectDir);
+        }
+    }
+
+    public function testProcessPreservesOriginalPayloadIndexInValidationErrorsAfterHierarchySorting(): void
+    {
+        $projectDir = sys_get_temp_dir().'/top-menu-import-processor-'.bin2hex(random_bytes(4));
+        mkdir($projectDir, 0775, true);
+        mkdir($projectDir.'/var/imports', 0775, true);
+
+        try {
+            $relativePath = 'var/imports/top-menu-import.json';
+            file_put_contents($projectDir.'/'.$relativePath, json_encode([
+                'format' => 'top-menu-export',
+                'version' => 1,
+                'menu_items' => [
+                    [
+                        'unique_name' => 'child',
+                        'parent_unique_name' => 'parent',
+                        'labels' => ['pl' => 'Child'],
+                        'target_type' => 'blog_home',
+                        'position' => -1,
+                        'status' => 'active',
+                    ],
+                    [
+                        'unique_name' => 'parent',
+                        'parent_unique_name' => null,
+                        'labels' => ['pl' => 'Parent'],
+                        'target_type' => 'blog_home',
+                        'position' => 1,
+                        'status' => 'active',
+                    ],
+                ],
+            ], JSON_THROW_ON_ERROR));
+
+            $queueItem = (new TopMenuImportQueue())
+                ->setOriginalFilename('top-menu-import.json')
+                ->setFilePath($relativePath);
+
+            $repository = $this->createMock(TopMenuItemRepository::class);
+            $repository
+                ->expects($this->once())
+                ->method('findByUniqueNames')
+                ->with(['child', 'parent'])
+                ->willReturn([]);
+
+            $validator = $this->createMock(ValidatorInterface::class);
+            $validator
+                ->method('validate')
+                ->willReturn(new ConstraintViolationList());
+
+            $processor = new TopMenuImportProcessor(
+                $repository,
+                $this->createMock(ArticleCategoryRepository::class),
+                $this->createMock(ArticleRepository::class),
+                $validator,
+                $this->createMock(EntityManagerInterface::class),
+                new ManagedFilePathResolver($projectDir, 'var/exports', 'var/imports'),
+            );
+
+            $this->expectException(TopMenuImportException::class);
+            $this->expectExceptionMessage('Pole menu_items[0].position musi być liczbą całkowitą większą lub równą zero.');
+
+            $processor->process($queueItem);
         } finally {
             $this->removeDirectory($projectDir);
         }
