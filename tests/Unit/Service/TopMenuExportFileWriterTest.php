@@ -58,11 +58,13 @@ final class TopMenuExportFileWriterTest extends TestCase
             $this->setEntityId($queueItem, 18);
 
             $writer = new TopMenuExportFileWriter($repository, $projectDir, 'var/exports');
-            $relativePath = $writer->write($queueItem);
+            $writtenExport = $writer->write($queueItem);
+            $relativePath = $writtenExport['file_path'];
             $absolutePath = $projectDir.'/'.$relativePath;
 
             $this->assertFileExists($absolutePath);
             $this->assertStringStartsWith('var/exports/top-menu-export-', $relativePath);
+            $this->assertSame(3, $writtenExport['items_count']);
 
             /** @var array<string, mixed> $payload */
             $payload = json_decode((string) file_get_contents($absolutePath), true, 512, JSON_THROW_ON_ERROR);

@@ -9,7 +9,6 @@ use App\Entity\TopMenuExportQueue;
 use App\Enum\ArticleExportQueueStatus;
 use App\Enum\ArticleExportStatus;
 use App\Enum\ArticleExportType;
-use App\Repository\TopMenuItemRepository;
 use App\Repository\TopMenuExportQueueRepository;
 use App\Service\TopMenuExportFileWriter;
 use App\Service\UserNotificationService;
@@ -33,7 +32,6 @@ class ProcessTopMenuExportQueueCommand extends Command
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly ManagerRegistry $managerRegistry,
-        private readonly TopMenuItemRepository $topMenuItemRepository,
         private readonly TopMenuExportQueueRepository $topMenuExportQueueRepository,
         private readonly TopMenuExportFileWriter $topMenuExportFileWriter,
         private readonly UserNotificationService $userNotificationService,
@@ -62,13 +60,14 @@ class ProcessTopMenuExportQueueCommand extends Command
             $filePath = null;
 
             try {
-                $filePath = $this->topMenuExportFileWriter->write($queueItem);
+                $writtenExport = $this->topMenuExportFileWriter->write($queueItem);
+                $filePath = $writtenExport['file_path'];
 
                 $articleExport = (new ArticleExport())
                     ->setStatus(ArticleExportStatus::NEW)
                     ->setType(ArticleExportType::TOP_MENU)
                     ->setFilePath($filePath)
-                    ->setItemsCount($this->topMenuItemRepository->count([]))
+                    ->setItemsCount($writtenExport['items_count'])
                     ->setRequestedBy($queueItem->getRequestedBy());
 
                 $queueItem

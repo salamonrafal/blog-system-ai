@@ -23,7 +23,10 @@ class TopMenuExportFileWriter
     ) {
     }
 
-    public function write(TopMenuExportQueue $queueItem): string
+    /**
+     * @return array{file_path: string, items_count: int}
+     */
+    public function write(TopMenuExportQueue $queueItem): array
     {
         $absoluteDirectory = $this->projectDir.'/'.$this->exportDirectory;
         $now = $this->utcNow();
@@ -58,7 +61,10 @@ class TopMenuExportFileWriter
             throw new \RuntimeException(sprintf('Unable to write export file "%s".', $absolutePath));
         }
 
-        return $relativePath;
+        return [
+            'file_path' => $relativePath,
+            'items_count' => count($items),
+        ];
     }
 
     public function delete(string $relativePath): void
