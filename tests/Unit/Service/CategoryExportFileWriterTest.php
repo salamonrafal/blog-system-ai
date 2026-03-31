@@ -6,7 +6,6 @@ namespace App\Tests\Unit\Service;
 
 use App\Entity\ArticleCategory;
 use App\Entity\CategoryExportQueue;
-use App\Service\CategorySlugger;
 use App\Service\CategoryExportFileWriter;
 use PHPUnit\Framework\TestCase;
 
@@ -28,7 +27,7 @@ final class CategoryExportFileWriterTest extends TestCase
 
             $queueItem = new CategoryExportQueue($category);
             $this->setEntityId($queueItem, 18);
-            $writer = new CategoryExportFileWriter($projectDir, 'var/exports', $this->createMock(CategorySlugger::class));
+            $writer = new CategoryExportFileWriter($projectDir, 'var/exports');
 
             $relativePath = $writer->write($queueItem);
             $absolutePath = $projectDir.'/'.$relativePath;
@@ -53,6 +52,29 @@ final class CategoryExportFileWriterTest extends TestCase
                     substr((string) preg_replace('/^category-ai-i-dane-export-\d{8}-\d{6}-/', '', basename($relativePath, '.json')), 0)
                 )
             );
+        } finally {
+            $this->removeDirectory($projectDir);
+        }
+    }
+
+    public function testWriteFailsWhenCategorySlugIsMissing(): void
+    {
+        $projectDir = sys_get_temp_dir().'/category-export-writer-'.bin2hex(random_bytes(4));
+        mkdir($projectDir, 0775, true);
+
+        try {
+            $category = (new ArticleCategory())
+                ->setName('AI & Data')
+                ->setTitles(['pl' => 'AI i dane']);
+            $this->setEntityId($category, 21);
+
+            $queueItem = new CategoryExportQueue($category);
+            $writer = new CategoryExportFileWriter($projectDir, 'var/exports');
+
+            $this->expectException(\RuntimeException::class);
+            $this->expectExceptionMessage('missing slug');
+
+            $writer->write($queueItem);
         } finally {
             $this->removeDirectory($projectDir);
         }

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Controller\Admin;
 
 use App\Controller\Admin\TopMenuItemController;
+use App\Entity\Article;
+use App\Entity\ArticleCategory;
 use App\Entity\TopMenuItem;
 use App\Entity\User;
 use App\Repository\ArticleCategoryRepository;
@@ -133,6 +135,78 @@ final class TopMenuItemControllerTest extends TestCase
             $this->createUserLanguageResolverMock('pl'),
             $this->createMock(CacheInterface::class),
         );
+    }
+
+    public function testEditClearsStaleTargetRelationsWhenTargetTypeChanges(): void
+    {
+        $category = (new ArticleCategory())->setName('AI')->setSlug('ai');
+        $this->setEntityId($category, 21);
+        $article = (new Article())->setTitle('Hello')->setSlug('hello');
+        $this->setEntityId($article, 31);
+
+        $menuItem = (new TopMenuItem())
+            ->setLabels(['pl' => 'AI', 'en' => 'AI'])
+            ->setUniqueName('ai')
+            ->setTargetType(\App\Enum\TopMenuItemTargetType::ARTICLE_CATEGORY)
+            ->setArticleCategory($category)
+            ->setArticle($article)
+            ->setExternalUrl('https://example.com/stale')
+            ->setExternalUrlOpenInNewWindow(true);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->once())->method('flush');
+
+        $uniqueNameGenerator = $this->createMock(TopMenuItemUniqueNameGenerator::class);
+        $uniqueNameGenerator
+            ->expects($this->once())
+            ->method('refreshUniqueName')
+            ->with($menuItem);
+
+        $articleRepository = $this->createMock(ArticleRepository::class);
+        $articleRepository
+            ->expects($this->once())
+            ->method('findRecentForTopMenuSelection')
+            ->willReturn([$article]);
+
+        $categoryRepository = $this->createMock(ArticleCategoryRepository::class);
+        $categoryRepository
+            ->expects($this->once())
+            ->method('findActiveOrderedByName')
+            ->willReturn([$category]);
+
+        $cache = $this->createMock(CacheInterface::class);
+        $cache->expects($this->exactly(2))->method('delete');
+
+        $request = new Request([], [
+            'top_menu_item' => [
+                'labels' => ['pl' => 'Blog', 'en' => 'Blog'],
+                'targetType' => 'blog_home',
+                'externalUrl' => 'https://example.com/stale',
+                'externalUrlOpenInNewWindow' => '1',
+                'position' => '1',
+                'status' => 'active',
+            ],
+        ], [], [], [], ['REQUEST_METHOD' => 'POST']);
+
+        $controller = new TestTopMenuItemController();
+        $response = $controller->edit(
+            $menuItem,
+            $request,
+            $entityManager,
+            $this->createTopMenuRepositoryMock([]),
+            $categoryRepository,
+            $articleRepository,
+            $this->createUserLanguageResolverMock('pl'),
+            $uniqueNameGenerator,
+            $cache,
+        );
+
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertSame(\App\Enum\TopMenuItemTargetType::BLOG_HOME, $menuItem->getTargetType());
+        $this->assertNull($menuItem->getExternalUrl());
+        $this->assertFalse($menuItem->isExternalUrlOpenInNewWindow());
+        $this->assertNull($menuItem->getArticleCategory());
+        $this->assertNull($menuItem->getArticle());
     }
 
     public function testExportQueuesWholeTopMenuHierarchy(): void

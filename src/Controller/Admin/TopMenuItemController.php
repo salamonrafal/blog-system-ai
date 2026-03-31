@@ -56,6 +56,7 @@ class TopMenuItemController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->syncTranslations($menuItem, $form);
+            $menuItem->normalizeTargetConfiguration();
             $topMenuItemUniqueNameGenerator->refreshUniqueName($menuItem);
             $entityManager->persist($menuItem);
             $entityManager->flush();
@@ -88,6 +89,7 @@ class TopMenuItemController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->syncTranslations($menuItem, $form);
+            $menuItem->normalizeTargetConfiguration();
             $topMenuItemUniqueNameGenerator->refreshUniqueName($menuItem);
             $entityManager->flush();
             $this->clearTopMenuCache($appCache);

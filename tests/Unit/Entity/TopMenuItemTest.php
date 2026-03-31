@@ -117,4 +117,26 @@ final class TopMenuItemTest extends TestCase
         $this->assertGreaterThan(0, $violations->count());
         $this->assertSame('validation_top_menu_position_non_negative', $violations[0]->getMessage());
     }
+
+    public function testNormalizeTargetConfigurationClearsFieldsNotMatchingCurrentTargetType(): void
+    {
+        $category = (new ArticleCategory())->setName('PHP')->setSlug('php');
+        $article = (new Article())->setTitle('Hello world')->setSlug('hello-world')->setLanguage(ArticleLanguage::EN);
+
+        $menuItem = (new TopMenuItem())
+            ->setLabels(['pl' => 'Blog', 'en' => 'Blog'])
+            ->setUniqueName('blog')
+            ->setTargetType(TopMenuItemTargetType::BLOG_HOME)
+            ->setExternalUrl('https://example.com')
+            ->setExternalUrlOpenInNewWindow(true)
+            ->setArticleCategory($category)
+            ->setArticle($article);
+
+        $menuItem->normalizeTargetConfiguration();
+
+        $this->assertNull($menuItem->getExternalUrl());
+        $this->assertFalse($menuItem->isExternalUrlOpenInNewWindow());
+        $this->assertNull($menuItem->getArticleCategory());
+        $this->assertNull($menuItem->getArticle());
+    }
 }

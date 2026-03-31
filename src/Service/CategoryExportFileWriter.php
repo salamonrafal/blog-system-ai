@@ -18,7 +18,6 @@ class CategoryExportFileWriter
         private readonly string $projectDir,
         #[Autowire('%app.article_export_directory%')]
         private readonly string $exportDirectory,
-        private readonly CategorySlugger $categorySlugger,
     ) {
     }
 
@@ -32,12 +31,10 @@ class CategoryExportFileWriter
         }
 
         $category = $queueItem->getCategory();
-        if ('' === $category->getSlug()) {
-            $this->categorySlugger->refreshSlug($category);
-        }
+        $slug = $this->requireSlug($category);
         $fileName = sprintf(
             'category-%s-export-%s-%s.json',
-            $this->sanitizeSlugForFileName($category->getSlug()),
+            $this->sanitizeSlugForFileName($slug),
             $now->format('Ymd-His'),
             bin2hex(random_bytes(4))
         );
@@ -110,5 +107,18 @@ class CategoryExportFileWriter
         $sanitizedSlug = trim((string) $sanitizedSlug, '.-_');
 
         return '' !== $sanitizedSlug ? $sanitizedSlug : 'category';
+    }
+
+    private function requireSlug(ArticleCategory $category): string
+    {
+        $slug = trim($category->getSlug());
+        if ('' !== $slug) {
+            return $slug;
+        }
+
+        throw new \RuntimeException(sprintf(
+            'Article category ID %s is missing slug and cannot be exported safely.',
+            $category->getId() ?? 'unknown'
+        ));
     }
 }

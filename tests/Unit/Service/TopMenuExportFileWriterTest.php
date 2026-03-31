@@ -11,7 +11,6 @@ use App\Entity\TopMenuExportQueue;
 use App\Enum\TopMenuItemStatus;
 use App\Enum\TopMenuItemTargetType;
 use App\Repository\TopMenuItemRepository;
-use App\Service\TopMenuItemUniqueNameGenerator;
 use App\Service\TopMenuExportFileWriter;
 use PHPUnit\Framework\TestCase;
 
@@ -61,7 +60,7 @@ final class TopMenuExportFileWriterTest extends TestCase
             $queueItem = new TopMenuExportQueue();
             $this->setEntityId($queueItem, 18);
 
-            $writer = new TopMenuExportFileWriter($repository, $this->createMock(TopMenuItemUniqueNameGenerator::class), $projectDir, 'var/exports');
+            $writer = new TopMenuExportFileWriter($repository, $projectDir, 'var/exports');
             $writtenExport = $writer->write($queueItem);
             $relativePath = $writtenExport['file_path'];
             $absolutePath = $projectDir.'/'.$relativePath;
@@ -91,6 +90,87 @@ final class TopMenuExportFileWriterTest extends TestCase
             $this->assertSame('inactive', $payload['menu_items'][2]['status']);
             $this->assertNull($payload['menu_items'][0]['category_slug']);
             $this->assertNull($payload['menu_items'][0]['article_slug']);
+        } finally {
+            $this->removeDirectory($projectDir);
+        }
+    }
+
+    public function testWriteOmitsStaleLinkedTargetsWhenTargetTypeDoesNotMatch(): void
+    {
+        $projectDir = sys_get_temp_dir().'/top-menu-export-writer-'.bin2hex(random_bytes(4));
+        mkdir($projectDir, 0775, true);
+
+        try {
+            $item = (new TopMenuItem())
+                ->setLabels(['pl' => 'Blog', 'en' => 'Blog'])
+                ->setUniqueName('blog')
+                ->setTargetType(TopMenuItemTargetType::BLOG_HOME)
+                ->setExternalUrl('https://example.com/stale')
+                ->setExternalUrlOpenInNewWindow(true)
+                ->setArticleCategory((new ArticleCategory())->setName('AI')->setSlug('ai'))
+                ->setArticle((new Article())->setTitle('Hello')->setSlug('hello'))
+                ->setPosition(1)
+                ->setStatus(TopMenuItemStatus::ACTIVE);
+            $this->setEntityId($item, 10);
+            $this->setEntityId($item->getArticleCategory(), 21);
+            $this->setEntityId($item->getArticle(), 31);
+
+            $repository = $this->createMock(TopMenuItemRepository::class);
+            $repository
+                ->expects($this->once())
+                ->method('findForAdminIndex')
+                ->willReturn([$item]);
+
+            $queueItem = new TopMenuExportQueue();
+            $this->setEntityId($queueItem, 18);
+
+            $writer = new TopMenuExportFileWriter($repository, $projectDir, 'var/exports');
+            $writtenExport = $writer->write($queueItem);
+            $absolutePath = $projectDir.'/'.$writtenExport['file_path'];
+
+            /** @var array<string, mixed> $payload */
+            $payload = json_decode((string) file_get_contents($absolutePath), true, 512, JSON_THROW_ON_ERROR);
+
+            $this->assertSame('blog_home', $payload['menu_items'][0]['target_type']);
+            $this->assertNull($payload['menu_items'][0]['external_url']);
+            $this->assertFalse($payload['menu_items'][0]['external_url_open_in_new_window']);
+            $this->assertNull($payload['menu_items'][0]['article_category_id']);
+            $this->assertNull($payload['menu_items'][0]['category_slug']);
+            $this->assertNull($payload['menu_items'][0]['article_id']);
+            $this->assertNull($payload['menu_items'][0]['article_slug']);
+        } finally {
+            $this->removeDirectory($projectDir);
+        }
+    }
+
+    public function testWriteFailsWhenMenuItemUniqueNameIsMissing(): void
+    {
+        $projectDir = sys_get_temp_dir().'/top-menu-export-writer-'.bin2hex(random_bytes(4));
+        mkdir($projectDir, 0775, true);
+
+        try {
+            $item = (new TopMenuItem())
+                ->setLabels(['pl' => 'Blog', 'en' => 'Blog'])
+                ->setTargetType(TopMenuItemTargetType::BLOG_HOME)
+                ->setPosition(1)
+                ->setStatus(TopMenuItemStatus::ACTIVE);
+            $this->setEntityId($item, 10);
+
+            $repository = $this->createMock(TopMenuItemRepository::class);
+            $repository
+                ->expects($this->once())
+                ->method('findForAdminIndex')
+                ->willReturn([$item]);
+
+            $queueItem = new TopMenuExportQueue();
+            $this->setEntityId($queueItem, 18);
+
+            $writer = new TopMenuExportFileWriter($repository, $projectDir, 'var/exports');
+
+            $this->expectException(\RuntimeException::class);
+            $this->expectExceptionMessage('missing unique_name');
+
+            $writer->write($queueItem);
         } finally {
             $this->removeDirectory($projectDir);
         }

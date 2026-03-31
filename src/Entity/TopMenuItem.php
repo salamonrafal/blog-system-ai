@@ -303,6 +303,30 @@ class TopMenuItem
         return $this->updatedAt;
     }
 
+    public function normalizeTargetConfiguration(): self
+    {
+        match ($this->targetType) {
+            TopMenuItemTargetType::NONE, TopMenuItemTargetType::BLOG_HOME => $this
+                ->setExternalUrl(null)
+                ->setExternalUrlOpenInNewWindow(false)
+                ->setArticleCategory(null)
+                ->setArticle(null),
+            TopMenuItemTargetType::EXTERNAL_URL => $this
+                ->setArticleCategory(null)
+                ->setArticle(null),
+            TopMenuItemTargetType::ARTICLE_CATEGORY => $this
+                ->setExternalUrl(null)
+                ->setExternalUrlOpenInNewWindow(false)
+                ->setArticle(null),
+            TopMenuItemTargetType::ARTICLE => $this
+                ->setExternalUrl(null)
+                ->setExternalUrlOpenInNewWindow(false)
+                ->setArticleCategory(null),
+        };
+
+        return $this;
+    }
+
     #[Assert\Callback]
     public function validate(ExecutionContextInterface $context): void
     {
