@@ -158,9 +158,9 @@ final class TopMenuItemControllerTest extends TestCase
 
         $uniqueNameGenerator = $this->createMock(TopMenuItemUniqueNameGenerator::class);
         $uniqueNameGenerator
-            ->expects($this->once())
+            ->expects($this->never())
             ->method('refreshUniqueName')
-            ->with($menuItem);
+        ;
 
         $articleRepository = $this->createMock(ArticleRepository::class);
         $articleRepository
@@ -203,6 +203,7 @@ final class TopMenuItemControllerTest extends TestCase
 
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertSame(\App\Enum\TopMenuItemTargetType::BLOG_HOME, $menuItem->getTargetType());
+        $this->assertSame('ai', $menuItem->getUniqueName());
         $this->assertNull($menuItem->getExternalUrl());
         $this->assertFalse($menuItem->isExternalUrlOpenInNewWindow());
         $this->assertNull($menuItem->getArticleCategory());

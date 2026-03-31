@@ -45,7 +45,7 @@ class ArticleCategoryController extends AbstractController
 
         if ($form->isSubmitted()) {
             $this->syncTranslations($category, $form);
-            $categorySlugger->refreshSlug($category);
+            $this->refreshSlugIfMissing($category, $categorySlugger);
         }
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -75,7 +75,7 @@ class ArticleCategoryController extends AbstractController
 
         if ($form->isSubmitted()) {
             $this->syncTranslations($category, $form);
-            $categorySlugger->refreshSlug($category);
+            $this->refreshSlugIfMissing($category, $categorySlugger);
         }
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -206,6 +206,15 @@ class ArticleCategoryController extends AbstractController
         $category
             ->setTitles($titles)
             ->setDescriptions($descriptions);
+    }
+
+    private function refreshSlugIfMissing(ArticleCategory $category, CategorySlugger $categorySlugger): void
+    {
+        if ('' !== trim($category->getSlug())) {
+            return;
+        }
+
+        $categorySlugger->refreshSlug($category);
     }
 
     /**

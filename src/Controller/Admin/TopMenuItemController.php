@@ -57,7 +57,7 @@ class TopMenuItemController extends AbstractController
         if ($form->isSubmitted()) {
             $this->syncTranslations($menuItem, $form);
             $menuItem->normalizeTargetConfiguration();
-            $topMenuItemUniqueNameGenerator->refreshUniqueName($menuItem);
+            $this->refreshUniqueNameIfMissing($menuItem, $topMenuItemUniqueNameGenerator);
         }
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -93,7 +93,7 @@ class TopMenuItemController extends AbstractController
         if ($form->isSubmitted()) {
             $this->syncTranslations($menuItem, $form);
             $menuItem->normalizeTargetConfiguration();
-            $topMenuItemUniqueNameGenerator->refreshUniqueName($menuItem);
+            $this->refreshUniqueNameIfMissing($menuItem, $topMenuItemUniqueNameGenerator);
         }
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -186,5 +186,14 @@ class TopMenuItemController extends AbstractController
         foreach (AppGlobalsExtension::topMenuCacheKeys() as $cacheKey) {
             $appCache->delete($cacheKey);
         }
+    }
+
+    private function refreshUniqueNameIfMissing(TopMenuItem $menuItem, TopMenuItemUniqueNameGenerator $topMenuItemUniqueNameGenerator): void
+    {
+        if ('' !== trim($menuItem->getUniqueName())) {
+            return;
+        }
+
+        $topMenuItemUniqueNameGenerator->refreshUniqueName($menuItem);
     }
 }

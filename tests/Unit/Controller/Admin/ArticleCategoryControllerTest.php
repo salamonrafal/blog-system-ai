@@ -184,6 +184,7 @@ final class ArticleCategoryControllerTest extends TestCase
     {
         $category = (new ArticleCategory())
             ->setName('PHP')
+            ->setSlug('stary-slug')
             ->setTitle('pl', 'Stary tytuł')
             ->setTitle('en', 'Old title')
             ->setDescription('pl', 'Stary opis')
@@ -198,13 +199,7 @@ final class ArticleCategoryControllerTest extends TestCase
             ->method('flush');
 
         $categorySlugger = $this->createMock(CategorySlugger::class);
-        $categorySlugger
-            ->expects($this->once())
-            ->method('refreshSlug')
-            ->with($category)
-            ->willReturnCallback(static function (ArticleCategory $category): void {
-                $category->setSlug('nowy-tytul-pl');
-            });
+        $categorySlugger->expects($this->never())->method('refreshSlug');
 
         $controller = new TestArticleCategoryController();
         $userLanguageResolver = $this->createUserLanguageResolverMock('en');
@@ -231,7 +226,7 @@ final class ArticleCategoryControllerTest extends TestCase
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertSame('/admin/categories', $response->getTargetUrl());
         $this->assertSame('Nowy tytuł PL', $category->getTitle('pl'));
-        $this->assertSame('nowy-tytul-pl', $category->getSlug());
+        $this->assertSame('stary-slug', $category->getSlug());
         $this->assertSame('New title EN', $category->getTitle('en'));
         $this->assertSame('Nowy opis PL.', $category->getDescription('pl'));
         $this->assertSame('New description EN.', $category->getDescription('en'));
