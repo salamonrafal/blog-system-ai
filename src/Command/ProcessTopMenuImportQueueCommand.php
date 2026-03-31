@@ -10,6 +10,7 @@ use App\Repository\TopMenuImportQueueRepository;
 use App\Service\TopMenuCacheManager;
 use App\Service\TopMenuImportProcessor;
 use App\Service\UserNotificationService;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
@@ -54,9 +55,13 @@ class ProcessTopMenuImportQueueCommand extends Command
 
         $processedCount = 0;
         $failedCount = 0;
+        $hasSuccessfulImports = false;
 
         while (null !== $queueItem) {
+            $connection = $entityManager->getConnection();
+
             try {
+                $connection->beginTransaction();
                 $importedItems = $this->topMenuImportProcessor->process($queueItem);
 
                 $queueItem
@@ -65,9 +70,10 @@ class ProcessTopMenuImportQueueCommand extends Command
                     ->setErrorMessage(null);
 
                 $entityManager->flush();
-                $this->topMenuCacheManager->refresh();
+                $connection->commit();
                 $this->notifyImportCompletion($queueItem->getRequestedBy()?->getId(), true, $queueItem);
                 ++$processedCount;
+                $hasSuccessfulImports = true;
 
                 $io->success(sprintf(
                     'Imported %d top menu item(s) from queue item %d.',
@@ -81,6 +87,7 @@ class ProcessTopMenuImportQueueCommand extends Command
                     'requested_by_user_id' => $queueItem->getRequestedBy()?->getId(),
                     'exception' => $exception,
                 ]);
+                $this->rollbackFailedImportTransaction($entityManager, $connection);
 
                 [$entityManager, $queueRepository] = $this->markQueueItemAsFailed(
                     $queueItem,
@@ -101,6 +108,10 @@ class ProcessTopMenuImportQueueCommand extends Command
             $queueItem = $queueRepository->claimNextPending();
         }
 
+        if ($hasSuccessfulImports) {
+            $this->topMenuCacheManager->refresh();
+        }
+
         if (0 === $failedCount) {
             $io->success(sprintf('Imported %d queued top menu file(s).', $processedCount));
 
@@ -116,6 +127,17 @@ class ProcessTopMenuImportQueueCommand extends Command
         return Command::FAILURE;
     }
 
+    private function rollbackFailedImportTransaction(EntityManagerInterface $entityManager, Connection $connection): void
+    {
+        if ($connection->isTransactionActive()) {
+            $connection->rollBack();
+        }
+
+        if ($entityManager->isOpen()) {
+            $entityManager->clear();
+        }
+    }
+
     private function utcNow(): \DateTimeImmutable
     {
         return new \DateTimeImmutable('now', new \DateTimeZone(self::STORAGE_TIMEZONE));
@@ -128,7 +150,15 @@ class ProcessTopMenuImportQueueCommand extends Command
         TopMenuImportQueueRepository $queueRepository,
     ): array {
         if ($entityManager->isOpen()) {
-            $queueItem
+            $managedQueueItem = $entityManager->find(TopMenuImportQueue::class, $queueItem->getId());
+            if (!$managedQueueItem instanceof TopMenuImportQueue) {
+                throw new \RuntimeException(sprintf(
+                    'Unable to reload top menu import queue item %d after import failure.',
+                    $queueItem->getId() ?? 0,
+                ));
+            }
+
+            $managedQueueItem
                 ->setStatus(ArticleImportQueueStatus::FAILED)
                 ->setErrorMessage($errorMessage);
 

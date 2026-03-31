@@ -15,6 +15,7 @@ use App\Service\TopMenuItemUniqueNameGenerator;
 use App\Service\UserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -57,6 +58,7 @@ class TopMenuItemController extends AbstractController
             $this->syncTranslations($menuItem, $form);
             $menuItem->normalizeTargetConfiguration();
             $this->refreshUniqueNameIfMissing($menuItem, $topMenuItemUniqueNameGenerator);
+            $this->addUniqueNameErrorIfStillMissing($form, $menuItem);
         }
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -93,6 +95,7 @@ class TopMenuItemController extends AbstractController
             $this->syncTranslations($menuItem, $form);
             $menuItem->normalizeTargetConfiguration();
             $this->refreshUniqueNameIfMissing($menuItem, $topMenuItemUniqueNameGenerator);
+            $this->addUniqueNameErrorIfStillMissing($form, $menuItem);
         }
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -192,5 +195,14 @@ class TopMenuItemController extends AbstractController
         }
 
         $topMenuItemUniqueNameGenerator->refreshUniqueName($menuItem);
+    }
+
+    private function addUniqueNameErrorIfStillMissing(FormInterface $form, TopMenuItem $menuItem): void
+    {
+        if ('' !== trim($menuItem->getUniqueName())) {
+            return;
+        }
+
+        $form->addError(new FormError('Nie udało się wygenerować unikalnej nazwy elementu menu.'));
     }
 }
