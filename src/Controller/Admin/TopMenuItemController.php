@@ -54,10 +54,13 @@ class TopMenuItemController extends AbstractController
         $form = $this->createEditorForm($menuItem, $topMenuItemRepository, $articleCategoryRepository, $articleRepository, $userLanguageResolver);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        if ($form->isSubmitted()) {
             $this->syncTranslations($menuItem, $form);
             $menuItem->normalizeTargetConfiguration();
             $topMenuItemUniqueNameGenerator->refreshUniqueName($menuItem);
+        }
+
+        if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($menuItem);
             $entityManager->flush();
             $this->clearTopMenuCache($appCache);
@@ -87,10 +90,13 @@ class TopMenuItemController extends AbstractController
         $form = $this->createEditorForm($menuItem, $topMenuItemRepository, $articleCategoryRepository, $articleRepository, $userLanguageResolver);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        if ($form->isSubmitted()) {
             $this->syncTranslations($menuItem, $form);
             $menuItem->normalizeTargetConfiguration();
             $topMenuItemUniqueNameGenerator->refreshUniqueName($menuItem);
+        }
+
+        if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
             $this->clearTopMenuCache($appCache);
 

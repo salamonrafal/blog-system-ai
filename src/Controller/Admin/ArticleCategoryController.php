@@ -43,9 +43,12 @@ class ArticleCategoryController extends AbstractController
         $form = $this->createForm(ArticleCategoryType::class, $category);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        if ($form->isSubmitted()) {
             $this->syncTranslations($category, $form);
             $categorySlugger->refreshSlug($category);
+        }
+
+        if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($category);
             $entityManager->flush();
 
@@ -70,9 +73,12 @@ class ArticleCategoryController extends AbstractController
         $form = $this->createForm(ArticleCategoryType::class, $category);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        if ($form->isSubmitted()) {
             $this->syncTranslations($category, $form);
             $categorySlugger->refreshSlug($category);
+        }
+
+        if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
 
             $this->addFlash('success', $userLanguageResolver->translate('Kategoria została zaktualizowana.', 'Category updated.'));

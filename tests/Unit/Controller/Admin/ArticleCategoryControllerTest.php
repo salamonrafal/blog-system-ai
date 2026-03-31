@@ -154,7 +154,7 @@ final class ArticleCategoryControllerTest extends TestCase
         $controller = new TestArticleCategoryController();
         $userLanguageResolver = $this->createUserLanguageResolverMock('pl');
         $categorySlugger = $this->createMock(CategorySlugger::class);
-        $categorySlugger->expects($this->never())->method('refreshSlug');
+        $categorySlugger->expects($this->once())->method('refreshSlug');
 
         $request = new Request([], [
             'article_category' => [
