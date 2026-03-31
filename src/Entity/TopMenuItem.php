@@ -30,8 +30,8 @@ class TopMenuItem
     #[ORM\Column(type: 'json')]
     private array $labels = [];
 
-    #[Assert\NotBlank(message: 'Unikalna nazwa elementu menu jest wymagana.')]
-    #[Assert\Length(max: 255, maxMessage: 'Unikalna nazwa elementu menu może mieć maksymalnie 255 znaków.')]
+    #[Assert\NotBlank(message: 'validation_top_menu_unique_name_required')]
+    #[Assert\Length(max: 255, maxMessage: 'validation_top_menu_unique_name_too_long')]
     #[ORM\Column(length: 255, unique: true)]
     private string $uniqueName = '';
 
