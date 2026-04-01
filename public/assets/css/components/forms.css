@@ -23,7 +23,6 @@ input:focus, textarea:focus{outline:3px solid var(--focus); outline-offset:2px;}
   margin-bottom:12px;
   padding:12px 14px;
   border-radius:14px;
-  background: rgba(255, 77, 77, .08);
 }
 
 .form-errors ul {
