@@ -17,17 +17,27 @@ input, textarea{
   color:var(--text);
 }
 textarea{min-height:120px; resize:vertical;}
-input:focus, textarea:focus{outline:3px solid var(--focus); outline-offset:2px;}
+input:focus, textarea:focus, select:focus{outline:3px solid var(--focus); outline-offset:2px;}
 
 .form-errors {
   margin-bottom:12px;
   padding:12px 14px;
+  border-color: rgba(255, 77, 77, .3);
+  border-left-color: color-mix(in oklab, var(--danger) 78%, var(--border));
   border-radius:14px;
+  background:
+    radial-gradient(circle at top right, color-mix(in oklab, var(--danger) 12%, transparent), transparent 42%),
+    linear-gradient(180deg, color-mix(in oklab, var(--panel) 97%, transparent), color-mix(in oklab, var(--panel-2) 94%, transparent));
+  color:#ffd3d3;
 }
 
 .form-errors ul {
   margin:0;
   padding-left:18px;
+}
+
+[data-theme="light"] .form-errors {
+  color:#8f1212;
 }
 
 select {

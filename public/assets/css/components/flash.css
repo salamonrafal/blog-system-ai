@@ -86,8 +86,7 @@
   line-height:1;
 }
 
-.flash.error,
-.form-errors {
+.flash.error {
   border-color: rgba(255, 77, 77, .3);
   border-left-color: color-mix(in oklab, var(--danger) 78%, var(--border));
   background:
@@ -96,7 +95,6 @@
   color:#ffd3d3;
 }
 
-[data-theme="light"] .flash.error,
-[data-theme="light"] .form-errors {
+[data-theme="light"] .flash.error {
   color:#8f1212;
 }
