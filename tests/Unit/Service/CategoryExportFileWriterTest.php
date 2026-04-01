@@ -40,10 +40,12 @@ final class CategoryExportFileWriterTest extends TestCase
 
             $this->assertSame('category-export', $payload['format']);
             $this->assertSame(1, $payload['category_count']);
-            $this->assertSame(18, $payload['category'][0]['queue_item_id']);
-            $this->assertSame('AI & Data', $payload['category'][0]['name']);
-            $this->assertSame('ai-i-dane', $payload['category'][0]['slug']);
-            $this->assertSame('AI and data', $payload['category'][0]['titles']['en']);
+            // This guard can be removed once the legacy singular "category" import key is fully deprecated.
+            $this->assertArrayNotHasKey('category', $payload);
+            $this->assertSame(18, $payload['categories'][0]['queue_item_id']);
+            $this->assertSame('AI & Data', $payload['categories'][0]['name']);
+            $this->assertSame('ai-i-dane', $payload['categories'][0]['slug']);
+            $this->assertSame('AI and data', $payload['categories'][0]['titles']['en']);
             $this->assertSame(
                 basename($relativePath, '.json'),
                 sprintf(

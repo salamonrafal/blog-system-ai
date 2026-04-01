@@ -283,3 +283,12 @@
 - Rozszerzono zestaw testów jednostkowych o nowy importer `Top menu`, command przetwarzający jego kolejkę, odświeżanie cache menu oraz dodatkowe scenariusze regresyjne dla hierarchii, rodziców spoza payloadu i agregacji danych w dashboardzie oraz globalach Twiga.
 - Przebudowano customowe dropdowny filtrów w listingach administracyjnych tak, aby `admin_article_index` i `admin_article_export_index` korzystały z jednego wspólnego komponentu opartego o ujednolicone hooki `data-listing-filter-*`, z panelem opcji wynoszonym nad kartę tylko na czas otwarcia, dzięki czemu zachowane są poprawne zaokrąglenia bloku i pełna widoczność listy.
 - Naprawiono tworzenie kategorii artykułów bez ręcznie podanego sluga, usuwając błędne wymaganie `slug` na poziomie walidacji encji `ArticleCategory` oraz dodając bezpiecznik w kontrolerze, który zgłasza błąd formularza tylko wtedy, gdy automatyczne wygenerowanie sluga rzeczywiście się nie powiedzie.
+
+## 2026-04-01
+
+- Dodano pełny moduł `Import kategorii`, obejmujący nową stronę `admin_category_import_index`, osobną kolejkę `category_import_queue`, dedykowany command `app:category-import:process-queue`, migrację bazy danych oraz integrację z pływającym menu administracyjnym.
+- Wprowadzono importer kategorii działający w tle, który rozpoznaje rekordy po `slug`, aktualizuje istniejące kategorie zamiast tworzyć duplikaty oraz zapisuje błędy przetwarzania przy statusie `FAILED`.
+- Rozszerzono `admin_queue_status`, dashboard, badge w skrótach administracyjnych, powiadomienia per-user, skrypty Composer oraz kontenerowy plik crontaba `docker/conf/cron/article-queue`, tak aby uwzględniały również kolejkę importu kategorii.
+- Zaktualizowano format eksportu kategorii, aby używał pluralnego klucza `categories`, oraz dopracowano importer i komunikaty walidacyjne pod kątem czytelności, spójnych anglojęzycznych błędów backendowych i obsługiwanych wartości statusu.
+- Uspójniono fallbacki tłumaczeń w Twig, dodając helpery `ui_translate()` i `ui_language_label()` oraz porządkując użycie ich w widokach bloga, formularzy i ekranu importu kategorii zamiast rozproszonych warunków inline.
+- Uzupełniono `README.md` o opis importu kategorii, ręczne uruchamianie konsumenta i wpis crona, a zestaw testów jednostkowych rozszerzono o importer kategorii, command kolejki, kontroler, encję, writer eksportu oraz agregację danych w dashboardzie i globalach Twiga.

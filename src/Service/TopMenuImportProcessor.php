@@ -63,14 +63,14 @@ class TopMenuImportProcessor
     {
         $absolutePath = $this->managedFilePathResolver->resolveImportPath($queueItem->getFilePath());
         if (null === $absolutePath || !is_file($absolutePath)) {
-            throw new TopMenuImportException('Plik importu nie istnieje albo jest poza dozwolonym katalogiem.');
+            throw new TopMenuImportException('Import file does not exist or is outside the allowed directory.');
         }
 
         try {
             /** @var array<string, mixed> $payload */
             $payload = json_decode((string) file_get_contents($absolutePath), true, 512, JSON_THROW_ON_ERROR);
         } catch (\JsonException $exception) {
-            throw new TopMenuImportException('Plik importu nie zawiera poprawnego JSON.', 0, $exception);
+            throw new TopMenuImportException('Import file does not contain valid JSON.', 0, $exception);
         }
 
         return $payload;
@@ -84,23 +84,23 @@ class TopMenuImportProcessor
     private function extractItems(array $payload): array
     {
         if (($payload['format'] ?? null) !== 'top-menu-export') {
-            throw new TopMenuImportException('Nieobsługiwany format pliku importu.');
+            throw new TopMenuImportException('Unsupported import file format.');
         }
 
         if (($payload['version'] ?? null) !== 1) {
-            throw new TopMenuImportException('Nieobsługiwana wersja pliku importu.');
+            throw new TopMenuImportException('Unsupported import file version.');
         }
 
         $items = $payload['menu_items'] ?? null;
         if (!is_array($items) || [] === $items) {
-            throw new TopMenuImportException('Plik importu nie zawiera żadnych elementów menu.');
+            throw new TopMenuImportException('Import file does not contain any menu items.');
         }
 
         $normalizedItems = [];
 
         foreach (array_values($items) as $index => $itemData) {
             if (!is_array($itemData)) {
-                throw new TopMenuImportException(sprintf('Element menu_items[%d] musi być obiektem JSON.', $index));
+                throw new TopMenuImportException(sprintf('Element menu_items[%d] must be an array.', $index));
             }
 
             $itemData['__source_index'] = $index;
@@ -123,7 +123,7 @@ class TopMenuImportProcessor
             $uniqueName = $this->requireString($itemData, 'unique_name', $index, true, 'menu_items');
 
             if (isset($indexedItems[$uniqueName])) {
-                throw new TopMenuImportException(sprintf('Pole menu_items[%d].unique_name musi być unikalne w pliku importu.', $index));
+                throw new TopMenuImportException(sprintf('Field menu_items[%d].unique_name must be unique in the import file.', $index));
             }
 
             $indexedItems[$uniqueName] = $itemData;
@@ -149,14 +149,14 @@ class TopMenuImportProcessor
             }
 
             if (isset($visiting[$uniqueName])) {
-                throw new TopMenuImportException(sprintf('Wykryto cykliczną relację parent-child dla elementu menu "%s".', $uniqueName));
+                throw new TopMenuImportException(sprintf('Detected a cyclic parent-child relation for menu item "%s".', $uniqueName));
             }
 
             $visiting[$uniqueName] = true;
             $parentUniqueName = $itemsByUniqueName[$uniqueName]['parent_unique_name'] ?? null;
 
             if (null !== $parentUniqueName && !is_string($parentUniqueName)) {
-                throw new TopMenuImportException(sprintf('Pole menu_items[%d].parent_unique_name musi być tekstem albo null.', $itemsByUniqueName[$uniqueName]['__source_index'] ?? 0));
+                throw new TopMenuImportException(sprintf('Field menu_items[%d].parent_unique_name must be a string or null.', $itemsByUniqueName[$uniqueName]['__source_index'] ?? 0));
             }
 
             if (null === $parentUniqueName || '' === trim($parentUniqueName)) {
@@ -166,7 +166,7 @@ class TopMenuImportProcessor
 
                 if (!isset($itemsByUniqueName[$parentUniqueName]) && !isset($existingParentItems[$parentUniqueName])) {
                     throw new TopMenuImportException(sprintf(
-                        'Nie znaleziono rodzica "%s" dla elementu menu "%s".',
+                        'Parent "%s" was not found for menu item "%s".',
                         $parentUniqueName,
                         $uniqueName
                     ));
@@ -309,20 +309,20 @@ class TopMenuImportProcessor
     {
         $labels = $itemData['labels'] ?? null;
         if (!is_array($labels) || [] === $labels) {
-            throw new TopMenuImportException(sprintf('Pole menu_items[%d].labels jest wymagane i musi zawierać tłumaczenia.', $index));
+            throw new TopMenuImportException(sprintf('Field menu_items[%d].labels is required and must contain translations.', $index));
         }
 
         $normalizedLabels = [];
         foreach ($labels as $language => $label) {
             if (!is_string($language) || !is_string($label) || '' === trim($language) || '' === trim($label)) {
-                throw new TopMenuImportException(sprintf('Pole menu_items[%d].labels musi zawierać pary język => tekst.', $index));
+                throw new TopMenuImportException(sprintf('Field menu_items[%d].labels must contain language => text pairs.', $index));
             }
 
             $normalizedLabels[strtolower(trim($language))] = trim($label);
         }
 
         if ([] === $normalizedLabels) {
-            throw new TopMenuImportException(sprintf('Pole menu_items[%d].labels jest wymagane i musi zawierać tłumaczenia.', $index));
+            throw new TopMenuImportException(sprintf('Field menu_items[%d].labels is required and must contain translations.', $index));
         }
 
         return $normalizedLabels;
@@ -338,7 +338,7 @@ class TopMenuImportProcessor
         }
 
         if (!is_string($value)) {
-            throw new TopMenuImportException(sprintf('Pole menu_items[%d].parent_unique_name musi być tekstem albo null.', $index));
+            throw new TopMenuImportException(sprintf('Field menu_items[%d].parent_unique_name must be a string or null.', $index));
         }
 
         $parentUniqueName = trim($value);
@@ -347,12 +347,12 @@ class TopMenuImportProcessor
         }
 
         if ($parentUniqueName === $uniqueName) {
-            throw new TopMenuImportException(sprintf('Pole menu_items[%d].parent_unique_name nie może wskazywać na ten sam element.', $index));
+            throw new TopMenuImportException(sprintf('Field menu_items[%d].parent_unique_name cannot reference the same item.', $index));
         }
 
         return $existingItems[$parentUniqueName] ?? $this->topMenuItemRepository->findOneByUniqueName($parentUniqueName)
             ?? throw new TopMenuImportException(sprintf(
-                'Nie znaleziono rodzica "%s" dla elementu menu "%s".',
+                'Parent "%s" was not found for menu item "%s".',
                 $parentUniqueName,
                 $uniqueName
             ));
@@ -376,12 +376,12 @@ class TopMenuImportProcessor
     private function resolveCategory(mixed $value, int $index): \App\Entity\ArticleCategory
     {
         if (!is_string($value) || '' === trim($value)) {
-            throw new TopMenuImportException(sprintf('Pole menu_items[%d].category_slug jest wymagane dla target_type=article_category.', $index));
+            throw new TopMenuImportException(sprintf('Field menu_items[%d].category_slug is required for target_type=article_category.', $index));
         }
 
         $category = $this->articleCategoryRepository->findOneBy(['slug' => trim($value)]);
         if (!$category instanceof \App\Entity\ArticleCategory) {
-            throw new TopMenuImportException(sprintf('Nie znaleziono kategorii o slug "%s".', trim($value)));
+            throw new TopMenuImportException(sprintf('Category with slug "%s" was not found.', trim($value)));
         }
 
         return $category;
@@ -390,12 +390,12 @@ class TopMenuImportProcessor
     private function resolveArticle(mixed $value, int $index): \App\Entity\Article
     {
         if (!is_string($value) || '' === trim($value)) {
-            throw new TopMenuImportException(sprintf('Pole menu_items[%d].article_slug jest wymagane dla target_type=article.', $index));
+            throw new TopMenuImportException(sprintf('Field menu_items[%d].article_slug is required for target_type=article.', $index));
         }
 
         $article = $this->articleRepository->findOneBySlug(trim($value));
         if (!$article instanceof \App\Entity\Article) {
-            throw new TopMenuImportException(sprintf('Nie znaleziono artykułu o slug "%s".', trim($value)));
+            throw new TopMenuImportException(sprintf('Article with slug "%s" was not found.', trim($value)));
         }
 
         return $article;
@@ -404,13 +404,13 @@ class TopMenuImportProcessor
     private function parseTargetType(mixed $value, int $index): TopMenuItemTargetType
     {
         if (!is_string($value)) {
-            throw new TopMenuImportException(sprintf('Pole menu_items[%d].target_type musi być tekstem.', $index));
+            throw new TopMenuImportException(sprintf('Field menu_items[%d].target_type must be a string.', $index));
         }
 
         $targetType = TopMenuItemTargetType::tryFrom(trim($value));
         if (null === $targetType) {
             throw new TopMenuImportException(sprintf(
-                'Pole menu_items[%d].target_type ma nieobsługiwaną wartość "%s".',
+                'Field menu_items[%d].target_type has unsupported value "%s".',
                 $index,
                 $value
             ));
@@ -422,13 +422,13 @@ class TopMenuImportProcessor
     private function parseStatus(mixed $value, int $index): TopMenuItemStatus
     {
         if (!is_string($value)) {
-            throw new TopMenuImportException(sprintf('Pole menu_items[%d].status musi być tekstem.', $index));
+            throw new TopMenuImportException(sprintf('Field menu_items[%d].status must be a string.', $index));
         }
 
         $status = TopMenuItemStatus::tryFrom(trim($value));
         if (null === $status) {
             throw new TopMenuImportException(sprintf(
-                'Pole menu_items[%d].status ma nieobsługiwaną wartość "%s".',
+                'Field menu_items[%d].status has unsupported value "%s".',
                 $index,
                 $value
             ));
@@ -440,12 +440,12 @@ class TopMenuImportProcessor
     private function parsePosition(mixed $value, int $index): int
     {
         if (!is_int($value) && !(is_string($value) && preg_match('/^\d+$/', $value))) {
-            throw new TopMenuImportException(sprintf('Pole menu_items[%d].position musi być liczbą całkowitą większą lub równą zero.', $index));
+            throw new TopMenuImportException(sprintf('Field menu_items[%d].position must be an integer greater than or equal to zero.', $index));
         }
 
         $position = (int) $value;
         if ($position < 0) {
-            throw new TopMenuImportException(sprintf('Pole menu_items[%d].position musi być liczbą całkowitą większą lub równą zero.', $index));
+            throw new TopMenuImportException(sprintf('Field menu_items[%d].position must be an integer greater than or equal to zero.', $index));
         }
 
         return $position;
@@ -454,7 +454,7 @@ class TopMenuImportProcessor
     private function parseBoolean(mixed $value, string $field, int $index): bool
     {
         if (!is_bool($value)) {
-            throw new TopMenuImportException(sprintf('Pole menu_items[%d].%s musi mieć wartość true albo false.', $index, $field));
+            throw new TopMenuImportException(sprintf('Field menu_items[%d].%s must be true or false.', $index, $field));
         }
 
         return $value;
@@ -467,12 +467,12 @@ class TopMenuImportProcessor
     {
         $value = $itemData[$field] ?? null;
         if (!is_string($value)) {
-            throw new TopMenuImportException(sprintf('Pole %s[%d].%s jest wymagane i musi być tekstem.', $collection, $index, $field));
+            throw new TopMenuImportException(sprintf('Field %s[%d].%s is required and must be a string.', $collection, $index, $field));
         }
 
         $value = $trim ? trim($value) : $value;
         if ('' === $value) {
-            throw new TopMenuImportException(sprintf('Pole %s[%d].%s jest wymagane.', $collection, $index, $field));
+            throw new TopMenuImportException(sprintf('Field %s[%d].%s is required.', $collection, $index, $field));
         }
 
         return $value;
@@ -481,17 +481,17 @@ class TopMenuImportProcessor
     private function normalizeViolationMessage(string $message): string
     {
         return match ($message) {
-            'validation_top_menu_unique_name_required' => 'unique_name jest wymagane.',
-            'validation_top_menu_unique_name_too_long' => 'unique_name może mieć maksymalnie 255 znaków.',
-            'validation_top_menu_external_url_required' => 'adres URL jest wymagany.',
-            'validation_top_menu_external_url_too_long' => 'adres URL może mieć maksymalnie 500 znaków.',
-            'validation_top_menu_external_url_invalid' => 'adres URL jest nieprawidłowy.',
-            'validation_top_menu_category_required' => 'kategoria artykułu jest wymagana.',
-            'validation_top_menu_article_category_required' => 'kategoria artykułu jest wymagana.',
-            'validation_top_menu_article_required' => 'artykuł jest wymagany.',
-            'validation_top_menu_position_non_negative' => 'pozycja musi być większa lub równa zero.',
-            'validation_top_menu_parent_self' => 'element nie może być swoim własnym rodzicem.',
-            'validation_top_menu_parent_cycle' => 'wykryto cykliczną relację rodzic-dziecko.',
+            'validation_top_menu_unique_name_required' => 'unique_name is required.',
+            'validation_top_menu_unique_name_too_long' => 'unique_name can be at most 255 characters long.',
+            'validation_top_menu_external_url_required' => 'URL is required.',
+            'validation_top_menu_external_url_too_long' => 'URL can be at most 500 characters long.',
+            'validation_top_menu_external_url_invalid' => 'URL is invalid.',
+            'validation_top_menu_category_required' => 'article category is required.',
+            'validation_top_menu_article_category_required' => 'article category is required.',
+            'validation_top_menu_article_required' => 'article is required.',
+            'validation_top_menu_position_non_negative' => 'position must be greater than or equal to zero.',
+            'validation_top_menu_parent_self' => 'item cannot be its own parent.',
+            'validation_top_menu_parent_cycle' => 'cyclic parent-child relation detected.',
             default => $message,
         };
     }

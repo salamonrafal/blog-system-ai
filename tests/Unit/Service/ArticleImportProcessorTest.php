@@ -145,7 +145,7 @@ final class ArticleImportProcessorTest extends TestCase
         ]);
 
         $this->expectException(ArticleImportException::class);
-        $this->expectExceptionMessage('title jest wymagane');
+        $this->expectExceptionMessage('Field article[0].title is required.');
 
         $processor->process($queueItem);
     }
@@ -174,7 +174,7 @@ final class ArticleImportProcessorTest extends TestCase
         ]);
 
         $this->expectException(ArticleImportException::class);
-        $this->expectExceptionMessage('Dozwolone wartości: pl, en');
+        $this->expectExceptionMessage('Allowed values: pl, en');
 
         $processor->process($queueItem);
     }
@@ -203,7 +203,7 @@ final class ArticleImportProcessorTest extends TestCase
         ]);
 
         $this->expectException(ArticleImportException::class);
-        $this->expectExceptionMessage('slug jest wymagane');
+        $this->expectExceptionMessage('Field article[0].slug is required.');
 
         $processor->process($queueItem);
     }
@@ -232,7 +232,7 @@ final class ArticleImportProcessorTest extends TestCase
         ]);
 
         $this->expectException(ArticleImportException::class);
-        $this->expectExceptionMessage('Dozwolone wartości: draft, review, published, archived');
+        $this->expectExceptionMessage('Allowed values: draft, review, published, archived');
 
         $processor->process($queueItem);
     }
@@ -261,7 +261,7 @@ final class ArticleImportProcessorTest extends TestCase
         ]);
 
         $this->expectException(ArticleImportException::class);
-        $this->expectExceptionMessage('content jest wymagane');
+        $this->expectExceptionMessage('Field article[0].content is required.');
 
         $processor->process($queueItem);
     }
@@ -276,7 +276,7 @@ final class ArticleImportProcessorTest extends TestCase
         $queueItem = $this->createQueueItemWithFilePath('var/imports/missing.json');
 
         $this->expectException(ArticleImportException::class);
-        $this->expectExceptionMessage('Plik importu nie istnieje albo jest poza dozwolonym katalogiem.');
+        $this->expectExceptionMessage('Import file does not exist or is outside the allowed directory.');
 
         $processor->process($queueItem);
     }
@@ -295,7 +295,7 @@ final class ArticleImportProcessorTest extends TestCase
         $queueItem = $this->createQueueItemWithFilePath('outside.json');
 
         $this->expectException(ArticleImportException::class);
-        $this->expectExceptionMessage('Plik importu nie istnieje albo jest poza dozwolonym katalogiem.');
+        $this->expectExceptionMessage('Import file does not exist or is outside the allowed directory.');
 
         $processor->process($queueItem);
     }
@@ -310,7 +310,7 @@ final class ArticleImportProcessorTest extends TestCase
         $queueItem = $this->createQueueItemWithRawContents('{invalid json');
 
         $this->expectException(ArticleImportException::class);
-        $this->expectExceptionMessage('Plik importu nie zawiera poprawnego JSON.');
+        $this->expectExceptionMessage('Import file does not contain valid JSON.');
 
         $processor->process($queueItem);
     }
@@ -329,7 +329,7 @@ final class ArticleImportProcessorTest extends TestCase
         ]);
 
         $this->expectException(ArticleImportException::class);
-        $this->expectExceptionMessage('Nieobsługiwany format pliku importu.');
+        $this->expectExceptionMessage('Unsupported import file format.');
 
         $processor->process($queueItem);
     }
@@ -348,7 +348,7 @@ final class ArticleImportProcessorTest extends TestCase
         ]);
 
         $this->expectException(ArticleImportException::class);
-        $this->expectExceptionMessage('Nieobsługiwana wersja pliku importu.');
+        $this->expectExceptionMessage('Unsupported import file version.');
 
         $processor->process($queueItem);
     }
@@ -367,7 +367,7 @@ final class ArticleImportProcessorTest extends TestCase
         ]);
 
         $this->expectException(ArticleImportException::class);
-        $this->expectExceptionMessage('Plik importu nie zawiera żadnych artykułów.');
+        $this->expectExceptionMessage('Import file does not contain any articles.');
 
         $processor->process($queueItem);
     }
@@ -389,7 +389,7 @@ final class ArticleImportProcessorTest extends TestCase
         ]);
 
         $this->expectException(ArticleImportException::class);
-        $this->expectExceptionMessage('Plik importu musi zawierać dokładnie jeden artykuł.');
+        $this->expectExceptionMessage('Import file must contain exactly one article.');
 
         $processor->process($queueItem);
     }
@@ -408,7 +408,7 @@ final class ArticleImportProcessorTest extends TestCase
         ]);
 
         $this->expectException(ArticleImportException::class);
-        $this->expectExceptionMessage('Element article[0] musi być obiektem JSON.');
+        $this->expectExceptionMessage('Element article[0] must be an array.');
 
         $processor->process($queueItem);
     }
@@ -437,7 +437,7 @@ final class ArticleImportProcessorTest extends TestCase
         ]);
 
         $this->expectException(ArticleImportException::class);
-        $this->expectExceptionMessage('Pole excerpt musi być tekstem albo null.');
+        $this->expectExceptionMessage('Field excerpt must be a string or null.');
 
         $processor->process($queueItem);
     }
@@ -466,7 +466,7 @@ final class ArticleImportProcessorTest extends TestCase
         ]);
 
         $this->expectException(ArticleImportException::class);
-        $this->expectExceptionMessage('Pole headline_image musi być tekstem albo null.');
+        $this->expectExceptionMessage('Field headline_image must be a string or null.');
 
         $processor->process($queueItem);
     }
@@ -495,7 +495,7 @@ final class ArticleImportProcessorTest extends TestCase
         ]);
 
         $this->expectException(ArticleImportException::class);
-        $this->expectExceptionMessage('Pole article[0].headline_image_enabled musi mieć wartość true albo false.');
+        $this->expectExceptionMessage('Field article[0].headline_image_enabled must be true or false.');
 
         $processor->process($queueItem);
     }
@@ -524,7 +524,7 @@ final class ArticleImportProcessorTest extends TestCase
         ]);
 
         $this->expectException(ArticleImportException::class);
-        $this->expectExceptionMessage('Pole article[0].published_at musi być tekstem ISO-8601 albo null.');
+        $this->expectExceptionMessage('Field article[0].published_at must be an ISO-8601 string or null.');
 
         $processor->process($queueItem);
     }
@@ -553,7 +553,7 @@ final class ArticleImportProcessorTest extends TestCase
         ]);
 
         $this->expectException(ArticleImportException::class);
-        $this->expectExceptionMessage('Pole article[0].published_at nie zawiera poprawnej daty.');
+        $this->expectExceptionMessage('Field article[0].published_at does not contain a valid date.');
 
         $processor->process($queueItem);
     }
@@ -582,7 +582,7 @@ final class ArticleImportProcessorTest extends TestCase
         ]);
 
         $this->expectException(ArticleImportException::class);
-        $this->expectExceptionMessage('headlineImage: musi zaczynać się od http://, https:// albo /.');
+        $this->expectExceptionMessage('headlineImage: must start with http://, https://, or /.');
 
         $processor->process($queueItem);
     }
@@ -626,7 +626,7 @@ final class ArticleImportProcessorTest extends TestCase
             $processor->process($queueItem);
             self::fail('Expected import validation to fail.');
         } catch (ArticleImportException $exception) {
-            $this->assertStringContainsString('headlineImage: musi zaczynać się od http://, https:// albo /.', $exception->getMessage());
+            $this->assertStringContainsString('headlineImage: must start with http://, https://, or /.', $exception->getMessage());
         }
 
         $this->assertSame('Stary tytul', $existingArticle->getTitle());

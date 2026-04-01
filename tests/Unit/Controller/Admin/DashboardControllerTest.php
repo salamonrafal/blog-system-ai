@@ -17,6 +17,7 @@ use App\Repository\ArticleExportQueueRepository;
 use App\Repository\ArticleExportRepository;
 use App\Repository\CategoryExportQueueRepository;
 use App\Repository\ArticleImportQueueRepository;
+use App\Repository\CategoryImportQueueRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\BlogSettingsRepository;
 use App\Repository\TopMenuImportQueueRepository;
@@ -53,6 +54,13 @@ final class DashboardControllerTest extends TestCase
             ArticleImportQueueStatus::PROCESSING->value => 1,
             ArticleImportQueueStatus::COMPLETED->value => 4,
             ArticleImportQueueStatus::FAILED->value => 1,
+        ]);
+        $categoryImportQueueRepository = $this->createCategoryImportQueueRepositoryMock([
+            'all' => 0,
+            ArticleImportQueueStatus::PENDING->value => 0,
+            ArticleImportQueueStatus::PROCESSING->value => 0,
+            ArticleImportQueueStatus::COMPLETED->value => 0,
+            ArticleImportQueueStatus::FAILED->value => 0,
         ]);
         $topMenuImportQueueRepository = $this->createTopMenuImportQueueRepositoryMock([
             'all' => 2,
@@ -113,6 +121,7 @@ final class DashboardControllerTest extends TestCase
             $articleRepository,
             $articleCategoryRepository,
             $articleImportQueueRepository,
+            $categoryImportQueueRepository,
             $topMenuImportQueueRepository,
             $articleExportRepository,
             $articleExportQueueRepository,
@@ -232,6 +241,13 @@ final class DashboardControllerTest extends TestCase
             ArticleImportQueueStatus::COMPLETED->value => 0,
             ArticleImportQueueStatus::FAILED->value => 0,
         ]);
+        $categoryImportQueueRepository = $this->createCategoryImportQueueRepositoryMock([
+            'all' => 0,
+            ArticleImportQueueStatus::PENDING->value => 0,
+            ArticleImportQueueStatus::PROCESSING->value => 0,
+            ArticleImportQueueStatus::COMPLETED->value => 0,
+            ArticleImportQueueStatus::FAILED->value => 0,
+        ]);
         $topMenuImportQueueRepository = $this->createTopMenuImportQueueRepositoryMock([
             'all' => 0,
             ArticleImportQueueStatus::PENDING->value => 0,
@@ -291,6 +307,7 @@ final class DashboardControllerTest extends TestCase
             $articleRepository,
             $articleCategoryRepository,
             $articleImportQueueRepository,
+            $categoryImportQueueRepository,
             $topMenuImportQueueRepository,
             $articleExportRepository,
             $articleExportQueueRepository,
@@ -397,6 +414,20 @@ final class DashboardControllerTest extends TestCase
     {
         /** @var TopMenuImportQueueRepository&MockObject $repository */
         $repository = $this->createMock(TopMenuImportQueueRepository::class);
+        $repository
+            ->method('countGroupedByStatus')
+            ->willReturn($counts);
+
+        return $repository;
+    }
+
+    /**
+     * @param array<string, int> $counts
+     */
+    private function createCategoryImportQueueRepositoryMock(array $counts): CategoryImportQueueRepository
+    {
+        /** @var CategoryImportQueueRepository&MockObject $repository */
+        $repository = $this->createMock(CategoryImportQueueRepository::class);
         $repository
             ->method('countGroupedByStatus')
             ->willReturn($counts);

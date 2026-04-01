@@ -60,6 +60,22 @@ class ArticleCategoryRepository extends ServiceEntityRepository
         return (int) $queryBuilder->getQuery()->getSingleScalarResult() > 0;
     }
 
+    public function nameExists(string $name, ?int $ignoreId = null): bool
+    {
+        $queryBuilder = $this->createQueryBuilder('category')
+            ->select('COUNT(category.id)')
+            ->andWhere('category.name = :name')
+            ->setParameter('name', $name);
+
+        if (null !== $ignoreId) {
+            $queryBuilder
+                ->andWhere('category.id != :ignoreId')
+                ->setParameter('ignoreId', $ignoreId);
+        }
+
+        return (int) $queryBuilder->getQuery()->getSingleScalarResult() > 0;
+    }
+
     /**
      * @return list<ArticleCategory>
      */

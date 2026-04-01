@@ -8,6 +8,8 @@ enum UserNotificationType: string
 {
     case IMPORT_COMPLETED_SUCCESS = 'import_completed_success';
     case IMPORT_COMPLETED_ERROR = 'import_completed_error';
+    case CATEGORY_IMPORT_COMPLETED_SUCCESS = 'category_import_completed_success';
+    case CATEGORY_IMPORT_COMPLETED_ERROR = 'category_import_completed_error';
     case TOP_MENU_IMPORT_COMPLETED_SUCCESS = 'top_menu_import_completed_success';
     case TOP_MENU_IMPORT_COMPLETED_ERROR = 'top_menu_import_completed_error';
     case EXPORT_COMPLETED_SUCCESS = 'export_completed_success';
@@ -22,6 +24,7 @@ enum UserNotificationType: string
     {
         return match ($this) {
             self::IMPORT_COMPLETED_ERROR,
+            self::CATEGORY_IMPORT_COMPLETED_ERROR,
             self::TOP_MENU_IMPORT_COMPLETED_ERROR,
             self::EXPORT_COMPLETED_ERROR => 'error',
             default => 'success',
@@ -33,6 +36,8 @@ enum UserNotificationType: string
         return match ($this) {
             self::IMPORT_COMPLETED_SUCCESS,
             self::IMPORT_COMPLETED_ERROR => 'user_notification_action_imports',
+            self::CATEGORY_IMPORT_COMPLETED_SUCCESS,
+            self::CATEGORY_IMPORT_COMPLETED_ERROR => 'user_notification_action_category_imports',
             self::TOP_MENU_IMPORT_COMPLETED_SUCCESS,
             self::TOP_MENU_IMPORT_COMPLETED_ERROR => 'user_notification_action_top_menu_imports',
             self::EXPORT_COMPLETED_SUCCESS,
@@ -45,6 +50,8 @@ enum UserNotificationType: string
         return match ($this) {
             self::IMPORT_COMPLETED_SUCCESS,
             self::IMPORT_COMPLETED_ERROR => 'admin_article_import_index',
+            self::CATEGORY_IMPORT_COMPLETED_SUCCESS,
+            self::CATEGORY_IMPORT_COMPLETED_ERROR => 'admin_category_import_index',
             self::TOP_MENU_IMPORT_COMPLETED_SUCCESS,
             self::TOP_MENU_IMPORT_COMPLETED_ERROR => 'admin_top_menu_import_index',
             self::EXPORT_COMPLETED_SUCCESS,

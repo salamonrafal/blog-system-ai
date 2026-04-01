@@ -806,6 +806,27 @@ export function setupImportClearConfirmation(){
     closeI18n: 'admin_close_alert',
     closeFallback: 'Zamknij alert',
   });
+
+  setupDangerConfirmation({
+    triggerSelector: '[data-action="confirm-clear-category-imports"]',
+    modalClass: 'confirm-clear-category-imports-modal',
+    modalIdPrefix: 'confirm-clear-category-imports',
+    titleI18n: 'admin_category_imports_clear_popup_title',
+    titleFallback: 'Usunąć wszystkie importy kategorii?',
+    textI18n: 'admin_category_imports_clear_popup_text',
+    textFallback: 'Ta operacja usunie wszystkie rekordy importu kategorii oraz powiązane pliki z dysku.',
+    detailsClass: null,
+    detailsText: null,
+    cancelAction: 'cancel-clear-category-imports',
+    submitAction: 'submit-clear-category-imports',
+    closeAction: 'close-clear-category-imports',
+    cancelI18n: 'admin_category_imports_clear_popup_cancel',
+    cancelFallback: 'Przerwij',
+    submitI18n: 'admin_category_imports_clear_popup_confirm',
+    submitFallback: 'Usuń wszystko',
+    closeI18n: 'admin_close_alert',
+    closeFallback: 'Zamknij alert',
+  });
 }
 
 export function setupImportDeleteConfirmation(){

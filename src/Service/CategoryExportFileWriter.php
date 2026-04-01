@@ -47,7 +47,7 @@ class CategoryExportFileWriter
             'exported_at' => $now->format(\DateTimeInterface::ATOM),
             'exported_by' => $this->normalizeUser($queueItem->getRequestedBy()),
             'category_count' => 1,
-            'category' => [$this->normalizeCategory($category, $queueItem)],
+            'categories' => [$this->normalizeCategory($category, $queueItem)],
         ];
 
         $json = json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);

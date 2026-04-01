@@ -23,7 +23,7 @@
                         id="top-menu-translation-tab-{{ language }}"
                         tabindex="{{ loop.first ? '0' : '-1' }}"
                     >
-                        <span class="article-category-translation-tab-language"{% if language_label_key %} data-i18n="{{ language_label_key }}"{% endif %}>{{ language == 'pl' ? 'Polski (PL)' : 'English (EN)' }}</span>
+                        <span class="article-category-translation-tab-language"{% if language_label_key %} data-i18n="{{ language_label_key }}"{% endif %}>{{ ui_language_label(language) }}</span>
                         <span class="article-category-translation-tab-scope" data-i18n="top_menu_translation_scope">Nazwa elementu</span>
                     </button>
                 {% endfor %}
@@ -43,7 +43,7 @@
                         {{ loop.first ? '' : 'hidden' }}
                     >
                         <div class="article-category-translation-panel-header">
-                            <h2{% if language_label_key %} data-i18n="{{ language_label_key }}"{% endif %}>{{ language == 'pl' ? 'Polski (PL)' : 'English (EN)' }}</h2>
+                            <h2{% if language_label_key %} data-i18n="{{ language_label_key }}"{% endif %}>{{ ui_language_label(language) }}</h2>
                             <p data-i18n="top_menu_translation_panel_lede">Zdefiniuj nazwę elementu menu dla wybranego języka.</p>
                         </div>
 

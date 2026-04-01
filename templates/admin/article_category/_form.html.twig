@@ -36,7 +36,7 @@
                         id="category-translation-tab-{{ language }}"
                         tabindex="-1"
                     >
-                        <span class="article-category-translation-tab-language"{% if language_label_key %} data-i18n="{{ language_label_key }}"{% endif %}>{{ language == 'pl' ? 'Polski (PL)' : language == 'en' ? 'English (EN)' : language|upper }}</span>
+                        <span class="article-category-translation-tab-language"{% if language_label_key %} data-i18n="{{ language_label_key }}"{% endif %}>{{ ui_language_label(language) }}</span>
                         <span class="article-category-translation-tab-scope" data-i18n="category_tab_translation_scope">Tytuł i opis</span>
                     </button>
                 {% endfor %}
@@ -105,7 +105,7 @@
                         <div class="article-category-translation-panel-header">
                             <div class="article-category-translation-panel-header-top">
                                 <div class="article-category-translation-panel-copy">
-                                    <h2{% if language_label_key %} data-i18n="{{ language_label_key }}"{% endif %}>{{ language == 'pl' ? 'Polski (PL)' : language == 'en' ? 'English (EN)' : language|upper }}</h2>
+                                    <h2{% if language_label_key %} data-i18n="{{ language_label_key }}"{% endif %}>{{ ui_language_label(language) }}</h2>
                                     <button
                                         type="button"
                                         class="button secondary article-category-translation-copy-button"

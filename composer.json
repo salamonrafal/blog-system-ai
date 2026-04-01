@@ -70,6 +70,9 @@
         "article-import:process-queue": [
             "@php bin/console app:article-import:process-queue"
         ],
+        "category-import:process-queue": [
+            "@php bin/console app:category-import:process-queue"
+        ],
         "top-menu-import:process-queue": [
             "@php bin/console app:top-menu-import:process-queue"
         ],
