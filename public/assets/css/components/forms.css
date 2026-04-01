@@ -22,6 +22,8 @@ input:focus, textarea:focus, select:focus{outline:3px solid var(--focus); outlin
 .form-errors {
   margin-bottom:12px;
   padding:12px 14px;
+  border:1px solid rgba(255, 77, 77, .3);
+  border-left-width:4px;
   border-color: rgba(255, 77, 77, .3);
   border-left-color: color-mix(in oklab, var(--danger) 78%, var(--border));
   border-radius:14px;

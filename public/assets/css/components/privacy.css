@@ -16,6 +16,8 @@
 .privacy-popup.is-hidden{
   opacity: 0;
   transform: translateY(8px);
+  pointer-events: none;
+  visibility: hidden;
 }
 .privacy-popup-title{
   margin: 0 0 10px;
@@ -53,7 +55,7 @@
 }
 .privacy-popup-actions .btn{
   border-radius: 8px;
-  border-color: color-mix(in oklab, var(--accent) 45%, var(--border));
+  border: 1px solid color-mix(in oklab, var(--accent) 45%, var(--border));
   background: color-mix(in oklab, var(--panel-2) 94%, transparent);
   color: color-mix(in oklab, var(--text) 94%, white 6%);
   font-size: 12px;
