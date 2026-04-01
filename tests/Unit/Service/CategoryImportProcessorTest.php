@@ -134,6 +134,80 @@ final class CategoryImportProcessorTest extends TestCase
         $processor->process($queueItem);
     }
 
+    public function testProcessThrowsReadableErrorWhenPayloadContainsDuplicateSlugs(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+
+        $processor = $this->createProcessor($entityManager, $this->createRepositoryMock(null));
+        $queueItem = $this->createQueueItemWithPayload([
+            'format' => 'category-export',
+            'version' => 1,
+            'categories' => [
+                [
+                    'name' => 'AI',
+                    'slug' => 'ai',
+                    'short_description' => null,
+                    'titles' => ['pl' => 'AI'],
+                    'descriptions' => ['pl' => 'Opis'],
+                    'icon' => null,
+                    'status' => 'active',
+                ],
+                [
+                    'name' => 'AI 2',
+                    'slug' => 'ai',
+                    'short_description' => null,
+                    'titles' => ['pl' => 'AI 2'],
+                    'descriptions' => ['pl' => 'Opis 2'],
+                    'icon' => null,
+                    'status' => 'active',
+                ],
+            ],
+        ]);
+
+        $this->expectException(CategoryImportException::class);
+        $this->expectExceptionMessage('Field categories[1].slug duplicates value from categories[0].slug.');
+
+        $processor->process($queueItem);
+    }
+
+    public function testProcessThrowsReadableErrorWhenPayloadContainsDuplicateNames(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+
+        $processor = $this->createProcessor($entityManager, $this->createRepositoryMock(null));
+        $queueItem = $this->createQueueItemWithPayload([
+            'format' => 'category-export',
+            'version' => 1,
+            'categories' => [
+                [
+                    'name' => 'AI',
+                    'slug' => 'ai',
+                    'short_description' => null,
+                    'titles' => ['pl' => 'AI'],
+                    'descriptions' => ['pl' => 'Opis'],
+                    'icon' => null,
+                    'status' => 'active',
+                ],
+                [
+                    'name' => 'AI',
+                    'slug' => 'ai-2',
+                    'short_description' => null,
+                    'titles' => ['pl' => 'AI 2'],
+                    'descriptions' => ['pl' => 'Opis 2'],
+                    'icon' => null,
+                    'status' => 'active',
+                ],
+            ],
+        ]);
+
+        $this->expectException(CategoryImportException::class);
+        $this->expectExceptionMessage('Field categories[1].name duplicates value from categories[0].name.');
+
+        $processor->process($queueItem);
+    }
+
     public function testProcessUpdatesExistingCategoryWhenUniqueEntityValidatorReportsCurrentSlugAsTaken(): void
     {
         $existingCategory = (new ArticleCategory())
@@ -189,6 +263,46 @@ final class CategoryImportProcessorTest extends TestCase
         $this->assertSame('Updated', $existingCategory->getShortDescription());
     }
 
+    public function testProcessNormalizesPolishValidatorMessagesToEnglish(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+
+        $repository = $this->createRepositoryMock(null);
+        $validator = $this->createMock(ValidatorInterface::class);
+        $validator
+            ->method('validate')
+            ->willReturn(new ConstraintViolationList([
+                new ConstraintViolation('Nazwa kategorii może mieć maksymalnie 120 znaków.', '', [], null, 'name', str_repeat('a', 121)),
+            ]));
+
+        $processor = new CategoryImportProcessor(
+            $repository,
+            $validator,
+            $entityManager,
+            new ManagedFilePathResolver($this->projectDir, 'var/exports', 'var/imports'),
+        );
+
+        $queueItem = $this->createQueueItemWithPayload([
+            'format' => 'category-export',
+            'version' => 1,
+            'categories' => [[
+                'name' => str_repeat('a', 121),
+                'slug' => 'ai',
+                'short_description' => null,
+                'titles' => ['pl' => 'AI'],
+                'descriptions' => ['pl' => 'Opis'],
+                'icon' => null,
+                'status' => 'active',
+            ]],
+        ]);
+
+        $this->expectException(CategoryImportException::class);
+        $this->expectExceptionMessage('name: Category name can be at most 120 characters long.');
+
+        $processor->process($queueItem);
+    }
+
     public function testProcessSupportsLegacySingularCategoryKey(): void
     {
         $capturedCategory = null;
@@ -220,6 +334,43 @@ final class CategoryImportProcessorTest extends TestCase
         $this->assertSame(1, $importedCount);
         $this->assertInstanceOf(ArticleCategory::class, $capturedCategory);
         $this->assertSame('legacy-key', $capturedCategory->getSlug());
+    }
+
+    public function testProcessUsesLegacyPayloadKeyInErrorMessages(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+
+        $processor = $this->createProcessor($entityManager, $this->createRepositoryMock(null));
+        $queueItem = $this->createQueueItemWithPayload([
+            'format' => 'category-export',
+            'version' => 1,
+            'category' => [
+                [
+                    'name' => 'Legacy key',
+                    'slug' => 'legacy-key',
+                    'short_description' => null,
+                    'titles' => ['pl' => 'Legacy key'],
+                    'descriptions' => ['pl' => 'Legacy description'],
+                    'icon' => null,
+                    'status' => 'active',
+                ],
+                [
+                    'name' => 'Legacy key',
+                    'slug' => 'legacy-key-2',
+                    'short_description' => null,
+                    'titles' => ['pl' => 'Legacy key 2'],
+                    'descriptions' => ['pl' => 'Legacy description 2'],
+                    'icon' => null,
+                    'status' => 'active',
+                ],
+            ],
+        ]);
+
+        $this->expectException(CategoryImportException::class);
+        $this->expectExceptionMessage('Field category[1].name duplicates value from category[0].name.');
+
+        $processor->process($queueItem);
     }
 
     private function createProcessor(
