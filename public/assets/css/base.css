@@ -118,3 +118,27 @@ a:hover{ text-decoration:underline; }
 
 .container{max-width:var(--maxw); margin:0 auto; padding: 20px; width:100%;}
 main.container{flex:1;}
+
+table {
+  width:100%;
+  border-collapse:collapse;
+}
+
+th,
+td {
+  padding:12px 14px;
+  border-bottom:1px solid var(--border);
+  text-align:left;
+  vertical-align:top;
+}
+
+th {
+  color:var(--muted);
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+
+tbody tr:last-child td {
+  border-bottom:none;
+}

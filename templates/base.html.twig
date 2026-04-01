@@ -120,7 +120,7 @@ Fullstack Developer</span>
         </summary>
         <nav class="admin-shortcuts-menu" data-i18n-aria="admin_shortcut_menu_label" aria-label="Skróty administratora" data-admin-shortcuts data-authenticated="{{ app.user ? 'true' : 'false' }}">
             {% if app.user %}
-                <div class="admin-shortcuts-section">
+                <div class="admin-shortcuts-section admin-shortcuts-section-pinned">
                     <a class="admin-shortcuts-link primary" href="{{ path('admin_article_new') }}">
                         <span class="admin-shortcuts-link-icon" aria-hidden="true">
                             <svg viewBox="0 0 32 32">
@@ -130,6 +130,9 @@ Fullstack Developer</span>
                         </span>
                         <span data-i18n="admin_shortcut_new_article">Utwórz nowy artykuł</span>
                     </a>
+                </div>
+                <div class="admin-shortcuts-scroll">
+                    <div class="admin-shortcuts-section">
                     <a class="admin-shortcuts-link" href="{{ path('admin_dashboard') }}">
                         <span class="admin-shortcuts-link-icon" aria-hidden="true">
                             <svg viewBox="0 0 32 32">
@@ -349,6 +352,7 @@ Fullstack Developer</span>
                         </span>
                         <span data-i18n="admin_shortcut_logout">Wyloguj</span>
                     </a>
+                </div>
                 </div>
                 <section class="admin-shortcuts-section admin-shortcuts-settings" data-i18n-aria="admin_shortcut_settings_title" aria-label="Szybkie ustawienia">
                     <p class="admin-shortcuts-section-title" data-i18n="admin_shortcut_settings_title">Szybkie ustawienia</p>
