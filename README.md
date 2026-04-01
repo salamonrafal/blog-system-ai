@@ -43,7 +43,7 @@ Current CSS split is thematic:
 - `public/assets/css/pages/`: page-specific styles for `home`, `admin`, `blog`, `error`
 - `public/assets/css/responsive.css`: shared responsive and reduced-motion rules
 
-`public/assets/css/styles.css` is now only the build entry file for production and imports the smaller source stylesheets in the correct order.
+`public/assets/css/styles.css` is the shared CSS manifest: in development Twig loads it directly, and in production it is used as the bundler entrypoint that imports the smaller source stylesheets in the correct order.
 
 Build commands:
 
