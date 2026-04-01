@@ -1,0 +1,388 @@
+.btn{
+  display:inline-flex; align-items:center; justify-content:center;
+  gap:8px;
+  min-height:36px;
+  padding:7px 12px;
+  border-radius:12px;
+  border:none;
+  background: var(--accent);
+  color:var(--accent-contrast);
+  font-size:14px;
+  font-weight:700;
+  text-decoration:none;
+  cursor:pointer;
+  line-height:1.2;
+}
+.btn.primary{border:none; background: var(--accent);} 
+.btn:hover{text-decoration:none;} 
+
+.method-icon{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:28px;
+  height:28px;
+  padding:0 6px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  background: color-mix(in oklab, var(--panel) 88%, transparent);
+  color:var(--muted);
+  font-size:13px;
+  line-height:1;
+}
+.btn .method-icon{
+  border:none;
+  background:inherit;
+  color:inherit;
+}
+
+.button-group{
+  display:inline-flex;
+  align-items:stretch;
+}
+.button-group > .btn{
+  position:relative;
+  border-radius:0;
+}
+.button-group > .btn:first-child{
+  border-top-left-radius:12px;
+  border-bottom-left-radius:12px;
+}
+.button-group > .btn:last-child{
+  border-top-right-radius:12px;
+  border-bottom-right-radius:12px;
+}
+.button-group > .btn + .btn{
+  margin-left:0;
+}
+.button-group > .btn + .btn::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:10px;
+  bottom:10px;
+  width:1px;
+  background: color-mix(in oklab, var(--text) 72%, var(--accent) 28%);
+  pointer-events:none;
+}
+
+.copy-icon-btn{
+  min-width:42px;
+  padding:10px;
+  line-height:1;
+}
+
+/* Blog system additions */
+.button,
+.btn.button,
+.button.secondary,
+a.button,
+button.button {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  min-height:36px;
+  padding:10px 14px;
+  border:none;
+  border-radius:12px;
+  background: var(--accent);
+  color:var(--accent-contrast);
+  font:inherit;
+  font-weight:700;
+  line-height:1.2;
+  text-decoration:none;
+  cursor:pointer;
+}
+
+.button.secondary {
+  border:1px solid var(--border);
+  background: color-mix(in oklab, var(--panel-2) 92%, transparent);
+  color:var(--text);
+}
+
+.button.button-danger,
+.button.secondary.button-danger {
+  border:1px solid color-mix(in oklab, var(--danger) 38%, var(--border));
+  background: color-mix(in oklab, var(--danger) 16%, var(--panel-2));
+  color:#ffdede;
+}
+
+.button.button-danger:hover,
+.button.button-danger:focus-visible {
+  border-color: color-mix(in oklab, var(--danger) 64%, var(--border));
+  background: color-mix(in oklab, var(--danger) 22%, var(--panel-2));
+}
+
+[data-theme="light"] .button.button-danger,
+[data-theme="light"] .button.secondary.button-danger {
+  border-color: color-mix(in oklab, var(--danger) 52%, var(--border));
+  background: color-mix(in oklab, var(--danger) 18%, white 82%);
+  color:#8f1212;
+}
+
+[data-theme="light"] .button.button-danger:hover,
+[data-theme="light"] .button.button-danger:focus-visible,
+[data-theme="light"] .button.secondary.button-danger:hover,
+[data-theme="light"] .button.secondary.button-danger:focus-visible {
+  border-color: color-mix(in oklab, var(--danger) 68%, var(--border));
+  background: color-mix(in oklab, var(--danger) 24%, white 76%);
+  color:#741010;
+}
+
+.confirm-delete-actions .button.button-danger:hover,
+.confirm-delete-actions .button.button-danger:focus-visible,
+.confirm-delete-actions .button.secondary.button-danger:hover,
+.confirm-delete-actions .button.secondary.button-danger:focus-visible {
+  border-color: color-mix(in oklab, var(--danger) 38%, var(--border));
+  background: color-mix(in oklab, var(--danger) 16%, var(--panel-2));
+  color:#ffdede;
+}
+
+[data-theme="light"] .confirm-delete-actions .button.button-danger:hover,
+[data-theme="light"] .confirm-delete-actions .button.button-danger:focus-visible,
+[data-theme="light"] .confirm-delete-actions .button.secondary.button-danger:hover,
+[data-theme="light"] .confirm-delete-actions .button.secondary.button-danger:focus-visible {
+  border-color: color-mix(in oklab, var(--danger) 52%, var(--border));
+  background: color-mix(in oklab, var(--danger) 18%, white 82%);
+  color:#8f1212;
+}
+
+.confirm-delete-modal{
+  position:fixed;
+  inset:0;
+  z-index:125;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+  background:rgba(4, 8, 13, .82);
+  backdrop-filter:blur(10px);
+}
+
+.confirm-delete-modal[hidden]{
+  display:none;
+}
+
+.confirm-delete-dialog{
+  width:min(520px, 100%);
+  padding:20px;
+  border:1px solid color-mix(in oklab, var(--danger) 34%, var(--border));
+  border-radius:20px;
+  background:
+    radial-gradient(circle at top right, color-mix(in oklab, var(--danger) 18%, transparent), transparent 42%),
+    linear-gradient(180deg, color-mix(in oklab, var(--panel) 96%, transparent), color-mix(in oklab, var(--panel-2) 94%, transparent));
+  box-shadow:var(--shadow);
+}
+
+.confirm-delete-topbar{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:10px;
+}
+
+.confirm-delete-eyebrow{
+  margin:0;
+  color:var(--danger);
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+}
+
+.confirm-delete-close{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:34px;
+  height:34px;
+  padding:0;
+  border:1px solid color-mix(in oklab, var(--danger) 24%, var(--border));
+  border-radius:12px;
+  background:color-mix(in oklab, var(--panel) 88%, transparent);
+  color:var(--text);
+  cursor:pointer;
+  transition:background-color .16s ease, border-color .16s ease, color .16s ease, transform .16s ease;
+}
+
+.confirm-delete-close:hover,
+.confirm-delete-close:focus-visible{
+  border-color:color-mix(in oklab, var(--danger) 48%, var(--border));
+  background:color-mix(in oklab, var(--danger) 14%, var(--panel));
+  color:color-mix(in oklab, var(--danger) 76%, white 24%);
+  transform:none;
+}
+
+.confirm-delete-close span{
+  font-size:1.4rem;
+  line-height:1;
+}
+
+.confirm-delete-title{
+  margin:0 0 12px;
+  font-size:28px;
+  line-height:1.1;
+}
+
+.confirm-delete-text{
+  margin:0;
+  color:var(--muted);
+  line-height:1.6;
+}
+
+.import-message-text{
+  white-space:pre-wrap;
+  word-break:break-word;
+}
+
+.confirm-delete-article-name{
+  margin:18px 0 0;
+  padding:12px 14px;
+  border:1px solid color-mix(in oklab, var(--danger) 24%, var(--border));
+  border-radius:14px;
+  background:color-mix(in oklab, var(--panel) 88%, transparent);
+  color:var(--text);
+  font-weight:700;
+  word-break:break-word;
+}
+
+.confirm-delete-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:12px;
+  margin-top:22px;
+  flex-wrap:wrap;
+}
+
+@media (max-width: 767px){
+  .confirm-delete-modal{
+    padding:16px;
+  }
+
+  .confirm-delete-dialog{
+    padding:18px;
+  }
+}
+
+.article-action-button{
+  position:relative;
+  min-width:28px;
+  width:28px;
+  height:28px;
+  padding:0;
+  border:none;
+  background:transparent;
+  box-shadow:none;
+  color:var(--text);
+}
+
+.article-action-button.button.secondary,
+.article-action-button.button.secondary.button-danger{
+  border:none !important;
+  background:transparent !important;
+  box-shadow:none !important;
+}
+
+.article-action-button.button-danger{
+  color:var(--danger);
+}
+
+.article-action-button:hover,
+.article-action-button:focus-visible{
+  background:transparent;
+  transform:scale(1.04);
+}
+
+.article-action-button.button-danger:hover,
+.article-action-button.button-danger:focus-visible{
+  color:#ff7a7a;
+}
+
+.article-action-button.button-danger:hover,
+.article-action-button.button-danger:focus-visible{
+  border:none !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  transform:none !important;
+  color:var(--danger);
+}
+
+[data-theme="light"] .article-action-button.button-danger{
+  color:#b42318;
+}
+
+[data-theme="light"] .article-action-button.button-danger:hover,
+[data-theme="light"] .article-action-button.button-danger:focus-visible{
+  border:none !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  transform:none !important;
+  color:#b42318;
+}
+
+.article-action-icon{
+  display:inline-flex;
+  flex:0 0 22px;
+  align-items:center;
+  justify-content:center;
+  width:22px;
+  height:22px;
+  background-color:currentColor;
+  -webkit-mask-repeat:no-repeat;
+  mask-repeat:no-repeat;
+  -webkit-mask-position:center;
+  mask-position:center;
+  -webkit-mask-size:contain;
+  mask-size:contain;
+}
+
+.article-action-icon.is-edit{
+  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M3 17.25V21h3.75L17.8 9.94l-3.75-3.75L3 17.25Zm2.92 2.33H5v-.92l9.06-9.06.92.92L5.92 19.58ZM18.85 8.89l-3.75-3.75 1.27-1.27a1 1 0 0 1 1.42 0l2.33 2.33a1 1 0 0 1 0 1.42l-1.27 1.27Z'/%3E%3C/svg%3E");
+  mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M3 17.25V21h3.75L17.8 9.94l-3.75-3.75L3 17.25Zm2.92 2.33H5v-.92l9.06-9.06.92.92L5.92 19.58ZM18.85 8.89l-3.75-3.75 1.27-1.27a1 1 0 0 1 1.42 0l2.33 2.33a1 1 0 0 1 0 1.42l-1.27 1.27Z'/%3E%3C/svg%3E");
+}
+
+.article-action-icon.is-back{
+  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M10.83 19 4.83 13 3.41 11.59 4.83 10.17l6-6L12.24 5.6 8.66 9.17H21v2H8.66l3.58 3.59L10.83 19Z'/%3E%3C/svg%3E");
+  mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M10.83 19 4.83 13 3.41 11.59 4.83 10.17l6-6L12.24 5.6 8.66 9.17H21v2H8.66l3.58 3.59L10.83 19Z'/%3E%3C/svg%3E");
+}
+
+.article-action-icon.is-copy{
+  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M16 1H6a2 2 0 0 0-2 2v12h2V3h10V1Zm3 4H10a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Zm0 16H10V7h9v14Z'/%3E%3C/svg%3E");
+  mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M16 1H6a2 2 0 0 0-2 2v12h2V3h10V1Zm3 4H10a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Zm0 16H10V7h9v14Z'/%3E%3C/svg%3E");
+}
+
+.article-action-icon.is-check{
+  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E");
+  mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E");
+}
+
+.article-action-icon.is-export{
+  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M5 20h14v-2H5v2Zm7-18-5.5 5.5 1.41 1.41L11 5.83V16h2V5.83l3.09 3.08 1.41-1.41L12 2Z'/%3E%3C/svg%3E");
+  mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M5 20h14v-2H5v2Zm7-18-5.5 5.5 1.41 1.41L11 5.83V16h2V5.83l3.09 3.08 1.41-1.41L12 2Z'/%3E%3C/svg%3E");
+}
+
+.article-action-icon.is-delete{
+  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M9 3h6l1 2h4v2H4V5h4l1-2Zm1 6h2v8h-2V9Zm4 0h2v8h-2V9ZM7 9h2v8H7V9Zm1 12a2 2 0 0 1-2-2V8h12v11a2 2 0 0 1-2 2H8Z'/%3E%3C/svg%3E");
+  mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M9 3h6l1 2h4v2H4V5h4l1-2Zm1 6h2v8h-2V9Zm4 0h2v8h-2V9ZM7 9h2v8H7V9Zm1 12a2 2 0 0 1-2-2V8h12v11a2 2 0 0 1-2 2H8Z'/%3E%3C/svg%3E");
+}
+
+.article-action-icon.is-warning{
+  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M1 21h22L12 2 1 21Zm12-3h-2v-2h2v2Zm0-4h-2v-4h2v4Z'/%3E%3C/svg%3E");
+  mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M1 21h22L12 2 1 21Zm12-3h-2v-2h2v2Zm0-4h-2v-4h2v4Z'/%3E%3C/svg%3E");
+}
+
+.import-message-button{
+  color:#b54708;
+}
+
+.article-action-icon.is-archive{
+  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M4 4h16v4H4V4Zm1 6h14v10H5V10Zm5 1v3.17l-1.59-1.58L7 14l5 5 5-5-1.41-1.41L14 14.17V11h-4Zm1-5h2v1h-2V6Z'/%3E%3C/svg%3E");
+  mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M4 4h16v4H4V4Zm1 6h14v10H5V10Zm5 1v3.17l-1.59-1.58L7 14l5 5 5-5-1.41-1.41L14 14.17V11h-4Zm1-5h2v1h-2V6Z'/%3E%3C/svg%3E");
+}
+
+.article-action-icon.is-publish{
+  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M9 5h6v4h4v10H5V9h4V5Zm2 2v2h2V7h-2Zm-1 6.59L8.41 12 7 13.41 12 18.41l5-5L15.59 12 14 13.59V10h-4v3.59Z'/%3E%3C/svg%3E");
+  mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M9 5h6v4h4v10H5V9h4V5Zm2 2v2h2V7h-2Zm-1 6.59L8.41 12 7 13.41 12 18.41l5-5L15.59 12 14 13.59V10h-4v3.59Z'/%3E%3C/svg%3E");
+}

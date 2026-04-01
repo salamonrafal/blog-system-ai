@@ -1,0 +1,120 @@
+/* Rafal Salamon – Terminal Portfolio */
+:root{
+  --bg: #070a0f;
+  --panel: #0b0f14;
+  --panel-2: #0f1520;
+  --text: #d6e2ea;
+  --muted: #9aa7b2;
+  --accent: #39ff14;
+  --accent-contrast: #0d1520;
+  --topbar-accent-strong: color-mix(in oklab, var(--accent) 38%, white 62%);
+  --accent-2: #00d4ff;
+  --danger:#ff4d4d;
+  --border: rgba(255,255,255,.10);
+  --shadow: 0 10px 30px rgba(0,0,0,.45);
+  --radius: 18px;
+  --link: #39ff14;
+  --link-contrast: color-mix(in oklab, var(--accent) 34%, white 66%);
+  --link-bg: rgba(57,255,20,.12);
+  --footer-icon-contrast: color-mix(in oklab, var(--accent) 32%, white 68%);
+  --shortcut-icon-contrast: color-mix(in oklab, var(--accent) 30%, white 70%);
+  --dashboard-metric-strong: color-mix(in oklab, var(--accent) 72%, white 28%);
+  --scan: rgba(57,255,20,.06);
+  --grid: rgba(0,212,255,.06);
+  --focus: rgba(0,212,255,.45);
+  --maxw: 1100px;
+  --font: "Helvetica", "Helvetica Neue", Arial, sans-serif;
+  --topbar-height: 68px;
+  --topbar-gap: 20px;
+}
+
+[data-theme="light"]{
+  --bg:#f6f8fb;
+  --panel:#ffffff;
+  --panel-2:#f1f4f8;
+  --text:#0d1520;
+  --muted:#4a5563;
+  --border: rgba(13,21,32,.12);
+  --shadow: 0 10px 30px rgba(13,21,32,.12);
+  --scan: rgba(0,212,255,.08);
+  --grid: rgba(13,21,32,.05);
+  --link:#0b66ff;
+  --link-contrast: color-mix(in oklab, var(--accent) 60%, #0d1520 40%);
+  --link-bg: rgba(11,102,255,.10);
+  --footer-icon-contrast: color-mix(in oklab, var(--accent) 62%, #0d1520 38%);
+  --shortcut-icon-contrast: color-mix(in oklab, var(--accent) 64%, #0d1520 36%);
+  --topbar-accent-strong: color-mix(in oklab, var(--accent) 58%, #0d1520 42%);
+  --dashboard-metric-strong: color-mix(in oklab, var(--accent) 52%, #0d1520 48%);
+}
+
+*{box-sizing:border-box;}
+html,body{min-height:100%;}
+.sr-only{
+  position:absolute;
+  width:1px;
+  height:1px;
+  padding:0;
+  margin:-1px;
+  overflow:hidden;
+  clip:rect(0, 0, 0, 0);
+  white-space:nowrap;
+  border:0;
+}
+html{
+  background: radial-gradient(1200px 800px at 15% 10%, rgba(57,255,20,.15), transparent 55%),
+              radial-gradient(900px 600px at 90% 20%, rgba(0,212,255,.12), transparent 55%),
+              var(--bg);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-size: cover;
+  overflow-x:hidden;
+  overflow-y:auto;
+}
+
+body{
+  margin:0;
+  padding-top:calc(var(--topbar-height) + var(--topbar-gap));
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  overscroll-behavior-y: auto;
+  font-family:var(--font);
+  background: transparent;
+  color:var(--text);
+  overflow-x:hidden;
+  overflow-y:auto;
+}
+
+/* subtle grid */
+html::before{
+  content:"";
+  position:fixed; inset:0;
+  z-index:-1;
+  background-image:
+    linear-gradient(to right, var(--grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
+  background-size: 42px 42px;
+  pointer-events:none;
+  opacity:.55;
+}
+
+/* scanline */
+html::after{
+  content:"";
+  position:fixed; inset:-20% 0 0 0;
+  z-index:-1;
+  background: linear-gradient(to bottom, transparent 0%, var(--scan) 50%, transparent 100%);
+  height: 180px;
+  animation: scan 8s linear infinite;
+  pointer-events:none;
+  mix-blend-mode: screen;
+  opacity:.85;
+}
+
+@keyframes scan{from{transform:translateY(-40vh);}to{transform:translateY(120vh);}}
+
+a{color:var(--link-contrast); text-decoration:none;}
+a:hover{ text-decoration:underline; }
+
+.container{max-width:var(--maxw); margin:0 auto; padding: 20px; width:100%;}
+main.container{flex:1;}

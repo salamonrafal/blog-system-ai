@@ -7,7 +7,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectDir = path.resolve(__dirname, '..');
 const outputDir = path.join(projectDir, 'public', 'assets', 'build');
-const entryFile = path.join(projectDir, 'public', 'assets', 'js', 'app.js');
+const jsEntryFile = path.join(projectDir, 'public', 'assets', 'js', 'app.js');
+const cssEntryFile = path.join(projectDir, 'public', 'assets', 'css', 'styles.css');
 const mode = process.argv[2] === 'prod' ? 'prod' : 'dev';
 
 async function ensureCleanOutputDir(){
@@ -26,34 +27,53 @@ async function build(){
   await ensureCleanOutputDir();
 
   if(mode === 'prod'){
-    await esbuild.build({
-      entryPoints: [entryFile],
-      outfile: path.join(outputDir, 'app.min.js'),
-      bundle: true,
-      minify: true,
-      sourcemap: false,
-      format: 'esm',
-      target: ['es2020'],
-      platform: 'browser',
-      legalComments: 'none',
-    });
+    await Promise.all([
+      esbuild.build({
+        entryPoints: [jsEntryFile],
+        outfile: path.join(outputDir, 'app.min.js'),
+        bundle: true,
+        minify: true,
+        sourcemap: false,
+        format: 'esm',
+        target: ['es2020'],
+        platform: 'browser',
+        legalComments: 'none',
+      }),
+      esbuild.build({
+        entryPoints: [cssEntryFile],
+        outfile: path.join(outputDir, 'styles.min.css'),
+        bundle: true,
+        minify: true,
+        sourcemap: false,
+        legalComments: 'none',
+      }),
+    ]);
 
-    console.log('Built production asset: public/assets/build/app.min.js');
+    console.log('Built production assets: public/assets/build/app.min.js, public/assets/build/styles.min.css');
     return;
   }
 
-  await esbuild.build({
-    entryPoints: [entryFile],
-    outfile: path.join(outputDir, 'app.js'),
-    bundle: true,
-    minify: false,
-    sourcemap: true,
-    format: 'esm',
-    target: ['es2020'],
-    platform: 'browser',
-  });
+  await Promise.all([
+    esbuild.build({
+      entryPoints: [jsEntryFile],
+      outfile: path.join(outputDir, 'app.js'),
+      bundle: true,
+      minify: false,
+      sourcemap: true,
+      format: 'esm',
+      target: ['es2020'],
+      platform: 'browser',
+    }),
+    esbuild.build({
+      entryPoints: [cssEntryFile],
+      outfile: path.join(outputDir, 'styles.css'),
+      bundle: true,
+      minify: false,
+      sourcemap: true,
+    }),
+  ]);
 
-  console.log('Built development asset: public/assets/build/app.js');
+  console.log('Built development assets: public/assets/build/app.js, public/assets/build/styles.css');
 }
 
 build().catch((error)=>{

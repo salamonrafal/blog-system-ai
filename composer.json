@@ -91,6 +91,9 @@
         "serve:debug:status": [
             "@php bin/dev-server.php status"
         ],
+        "assets:build:prod": [
+            "npm run build:assets:prod"
+        ],
         "post-install-cmd": [
             "@php bin/console cache:clear"
         ],

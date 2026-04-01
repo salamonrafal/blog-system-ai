@@ -1,0 +1,97 @@
+.flash-stack {
+  position:fixed;
+  top:calc(var(--topbar-offset, 72px) + 12px);
+  left:50%;
+  z-index:120;
+  display:grid;
+  gap:10px;
+  width:min(720px, calc(100vw - 24px));
+  transform:translateX(-50%);
+}
+
+.flash {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:13px 14px 13px 16px;
+  border:1px solid color-mix(in oklab, var(--accent) 24%, var(--border));
+  border-left:4px solid color-mix(in oklab, var(--accent) 72%, var(--border));
+  border-radius:16px;
+  background:
+    radial-gradient(circle at top right, color-mix(in oklab, var(--accent) 10%, transparent), transparent 42%),
+    linear-gradient(180deg, color-mix(in oklab, var(--panel) 97%, transparent), color-mix(in oklab, var(--panel-2) 94%, transparent));
+  color:var(--text);
+  box-shadow: var(--shadow);
+}
+
+.flash[hidden] {
+  display:none;
+}
+
+.flash-message {
+  flex:1 1 auto;
+  min-width:0;
+  line-height:1.5;
+  align-self:center;
+}
+
+.flash-actions{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex:0 0 auto;
+}
+
+.flash-link{
+  white-space:nowrap;
+}
+
+@media (max-width:640px){
+  .flash{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .flash-actions{
+    width:100%;
+    justify-content:space-between;
+  }
+}
+
+.flash-close {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:32px;
+  height:32px;
+  flex:0 0 32px;
+  padding:0;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:color-mix(in oklab, var(--panel-2) 92%, transparent);
+  color:inherit;
+  cursor:pointer;
+  transition:background-color .16s ease, border-color .16s ease, color .16s ease;
+}
+
+.flash-close:hover,
+.flash-close:focus-visible {
+  background:color-mix(in oklab, var(--panel) 82%, var(--accent) 18%);
+  border-color:color-mix(in oklab, var(--accent) 54%, var(--border));
+  transform:none;
+}
+
+.flash-close span {
+  font-size:1.35rem;
+  line-height:1;
+}
+
+.flash.error,
+.form-errors {
+  border-color: rgba(255, 77, 77, .3);
+  border-left-color: color-mix(in oklab, var(--danger) 78%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in oklab, var(--danger) 12%, transparent), transparent 42%),
+    linear-gradient(180deg, color-mix(in oklab, var(--panel) 97%, transparent), color-mix(in oklab, var(--panel-2) 94%, transparent));
+  color:#ffd3d3;
+}
