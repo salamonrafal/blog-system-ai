@@ -705,3 +705,53 @@
 .article-editor-field-headline-image {
   margin: 0;
 }
+
+@media (max-width: 768px){
+  .article-editor-form {
+    margin:22px 18px 18px;
+  }
+
+  .article-editor-grid {
+    grid-template-columns:1fr;
+    gap:18px;
+  }
+
+  .article-editor-actions {
+    justify-content:stretch;
+  }
+
+  .article-editor-actions > * {
+    width:100%;
+  }
+
+  .article-editor-toolbar-button {
+    flex:1 1 calc(25% - 8px);
+  }
+
+  .article-editor-help-dialog {
+    max-height: min(88vh, 100%);
+    padding: 20px;
+    padding-top: 52px;
+  }
+
+  .article-editor-help-tabs {
+    flex-wrap: wrap;
+  }
+
+  .article-editor-help-tab {
+    flex: 1 1 180px;
+    justify-content: center;
+  }
+
+  .article-editor-field-meta {
+    margin-top:7px;
+  }
+
+  .article-editor-switch-row {
+    align-items: flex-start;
+  }
+
+  .article-editor-field-headline-group {
+    padding: 14px;
+  }
+}

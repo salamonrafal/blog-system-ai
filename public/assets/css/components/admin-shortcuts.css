@@ -252,3 +252,16 @@
 .admin-shortcuts-link.primary:focus-visible{
   background: color-mix(in oklab, var(--accent) 88%, white 12%);
 }
+
+@media (max-width: 768px){
+  .admin-shortcuts{
+    right:12px;
+    bottom:12px;
+    left:12px;
+    width:auto;
+  }
+
+  .admin-shortcuts-menu{
+    width:100%;
+  }
+}
