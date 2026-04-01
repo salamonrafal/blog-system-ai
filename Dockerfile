@@ -24,9 +24,9 @@ FROM node:22-bookworm-slim AS build_assets
     WORKDIR /var/www/app/
     COPY package.json package-lock.json ./
     COPY scripts/ ./scripts/
+    RUN npm ci
     COPY public/assets/css/ ./public/assets/css/
     COPY public/assets/js/ ./public/assets/js/
-    RUN npm ci
     RUN npm run build:assets:prod
 
 FROM install_php AS final
