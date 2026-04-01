@@ -14,6 +14,7 @@ use App\Service\ManagedFilePathResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\ConstraintViolation;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -156,8 +157,8 @@ final class CategoryImportProcessorTest extends TestCase
         $validator
             ->method('validate')
             ->willReturn(new ConstraintViolationList([
-                new ConstraintViolation('This category name is already taken.', '', [], null, 'name', 'AI'),
-                new ConstraintViolation('This category slug is already taken.', '', [], null, 'slug', 'ai'),
+                new ConstraintViolation('Ta nazwa kategorii jest już zajęta.', '', [], null, 'name', 'AI', null, UniqueEntity::NOT_UNIQUE_ERROR),
+                new ConstraintViolation('Slug kategorii jest już zajęty.', '', [], null, 'slug', 'ai', null, UniqueEntity::NOT_UNIQUE_ERROR),
             ]));
 
         $processor = new CategoryImportProcessor(

@@ -10,6 +10,7 @@ use App\Enum\ArticleCategoryStatus;
 use App\Exception\CategoryImportException;
 use App\Repository\ArticleCategoryRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -25,16 +26,7 @@ class CategoryImportProcessor
     /**
      * @var list<string>
      */
-    private const UNIQUE_NAME_MESSAGES = [
-        'This category name is already taken.',
-    ];
-
-    /**
-     * @var list<string>
-     */
-    private const UNIQUE_SLUG_MESSAGES = [
-        'This category slug is already taken.',
-    ];
+    private const UNIQUE_FIELDS = ['name', 'slug'];
 
     public function __construct(
         private readonly ArticleCategoryRepository $articleCategoryRepository,
@@ -276,10 +268,7 @@ class CategoryImportProcessor
 
     private function shouldIgnoreViolation(ConstraintViolationInterface $violation): bool
     {
-        return in_array(
-            trim((string) $violation->getMessage()),
-            [...self::UNIQUE_NAME_MESSAGES, ...self::UNIQUE_SLUG_MESSAGES],
-            true
-        );
+        return UniqueEntity::NOT_UNIQUE_ERROR === $violation->getCode()
+            && in_array(trim((string) $violation->getPropertyPath()), self::UNIQUE_FIELDS, true);
     }
 }

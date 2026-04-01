@@ -169,7 +169,8 @@
                     </div>
                     <div class="stat article-metadata-stat">
                         <strong>
-                            <span>{{ ui_language_label(article.language.value) }}</span>
+                            <span data-lang="pl">{{ article.language.value == 'pl' ? 'Polski (PL)' : 'Angielski (EN)' }}</span>
+                            <span data-lang="en">{{ article.language.value == 'pl' ? 'Polish (PL)' : 'English (EN)' }}</span>
                         </strong>
                         <span class="supporting-copy" data-i18n="blog_article_language">Język publikacji</span>
                     </div>
