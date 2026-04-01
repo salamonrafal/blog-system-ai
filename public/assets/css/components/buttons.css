@@ -297,16 +297,11 @@ button.button {
 
 .article-action-button.button-danger:hover,
 .article-action-button.button-danger:focus-visible{
-  color:#ff7a7a;
-}
-
-.article-action-button.button-danger:hover,
-.article-action-button.button-danger:focus-visible{
   border:none !important;
   background:transparent !important;
   box-shadow:none !important;
   transform:none !important;
-  color:var(--danger);
+  color:#ff7a7a;
 }
 
 [data-theme="light"] .article-action-button.button-danger{

@@ -11,29 +11,10 @@
 
     <link rel="canonical" href="{% block canonical %}{{ app_url ~ path('blog_index') }}{% endblock %}">
     <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
-    {% set development_css_files = [
-        '/assets/css/base.css',
-        '/assets/css/components/topbar.css',
-        '/assets/css/components/navigation.css',
-        '/assets/css/components/mobile-menu.css',
-        '/assets/css/components/common.css',
-        '/assets/css/components/buttons.css',
-        '/assets/css/components/forms.css',
-        '/assets/css/components/flash.css',
-        '/assets/css/components/admin-shortcuts.css',
-        '/assets/css/components/editor.css',
-        '/assets/css/pages/home.css',
-        '/assets/css/responsive.css',
-        '/assets/css/pages/error.css',
-        '/assets/css/pages/admin.css',
-        '/assets/css/pages/blog.css',
-    ] %}
     {% if app_env == 'prod' %}
         <link rel="stylesheet" href="/assets/build/styles.min.css">
     {% else %}
-        {% for css_file in development_css_files %}
-            <link rel="stylesheet" href="{{ css_file }}">
-        {% endfor %}
+        <link rel="stylesheet" href="/assets/css/styles.css">
     {% endif %}
 
     <meta property="og:locale" content="pl_PL">

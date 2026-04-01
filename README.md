@@ -34,7 +34,7 @@ JavaScript runs in two modes:
 ## CSS assets
 
 CSS also runs in two modes:
-- `dev`: Twig loads source files directly from `public/assets/css/`
+- `dev`: Twig loads `public/assets/css/styles.css`, which imports all source files from `public/assets/css/`
 - `prod`: build generates one minified file in `public/assets/build/styles.min.css`
 
 Current CSS split is thematic:
@@ -58,7 +58,7 @@ Build commands:
 - Composer shortcut for production assets:
   `composer assets:build:prod`
 
-In daily development Twig serves JavaScript modules from `public/assets/js/` and CSS files from `public/assets/css/`, so no frontend build step is required for regular work.
+In daily development Twig serves JavaScript modules from `public/assets/js/` and the CSS manifest from `public/assets/css/styles.css`, so no frontend build step is required for regular work.
 
 Optional command:
 
