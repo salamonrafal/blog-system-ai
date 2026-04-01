@@ -429,6 +429,72 @@ final class TopMenuImportProcessorTest extends TestCase
         }
     }
 
+    public function testProcessNormalizesExternalUrlValidationMessages(): void
+    {
+        $projectDir = sys_get_temp_dir().'/top-menu-import-processor-'.bin2hex(random_bytes(4));
+        mkdir($projectDir, 0775, true);
+        mkdir($projectDir.'/var/imports', 0775, true);
+
+        try {
+            $relativePath = 'var/imports/top-menu-import.json';
+            file_put_contents($projectDir.'/'.$relativePath, json_encode([
+                'format' => 'top-menu-export',
+                'version' => 1,
+                'menu_items' => [
+                    [
+                        'unique_name' => 'contact',
+                        'parent_unique_name' => null,
+                        'labels' => ['pl' => 'Kontakt'],
+                        'target_type' => 'external_url',
+                        'external_url' => str_repeat('a', 501),
+                        'position' => 1,
+                        'status' => 'active',
+                    ],
+                ],
+            ], JSON_THROW_ON_ERROR));
+
+            $queueItem = (new TopMenuImportQueue())
+                ->setOriginalFilename('top-menu-import.json')
+                ->setFilePath($relativePath);
+
+            $repository = $this->createMock(TopMenuItemRepository::class);
+            $repository
+                ->expects($this->once())
+                ->method('findByUniqueNames')
+                ->with(['contact'])
+                ->willReturn([]);
+
+            $violation = $this->createMock(ConstraintViolationInterface::class);
+            $violation
+                ->method('getPropertyPath')
+                ->willReturn('externalUrl');
+            $violation
+                ->method('getMessage')
+                ->willReturn('validation_top_menu_external_url_too_long');
+
+            $validator = $this->createMock(ValidatorInterface::class);
+            $validator
+                ->method('validate')
+                ->willReturn(new ConstraintViolationList([$violation]));
+
+            $processor = new TopMenuImportProcessor(
+                $repository,
+                $this->createMock(ArticleCategoryRepository::class),
+                $this->createMock(ArticleRepository::class),
+                $validator,
+                $this->createMock(EntityManagerInterface::class),
+                new ManagedFilePathResolver($projectDir, 'var/exports', 'var/imports'),
+            );
+
+            $this->expectException(TopMenuImportException::class);
+            $this->expectExceptionMessage('menu_items[0] (contact): externalUrl: adres URL może mieć maksymalnie 500 znaków.');
+
+            $processor->process($queueItem);
+        } finally {
+            $this->removeDirectory($projectDir);
+        }
+    }
+
     private function removeDirectory(string $directory): void
     {
         if (!is_dir($directory)) {
