@@ -95,3 +95,8 @@
     linear-gradient(180deg, color-mix(in oklab, var(--panel) 97%, transparent), color-mix(in oklab, var(--panel-2) 94%, transparent));
   color:#ffd3d3;
 }
+
+[data-theme="light"] .flash.error,
+[data-theme="light"] .form-errors {
+  color:#8f1212;
+}
