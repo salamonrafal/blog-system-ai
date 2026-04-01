@@ -1,9 +1,20 @@
 .admin-shortcuts{
+  --admin-shortcuts-edge-offset:20px;
+  --admin-shortcuts-toggle-size:54px;
+  --admin-shortcuts-toggle-gap:12px;
+  --admin-shortcuts-panel-max-height:calc(
+    100vh
+    - var(--topbar-height)
+    - var(--topbar-gap)
+    - (var(--admin-shortcuts-edge-offset) * 2)
+    - var(--admin-shortcuts-toggle-size)
+    - var(--admin-shortcuts-toggle-gap)
+  );
   position:fixed;
-  right:20px;
-  bottom:20px;
+  right:var(--admin-shortcuts-edge-offset);
+  bottom:var(--admin-shortcuts-edge-offset);
   z-index:85;
-  width:min(260px, calc(100vw - 24px));
+  width:min(292px, calc(100vw - 24px));
 }
 
 .admin-shortcuts[open]{
@@ -14,8 +25,8 @@
   display:flex;
   align-items:center;
   justify-content:center;
-  width:54px;
-  height:54px;
+  width:var(--admin-shortcuts-toggle-size);
+  height:var(--admin-shortcuts-toggle-size);
   margin-left:auto;
   border:1px solid color-mix(in oklab, var(--accent-2) 24%, var(--border));
   border-radius:50%;
@@ -64,7 +75,7 @@
 .admin-shortcuts-menu{
   position:absolute;
   right:0;
-  bottom:66px;
+  bottom:calc(var(--admin-shortcuts-toggle-size) + var(--admin-shortcuts-toggle-gap));
   display:flex;
   flex-direction:column;
   gap:0;
@@ -76,11 +87,28 @@
   box-shadow: var(--shadow);
   backdrop-filter: blur(12px);
   overflow:hidden;
+  max-height:min(560px, var(--admin-shortcuts-panel-max-height));
 }
 
 .admin-shortcuts-section{
   display:flex;
   flex-direction:column;
+}
+
+.admin-shortcuts-section-pinned{
+  flex:0 0 auto;
+}
+
+.admin-shortcuts-scroll{
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  scrollbar-width:thin;
+  scrollbar-color:color-mix(in oklab, var(--accent-2) 34%, var(--border)) transparent;
+}
+
+.admin-shortcuts-section-pinned + .admin-shortcuts-scroll{
+  border-top:1px solid color-mix(in oklab, var(--accent-2) 20%, var(--border));
 }
 
 .admin-shortcuts-settings{
@@ -191,8 +219,34 @@
 }
 
 .admin-shortcuts-submenu.is-open .admin-shortcuts-submenu-panel{
-  max-height:220px;
+  max-height:320px;
   opacity:1;
+  overflow-y:auto;
+  scrollbar-width:thin;
+  scrollbar-color:color-mix(in oklab, var(--accent-2) 34%, var(--border)) transparent;
+}
+
+.admin-shortcuts-scroll::-webkit-scrollbar,
+.admin-shortcuts-submenu-panel::-webkit-scrollbar{
+  width:8px;
+}
+
+.admin-shortcuts-scroll::-webkit-scrollbar-track,
+.admin-shortcuts-submenu-panel::-webkit-scrollbar-track{
+  background:transparent;
+}
+
+.admin-shortcuts-scroll::-webkit-scrollbar-thumb,
+.admin-shortcuts-submenu-panel::-webkit-scrollbar-thumb{
+  border-radius:999px;
+  border:2px solid transparent;
+  background-clip:padding-box;
+  background:color-mix(in oklab, var(--accent-2) 28%, var(--border));
+}
+
+.admin-shortcuts-scroll::-webkit-scrollbar-thumb:hover,
+.admin-shortcuts-submenu-panel::-webkit-scrollbar-thumb:hover{
+  background:color-mix(in oklab, var(--accent) 24%, var(--accent-2) 32%, var(--border));
 }
 
 .admin-shortcuts-submenu.is-open .admin-shortcuts-submenu-caret{
@@ -255,8 +309,7 @@
 
 @media (max-width: 768px){
   .admin-shortcuts{
-    right:12px;
-    bottom:12px;
+    --admin-shortcuts-edge-offset:12px;
     left:12px;
     width:auto;
   }

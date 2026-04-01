@@ -435,30 +435,6 @@
   }
 }
 
-.article-content-panel table {
-  width:100%;
-  border-collapse:collapse;
-}
-
-.article-content-panel th,
-.article-content-panel td {
-  padding:12px 14px;
-  border-bottom:1px solid var(--border);
-  text-align:left;
-  vertical-align:top;
-}
-
-.article-content-panel th {
-  color:var(--muted);
-  font-size:12px;
-  text-transform:uppercase;
-  letter-spacing:.06em;
-}
-
-.article-content-panel tbody tr:last-child td {
-  border-bottom:none;
-}
-
 @media (max-width: 640px) {
   .article-author-panel {
     flex-direction: column;
