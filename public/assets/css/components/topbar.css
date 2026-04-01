@@ -1,0 +1,110 @@
+/* Topbar */
+.topbar{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  z-index:50;
+  backdrop-filter: blur(12px);
+  background: color-mix(in oklab, var(--bg) 74%, transparent);
+  border-bottom:1px solid var(--border);
+  overflow:visible;
+}
+.topbar-inner{display:flex; align-items:center; justify-content:space-between; gap:14px; padding:12px 20px; max-width:var(--maxw); margin:0 auto; overflow:visible;}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  text-decoration:none;
+}
+.brand:hover,
+.brand:focus-visible{
+  text-decoration:none;
+}
+.brand img{width:42px; height:42px;}
+.brand .title{display:flex; flex-direction:column; align-items:stretch; line-height:1.1; min-width:0;}
+.brand .title strong{
+  display:block;
+  font-size:18px;
+  letter-spacing:.3px;
+  color:var(--topbar-accent-strong);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.brand .title span{
+  display:block;
+  width:100%;
+  font-size:11px;
+  color:var(--muted);
+  white-space:pre-line;
+  text-align:justify;
+  text-align-last:justify;
+}
+
+.actions{display:flex; align-items:center; gap:10px;}
+.chip{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:10px 12px;
+  border:1px solid var(--border);
+  border-radius:999px;
+  background: color-mix(in oklab, var(--panel) 92%, transparent);
+  box-shadow: var(--shadow);
+}
+.chip button{
+  font-family:inherit;
+  border:1px solid var(--border);
+  background: color-mix(in oklab, var(--panel-2) 92%, transparent);
+  color:var(--text);
+  padding:7px 10px;
+  border-radius:999px;
+  cursor:pointer;
+}
+.chip button:hover{border-color:color-mix(in oklab, var(--accent-2) 55%, var(--border));}
+.preferences-chip{
+  align-items:center;
+  justify-content:center;
+  gap:0;
+  border-radius:999px;
+  padding:6px 8px;
+  border-color:transparent;
+  background:transparent;
+  box-shadow:none;
+}
+.prefs-actions{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  flex-wrap:nowrap;
+}
+.preferences-chip .prefs-actions button{
+  border-radius:8px;
+  padding:6px 9px;
+  background: color-mix(in oklab, var(--panel-2) 90%, transparent);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.02);
+}
+.preferences-chip .color-input{
+  border-radius:8px;
+}
+.preferences-chip .prefs-color-wrap{
+  display:inline-flex;
+  align-items:center;
+}
+.color-input{
+  width:32px;
+  height:32px;
+  padding:0;
+  border:none;
+  border-radius:999px;
+  background:transparent;
+  cursor:pointer;
+}
+.color-input::-webkit-color-swatch-wrapper{padding:2px;}
+.color-input::-webkit-color-swatch{
+  border:none;
+  border-radius:999px;
+}
+.color-input::-moz-color-swatch{
+  border:none;
+  border-radius:999px;
+}

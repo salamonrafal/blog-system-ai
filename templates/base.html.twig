@@ -11,7 +11,11 @@
 
     <link rel="canonical" href="{% block canonical %}{{ app_url ~ path('blog_index') }}{% endblock %}">
     <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="/assets/css/styles.css">
+    {% if app_env == 'prod' %}
+        <link rel="stylesheet" href="/assets/build/styles.min.css">
+    {% else %}
+        <link rel="stylesheet" href="/assets/css/styles.css">
+    {% endif %}
 
     <meta property="og:locale" content="pl_PL">
     <meta property="og:type" content="website">

@@ -31,6 +31,20 @@ JavaScript runs in two modes:
 - `dev`: Twig loads source modules directly from `public/assets/js/` without minification
 - `prod`: Twig loads one bundled and minified file from `public/assets/build/app.min.js`
 
+## CSS assets
+
+CSS also runs in two modes:
+- `dev`: Twig loads `public/assets/css/styles.css`, which imports all source files from `public/assets/css/`
+- `prod`: build generates one minified file in `public/assets/build/styles.min.css`
+
+Current CSS split is thematic:
+- `public/assets/css/base.css`: variables, reset, layout base, global background
+- `public/assets/css/components/`: smaller shared UI parts such as `topbar`, `navigation`, `mobile-menu`, `footer`, `back-to-top`, `privacy`, `buttons`, `forms`, `flash`, `admin-shortcuts`, `editor`
+- `public/assets/css/pages/`: page-specific styles for `home`, `admin`, `blog`, `error`
+- `public/assets/css/responsive.css`: shared responsive and reduced-motion rules
+
+`public/assets/css/styles.css` is the shared CSS manifest: in development Twig loads it directly, and in production it is used as the bundler entrypoint that imports the smaller source stylesheets in the correct order.
+
 Build commands:
 
 - Install frontend dependencies:
@@ -39,8 +53,12 @@ Build commands:
   `npm ci`
 - Build production bundle with minification:
   `npm run build:assets:prod`
+- Short production build alias:
+  `npm run build:prod`
+- Composer shortcut for production assets:
+  `composer assets:build:prod`
 
-In daily development Twig serves the source modules directly from `public/assets/js/`, so no JavaScript build step is required.
+In daily development Twig serves JavaScript modules from `public/assets/js/` and the CSS manifest from `public/assets/css/styles.css`, so no frontend build step is required for regular work.
 
 Optional command:
 

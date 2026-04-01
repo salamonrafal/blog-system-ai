@@ -1,0 +1,267 @@
+.admin-shortcuts{
+  position:fixed;
+  right:20px;
+  bottom:20px;
+  z-index:85;
+  width:min(260px, calc(100vw - 24px));
+}
+
+.admin-shortcuts[open]{
+  z-index:86;
+}
+
+.admin-shortcuts-toggle{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:54px;
+  height:54px;
+  margin-left:auto;
+  border:1px solid color-mix(in oklab, var(--accent-2) 24%, var(--border));
+  border-radius:50%;
+  background: color-mix(in oklab, var(--panel) 92%, transparent);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(12px);
+  cursor:pointer;
+  list-style:none;
+  transition: transform .18s ease, border-color .18s ease, background-color .18s ease;
+}
+
+.admin-shortcuts-toggle::-webkit-details-marker{
+  display:none;
+}
+
+.admin-shortcuts-toggle:hover,
+.admin-shortcuts-toggle:focus-visible,
+.admin-shortcuts[open] .admin-shortcuts-toggle{
+  background: color-mix(in oklab, var(--panel-2) 90%, transparent);
+  border-color: color-mix(in oklab, var(--accent) 40%, var(--border));
+  transform: translateY(-1px);
+}
+
+.admin-shortcuts-toggle:focus-visible{
+  outline:2px solid color-mix(in oklab, var(--accent-2) 55%, var(--focus));
+  outline-offset:2px;
+}
+
+.admin-shortcuts-gear{
+  display:inline-flex;
+  width:24px;
+  height:24px;
+  color:var(--accent);
+}
+
+.admin-shortcuts-gear svg{
+  width:100%;
+  height:100%;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.admin-shortcuts-menu{
+  position:absolute;
+  right:0;
+  bottom:66px;
+  display:flex;
+  flex-direction:column;
+  gap:0;
+  width:100%;
+  padding:0;
+  border:1px solid color-mix(in oklab, var(--accent-2) 24%, var(--border));
+  border-radius:16px;
+  background: color-mix(in oklab, var(--panel) 92%, transparent);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(12px);
+  overflow:hidden;
+}
+
+.admin-shortcuts-section{
+  display:flex;
+  flex-direction:column;
+}
+
+.admin-shortcuts-settings{
+  padding:12px 0 0;
+  border-top:1px solid color-mix(in oklab, var(--accent-2) 20%, var(--border));
+  background: color-mix(in oklab, var(--panel) 90%, transparent);
+}
+
+.admin-shortcuts-section-title{
+  margin:0;
+  padding:0 14px 10px;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+
+.admin-shortcuts-link{
+  display:inline-flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:10px;
+  width:100%;
+  min-height:46px;
+  padding:11px 14px;
+  border:0;
+  border-radius:0;
+  background: color-mix(in oklab, var(--panel-2) 94%, transparent);
+  color:var(--text);
+  font-size:13px;
+  font-weight:700;
+  line-height:1.2;
+  text-align:left;
+  text-decoration:none;
+  transition: background-color .18s ease, border-color .18s ease, color .18s ease, transform .18s ease;
+}
+
+.admin-shortcuts-button{
+  cursor:pointer;
+  font-family:inherit;
+}
+
+.admin-shortcuts-section .admin-shortcuts-link + .admin-shortcuts-link{
+  border-top:1px solid color-mix(in oklab, var(--accent-2) 20%, var(--border));
+}
+
+.admin-shortcuts-section > .admin-shortcuts-link + .admin-shortcuts-submenu{
+  border-top:1px solid color-mix(in oklab, var(--accent-2) 20%, var(--border));
+}
+
+.admin-shortcuts-submenu{
+  position:relative;
+}
+
+.admin-shortcuts-submenu-trigger{
+  position:relative;
+}
+
+.admin-shortcuts-submenu-caret{
+  margin-left:auto;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:16px;
+  height:16px;
+  color:var(--muted);
+  transition:transform .18s ease, color .18s ease;
+}
+
+.admin-shortcuts-badge{
+  margin-left:auto;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:22px;
+  height:22px;
+  padding:0 7px;
+  border-radius:999px;
+  background: color-mix(in oklab, var(--accent) 84%, var(--panel) 16%);
+  color:var(--accent-contrast);
+  font-size:11px;
+  font-weight:800;
+  line-height:1;
+  box-shadow:0 0 0 1px color-mix(in oklab, var(--accent) 28%, transparent);
+}
+
+.admin-shortcuts-link .admin-shortcuts-badge + .admin-shortcuts-submenu-caret{
+  margin-left:10px;
+}
+
+.admin-shortcuts-submenu-caret svg{
+  width:100%;
+  height:100%;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:2;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.admin-shortcuts-submenu-panel{
+  max-height:0;
+  overflow:hidden;
+  background: color-mix(in oklab, var(--panel) 90%, transparent);
+  opacity:0;
+  transition:max-height .22s ease, opacity .18s ease;
+}
+
+.admin-shortcuts-submenu.is-open .admin-shortcuts-submenu-panel{
+  max-height:220px;
+  opacity:1;
+}
+
+.admin-shortcuts-submenu.is-open .admin-shortcuts-submenu-caret{
+  color:var(--accent);
+  transform:rotate(180deg);
+}
+
+.admin-shortcuts-submenu-panel .admin-shortcuts-link + .admin-shortcuts-link{
+  border-top:1px solid color-mix(in oklab, var(--accent-2) 20%, var(--border));
+}
+
+.admin-shortcuts-sublink{
+  padding-left:38px;
+  background: color-mix(in oklab, var(--panel) 78%, var(--panel-2) 22%);
+}
+
+.admin-shortcuts-link-icon{
+  flex:0 0 auto;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:18px;
+  height:18px;
+  color:var(--accent);
+}
+
+.admin-shortcuts-link-icon svg{
+  width:100%;
+  height:100%;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:2;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.admin-shortcuts-link:hover,
+.admin-shortcuts-link:focus-visible{
+  text-decoration:none;
+  background: color-mix(in oklab, var(--panel) 84%, white 16%);
+}
+
+.admin-shortcuts-link.is-active{
+  background: color-mix(in oklab, var(--accent) 14%, var(--panel) 86%);
+}
+
+.admin-shortcuts-link.primary{
+  background: color-mix(in oklab, var(--accent) 82%, var(--panel) 18%);
+  color:var(--accent-contrast);
+}
+
+.admin-shortcuts-link.primary .admin-shortcuts-link-icon{
+  color:var(--accent-contrast);
+}
+
+.admin-shortcuts-link.primary:hover,
+.admin-shortcuts-link.primary:focus-visible{
+  background: color-mix(in oklab, var(--accent) 88%, white 12%);
+}
+
+@media (max-width: 768px){
+  .admin-shortcuts{
+    right:12px;
+    bottom:12px;
+    left:12px;
+    width:auto;
+  }
+
+  .admin-shortcuts-menu{
+    width:100%;
+  }
+}

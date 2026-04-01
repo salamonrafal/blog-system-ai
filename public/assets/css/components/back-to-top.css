@@ -1,0 +1,74 @@
+.back-to-top{
+  position: fixed;
+  right: 20px;
+  bottom: 88px;
+  z-index: 80;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+  transition: opacity .14s ease, transform .14s ease;
+}
+.back-to-top-icon{
+  position: relative;
+  width: 20px;
+  height: 20px;
+}
+.back-to-top-icon::before{
+  content: "";
+  position: absolute;
+  left: 9px;
+  top: 5px;
+  width: 2px;
+  height: 11px;
+  background: var(--accent);
+  border-radius: 999px;
+}
+.back-to-top-icon::after{
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 3px;
+  width: 10px;
+  height: 10px;
+  border-top: 2px solid var(--accent);
+  border-left: 2px solid var(--accent);
+  transform: rotate(45deg);
+}
+.back-to-top-label{
+  max-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  opacity: 0;
+  color: var(--text);
+  transition: max-width .18s ease .45s, opacity .18s ease .45s;
+}
+.back-to-top:hover .back-to-top-label,
+.back-to-top:focus-visible .back-to-top-label{
+  max-width: 140px;
+  opacity: 1;
+}
+.back-to-top:focus-visible{
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.back-to-top.is-visible{
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+@media (min-width: 901px){
+  .back-to-top{
+    right: 20px;
+  }
+}

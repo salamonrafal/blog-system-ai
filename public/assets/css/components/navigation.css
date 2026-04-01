@@ -1,0 +1,108 @@
+.nav{display:flex; align-items:center; gap:10px;}
+.nav-item{
+  position:relative;
+  display:flex;
+  align-items:center;
+}
+.nav-item.has-children > .nav-link{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+.nav-item.has-children > .nav-link::after{
+  content:"";
+  width:0;
+  height:0;
+  flex:0 0 auto;
+  border-left:4px solid transparent;
+  border-right:4px solid transparent;
+  border-top:5px solid currentColor;
+  opacity:.82;
+}
+.nav .nav-link{
+  position:relative;
+  padding:10px 12px;
+  border:none;
+  border-radius:4px;
+  color:var(--text);
+  background:transparent;
+  white-space:nowrap;
+  text-decoration:none;
+  font:inherit;
+  line-height:inherit;
+  cursor:pointer;
+  transition: background-color .18s ease, border-color .18s ease, color .18s ease, box-shadow .18s ease;
+}
+.nav span.nav-link{
+  cursor:default;
+}
+.nav .nav-link.active{
+  color:var(--topbar-accent-strong);
+  font-weight:700;
+  background:transparent;
+  box-shadow:none;
+}
+.nav .nav-link.active::before{
+  content:"";
+  position:absolute;
+  left:10px;
+  right:10px;
+  bottom:2px;
+  height:3px;
+  border-radius:999px;
+  background:var(--accent);
+}
+.nav .nav-link:hover,
+.nav .nav-link:focus-visible{
+  background: color-mix(in oklab, var(--panel) 82%, var(--accent) 18%);
+  box-shadow:none;
+  text-decoration:none;
+}
+.nav-submenu{
+  position:absolute;
+  top:calc(100% + 8px);
+  left:50%;
+  min-width:220px;
+  padding:0;
+  display:none;
+  flex-direction:column;
+  gap:0;
+  border-radius:14px;
+  overflow:hidden;
+  background: color-mix(in oklab, var(--bg) 100%, black 0%);
+  box-shadow:
+    8px 10px 20px color-mix(in oklab, var(--panel-2) 22%, transparent),
+    0 18px 36px color-mix(in oklab, var(--panel-2) 34%, transparent);
+  transform:translateX(-50%);
+}
+
+[data-theme="light"] .nav-submenu{
+  box-shadow:
+    8px 10px 18px rgba(13,21,32,.08),
+    0 14px 30px rgba(13,21,32,.14);
+}
+.nav > .nav-item > .nav-submenu{
+  top:100%;
+  padding-top:0;
+  border-top-left-radius:0;
+  border-top-right-radius:0;
+}
+.nav-item.has-children:hover > .nav-submenu,
+.nav-item.has-children:focus-within > .nav-submenu{
+  display:flex;
+}
+.nav > .nav-item.has-children:hover > .nav-link,
+.nav > .nav-item.has-children:focus-within > .nav-link{
+  justify-content:center;
+  background: color-mix(in oklab, var(--panel) 96%, transparent);
+  border-bottom-left-radius:0;
+  border-bottom-right-radius:0;
+}
+.nav-submenu .nav-item{
+  display:flex;
+  width:100%;
+}
+.nav-submenu .nav-item > .nav-link{
+  display:flex;
+  width:100%;
+}
