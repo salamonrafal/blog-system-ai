@@ -119,22 +119,22 @@
                                 <tr>
                                     <td>{{ queue_item.id }}</td>
                                     <td class="queue-status-title-cell">
-                                        <strong>{{ queue_item.originalFilename }}</strong><br>
-                                        <span class="meta">{{ queue_item.filePath|split('/')|last }}</span>
+                                        <strong>{{ queue_item.original_filename }}</strong><br>
+                                        <span class="meta">{{ queue_item.file_path|split('/')|last }}</span>
                                     </td>
-                                    <td data-i18n="admin_queue_type_article_import">Import artykułu</td>
+                                    <td data-i18n="{{ queue_item.type_key }}">{{ queue_item.type_label }}</td>
                                     <td>
-                                        {% if queue_item.requestedBy %}
-                                            {{ queue_item.requestedBy.displayName }}
+                                        {% if queue_item.requested_by %}
+                                            {{ queue_item.requested_by.displayName }}
                                         {% else %}
                                             <span data-i18n="admin_table_system">System</span>
                                         {% endif %}
                                     </td>
-                                    <td>{{ queue_item.createdAt|user_date }}</td>
+                                    <td>{{ queue_item.created_at|user_date }}</td>
                                     <td>
                                         <div class="actions">
-                                            <form method="post" action="{{ path('admin_queue_status_import_delete', {id: queue_item.id}) }}">
-                                                <input type="hidden" name="_token" value="{{ csrf_token('delete_import_queue_item_' ~ queue_item.id) }}">
+                                            <form method="post" action="{{ path(queue_item.delete_route, {id: queue_item.id}) }}">
+                                                <input type="hidden" name="_token" value="{{ csrf_token(queue_item.csrf_token_id) }}">
                                                 <button
                                                     class="button secondary button-danger article-action-button"
                                                     type="submit"

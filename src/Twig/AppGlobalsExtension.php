@@ -12,6 +12,7 @@ use App\Repository\CategoryExportQueueRepository;
 use App\Repository\ArticleExportQueueRepository;
 use App\Repository\ArticleExportRepository;
 use App\Repository\ArticleImportQueueRepository;
+use App\Repository\TopMenuImportQueueRepository;
 use App\Repository\TopMenuItemRepository;
 use App\Repository\TopMenuExportQueueRepository;
 use Symfony\Contracts\Cache\CacheInterface;
@@ -32,6 +33,7 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
         private readonly UserLanguageResolver $userLanguageResolver,
         private readonly UserTimeZoneResolver $userTimeZoneResolver,
         private readonly ArticleImportQueueRepository $articleImportQueueRepository,
+        private readonly TopMenuImportQueueRepository $topMenuImportQueueRepository,
         private readonly ArticleExportQueueRepository $articleExportQueueRepository,
         private readonly CategoryExportQueueRepository $categoryExportQueueRepository,
         private readonly TopMenuExportQueueRepository $topMenuExportQueueRepository,
@@ -54,12 +56,14 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
     public function getGlobals(): array
     {
         $settings = $this->blogSettingsProvider->getSettings();
-        $pendingImportCount = $this->articleImportQueueRepository->countPending();
+        $pendingArticleImportCount = $this->articleImportQueueRepository->countPending();
+        $pendingTopMenuImportCount = $this->topMenuImportQueueRepository->countPending();
+        $pendingImportCount = $pendingArticleImportCount + $pendingTopMenuImportCount;
         $pendingExportQueueCount = $this->articleExportQueueRepository->countPending() + $this->categoryExportQueueRepository->countPending() + $this->topMenuExportQueueRepository->countPending();
         $newExportCount = $this->articleExportRepository->countNew();
         $language = $this->userLanguageResolver->getLanguage();
         $topMenuItems = $this->appCache->get(
-            self::TOP_MENU_CACHE_KEY_PREFIX.$language,
+            self::topMenuCacheKey($language),
             function (ItemInterface $item): array {
                 $item->expiresAfter(3600);
 
@@ -80,7 +84,8 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
             ) ?: '{"pl":{},"en":{}}',
             'admin_shortcut_badges' => [
                 'queue_status' => $pendingImportCount + $pendingExportQueueCount,
-                'imports' => $pendingImportCount,
+                'imports' => $pendingArticleImportCount,
+                'top_menu_imports' => $pendingTopMenuImportCount,
                 'exports' => $newExportCount,
                 'import_export' => $pendingImportCount + $pendingExportQueueCount + $newExportCount,
             ],
@@ -90,10 +95,23 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
 
     public static function topMenuCacheKeys(): array
     {
+        return array_values(self::topMenuCacheKeysByLanguage());
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function topMenuCacheKeysByLanguage(): array
+    {
         return [
-            self::TOP_MENU_CACHE_KEY_PREFIX.'pl',
-            self::TOP_MENU_CACHE_KEY_PREFIX.'en',
+            'pl' => self::topMenuCacheKey('pl'),
+            'en' => self::topMenuCacheKey('en'),
         ];
+    }
+
+    public static function topMenuCacheKey(string $language): string
+    {
+        return self::TOP_MENU_CACHE_KEY_PREFIX.strtolower(trim($language));
     }
 
     public function getI18nFallback(string $key): string

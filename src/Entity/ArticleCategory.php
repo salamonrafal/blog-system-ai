@@ -35,7 +35,6 @@ class ArticleCategory
     #[ORM\Column(length: 320, nullable: true)]
     private ?string $shortDescription = null;
 
-    #[Assert\NotBlank(message: 'Slug kategorii jest wymagany.')]
     #[Assert\Length(max: 255, maxMessage: 'Slug kategorii może mieć maksymalnie 255 znaków.')]
     #[ORM\Column(length: 255, unique: true)]
     private string $slug = '';
@@ -279,6 +278,7 @@ class ArticleCategory
     #[ORM\PrePersist]
     public function onPrePersist(): void
     {
+        $this->ensureSlugIsPresent();
         $now = self::utcNow();
         $this->createdAt = $now;
         $this->updatedAt = $now;
@@ -287,7 +287,17 @@ class ArticleCategory
     #[ORM\PreUpdate]
     public function onPreUpdate(): void
     {
+        $this->ensureSlugIsPresent();
         $this->updatedAt = self::utcNow();
+    }
+
+    private function ensureSlugIsPresent(): void
+    {
+        if ('' !== trim($this->slug)) {
+            return;
+        }
+
+        throw new \LogicException('Article category slug cannot be empty when persisting.');
     }
 
     private static function utcNow(): \DateTimeImmutable

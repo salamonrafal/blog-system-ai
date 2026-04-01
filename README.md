@@ -264,6 +264,7 @@ Current entries process all background queues once per minute:
 - `app:category-export:process-queue`
 - `app:top-menu-export:process-queue`
 - `app:article-import:process-queue`
+- `app:top-menu-import:process-queue`
 
 Before running consumers manually or from cron, make sure the database exists and migrations are applied:
 
@@ -326,12 +327,31 @@ What the manual run does:
 If there are no pending entries, the command exits successfully and prints:
 `No queued article imports to process.`
 
+## Top menu import queue
+
+The project also includes a dedicated top menu import queue for restoring the menu hierarchy from exported JSON files.
+
+Flow overview:
+- In the admin panel, uploading a file on `/admin/top-menu/imports` creates a pending record in `top_menu_import_queue`
+- The console consumer reads the `top-menu-export` JSON format
+- Existing items are matched by `unique_name`
+- Parent relations are resolved by `parent_unique_name`
+- Items are processed from the highest hierarchy level to the lowest so parent items are available before their children
+- If validation fails or the file is invalid, the queue item is marked as `failed` and the error reason is stored in `error_message`
+
+Manual run:
+- Composer shortcut:
+  `composer top-menu-import:process-queue`
+- Direct Symfony command:
+  `php bin/console app:top-menu-import:process-queue`
+
 For a local non-Docker setup you can use equivalent crontab entries, for example:
 
 - `* * * * * cd /path/to/project && composer article-export:process-queue`
 - `* * * * * cd /path/to/project && composer category-export:process-queue`
 - `* * * * * cd /path/to/project && composer top-menu-export:process-queue`
 - `* * * * * cd /path/to/project && composer article-import:process-queue`
+- `* * * * * cd /path/to/project && composer top-menu-import:process-queue`
 
 ## Next steps
 

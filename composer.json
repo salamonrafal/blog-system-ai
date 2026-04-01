@@ -70,6 +70,9 @@
         "article-import:process-queue": [
             "@php bin/console app:article-import:process-queue"
         ],
+        "top-menu-import:process-queue": [
+            "@php bin/console app:top-menu-import:process-queue"
+        ],
         "serve:debug": [
             "@php bin/dev-server.php restart"
         ],

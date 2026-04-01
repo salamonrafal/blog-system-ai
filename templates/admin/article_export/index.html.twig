@@ -40,12 +40,12 @@
             <div class="article-index-toolbar">
                 <form method="get" class="article-index-filter-panel" data-i18n-aria="admin_exports_filters_aria" aria-label="Filtry listy eksportów">
                     <span class="article-index-filter-label" data-i18n="blog_filters">Filtry</span>
-                    <input type="hidden" name="type" value="{{ selected_type ? selected_type.value : '' }}" data-export-type-filter-input>
-                    <div class="article-index-filter-dropdown" data-export-type-filter>
+                    <input type="hidden" name="type" value="{{ selected_type ? selected_type.value : '' }}" data-listing-filter-input>
+                    <div class="article-index-filter-dropdown" data-listing-filter-dropdown>
                         <button
                             type="button"
                             class="article-index-filter-trigger"
-                            data-action="toggle-export-type-filter"
+                            data-listing-filter-trigger
                             data-i18n-aria="{{ selected_type ? selected_type.translationKey : 'admin_exports_filter_all_types' }}"
                             aria-haspopup="true"
                             aria-expanded="false"
@@ -60,14 +60,14 @@
                             </span>
                         </button>
                         <div class="article-index-filter-options" id="article-export-type-filter-panel" data-i18n-aria="admin_exports_filter_type" aria-label="Typ eksportu" aria-hidden="true" hidden>
-                            <button type="button" class="article-index-filter-option{{ not selected_type ? ' is-selected' : '' }}" data-export-type-option data-value="" data-i18n="admin_exports_filter_all_types">
+                            <button type="button" class="article-index-filter-option{{ not selected_type ? ' is-selected' : '' }}" data-listing-filter-option data-value="" data-i18n="admin_exports_filter_all_types">
                                 Wszystkie typy
                             </button>
                             {% for export_type in export_types %}
                                 <button
                                     type="button"
                                     class="article-index-filter-option{{ selected_type and selected_type.value == export_type.value ? ' is-selected' : '' }}"
-                                    data-export-type-option
+                                    data-listing-filter-option
                                     data-value="{{ export_type.value }}"
                                     data-i18n="{{ export_type.translationKey }}"
                                 >

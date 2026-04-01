@@ -13,6 +13,7 @@ use App\Repository\ArticleCategoryRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\TopMenuItemRepository;
 use App\Repository\TopMenuExportQueueRepository;
+use App\Service\TopMenuCacheManager;
 use App\Service\TopMenuItemUniqueNameGenerator;
 use App\Service\UserLanguageResolver;
 use App\Tests\Unit\Support\MocksUserLanguageResolver;
@@ -28,7 +29,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Validator\Validation;
-use Symfony\Contracts\Cache\CacheInterface;
 
 final class TopMenuItemControllerTest extends TestCase
 {
@@ -85,10 +85,10 @@ final class TopMenuItemControllerTest extends TestCase
             ->expects($this->once())
             ->method('findRecentForTopMenuSelection')
             ->willReturn([]);
-        $cache = $this->createMock(CacheInterface::class);
-        $cache
-            ->expects($this->exactly(2))
-            ->method('delete');
+        $topMenuCacheManager = $this->createMock(TopMenuCacheManager::class);
+        $topMenuCacheManager
+            ->expects($this->once())
+            ->method('refresh');
 
         $request = new Request([], [
             'top_menu_item' => [
@@ -109,7 +109,7 @@ final class TopMenuItemControllerTest extends TestCase
             $articleRepository,
             $this->createUserLanguageResolverMock('en'),
             $uniqueNameGenerator,
-            $cache,
+            $topMenuCacheManager,
         );
 
         $this->assertInstanceOf(RedirectResponse::class, $response);
@@ -133,7 +133,7 @@ final class TopMenuItemControllerTest extends TestCase
             new Request([], ['_token' => 'invalid']),
             $this->createMock(EntityManagerInterface::class),
             $this->createUserLanguageResolverMock('pl'),
-            $this->createMock(CacheInterface::class),
+            $this->createMock(TopMenuCacheManager::class),
         );
     }
 
@@ -174,8 +174,8 @@ final class TopMenuItemControllerTest extends TestCase
             ->method('findActiveOrderedByName')
             ->willReturn([$category]);
 
-        $cache = $this->createMock(CacheInterface::class);
-        $cache->expects($this->exactly(2))->method('delete');
+        $topMenuCacheManager = $this->createMock(TopMenuCacheManager::class);
+        $topMenuCacheManager->expects($this->once())->method('refresh');
 
         $request = new Request([], [
             'top_menu_item' => [
@@ -198,7 +198,7 @@ final class TopMenuItemControllerTest extends TestCase
             $articleRepository,
             $this->createUserLanguageResolverMock('pl'),
             $uniqueNameGenerator,
-            $cache,
+            $topMenuCacheManager,
         );
 
         $this->assertInstanceOf(RedirectResponse::class, $response);

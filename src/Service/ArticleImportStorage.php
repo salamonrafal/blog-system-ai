@@ -20,7 +20,7 @@ class ArticleImportStorage
     /**
      * @return array{relative_path: string, original_filename: string}
      */
-    public function store(UploadedFile $uploadedFile): array
+    public function store(UploadedFile $uploadedFile, string $filenamePrefix = 'article-import'): array
     {
         $targetDirectory = $this->projectDir.'/'.trim($this->importDirectory, '/');
         if (!is_dir($targetDirectory) && !mkdir($targetDirectory, 0775, true) && !is_dir($targetDirectory)) {
@@ -35,7 +35,8 @@ class ArticleImportStorage
         }
 
         $storedFilename = sprintf(
-            'article-import-%s-%s.%s',
+            '%s-%s-%s.%s',
+            trim($filenamePrefix),
             (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format('YmdHis'),
             bin2hex(random_bytes(6)),
             $extension

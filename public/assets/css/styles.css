@@ -3116,10 +3116,6 @@ select {
   z-index:2;
 }
 
-.card:has(.article-index-toolbar){
-  overflow:visible;
-}
-
 .article-index-filter-panel {
   display:flex;
   align-items:center;
@@ -3235,6 +3231,19 @@ select {
 }
 
 .article-index-filter-dropdown.is-open .article-index-filter-options {
+  opacity:1;
+  pointer-events:auto;
+  transform:translateY(0);
+}
+
+.article-index-filter-options.is-floating {
+  position:absolute;
+  top:0;
+  left:0;
+  right:auto;
+  min-width:0;
+  margin:0;
+  z-index:250;
   opacity:1;
   pointer-events:auto;
   transform:translateY(0);

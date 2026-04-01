@@ -306,31 +306,117 @@ export function setupArticleBulkExport(){
 }
 
 export function setupAdminListingFilters(){
-  const filterConfigs = [
-    {
-      dropdownSelector: '[data-article-category-filter]',
-      triggerSelector: '[data-action="toggle-article-category-filter"]',
-      hiddenInputSelector: '[data-article-category-filter-input]',
-      optionSelector: '[data-article-category-option]',
-    },
-    {
-      dropdownSelector: '[data-export-type-filter]',
-      triggerSelector: '[data-action="toggle-export-type-filter"]',
-      hiddenInputSelector: '[data-export-type-filter-input]',
-      optionSelector: '[data-export-type-option]',
-    },
-  ];
-
-  const dropdownEntries = filterConfigs.flatMap((config)=>{
-    return qsa(config.dropdownSelector).map((dropdown)=> ({ dropdown, config }));
-  });
+  const dropdownEntries = qsa('[data-listing-filter-dropdown]').map((dropdown)=> ({
+      dropdown,
+      floatingPanel: null,
+      originalParent: null,
+      originalNextSibling: null,
+    }));
   if(!dropdownEntries.length) return;
+
+  const getPanel = (entry)=>{
+    return entry.floatingPanel || qs('.article-index-filter-options', entry.dropdown);
+  };
+
+  let floatingPanelSyncFrame = 0;
+  let floatingPanelListenersAttached = false;
+
+  const syncFloatingPanels = ()=>{
+    floatingPanelSyncFrame = 0;
+    dropdownEntries.forEach((entry)=>{
+      if(entry.floatingPanel){
+        updateFloatingPanelPosition(entry);
+      }
+    });
+  };
+
+  const scheduleFloatingPanelSync = ()=>{
+    if(0 !== floatingPanelSyncFrame) return;
+
+    floatingPanelSyncFrame = window.requestAnimationFrame(syncFloatingPanels);
+  };
+
+  const handleViewportChange = ()=>{
+    scheduleFloatingPanelSync();
+  };
+
+  const updateFloatingPanelListeners = ()=>{
+    const hasOpenFloatingPanel = dropdownEntries.some((entry)=> null !== entry.floatingPanel);
+
+    if(hasOpenFloatingPanel && !floatingPanelListenersAttached){
+      window.addEventListener('resize', handleViewportChange);
+      window.addEventListener('scroll', handleViewportChange, true);
+      floatingPanelListenersAttached = true;
+      return;
+    }
+
+    if(!hasOpenFloatingPanel && floatingPanelListenersAttached){
+      window.removeEventListener('resize', handleViewportChange);
+      window.removeEventListener('scroll', handleViewportChange, true);
+      if(0 !== floatingPanelSyncFrame){
+        window.cancelAnimationFrame(floatingPanelSyncFrame);
+        floatingPanelSyncFrame = 0;
+      }
+      floatingPanelListenersAttached = false;
+    }
+  };
+
+  const updateFloatingPanelPosition = (entry)=>{
+    const trigger = qs('[data-listing-filter-trigger]', entry.dropdown);
+    const panel = entry.floatingPanel;
+    if(!trigger || !panel) return;
+
+    const triggerRect = trigger.getBoundingClientRect();
+    const panelRect = panel.getBoundingClientRect();
+    const minWidth = triggerRect.width;
+    const panelWidth = Math.max(panelRect.width, minWidth);
+    const viewportPadding = 12;
+    const centeredLeft = window.scrollX + triggerRect.left + ((triggerRect.width - panelWidth) / 2);
+    const maxLeft = window.scrollX + window.innerWidth - panelWidth - viewportPadding;
+    const clampedLeft = Math.max(window.scrollX + viewportPadding, Math.min(centeredLeft, maxLeft));
+
+    panel.style.width = `${panelWidth}px`;
+    panel.style.left = `${clampedLeft}px`;
+    panel.style.top = `${window.scrollY + triggerRect.bottom + 4}px`;
+  };
+
+  const floatPanel = (entry, panel)=>{
+    if(entry.floatingPanel) return;
+
+    entry.originalParent = panel.parentElement;
+    entry.originalNextSibling = panel.nextSibling;
+    entry.floatingPanel = panel;
+    panel.classList.add('is-floating');
+    document.body.appendChild(panel);
+    updateFloatingPanelListeners();
+    updateFloatingPanelPosition(entry);
+  };
+
+  const restorePanel = (entry)=>{
+    const panel = entry.floatingPanel;
+    if(!panel || !entry.originalParent) return;
+
+    if(entry.originalNextSibling && entry.originalNextSibling.parentNode === entry.originalParent){
+      entry.originalParent.insertBefore(panel, entry.originalNextSibling);
+    }else{
+      entry.originalParent.appendChild(panel);
+    }
+
+    panel.classList.remove('is-floating');
+    panel.style.removeProperty('width');
+    panel.style.removeProperty('left');
+    panel.style.removeProperty('top');
+    entry.floatingPanel = null;
+    entry.originalParent = null;
+    entry.originalNextSibling = null;
+    updateFloatingPanelListeners();
+  };
 
   const closeDropdown = (entry, { restoreFocus = false } = {})=>{
     if(!entry?.dropdown) return;
     entry.dropdown.classList.remove('is-open');
-    const trigger = qs(entry.config.triggerSelector, entry.dropdown);
-    const panel = qs('.article-index-filter-options', entry.dropdown);
+    const trigger = qs('[data-listing-filter-trigger]', entry.dropdown);
+    const panel = getPanel(entry);
     if(trigger){
       trigger.setAttribute('aria-expanded', 'false');
       if(restoreFocus){
@@ -341,6 +427,7 @@ export function setupAdminListingFilters(){
       panel.hidden = true;
       panel.setAttribute('aria-hidden', 'true');
     }
+    restorePanel(entry);
   };
 
   const closeOtherDropdowns = (activeEntry = null)=>{
@@ -352,11 +439,11 @@ export function setupAdminListingFilters(){
   };
 
   dropdownEntries.forEach((entry)=>{
-    const { dropdown, config } = entry;
-    const trigger = qs(config.triggerSelector, dropdown);
-    const hiddenInput = qs(config.hiddenInputSelector, dropdown.closest('form'));
+    const { dropdown } = entry;
+    const trigger = qs('[data-listing-filter-trigger]', dropdown);
+    const hiddenInput = qs('[data-listing-filter-input]', dropdown.closest('form'));
     const panel = qs('.article-index-filter-options', dropdown);
-    const options = qsa(config.optionSelector, dropdown);
+    const options = qsa('[data-listing-filter-option]', dropdown);
     if(!trigger || !hiddenInput || !panel || !options.length) return;
 
     const open = ()=>{
@@ -364,6 +451,7 @@ export function setupAdminListingFilters(){
       trigger.setAttribute('aria-expanded', 'true');
       panel.hidden = false;
       panel.setAttribute('aria-hidden', 'false');
+      floatPanel(entry, panel);
       const selectedOption = qs('.article-index-filter-option.is-selected', panel) || options[0];
       selectedOption?.focus({ preventScroll: true });
     };
@@ -390,7 +478,8 @@ export function setupAdminListingFilters(){
 
   document.addEventListener('click', (event)=>{
     dropdownEntries.forEach((entry)=>{
-      if(!entry.dropdown.contains(event.target)){
+      const panel = getPanel(entry);
+      if(!entry.dropdown.contains(event.target) && !panel?.contains(event.target)){
         closeDropdown(entry);
       }
     });
@@ -692,6 +781,27 @@ export function setupImportClearConfirmation(){
     cancelI18n: 'admin_imports_clear_popup_cancel',
     cancelFallback: 'Przerwij',
     submitI18n: 'admin_imports_clear_popup_confirm',
+    submitFallback: 'Usuń wszystko',
+    closeI18n: 'admin_close_alert',
+    closeFallback: 'Zamknij alert',
+  });
+
+  setupDangerConfirmation({
+    triggerSelector: '[data-action="confirm-clear-top-menu-imports"]',
+    modalClass: 'confirm-clear-top-menu-imports-modal',
+    modalIdPrefix: 'confirm-clear-top-menu-imports',
+    titleI18n: 'admin_top_menu_imports_clear_popup_title',
+    titleFallback: 'Usunąć wszystkie importy menu?',
+    textI18n: 'admin_top_menu_imports_clear_popup_text',
+    textFallback: 'Ta operacja usunie wszystkie rekordy importu menu oraz powiązane pliki z dysku.',
+    detailsClass: null,
+    detailsText: null,
+    cancelAction: 'cancel-clear-top-menu-imports',
+    submitAction: 'submit-clear-top-menu-imports',
+    closeAction: 'close-clear-top-menu-imports',
+    cancelI18n: 'admin_top_menu_imports_clear_popup_cancel',
+    cancelFallback: 'Przerwij',
+    submitI18n: 'admin_top_menu_imports_clear_popup_confirm',
     submitFallback: 'Usuń wszystko',
     closeI18n: 'admin_close_alert',
     closeFallback: 'Zamknij alert',

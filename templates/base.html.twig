@@ -277,9 +277,25 @@ Fullstack Developer</span>
                                         <rect x="6" y="24" width="20" height="2" rx="1"></rect>
                                     </svg>
                                 </span>
-                                <span data-i18n="admin_shortcut_imports">Importy</span>
+                                <span data-i18n="admin_shortcut_imports">Import Artykułów</span>
                                 {% if admin_shortcut_badges.imports > 0 %}
                                     <span class="admin-shortcuts-badge" aria-label="{{ admin_shortcut_badges.imports }} oczekujących importów">{{ admin_shortcut_badges.imports }}</span>
+                                {% endif %}
+                            </a>
+                            <a class="admin-shortcuts-link admin-shortcuts-sublink" href="{{ path('admin_top_menu_import_index') }}">
+                                <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 32 32">
+                                        <path d="M16 7v13"></path>
+                                        <path d="M11 12l5-5 5 5"></path>
+                                        <path d="M7 25h18"></path>
+                                        <rect x="6" y="24" width="20" height="2" rx="1"></rect>
+                                        <path d="M8 10h6"></path>
+                                        <path d="M18 10h6"></path>
+                                    </svg>
+                                </span>
+                                <span data-i18n="admin_shortcut_import_menu">Import Menu</span>
+                                {% if admin_shortcut_badges.top_menu_imports > 0 %}
+                                    <span class="admin-shortcuts-badge" aria-label="{{ admin_shortcut_badges.top_menu_imports }} oczekujących importów menu">{{ admin_shortcut_badges.top_menu_imports }}</span>
                                 {% endif %}
                             </a>
                             <a class="admin-shortcuts-link admin-shortcuts-sublink" href="{{ path('admin_article_export_index') }}">
