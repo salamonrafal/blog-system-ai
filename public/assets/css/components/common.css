@@ -151,12 +151,6 @@
 .grid-3{display:grid; grid-template-columns: repeat(3, 1fr); gap:14px;}
 .grid-2{display:grid; grid-template-columns: repeat(2, 1fr); gap:14px;}
 
-/* Fix: language wrappers should not break CSS grids (children act as grid items) */
-.grid-3 > [data-lang],
-.grid-2 > [data-lang]{
-  display: contents;
-}
-
 .pill{display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px; border:1px solid var(--border); background: color-mix(in oklab, var(--panel-2) 90%, transparent); color:var(--muted); font-size:12px;}
 
 .list{padding:16px;}
