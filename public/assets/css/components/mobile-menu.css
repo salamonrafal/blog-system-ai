@@ -18,8 +18,8 @@
   z-index:90;
 }
 .mobile-drawer:not(.open){display:none;}
-.mobile-drawer.open{display:flex; animation: pop .14s ease-out;}
-@keyframes pop{from{transform:translateY(-8px); opacity:.0;}to{transform:translateY(0); opacity:1;}}
+.mobile-drawer.open{display:flex; animation: mobile-drawer-pop .14s ease-out;}
+@keyframes mobile-drawer-pop{from{transform:translateY(-8px); opacity:.0;}to{transform:translateY(0); opacity:1;}}
 .mobile-menu-item .mobile-menu-link{
   display:block;
   width:100%;

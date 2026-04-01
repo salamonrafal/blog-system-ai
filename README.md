@@ -39,7 +39,7 @@ CSS also runs in two modes:
 
 Current CSS split is thematic:
 - `public/assets/css/base.css`: variables, reset, layout base, global background
-- `public/assets/css/components/`: smaller shared UI parts such as `topbar`, `navigation`, `mobile-menu`, `buttons`, `forms`, `flash`, `admin-shortcuts`, `editor`
+- `public/assets/css/components/`: smaller shared UI parts such as `topbar`, `navigation`, `mobile-menu`, `footer`, `back-to-top`, `privacy`, `buttons`, `forms`, `flash`, `admin-shortcuts`, `editor`
 - `public/assets/css/pages/`: page-specific styles for `home`, `admin`, `blog`, `error`
 - `public/assets/css/responsive.css`: shared responsive and reduced-motion rules
 

@@ -1,0 +1,86 @@
+.privacy-popup{
+  position: fixed;
+  left: 20px;
+  bottom: 20px;
+  z-index: 90;
+  width: min(420px, calc(100vw - 24px));
+  padding: 14px;
+  border: 1px solid color-mix(in oklab, var(--accent-2) 30%, var(--border));
+  border-radius: 14px;
+  background: color-mix(in oklab, var(--panel) 95%, transparent);
+  box-shadow: var(--shadow);
+  animation: privacy-popup-pop .14s ease-out;
+  transition: opacity .16s ease, transform .16s ease;
+}
+@keyframes privacy-popup-pop{from{transform:translateY(-8px); opacity:.0;}to{transform:translateY(0); opacity:1;}}
+.privacy-popup.is-hidden{
+  opacity: 0;
+  transform: translateY(8px);
+}
+.privacy-popup-title{
+  margin: 0 0 10px;
+  font-size: 17px;
+  color: color-mix(in oklab, var(--accent) 64%, var(--text) 36%);
+  letter-spacing: .3px;
+}
+.privacy-popup-title::before{
+  content: "> ";
+  color: var(--accent-2);
+}
+.privacy-popup-text{
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in oklab, var(--accent) 52%, var(--border));
+  border-radius: 12px;
+  background: color-mix(in oklab, var(--panel-2) 90%, var(--panel) 10%);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.7;
+  letter-spacing: .12px;
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--border) 65%, transparent);
+}
+.privacy-popup-text::before{
+  content: "$ ";
+  color: color-mix(in oklab, var(--accent) 72%, white 28%);
+  font-weight: 700;
+}
+.privacy-popup-actions{
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+.privacy-popup-actions .btn{
+  border-radius: 8px;
+  border-color: color-mix(in oklab, var(--accent) 45%, var(--border));
+  background: color-mix(in oklab, var(--panel-2) 94%, transparent);
+  color: color-mix(in oklab, var(--text) 94%, white 6%);
+  font-size: 12px;
+  letter-spacing: .2px;
+}
+.privacy-popup-actions .btn::before{
+  content: "$";
+  color: var(--accent);
+  font-weight: 700;
+}
+.privacy-popup-actions .btn.primary::before{
+  color: var(--accent-contrast);
+}
+.privacy-popup-actions .btn.primary{
+  border-color: color-mix(in oklab, var(--accent) 72%, var(--border));
+  background: color-mix(in oklab, var(--accent) 84%, var(--panel) 16%);
+  color: var(--accent-contrast);
+}
+.privacy-popup-actions .btn:hover{
+  background: color-mix(in oklab, var(--panel) 85%, white 15%);
+  border-color: var(--accent-2);
+}
+.privacy-popup-actions .btn.primary:hover{
+  background: color-mix(in oklab, var(--accent) 88%, white 12%);
+  border-color: color-mix(in oklab, var(--accent) 82%, white 18%);
+}
+.privacy-popup-actions .btn:focus-visible{
+  outline: 2px solid color-mix(in oklab, var(--accent-2) 55%, var(--focus));
+  outline-offset: 1px;
+}

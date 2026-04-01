@@ -3,6 +3,9 @@
 @import "./components/navigation.css";
 @import "./components/mobile-menu.css";
 @import "./components/common.css";
+@import "./components/footer.css";
+@import "./components/back-to-top.css";
+@import "./components/privacy.css";
 @import "./components/buttons.css";
 @import "./components/forms.css";
 @import "./components/flash.css";
