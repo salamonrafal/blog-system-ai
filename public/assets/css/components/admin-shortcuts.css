@@ -1,7 +1,18 @@
 .admin-shortcuts{
+  --admin-shortcuts-edge-offset:20px;
+  --admin-shortcuts-toggle-size:54px;
+  --admin-shortcuts-toggle-gap:12px;
+  --admin-shortcuts-panel-max-height:calc(
+    100vh
+    - var(--topbar-height)
+    - var(--topbar-gap)
+    - (var(--admin-shortcuts-edge-offset) * 2)
+    - var(--admin-shortcuts-toggle-size)
+    - var(--admin-shortcuts-toggle-gap)
+  );
   position:fixed;
-  right:20px;
-  bottom:20px;
+  right:var(--admin-shortcuts-edge-offset);
+  bottom:var(--admin-shortcuts-edge-offset);
   z-index:85;
   width:min(292px, calc(100vw - 24px));
 }
@@ -14,8 +25,8 @@
   display:flex;
   align-items:center;
   justify-content:center;
-  width:54px;
-  height:54px;
+  width:var(--admin-shortcuts-toggle-size);
+  height:var(--admin-shortcuts-toggle-size);
   margin-left:auto;
   border:1px solid color-mix(in oklab, var(--accent-2) 24%, var(--border));
   border-radius:50%;
@@ -64,7 +75,7 @@
 .admin-shortcuts-menu{
   position:absolute;
   right:0;
-  bottom:66px;
+  bottom:calc(var(--admin-shortcuts-toggle-size) + var(--admin-shortcuts-toggle-gap));
   display:flex;
   flex-direction:column;
   gap:0;
@@ -76,7 +87,7 @@
   box-shadow: var(--shadow);
   backdrop-filter: blur(12px);
   overflow:hidden;
-  max-height:min(560px, calc(100vh - 110px));
+  max-height:min(560px, var(--admin-shortcuts-panel-max-height));
 }
 
 .admin-shortcuts-section{
@@ -298,8 +309,7 @@
 
 @media (max-width: 768px){
   .admin-shortcuts{
-    right:12px;
-    bottom:12px;
+    --admin-shortcuts-edge-offset:12px;
     left:12px;
     width:auto;
   }
