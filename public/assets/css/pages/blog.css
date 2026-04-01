@@ -584,27 +584,27 @@
   }
 }
 
-table {
+.article-content-panel table {
   width:100%;
   border-collapse:collapse;
 }
 
-th,
-td {
+.article-content-panel th,
+.article-content-panel td {
   padding:12px 14px;
   border-bottom:1px solid var(--border);
   text-align:left;
   vertical-align:top;
 }
 
-th {
+.article-content-panel th {
   color:var(--muted);
   font-size:12px;
   text-transform:uppercase;
   letter-spacing:.06em;
 }
 
-tbody tr:last-child td {
+.article-content-panel tbody tr:last-child td {
   border-bottom:none;
 }
 
