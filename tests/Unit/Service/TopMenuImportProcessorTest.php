@@ -234,7 +234,7 @@ final class TopMenuImportProcessorTest extends TestCase
             );
 
             $this->expectException(TopMenuImportException::class);
-            $this->expectExceptionMessage('Pole menu_items[0].position musi być liczbą całkowitą większą lub równą zero.');
+            $this->expectExceptionMessage('Field menu_items[0].position must be an integer greater than or equal to zero.');
 
             $processor->process($queueItem);
         } finally {
@@ -299,7 +299,7 @@ final class TopMenuImportProcessorTest extends TestCase
             );
 
             $this->expectException(TopMenuImportException::class);
-            $this->expectExceptionMessage('Pole menu_items[0].position musi być liczbą całkowitą większą lub równą zero.');
+            $this->expectExceptionMessage('Field menu_items[0].position must be an integer greater than or equal to zero.');
 
             $processor->process($queueItem);
         } finally {
@@ -356,7 +356,7 @@ final class TopMenuImportProcessorTest extends TestCase
             );
 
             $this->expectException(TopMenuImportException::class);
-            $this->expectExceptionMessage('Pole menu_items[0].parent_unique_name musi być tekstem albo null.');
+            $this->expectExceptionMessage('Field menu_items[0].parent_unique_name must be a string or null.');
 
             $processor->process($queueItem);
         } finally {
@@ -421,7 +421,7 @@ final class TopMenuImportProcessorTest extends TestCase
             );
 
             $this->expectException(TopMenuImportException::class);
-            $this->expectExceptionMessage('menu_items[0] (contact): uniqueName: unique_name może mieć maksymalnie 255 znaków.');
+            $this->expectExceptionMessage('menu_items[0] (contact): uniqueName: unique_name can be at most 255 characters long.');
 
             $processor->process($queueItem);
         } finally {
@@ -487,7 +487,7 @@ final class TopMenuImportProcessorTest extends TestCase
             );
 
             $this->expectException(TopMenuImportException::class);
-            $this->expectExceptionMessage('menu_items[0] (contact): externalUrl: adres URL może mieć maksymalnie 500 znaków.');
+            $this->expectExceptionMessage('menu_items[0] (contact): externalUrl: URL can be at most 500 characters long.');
 
             $processor->process($queueItem);
         } finally {

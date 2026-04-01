@@ -36,6 +36,14 @@ class UserNotificationService
         );
     }
 
+    public function notifyCategoryImportCompleted(?int $userId, bool $success): void
+    {
+        $this->createNotification(
+            $userId,
+            $success ? UserNotificationType::CATEGORY_IMPORT_COMPLETED_SUCCESS : UserNotificationType::CATEGORY_IMPORT_COMPLETED_ERROR,
+        );
+    }
+
     public function notifyExportCompleted(?int $userId, bool $success): void
     {
         $this->createNotification(

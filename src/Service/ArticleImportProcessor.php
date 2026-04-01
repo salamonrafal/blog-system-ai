@@ -32,7 +32,7 @@ class ArticleImportProcessor
 
         foreach ($articles as $index => $articleData) {
             if (!is_array($articleData)) {
-                throw new ArticleImportException(sprintf('Element article[%d] musi być obiektem JSON.', $index));
+                throw new ArticleImportException(sprintf('Element article[%d] must be an array.', $index));
             }
 
             $slug = $this->requireString($articleData, 'slug', $index, true);
@@ -56,14 +56,14 @@ class ArticleImportProcessor
     {
         $absolutePath = $this->managedFilePathResolver->resolveImportPath($queueItem->getFilePath());
         if (null === $absolutePath || !is_file($absolutePath)) {
-            throw new ArticleImportException('Plik importu nie istnieje albo jest poza dozwolonym katalogiem.');
+            throw new ArticleImportException('Import file does not exist or is outside the allowed directory.');
         }
 
         try {
             /** @var array<string, mixed> $payload */
             $payload = json_decode((string) file_get_contents($absolutePath), true, 512, JSON_THROW_ON_ERROR);
         } catch (\JsonException $exception) {
-            throw new ArticleImportException('Plik importu nie zawiera poprawnego JSON.', 0, $exception);
+            throw new ArticleImportException('Import file does not contain valid JSON.', 0, $exception);
         }
 
         return $payload;
@@ -77,20 +77,20 @@ class ArticleImportProcessor
     private function extractArticles(array $payload): array
     {
         if (($payload['format'] ?? null) !== 'article-export') {
-            throw new ArticleImportException('Nieobsługiwany format pliku importu.');
+            throw new ArticleImportException('Unsupported import file format.');
         }
 
         if (($payload['version'] ?? null) !== 1) {
-            throw new ArticleImportException('Nieobsługiwana wersja pliku importu.');
+            throw new ArticleImportException('Unsupported import file version.');
         }
 
         $articles = $payload['article'] ?? null;
         if (!is_array($articles) || [] === $articles) {
-            throw new ArticleImportException('Plik importu nie zawiera żadnych artykułów.');
+            throw new ArticleImportException('Import file does not contain any articles.');
         }
 
         if (1 !== count($articles)) {
-            throw new ArticleImportException('Plik importu musi zawierać dokładnie jeden artykuł.');
+            throw new ArticleImportException('Import file must contain exactly one article.');
         }
 
         return array_values($articles);
@@ -158,12 +158,12 @@ class ArticleImportProcessor
     {
         $value = $articleData[$field] ?? null;
         if (!is_string($value)) {
-            throw new ArticleImportException(sprintf('Pole article[%d].%s jest wymagane i musi być tekstem.', $index, $field));
+            throw new ArticleImportException(sprintf('Field article[%d].%s is required and must be a string.', $index, $field));
         }
 
         $value = $trim ? trim($value) : $value;
         if ('' === $value) {
-            throw new ArticleImportException(sprintf('Pole article[%d].%s jest wymagane.', $index, $field));
+            throw new ArticleImportException(sprintf('Field article[%d].%s is required.', $index, $field));
         }
 
         return $value;
@@ -180,7 +180,7 @@ class ArticleImportProcessor
         }
 
         if (!is_string($value)) {
-            throw new ArticleImportException(sprintf('Pole %s musi być tekstem albo null.', $field));
+            throw new ArticleImportException(sprintf('Field %s must be a string or null.', $field));
         }
 
         $value = trim($value);
@@ -191,13 +191,13 @@ class ArticleImportProcessor
     private function parseLanguage(mixed $value, int $index): ArticleLanguage
     {
         if (!is_string($value)) {
-            throw new ArticleImportException(sprintf('Pole article[%d].language musi być tekstem.', $index));
+            throw new ArticleImportException(sprintf('Field article[%d].language must be a string.', $index));
         }
 
         $language = ArticleLanguage::tryFrom(trim($value));
         if (null === $language) {
             throw new ArticleImportException(sprintf(
-                'Pole article[%d].language ma nieobsługiwaną wartość "%s". Dozwolone wartości: %s.',
+                'Field article[%d].language has unsupported value "%s". Allowed values: %s.',
                 $index,
                 $value,
                 implode(', ', array_map(static fn (ArticleLanguage $language): string => $language->value, ArticleLanguage::cases()))
@@ -210,13 +210,13 @@ class ArticleImportProcessor
     private function parseStatus(mixed $value, int $index): ArticleStatus
     {
         if (!is_string($value)) {
-            throw new ArticleImportException(sprintf('Pole article[%d].status musi być tekstem.', $index));
+            throw new ArticleImportException(sprintf('Field article[%d].status must be a string.', $index));
         }
 
         $status = ArticleStatus::tryFrom(trim($value));
         if (null === $status) {
             throw new ArticleImportException(sprintf(
-                'Pole article[%d].status ma nieobsługiwaną wartość "%s". Dozwolone wartości: %s.',
+                'Field article[%d].status has unsupported value "%s". Allowed values: %s.',
                 $index,
                 $value,
                 implode(', ', array_map(static fn (ArticleStatus $status): string => $status->value, ArticleStatus::cases()))
@@ -229,7 +229,7 @@ class ArticleImportProcessor
     private function parseBoolean(mixed $value, string $field, int $index): bool
     {
         if (!is_bool($value)) {
-            throw new ArticleImportException(sprintf('Pole article[%d].%s musi mieć wartość true albo false.', $index, $field));
+            throw new ArticleImportException(sprintf('Field article[%d].%s must be true or false.', $index, $field));
         }
 
         return $value;
@@ -242,26 +242,26 @@ class ArticleImportProcessor
         }
 
         if (!is_string($value)) {
-            throw new ArticleImportException(sprintf('Pole article[%d].%s musi być tekstem ISO-8601 albo null.', $index, $field));
+            throw new ArticleImportException(sprintf('Field article[%d].%s must be an ISO-8601 string or null.', $index, $field));
         }
 
         try {
             return new \DateTimeImmutable($value);
         } catch (\Exception $exception) {
-            throw new ArticleImportException(sprintf('Pole article[%d].%s nie zawiera poprawnej daty.', $index, $field), 0, $exception);
+            throw new ArticleImportException(sprintf('Field article[%d].%s does not contain a valid date.', $index, $field), 0, $exception);
         }
     }
 
     private function normalizeViolationMessage(string $message): string
     {
         return match ($message) {
-            'validation_article_title_required' => 'to pole jest wymagane.',
-            'validation_article_title_too_long' => 'maksymalna długość to 255 znaków.',
-            'validation_article_slug_too_long' => 'maksymalna długość to 255 znaków.',
-            'validation_article_excerpt_too_long' => 'maksymalna długość to 320 znaków.',
-            'validation_article_headline_image_too_long' => 'maksymalna długość to 500 znaków.',
-            'validation_article_headline_image_invalid' => 'musi zaczynać się od http://, https:// albo /.',
-            'validation_article_content_required' => 'to pole jest wymagane.',
+            'validation_article_title_required' => 'this field is required.',
+            'validation_article_title_too_long' => 'maximum length is 255 characters.',
+            'validation_article_slug_too_long' => 'maximum length is 255 characters.',
+            'validation_article_excerpt_too_long' => 'maximum length is 320 characters.',
+            'validation_article_headline_image_too_long' => 'maximum length is 500 characters.',
+            'validation_article_headline_image_invalid' => 'must start with http://, https://, or /.',
+            'validation_article_content_required' => 'this field is required.',
             default => $message,
         };
     }

@@ -15,6 +15,7 @@ use App\Repository\ArticleExportRepository;
 use App\Repository\ArticleExportQueueRepository;
 use App\Repository\CategoryExportQueueRepository;
 use App\Repository\ArticleImportQueueRepository;
+use App\Repository\CategoryImportQueueRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\BlogSettingsRepository;
 use App\Repository\TopMenuImportQueueRepository;
@@ -33,6 +34,7 @@ class DashboardController extends AbstractController
         ArticleRepository $articleRepository,
         ArticleCategoryRepository $articleCategoryRepository,
         ArticleImportQueueRepository $articleImportQueueRepository,
+        CategoryImportQueueRepository $categoryImportQueueRepository,
         TopMenuImportQueueRepository $topMenuImportQueueRepository,
         ArticleExportRepository $articleExportRepository,
         ArticleExportQueueRepository $articleExportQueueRepository,
@@ -46,7 +48,10 @@ class DashboardController extends AbstractController
         $settings = $blogSettingsRepository->findCurrent();
         $user = $this->resolveDashboardUser();
         $importQueueCounts = $this->mergeQueueCounts(
-            $articleImportQueueRepository->countGroupedByStatus(),
+            $this->mergeQueueCounts(
+                $articleImportQueueRepository->countGroupedByStatus(),
+                $categoryImportQueueRepository->countGroupedByStatus(),
+            ),
             $topMenuImportQueueRepository->countGroupedByStatus(),
         );
         $articleExportQueueCounts = $articleExportQueueRepository->countGroupedByStatus();

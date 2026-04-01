@@ -18,6 +18,7 @@
 
                 <div class="actions">
                     <a class="button" href="{{ path('admin_article_category_new') }}" data-i18n="category_form_submit_create">Dodaj kategorię</a>
+                    <a class="button secondary" href="{{ path('admin_category_import_index') }}" data-i18n="admin_category_import_action">Import kategorii</a>
                     {% if categories is not empty %}
                         <form id="category-bulk-export-form" method="post" action="{{ path('admin_article_category_export_selected') }}" class="article-index-bulk-form">
                             <input type="hidden" name="_token" value="{{ csrf_token('export_article_categories_bulk') }}">

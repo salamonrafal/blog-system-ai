@@ -12,6 +12,7 @@ use App\Repository\CategoryExportQueueRepository;
 use App\Repository\ArticleExportQueueRepository;
 use App\Repository\ArticleExportRepository;
 use App\Repository\ArticleImportQueueRepository;
+use App\Repository\CategoryImportQueueRepository;
 use App\Repository\TopMenuImportQueueRepository;
 use App\Repository\TopMenuItemRepository;
 use App\Repository\TopMenuExportQueueRepository;
@@ -33,6 +34,7 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
         private readonly UserLanguageResolver $userLanguageResolver,
         private readonly UserTimeZoneResolver $userTimeZoneResolver,
         private readonly ArticleImportQueueRepository $articleImportQueueRepository,
+        private readonly CategoryImportQueueRepository $categoryImportQueueRepository,
         private readonly TopMenuImportQueueRepository $topMenuImportQueueRepository,
         private readonly ArticleExportQueueRepository $articleExportQueueRepository,
         private readonly CategoryExportQueueRepository $categoryExportQueueRepository,
@@ -50,6 +52,8 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
     {
         return [
             new TwigFunction('i18n_fallback', $this->getI18nFallback(...)),
+            new TwigFunction('ui_translate', $this->translateUi(...)),
+            new TwigFunction('ui_language_label', $this->getLanguageLabel(...)),
         ];
     }
 
@@ -57,8 +61,9 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
     {
         $settings = $this->blogSettingsProvider->getSettings();
         $pendingArticleImportCount = $this->articleImportQueueRepository->countPending();
+        $pendingCategoryImportCount = $this->categoryImportQueueRepository->countPending();
         $pendingTopMenuImportCount = $this->topMenuImportQueueRepository->countPending();
-        $pendingImportCount = $pendingArticleImportCount + $pendingTopMenuImportCount;
+        $pendingImportCount = $pendingArticleImportCount + $pendingCategoryImportCount + $pendingTopMenuImportCount;
         $pendingExportQueueCount = $this->articleExportQueueRepository->countPending() + $this->categoryExportQueueRepository->countPending() + $this->topMenuExportQueueRepository->countPending();
         $newExportCount = $this->articleExportRepository->countNew();
         $language = $this->userLanguageResolver->getLanguage();
@@ -85,6 +90,7 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
             'admin_shortcut_badges' => [
                 'queue_status' => $pendingImportCount + $pendingExportQueueCount,
                 'imports' => $pendingArticleImportCount,
+                'category_imports' => $pendingCategoryImportCount,
                 'top_menu_imports' => $pendingTopMenuImportCount,
                 'exports' => $newExportCount,
                 'import_export' => $pendingImportCount + $pendingExportQueueCount + $newExportCount,
@@ -121,6 +127,20 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
         $messages = $fallbacks[$language] ?? $fallbacks['en'] ?? [];
 
         return $messages[$key] ?? $key;
+    }
+
+    public function translateUi(string $pl, string $en): string
+    {
+        return 'en' === $this->userLanguageResolver->getLanguage() ? $en : $pl;
+    }
+
+    public function getLanguageLabel(string $language): string
+    {
+        return match (strtolower(trim($language))) {
+            'pl' => $this->translateUi('Polski (PL)', 'Polish (PL)'),
+            'en' => $this->translateUi('Angielski (EN)', 'English (EN)'),
+            default => strtoupper(trim($language)),
+        };
     }
 
     private function getValidationMessageFallbacks(): array

@@ -264,6 +264,7 @@ Current entries process all background queues once per minute:
 - `app:category-export:process-queue`
 - `app:top-menu-export:process-queue`
 - `app:article-import:process-queue`
+- `app:category-import:process-queue`
 - `app:top-menu-import:process-queue`
 
 Before running consumers manually or from cron, make sure the database exists and migrations are applied:
@@ -327,6 +328,30 @@ What the manual run does:
 If there are no pending entries, the command exits successfully and prints:
 `No queued article imports to process.`
 
+## Category import queue
+
+The project also includes a dedicated category import queue for restoring category data from exported JSON files in the background.
+
+Flow overview:
+- In the admin panel, uploading a file on `/admin/category-imports` creates a pending record in `category_import_queue`
+- The console consumer reads the `category-export` JSON format produced by the category export mechanism
+- Export payloads store category entries under the `categories` array key
+- If a category with the same `slug` already exists, it is updated
+- If no category with that `slug` exists, a new category is created
+- If validation fails or the file is invalid, the queue item is marked as `failed` and the error reason is stored in `error_message`
+
+Manual run:
+- Composer shortcut:
+  `composer category-import:process-queue`
+- Direct Symfony command:
+  `php bin/console app:category-import:process-queue`
+
+Important files:
+- [src/Command/ProcessCategoryImportQueueCommand.php](./src/Command/ProcessCategoryImportQueueCommand.php)
+- [src/Service/CategoryImportProcessor.php](./src/Service/CategoryImportProcessor.php)
+- [src/Entity/CategoryImportQueue.php](./src/Entity/CategoryImportQueue.php)
+- [src/Controller/Admin/CategoryImportController.php](./src/Controller/Admin/CategoryImportController.php)
+
 ## Top menu import queue
 
 The project also includes a dedicated top menu import queue for restoring the menu hierarchy from exported JSON files.
@@ -351,6 +376,7 @@ For a local non-Docker setup you can use equivalent crontab entries, for example
 - `* * * * * cd /path/to/project && composer category-export:process-queue`
 - `* * * * * cd /path/to/project && composer top-menu-export:process-queue`
 - `* * * * * cd /path/to/project && composer article-import:process-queue`
+- `* * * * * cd /path/to/project && composer category-import:process-queue`
 - `* * * * * cd /path/to/project && composer top-menu-import:process-queue`
 
 ## Next steps
