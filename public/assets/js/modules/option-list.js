@@ -46,16 +46,69 @@ function createMessage(text){
 
 function createOptionList(root){
   const select = qs('[data-option-list-select]', root);
+  const shell = qs('[data-option-list-shell]', root);
   const input = qs('[data-option-list-input]', root);
   const selectedContainer = qs('[data-option-list-selected]', root);
   const resultsContainer = qs('[data-option-list-results]', root);
-  if(!(select instanceof HTMLSelectElement) || !(input instanceof HTMLInputElement) || !selectedContainer || !resultsContainer) return null;
+  if(!(select instanceof HTMLSelectElement) || !(input instanceof HTMLInputElement) || !selectedContainer || !resultsContainer || !shell) return null;
 
   let activeIndex = -1;
+  const label = select.id ? document.querySelector(`label[for="${select.id}"]`) : null;
+  const labelId = label instanceof HTMLLabelElement
+    ? (label.id || `${select.id}--label`)
+    : '';
+
+  select.classList.add('app-option-list-native');
+  select.tabIndex = -1;
+  select.setAttribute('aria-hidden', 'true');
+  shell.hidden = false;
+
+  if(label instanceof HTMLLabelElement && labelId){
+    label.id = labelId;
+    input.setAttribute('aria-labelledby', labelId);
+    label.addEventListener('click', (event)=>{
+      event.preventDefault();
+      input.focus({ preventScroll: true });
+    });
+  }
 
   const t = (keyAttr, fallback = '')=>{
     const key = root.getAttribute(keyAttr);
     return key ? getTranslation(key) : fallback;
+  };
+
+  const syncAccessibilityState = ()=>{
+    const describedBy = select.getAttribute('aria-describedby');
+    const required = select.getAttribute('aria-required');
+    const invalid = select.getAttribute('aria-invalid');
+    const ariaLabel = select.getAttribute('aria-label');
+
+    if(describedBy){
+      input.setAttribute('aria-describedby', describedBy);
+    } else {
+      input.removeAttribute('aria-describedby');
+    }
+
+    if(required){
+      input.setAttribute('aria-required', required);
+    } else {
+      input.removeAttribute('aria-required');
+    }
+
+    if(invalid){
+      input.setAttribute('aria-invalid', invalid);
+    } else {
+      input.removeAttribute('aria-invalid');
+    }
+
+    if(ariaLabel && !labelId){
+      input.setAttribute('aria-label', ariaLabel);
+      return;
+    }
+
+    if(!labelId){
+      input.removeAttribute('aria-label');
+    }
   };
 
   const renderSelected = ()=>{
@@ -160,6 +213,7 @@ function createOptionList(root){
   };
 
   const sync = ()=>{
+    syncAccessibilityState();
     renderSelected();
     renderResults();
   };

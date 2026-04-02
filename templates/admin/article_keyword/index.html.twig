@@ -60,7 +60,10 @@
                             <td><span data-i18n="{{ keyword.language.translationKey }}">{{ keyword.language.label }}</span></td>
                             <td>
                                 {% if keyword.color %}
-                                    <span style="display:inline-flex;align-items:center;justify-content:center;min-height:30px;padding:0 10px;border-radius:999px;background:{{ keyword.color }};color:#101418;font-weight:700;">{{ keyword.color }}</span>
+                                    <span class="article-keyword-color-badge">
+                                        <span class="article-keyword-color-swatch" style="background:{{ keyword.color }};" aria-hidden="true"></span>
+                                        <span>{{ keyword.color }}</span>
+                                    </span>
                                 {% else %}
                                     <span data-i18n="article_keyword_no_color">Brak koloru</span>
                                 {% endif %}

@@ -97,12 +97,11 @@
                 data-option-list-results-aria-key="article_form_keywords_results_aria"
             >
                 {{ form_widget(form.keywords, { attr: {
-                    class: 'app-option-list-native',
                     'data-option-list-select': 'true',
                     'data-i18n-aria': 'article_form_keywords_select_aria',
                     'aria-label': 'Wybierz słowa kluczowe artykułu'
                 }|merge(keywords_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.keywords.vars.id ~ '-error'} : {}) }) }}
-                <div class="app-option-list-shell">
+                <div class="app-option-list-shell" data-option-list-shell hidden>
                     <div class="app-option-list-selected" data-option-list-selected aria-live="polite" aria-atomic="true" data-i18n-aria="article_form_keywords_selected_aria" aria-label="Wybrane słowa kluczowe"></div>
                     <div class="app-option-list-input-wrap">
                         <input
