@@ -2,6 +2,7 @@ import { registerI18nListener } from './i18n.js';
 import { qs, qsa } from './shared.js';
 
 const customSelectRegistry = new WeakMap();
+let documentClickHandlerRegistered = false;
 
 function isEnhanceableSelect(select){
   return select instanceof HTMLSelectElement
@@ -19,6 +20,10 @@ function buildOptionItems(select){
       selected: option.selected,
       index,
     }));
+}
+
+function getActiveOption(panel){
+  return qs('.app-select-option.is-active', panel);
 }
 
 function createCustomSelect(select){
@@ -80,11 +85,22 @@ function createCustomSelect(select){
     wrapper.classList.toggle('is-invalid', select.getAttribute('aria-invalid') === 'true');
   };
 
+  const syncActiveDescendant = ()=>{
+    const activeOption = getActiveOption(panel);
+    if(activeOption?.id){
+      trigger.setAttribute('aria-activedescendant', activeOption.id);
+      return;
+    }
+
+    trigger.removeAttribute('aria-activedescendant');
+  };
+
   const close = ()=>{
     wrapper.classList.remove('is-open');
     panel.hidden = true;
     trigger.setAttribute('aria-expanded', 'false');
     qsa('.app-select-option.is-active', panel).forEach((option)=> option.classList.remove('is-active'));
+    syncActiveDescendant();
   };
 
   const open = ()=>{
@@ -108,6 +124,7 @@ function createCustomSelect(select){
       const optionButton = document.createElement('button');
       optionButton.type = 'button';
       optionButton.className = 'app-select-option';
+      optionButton.id = panelId ? `${panelId}--option-${item.index}` : `app-select-option-${item.index}`;
       optionButton.setAttribute('role', 'option');
       optionButton.setAttribute('data-value', item.value);
       optionButton.setAttribute('aria-selected', item.selected ? 'true' : 'false');
@@ -125,10 +142,13 @@ function createCustomSelect(select){
       optionButton.addEventListener('mouseenter', ()=>{
         qsa('.app-select-option.is-active', panel).forEach((option)=> option.classList.remove('is-active'));
         optionButton.classList.add('is-active');
+        syncActiveDescendant();
       });
 
       panel.appendChild(optionButton);
     });
+
+    syncActiveDescendant();
   };
 
   const focusOptionByOffset = (offset)=>{
@@ -143,6 +163,7 @@ function createCustomSelect(select){
     options.forEach((option)=> option.classList.remove('is-active'));
     options[nextIndex]?.classList.add('is-active');
     options[nextIndex]?.scrollIntoView({ block: 'nearest' });
+    syncActiveDescendant();
   };
 
   trigger.addEventListener('click', ()=>{
@@ -178,6 +199,16 @@ function createCustomSelect(select){
 
     if(event.key === 'Escape'){
       close();
+      return;
+    }
+
+    if((event.key === 'Enter' || event.key === ' ') && wrapper.classList.contains('is-open')){
+      const activeOption = getActiveOption(panel);
+      if(activeOption){
+        event.preventDefault();
+        activeOption.click();
+        return;
+      }
     }
   });
 
@@ -202,7 +233,7 @@ function createCustomSelect(select){
     }
 
     if(event.key === 'Enter' || event.key === ' '){
-      const activeOption = qs('.app-select-option.is-active', panel);
+      const activeOption = getActiveOption(panel);
       if(!activeOption) return;
       event.preventDefault();
       activeOption.click();
@@ -211,13 +242,6 @@ function createCustomSelect(select){
 
   select.addEventListener('change', sync);
 
-  const handleDocumentClick = (event)=>{
-    if(wrapper.contains(event.target)) return;
-    close();
-  };
-
-  document.addEventListener('click', handleDocumentClick);
-
   const instance = { sync, close };
   customSelectRegistry.set(select, instance);
   sync();
@@ -225,7 +249,26 @@ function createCustomSelect(select){
   return instance;
 }
 
+function registerDocumentClickHandler(){
+  if(documentClickHandlerRegistered) return;
+
+  document.addEventListener('click', (event)=>{
+    qsa('.app-select.is-open').forEach((openSelect)=>{
+      if(openSelect.contains(event.target)) return;
+
+      const select = qs('select.article-editor-select', openSelect);
+      if(!(select instanceof HTMLSelectElement)) return;
+
+      customSelectRegistry.get(select)?.close();
+    });
+  });
+
+  documentClickHandlerRegistered = true;
+}
+
 export function setupCustomSelects(){
+  registerDocumentClickHandler();
+
   qsa('select.article-editor-select').forEach((select)=>{
     if(!isEnhanceableSelect(select)) return;
 

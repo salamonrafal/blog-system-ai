@@ -2,6 +2,7 @@ import { getTranslation, registerI18nListener } from './i18n.js';
 import { qs, qsa } from './shared.js';
 
 const optionListRegistry = new WeakMap();
+let documentClickHandlerRegistered = false;
 
 function getOptionAttribute(root, option, configAttr){
   const attributeName = root.getAttribute(configAttr) || '';
@@ -221,11 +222,6 @@ function createOptionList(root){
     }
   });
 
-  document.addEventListener('click', (event)=>{
-    if(root.contains(event.target)) return;
-    resultsContainer.hidden = true;
-  });
-
   select.addEventListener('change', sync);
 
   const filterSourceId = root.getAttribute('data-option-list-filter-source-id');
@@ -244,7 +240,26 @@ function createOptionList(root){
   return instance;
 }
 
+function registerDocumentClickHandler(){
+  if(documentClickHandlerRegistered) return;
+
+  document.addEventListener('click', (event)=>{
+    qsa('[data-option-list]').forEach((root)=>{
+      if(root.contains(event.target)) return;
+
+      const resultsContainer = qs('[data-option-list-results]', root);
+      if(resultsContainer){
+        resultsContainer.hidden = true;
+      }
+    });
+  });
+
+  documentClickHandlerRegistered = true;
+}
+
 export function setupOptionLists(){
+  registerDocumentClickHandler();
+
   qsa('[data-option-list]').forEach((root)=>{
     const existingInstance = optionListRegistry.get(root);
     if(existingInstance){
