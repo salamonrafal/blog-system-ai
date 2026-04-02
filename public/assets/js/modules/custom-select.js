@@ -24,12 +24,22 @@ function buildOptionItems(select){
 function createCustomSelect(select){
   const wrapper = document.createElement('div');
   wrapper.className = 'app-select';
+  const triggerId = select.id ? `${select.id}--trigger` : '';
+  const panelId = select.id ? `${select.id}--panel` : '';
+  const label = select.id ? document.querySelector(`label[for="${select.id}"]`) : null;
+  const labelId = label instanceof HTMLLabelElement
+    ? (label.id || `${select.id}--label`)
+    : '';
 
   const trigger = document.createElement('button');
   trigger.type = 'button';
   trigger.className = 'app-select-trigger';
+  trigger.setAttribute('role', 'combobox');
   trigger.setAttribute('aria-haspopup', 'listbox');
   trigger.setAttribute('aria-expanded', 'false');
+  if(triggerId) trigger.id = triggerId;
+  if(panelId) trigger.setAttribute('aria-controls', panelId);
+  if(labelId) trigger.setAttribute('aria-labelledby', labelId);
 
   const triggerLabel = document.createElement('span');
   triggerLabel.className = 'app-select-trigger-label';
@@ -44,6 +54,7 @@ function createCustomSelect(select){
   const panel = document.createElement('div');
   panel.className = 'app-select-panel';
   panel.setAttribute('role', 'listbox');
+  if(panelId) panel.id = panelId;
   panel.hidden = true;
 
   const parent = select.parentNode;
@@ -55,6 +66,15 @@ function createCustomSelect(select){
   select.classList.add('app-select-native');
   select.tabIndex = -1;
   select.setAttribute('aria-hidden', 'true');
+  if(label instanceof HTMLLabelElement && labelId){
+    label.id = labelId;
+    label.addEventListener('click', (event)=>{
+      event.preventDefault();
+      if(trigger.disabled) return;
+      trigger.focus({ preventScroll: true });
+      trigger.click();
+    });
+  }
 
   const syncInvalidState = ()=>{
     wrapper.classList.toggle('is-invalid', select.getAttribute('aria-invalid') === 'true');

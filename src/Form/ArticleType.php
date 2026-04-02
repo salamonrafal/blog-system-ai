@@ -104,7 +104,7 @@ class ArticleType extends AbstractType
                     'data-keyword-language' => $keyword->getLanguage()->value,
                     'data-keyword-status' => $keyword->getStatus()->value,
                     'data-keyword-name' => $keyword->getName(),
-                    'data-keyword-scope-label' => $keyword->getLanguage()->label(),
+                    'data-keyword-scope-key' => $keyword->getLanguage()->translationKey(),
                 ],
                 'attr' => [
                     'class' => 'article-editor-input',

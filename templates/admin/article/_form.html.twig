@@ -97,6 +97,7 @@
                 {{ form_widget(form.keywords, { attr: {
                     class: 'app-option-list-native',
                     'data-option-list-select': 'true',
+                    'data-i18n-aria': 'article_form_keywords_select_aria',
                     'aria-label': 'Wybierz słowa kluczowe artykułu'
                 }|merge(keywords_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.keywords.vars.id ~ '-error'} : {}) }) }}
                 <div class="app-option-list-shell">

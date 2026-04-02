@@ -35,6 +35,7 @@ final class ArticleKeywordTypeTest extends TestCase
         $this->assertInstanceOf(TextType::class, $form->get('color')->getConfig()->getType()->getInnerType());
         $this->assertFalse($form->get('color')->getConfig()->getOption('required'));
         $this->assertInstanceOf(TextType::class, $form->get('name')->getConfig()->getType()->getInnerType());
+        $this->assertSame('', $form->get('name')->getConfig()->getOption('empty_data'));
         $this->assertSame(255, $form->get('name')->getConfig()->getOption('attr')['maxlength']);
         $this->assertInstanceOf(EnumType::class, $form->get('status')->getConfig()->getType()->getInnerType());
     }

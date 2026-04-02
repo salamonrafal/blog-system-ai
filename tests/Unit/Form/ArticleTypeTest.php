@@ -80,6 +80,11 @@ final class ArticleTypeTest extends TestCase
         $this->assertTrue($form->get('keywords')->getConfig()->getOption('multiple'));
         $this->assertFalse($form->get('keywords')->getConfig()->getOption('required'));
         $this->assertSame($keywords, $form->get('keywords')->getConfig()->getOption('choices'));
+        $keywordChoiceAttr = $form->get('keywords')->getConfig()->getOption('choice_attr');
+        $allKeywordAttrs = $keywordChoiceAttr($keywords[0], 'php', '0');
+        $enKeywordAttrs = $keywordChoiceAttr($keywords[1], 'ai', '1');
+        $this->assertSame('article_keyword_language_all', $allKeywordAttrs['data-keyword-scope-key']);
+        $this->assertSame('article_language_en', $enKeywordAttrs['data-keyword-scope-key']);
 
         $this->assertInstanceOf(DateTimeType::class, $form->get('publishedAt')->getConfig()->getType()->getInnerType());
         $this->assertFalse($form->get('publishedAt')->getConfig()->getOption('required'));

@@ -32,6 +32,23 @@ final class ArticleKeywordTest extends TestCase
         $this->assertFalse($keyword->isActive());
         $this->assertCount(1, $keyword->getArticles());
         $this->assertSame($article, $keyword->getArticles()->first());
+        $this->assertTrue($article->getKeywords()->contains($keyword));
+    }
+
+    public function testRemovingArticleAlsoRemovesKeywordFromOwningSide(): void
+    {
+        $article = (new Article())
+            ->setTitle('Test article')
+            ->setSlug('test-article');
+
+        $keyword = (new ArticleKeyword())
+            ->setName('php')
+            ->addArticle($article);
+
+        $keyword->removeArticle($article);
+
+        $this->assertFalse($keyword->getArticles()->contains($article));
+        $this->assertFalse($article->getKeywords()->contains($keyword));
     }
 
     public function testKeywordAllowsMissingColor(): void

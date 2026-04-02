@@ -42,6 +42,7 @@ final class ArticleKeywordType extends AbstractType
             ->add('name', TextType::class, [
                 'label' => 'Unikalna nazwa',
                 'label_attr' => ['data-i18n' => 'article_keyword_form_name'],
+                'empty_data' => '',
                 'attr' => [
                     'class' => 'article-editor-input',
                     'maxlength' => 255,

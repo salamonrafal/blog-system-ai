@@ -10,6 +10,7 @@ use App\Repository\ArticleKeywordRepository;
 use App\Service\ArticleKeywordNameGenerator;
 use App\Service\UserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Form\FormError;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -44,8 +45,12 @@ class ArticleKeywordController extends AbstractController
         $form = $this->createForm(ArticleKeywordType::class, $keyword);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted()) {
+        if ($form->isSubmitted() && '' !== trim($keyword->getName())) {
             $articleKeywordNameGenerator->refreshName($keyword);
+        }
+
+        if ($form->isSubmitted() && '' === trim($keyword->getName())) {
+            $form->get('name')->addError(new FormError('validation_article_keyword_name_required'));
         }
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -76,8 +81,12 @@ class ArticleKeywordController extends AbstractController
         $form = $this->createForm(ArticleKeywordType::class, $keyword);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted()) {
+        if ($form->isSubmitted() && '' !== trim($keyword->getName())) {
             $articleKeywordNameGenerator->refreshName($keyword);
+        }
+
+        if ($form->isSubmitted() && '' === trim($keyword->getName())) {
+            $form->get('name')->addError(new FormError('validation_article_keyword_name_required'));
         }
 
         if ($form->isSubmitted() && $form->isValid()) {

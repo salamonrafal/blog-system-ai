@@ -180,6 +180,39 @@ final class ArticleKeywordControllerTest extends TestCase
         $this->assertSame('/admin/article-keywords', $response->getTargetUrl());
     }
 
+    public function testNewDoesNotGenerateFallbackNameForBlankSubmit(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+        $entityManager->expects($this->never())->method('flush');
+
+        $nameGenerator = $this->createMock(ArticleKeywordNameGenerator::class);
+        $nameGenerator->expects($this->never())->method('refreshName');
+
+        $request = new Request([], [
+            'article_keyword' => [
+                'language' => 'pl',
+                'name' => '   ',
+                'status' => 'active',
+                'color' => '',
+            ],
+        ], [], [], [], ['REQUEST_METHOD' => 'POST']);
+
+        $controller = new TestArticleKeywordController();
+        $response = $controller->new(
+            $request,
+            $entityManager,
+            $nameGenerator,
+            $this->createUserLanguageResolverMock('pl'),
+        );
+
+        $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
+        $this->assertSame('admin/article_keyword/new.html.twig', $controller->capturedView);
+        $this->assertInstanceOf(FormInterface::class, $controller->capturedParameters['form']);
+        $this->assertTrue($controller->capturedParameters['form']->isSubmitted());
+        $this->assertFalse($controller->capturedParameters['form']->isValid());
+    }
+
     public function testEditAllowsClearingKeywordColor(): void
     {
         $keyword = (new ArticleKeyword())

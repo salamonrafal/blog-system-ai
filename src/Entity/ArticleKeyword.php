@@ -139,6 +139,7 @@ class ArticleKeyword
     {
         if (!$this->articles->contains($article)) {
             $this->articles->add($article);
+            $article->addKeyword($this);
         }
 
         return $this;
@@ -146,7 +147,9 @@ class ArticleKeyword
 
     public function removeArticle(Article $article): self
     {
-        $this->articles->removeElement($article);
+        if ($this->articles->removeElement($article)) {
+            $article->removeKeyword($this);
+        }
 
         return $this;
     }

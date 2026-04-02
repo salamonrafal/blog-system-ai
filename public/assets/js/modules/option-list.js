@@ -4,15 +4,18 @@ import { qs, qsa } from './shared.js';
 const optionListRegistry = new WeakMap();
 
 function getOptions(select){
-  return [...select.options].map((option)=> ({
-    value: option.value,
-    label: option.dataset.keywordName || option.textContent || '',
-    meta: option.dataset.keywordScopeLabel || '',
-    filterValue: option.getAttribute('data-keyword-language') || '',
-    selected: option.selected,
-    disabled: option.disabled,
-    option,
-  }));
+  return [...select.options].map((option)=> {
+    const metaKey = option.getAttribute('data-keyword-scope-key') || '';
+    return {
+      value: option.value,
+      label: option.dataset.keywordName || option.textContent || '',
+      meta: metaKey ? getTranslation(metaKey) : '',
+      filterValue: option.getAttribute('data-keyword-language') || '',
+      selected: option.selected,
+      disabled: option.disabled,
+      option,
+    };
+  });
 }
 
 function matchesFilter(root, item){
