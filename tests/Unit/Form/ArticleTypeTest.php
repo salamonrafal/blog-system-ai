@@ -98,4 +98,25 @@ final class ArticleTypeTest extends TestCase
         $this->assertSame('UTC', $form->get('publishedAt')->getConfig()->getOption('model_timezone'));
         $this->assertSame('UTC', $form->get('publishedAt')->getConfig()->getOption('view_timezone'));
     }
+
+    public function testInactiveAssignedKeywordIsNotDisabledDuringArticleEdit(): void
+    {
+        $inactiveAssignedKeyword = (new ArticleKeyword())
+            ->setName('legacy-keyword')
+            ->setLanguage(ArticleKeywordLanguage::EN)
+            ->setStatus(ArticleCategoryStatus::INACTIVE);
+
+        $article = (new Article())
+            ->addKeyword($inactiveAssignedKeyword);
+
+        $form = Forms::createFormFactoryBuilder()->getFormFactory()->create(ArticleType::class, $article, [
+            'categories' => [],
+            'keywords' => [$inactiveAssignedKeyword],
+        ]);
+
+        $keywordChoiceAttr = $form->get('keywords')->getConfig()->getOption('choice_attr');
+        $assignedKeywordAttrs = $keywordChoiceAttr($inactiveAssignedKeyword);
+
+        $this->assertArrayNotHasKey('disabled', $assignedKeywordAttrs);
+    }
 }
