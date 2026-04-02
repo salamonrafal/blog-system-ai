@@ -49,7 +49,7 @@ class ArticleKeywordController extends AbstractController
             $articleKeywordNameGenerator->refreshName($keyword);
         }
 
-        if ($form->isSubmitted() && '' === trim($keyword->getName())) {
+        if ($form->isSubmitted() && '' === trim($keyword->getName()) && 0 === $form->get('name')->getErrors(true)->count()) {
             $form->get('name')->addError(new FormError('validation_article_keyword_name_required'));
         }
 
@@ -85,7 +85,7 @@ class ArticleKeywordController extends AbstractController
             $articleKeywordNameGenerator->refreshName($keyword);
         }
 
-        if ($form->isSubmitted() && '' === trim($keyword->getName())) {
+        if ($form->isSubmitted() && '' === trim($keyword->getName()) && 0 === $form->get('name')->getErrors(true)->count()) {
             $form->get('name')->addError(new FormError('validation_article_keyword_name_required'));
         }
 

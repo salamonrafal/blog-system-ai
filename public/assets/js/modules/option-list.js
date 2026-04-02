@@ -3,14 +3,19 @@ import { qs, qsa } from './shared.js';
 
 const optionListRegistry = new WeakMap();
 
-function getOptions(select){
+function getOptionAttribute(root, option, configAttr){
+  const attributeName = root.getAttribute(configAttr) || '';
+  return attributeName ? (option.getAttribute(attributeName) || '') : '';
+}
+
+function getOptions(root, select){
   return [...select.options].map((option)=> {
-    const metaKey = option.getAttribute('data-keyword-scope-key') || '';
+    const metaKey = getOptionAttribute(root, option, 'data-option-list-meta-key-attribute');
     return {
       value: option.value,
-      label: option.dataset.keywordName || option.textContent || '',
+      label: getOptionAttribute(root, option, 'data-option-list-label-attribute') || option.textContent || '',
       meta: metaKey ? getTranslation(metaKey) : '',
-      filterValue: option.getAttribute('data-keyword-language') || '',
+      filterValue: getOptionAttribute(root, option, 'data-option-list-filter-attribute'),
       selected: option.selected,
       disabled: option.disabled,
       option,
@@ -54,7 +59,7 @@ function createOptionList(root){
 
   const renderSelected = ()=>{
     selectedContainer.replaceChildren();
-    const selectedItems = getOptions(select).filter((item)=> item.selected);
+    const selectedItems = getOptions(root, select).filter((item)=> item.selected);
 
     selectedItems.forEach((item)=>{
       const chip = document.createElement('span');
@@ -91,7 +96,7 @@ function createOptionList(root){
   const renderResults = ()=>{
     const query = input.value.trim().toLowerCase();
     const shouldShowResults = document.activeElement === input && query.length >= 1;
-    const availableItems = getOptions(select)
+    const availableItems = getOptions(root, select)
       .filter((item)=> !item.disabled && !item.selected)
       .filter((item)=> matchesFilter(root, item));
     const matchingItems = availableItems.filter((item)=> item.label.toLowerCase().includes(query));
@@ -206,7 +211,7 @@ function createOptionList(root){
     }
 
     if(event.key === 'Backspace' && '' === input.value){
-      const selectedItems = getOptions(select).filter((item)=> item.selected);
+      const selectedItems = getOptions(root, select).filter((item)=> item.selected);
       const lastSelected = selectedItems[selectedItems.length - 1];
       if(lastSelected){
         lastSelected.option.selected = false;
