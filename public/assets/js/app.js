@@ -13,12 +13,15 @@ import {
   setupImportClearConfirmation,
   setupImportDeleteConfirmation,
   setupImportMessageDialog,
+  setupOptionalColorFields,
   setupQueueClearConfirmation,
   setupTopMenuDeleteConfirmation,
   setupTopMenuTargetTabs,
   setupTranslationTabs,
   setupUserDeleteConfirmation,
 } from './modules/admin.js';
+import { setupCustomSelects } from './modules/custom-select.js';
+import { setupOptionLists } from './modules/option-list.js';
 import { setupArticleMarkupEditor } from './modules/editor.js';
 import { applyI18n } from './modules/i18n.js';
 import { setupActions } from './modules/interactions.js';
@@ -41,9 +44,12 @@ function init(){
   setupTooltips();
   setupFlashNotices();
   setupAdminShortcuts();
+  setupCustomSelects();
+  setupOptionLists();
   setupActions({ applyI18n });
   setupCharacterCounters();
   setupHeadlineImageToggle();
+  setupOptionalColorFields();
   setupTranslationTabs();
   setupTopMenuTargetTabs();
   setupCategoryTranslationCopy();

@@ -1,6 +1,6 @@
 import { applyI18n, getTranslation, registerI18nListener } from './i18n.js';
 import { getLang, isAdminDeviceRemembered, setAdminDeviceRemembered } from './preferences.js';
-import { qs, qsa } from './shared.js';
+import { normalizeHexColor, qs, qsa } from './shared.js';
 
 export function syncAdminShortcuts(){
   qsa('[data-admin-shortcuts]').forEach((menu)=>{
@@ -134,6 +134,40 @@ export function setupHeadlineImageToggle(){
 
     syncVisibility();
     toggle.addEventListener('change', syncVisibility);
+  });
+}
+
+export function setupOptionalColorFields(){
+  qsa('[data-optional-color-field]').forEach((field)=>{
+    const hiddenInput = qs('[data-optional-color-value]', field.parentElement);
+    const picker = qs('[data-optional-color-picker]', field);
+    const pickerShell = qs('[data-optional-color-picker-shell]', field);
+    const clearButton = qs('[data-action="clear-optional-color"]', field);
+    if(!hiddenInput || !picker || !pickerShell || !clearButton) return;
+
+    const fallbackColor = '#39ff14';
+
+    const sync = ()=>{
+      const normalizedColor = normalizeHexColor(hiddenInput.value);
+      const isBlank = null === normalizedColor;
+      picker.value = normalizedColor ?? fallbackColor;
+      picker.classList.toggle('is-blank', isBlank);
+      pickerShell.classList.toggle('is-blank', isBlank);
+      clearButton.hidden = isBlank;
+      clearButton.setAttribute('aria-hidden', isBlank ? 'true' : 'false');
+    };
+
+    sync();
+
+    picker.addEventListener('input', ()=>{
+      hiddenInput.value = normalizeHexColor(picker.value) ?? '';
+      sync();
+    });
+
+    clearButton.addEventListener('click', ()=>{
+      hiddenInput.value = '';
+      sync();
+    });
   });
 }
 

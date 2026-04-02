@@ -221,6 +221,13 @@
   max-width:calc(100vw - 24px);
 }
 
+.app-tooltip.is-wrap{
+  width:auto;
+  max-width:min(360px, calc(100vw - 24px));
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+
 .app-tooltip.is-multiline{
   white-space:pre;
 }

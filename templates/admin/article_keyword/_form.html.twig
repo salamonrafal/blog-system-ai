@@ -1,0 +1,126 @@
+{{ form_start(form, { attr: { class: 'article-editor-form' } }) }}
+    {% if form.vars.errors|length > 0 %}
+        <div class="form-errors article-editor-errors" role="alert">
+            {% for error in form.vars.errors %}
+                <p data-i18n="{{ error.message }}">{{ i18n_fallback(error.message) }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="article-editor-fields">
+        <div class="article-editor-grid article-keyword-form-grid">
+            {% set language_has_errors = form.language.vars.errors|length > 0 %}
+            <div class="field article-editor-field{{ language_has_errors ? ' has-error' : '' }}">
+                {{ form_label(form.language) }}
+                {{ form_widget(form.language, { attr: {
+                    class: 'article-editor-input article-editor-select'
+                }|merge(language_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.language.vars.id ~ '-error'} : {}) }) }}
+                {% if language_has_errors %}
+                    <div id="{{ form.language.vars.id }}-error" class="article-editor-error-message" role="alert">
+                        {% for error in form.language.vars.errors %}
+                            <p data-i18n="{{ error.message }}">{{ i18n_fallback(error.message) }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            {% set color_has_errors = form.color.vars.errors|length > 0 %}
+            <div class="field article-editor-field article-keyword-form-color-field{{ color_has_errors ? ' has-error' : '' }}">
+                <div class="article-keyword-form-label-row">
+                    {{ form_label(form.color, null, { label_attr: { class: 'article-keyword-form-label' } }) }}
+                    <button
+                        type="button"
+                        class="article-keyword-help-trigger"
+                        data-i18n-tooltip="article_keyword_form_color_help"
+                        data-i18n-aria="article_keyword_form_color_help"
+                        data-tooltip-wide="true"
+                        data-tooltip-wrap="true"
+                        data-tooltip="Kolor jest opcjonalny. Pozostaw puste pole, aby nie przypisywać koloru."
+                        aria-label="Podpowiedź dla pola koloru"
+                    >?</button>
+                </div>
+                {{ form_widget(form.color, { type: 'hidden', attr: {
+                    'data-optional-color-value': 'true'
+                }|merge(color_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.color.vars.id ~ '-error'} : {}) }) }}
+                <div class="article-keyword-form-color-controls" data-optional-color-field>
+                    <span class="article-keyword-form-color-picker-shell" data-optional-color-picker-shell>
+                        <input
+                            type="color"
+                            class="article-keyword-form-color-picker"
+                            value="{{ form.color.vars.value ?: '#39ff14' }}"
+                            data-optional-color-picker
+                            aria-label="Wybierz kolor słowa kluczowego"
+                        >
+                    </span>
+                    <button
+                        type="button"
+                        class="article-keyword-form-color-clear"
+                        data-action="clear-optional-color"
+                        data-i18n="article_keyword_form_color_clear"
+                    >Wyczyść</button>
+                </div>
+                {% if color_has_errors %}
+                    <div id="{{ form.color.vars.id }}-error" class="article-editor-error-message" role="alert">
+                        {% for error in form.color.vars.errors %}
+                            <p data-i18n="{{ error.message }}">{{ i18n_fallback(error.message) }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            {% set status_has_errors = form.status.vars.errors|length > 0 %}
+            <div class="field article-editor-field{{ status_has_errors ? ' has-error' : '' }}">
+                {{ form_label(form.status) }}
+                {{ form_widget(form.status, { attr: {
+                    class: 'article-editor-input article-editor-select'
+                }|merge(status_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.status.vars.id ~ '-error'} : {}) }) }}
+                {% if status_has_errors %}
+                    <div id="{{ form.status.vars.id }}-error" class="article-editor-error-message" role="alert">
+                        {% for error in form.status.vars.errors %}
+                            <p data-i18n="{{ error.message }}">{{ i18n_fallback(error.message) }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% set name_has_errors = form.name.vars.errors|length > 0 %}
+        {% set name_counter_id = form.name.vars.id ~ '-char-count' %}
+        {% set name_described_by = name_counter_id ~ (name_has_errors ? ' ' ~ form.name.vars.id ~ '-error' : '') %}
+        <div class="field article-editor-field{{ name_has_errors ? ' has-error' : '' }}">
+            <div class="article-keyword-form-label-row">
+                {{ form_label(form.name, null, { label_attr: { class: 'article-keyword-form-label' } }) }}
+                <button
+                    type="button"
+                    class="article-keyword-help-trigger"
+                    data-i18n-tooltip="article_keyword_form_name_help"
+                    data-i18n-aria="article_keyword_form_name_help"
+                    data-tooltip-wide="true"
+                    data-tooltip-wrap="true"
+                    data-tooltip="Wartość zostanie znormalizowana do formatu przypominającego slug."
+                    aria-label="Podpowiedź dla pola unikalnej nazwy"
+                >?</button>
+            </div>
+            {{ form_widget(form.name, { attr: {
+                class: 'article-editor-input',
+                'data-character-count-input': 'true'
+            }|merge({'aria-describedby': name_described_by})|merge(name_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
+            <div class="article-editor-field-meta">
+                <span id="{{ name_counter_id }}" class="article-editor-character-count" data-character-count-target>{{ form.name.vars.value|default('')|length }} / {{ form.name.vars.attr.maxlength }}</span>
+            </div>
+            {% if name_has_errors %}
+                <div id="{{ form.name.vars.id }}-error" class="article-editor-error-message" role="alert">
+                    {% for error in form.name.vars.errors %}
+                        <p data-i18n="{{ error.message }}">{{ i18n_fallback(error.message) }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <div class="actions">
+        <button class="button" type="submit" data-i18n="{{ keyword is defined ? 'article_keyword_form_submit_update' : 'article_keyword_form_submit_create' }}">{{ keyword is defined ? 'Zapisz zmiany' : 'Dodaj słowo kluczowe' }}</button>
+        <a class="button secondary" href="{{ path('admin_article_keyword_index') }}" data-i18n="category_form_back_to_list">Wróć do listy</a>
+    </div>
+{{ form_end(form) }}

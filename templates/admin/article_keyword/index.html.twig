@@ -1,0 +1,103 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Słowa kluczowe | {{ app_name }}{% endblock %}
+
+{% block body %}
+    <section class="section">
+        <div class="card">
+            <div class="card-header">
+                <div class="window-dots" aria-hidden="true">
+                    <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                </div>
+                <span class="pill">admin://article-keywords</span>
+            </div>
+
+            <div class="dashboard-feed-intro">
+                <h1 data-i18n="admin_article_keyword_index_title">Zarządzanie słowami kluczowymi artykułów</h1>
+                <p class="lede" data-i18n="admin_article_keyword_index_lede">Twórz słowa kluczowe per język, kontroluj ich aktywność i dobieraj kolor, który pomoże w personalizacji oznaczeń treści.</p>
+
+                <div class="actions">
+                    <a class="button" href="{{ path('admin_article_keyword_new') }}" data-i18n="article_keyword_form_submit_create">Dodaj słowo kluczowe</a>
+                </div>
+
+                <section class="article-edit-meta-panel article-edit-meta-panel-compact" data-i18n-aria="admin_article_keyword_overview_aria" aria-label="Podsumowanie słów kluczowych">
+                    <div class="article-edit-meta-header">
+                        <span class="pill">admin://keyword-overview</span>
+                    </div>
+                    <dl class="article-edit-meta-list article-edit-meta-list-compact">
+                        <div class="article-edit-meta-item">
+                            <dt class="article-edit-meta-label" data-i18n="admin_article_keyword_overview_all">Wszystkie słowa kluczowe</dt>
+                            <dd class="article-edit-meta-value">{{ keyword_stats.all }}</dd>
+                        </div>
+                        <div class="article-edit-meta-item">
+                            <dt class="article-edit-meta-label" data-i18n="admin_article_keyword_overview_active">Aktywne</dt>
+                            <dd class="article-edit-meta-value">{{ keyword_stats.active }}</dd>
+                        </div>
+                        <div class="article-edit-meta-item">
+                            <dt class="article-edit-meta-label" data-i18n="admin_article_keyword_overview_inactive">Nieaktywne</dt>
+                            <dd class="article-edit-meta-value">{{ keyword_stats.inactive }}</dd>
+                        </div>
+                    </dl>
+                </section>
+            </div>
+
+            <div class="table-wrap article-index-table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th data-i18n="article_keyword_form_name">Unikalna nazwa</th>
+                        <th data-i18n="form_language">Język</th>
+                        <th data-i18n="article_keyword_form_color">Kolor</th>
+                        <th data-i18n="admin_table_status">Stan</th>
+                        <th data-i18n="admin_table_updated">Aktualizacja</th>
+                        <th data-i18n="admin_table_action">Akcja</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for keyword in keywords %}
+                        <tr>
+                            <td><strong>{{ keyword.name }}</strong></td>
+                            <td><span data-i18n="{{ keyword.language.translationKey }}">{{ keyword.language.label }}</span></td>
+                            <td>
+                                {% if keyword.color %}
+                                    <span style="display:inline-flex;align-items:center;justify-content:center;min-height:30px;padding:0 10px;border-radius:999px;background:{{ keyword.color }};color:#101418;font-weight:700;">{{ keyword.color }}</span>
+                                {% else %}
+                                    <span data-i18n="article_keyword_no_color">Brak koloru</span>
+                                {% endif %}
+                            </td>
+                            <td class="article-index-status-cell">
+                                <span data-i18n="{{ keyword.status.translationKey }}">{{ keyword.status.label }}</span>
+                            </td>
+                            <td class="article-index-updated-cell">{{ keyword.updatedAt|user_date }}</td>
+                            <td>
+                                <div class="actions">
+                                    <a class="button secondary article-action-button" href="{{ path('admin_article_keyword_edit', {id: keyword.id}) }}" data-i18n-title="admin_table_edit" data-i18n-tooltip="admin_table_edit" data-i18n-aria="admin_table_edit" data-tooltip="Edytuj" aria-label="Edytuj słowo kluczowe">
+                                        <span class="article-action-icon is-edit" aria-hidden="true"></span>
+                                    </a>
+                                    <form method="post" action="{{ path('admin_article_keyword_delete', {id: keyword.id}) }}" data-delete-form>
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete_article_keyword_' ~ keyword.id) }}">
+                                        <button
+                                            class="button secondary button-danger article-action-button"
+                                            type="submit"
+                                            data-i18n-tooltip="admin_table_delete"
+                                            data-i18n-aria="admin_table_delete"
+                                            data-tooltip="Usuń"
+                                            aria-label="Usuń słowo kluczowe"
+                                        >
+                                            <span class="article-action-icon is-delete" aria-hidden="true"></span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="6" data-i18n="admin_article_keyword_table_empty">Nie znaleziono słów kluczowych.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+{% endblock %}

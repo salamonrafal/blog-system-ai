@@ -6,8 +6,10 @@ namespace App\Form;
 
 use App\Entity\Article;
 use App\Entity\ArticleCategory;
+use App\Entity\ArticleKeyword;
 use App\Enum\ArticleLanguage;
 use App\Enum\ArticleStatus;
+use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -85,6 +87,29 @@ class ArticleType extends AbstractType
                 'choices' => $options['categories'],
                 'choice_label' => static fn (ArticleCategory $category): string => $category->getName(),
             ])
+            ->add('keywords', ChoiceType::class, [
+                'label' => 'Keywords',
+                'label_attr' => ['data-i18n' => 'article_form_keywords'],
+                'required' => false,
+                'multiple' => true,
+                'by_reference' => false,
+                'choice_translation_domain' => false,
+                'choices' => $options['keywords'],
+                'choice_label' => static fn (ArticleKeyword $keyword): string => sprintf(
+                    '%s (%s)',
+                    $keyword->getName(),
+                    $keyword->getLanguage()->label(),
+                ),
+                'choice_attr' => static fn (ArticleKeyword $keyword): array => [
+                    'data-keyword-language' => $keyword->getLanguage()->value,
+                    'data-keyword-status' => $keyword->getStatus()->value,
+                    'data-keyword-name' => $keyword->getName(),
+                    'data-keyword-scope-label' => $keyword->getLanguage()->label(),
+                ],
+                'attr' => [
+                    'class' => 'article-editor-input',
+                ],
+            ])
             ->add('publishedAt', DateTimeType::class, [
                 'label' => 'Publish date',
                 'label_attr' => ['data-i18n' => 'form_publish_date'],
@@ -95,6 +120,13 @@ class ArticleType extends AbstractType
                 'view_timezone' => 'UTC',
                 'invalid_message' => 'validation_article_published_at_invalid',
             ]);
+
+        $builder->get('keywords')->addModelTransformer(new CallbackTransformer(
+            static fn (mixed $keywords): array => $keywords instanceof \Traversable
+                ? iterator_to_array($keywords)
+                : (is_array($keywords) ? $keywords : []),
+            static fn (mixed $keywords): mixed => $keywords,
+        ));
     }
 
     public function configureOptions(OptionsResolver $resolver): void
@@ -102,8 +134,10 @@ class ArticleType extends AbstractType
         $resolver->setDefaults([
             'data_class' => Article::class,
             'categories' => [],
+            'keywords' => [],
         ]);
 
         $resolver->setAllowedTypes('categories', 'array');
+        $resolver->setAllowedTypes('keywords', 'array');
     }
 }

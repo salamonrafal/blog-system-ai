@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edytuj słowo kluczowe | {{ app_name }}{% endblock %}
+
+{% block body %}
+    <section class="section">
+        <div class="card">
+            <div class="card-header">
+                <div class="window-dots" aria-hidden="true">
+                    <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                </div>
+                <span class="pill">admin://article-keywords/{{ keyword.id }}</span>
+            </div>
+
+            <div class="dashboard-feed-intro">
+                <h1 data-i18n="admin_article_keyword_edit_title">Edytuj słowo kluczowe</h1>
+                <p class="lede" data-i18n="admin_article_keyword_edit_lede">Aktualizuj język, stan, unikalną nazwę i kolor używany przy oznaczaniu artykułów.</p>
+            </div>
+
+            {% include 'admin/article_keyword/_form.html.twig' with { form: form, keyword: keyword } %}
+        </div>
+    </section>
+{% endblock %}

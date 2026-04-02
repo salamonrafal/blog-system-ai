@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Service;
 use App\Entity\TopMenuItem;
 use App\Repository\TopMenuItemRepository;
 use App\Service\ArticleSlugger;
+use App\Service\SlugBasedUniqueNameGenerator;
 use App\Service\TopMenuItemUniqueNameGenerator;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -21,7 +22,7 @@ final class TopMenuItemUniqueNameGeneratorTest extends TestCase
 
         $generator = new TopMenuItemUniqueNameGenerator(
             $this->createRepositoryMock(['kontakt']),
-            new ArticleSlugger(),
+            new SlugBasedUniqueNameGenerator(new ArticleSlugger()),
         );
 
         $generator->refreshUniqueName($menuItem);
@@ -36,7 +37,7 @@ final class TopMenuItemUniqueNameGeneratorTest extends TestCase
 
         $generator = new TopMenuItemUniqueNameGenerator(
             $this->createRepositoryMock([]),
-            new ArticleSlugger(),
+            new SlugBasedUniqueNameGenerator(new ArticleSlugger()),
         );
 
         $generator->refreshUniqueName($menuItem);
@@ -52,7 +53,7 @@ final class TopMenuItemUniqueNameGeneratorTest extends TestCase
 
         $generator = new TopMenuItemUniqueNameGenerator(
             $this->createRepositoryMock([str_repeat('a', 255)]),
-            new ArticleSlugger(),
+            new SlugBasedUniqueNameGenerator(new ArticleSlugger()),
         );
 
         $generator->refreshUniqueName($menuItem);

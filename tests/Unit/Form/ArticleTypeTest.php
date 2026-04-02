@@ -6,6 +6,8 @@ namespace App\Tests\Unit\Form;
 
 use App\Entity\Article;
 use App\Entity\ArticleCategory;
+use App\Entity\ArticleKeyword;
+use App\Enum\ArticleKeywordLanguage;
 use App\Enum\ArticleLanguage;
 use App\Enum\ArticleStatus;
 use App\Form\ArticleType;
@@ -39,8 +41,13 @@ final class ArticleTypeTest extends TestCase
             (new ArticleCategory())->setName('PHP'),
             (new ArticleCategory())->setName('AI'),
         ];
+        $keywords = [
+            (new ArticleKeyword())->setName('php')->setLanguage(ArticleKeywordLanguage::ALL),
+            (new ArticleKeyword())->setName('ai')->setLanguage(ArticleKeywordLanguage::EN),
+        ];
         $form = $factory->create(ArticleType::class, new Article(), [
             'categories' => $categories,
+            'keywords' => $keywords,
         ]);
 
         $this->assertInstanceOf(TextType::class, $form->get('title')->getConfig()->getType()->getInnerType());
@@ -68,6 +75,11 @@ final class ArticleTypeTest extends TestCase
         $this->assertFalse($form->get('category')->getConfig()->getOption('required'));
         $this->assertSame('---', $form->get('category')->getConfig()->getOption('placeholder'));
         $this->assertSame($categories, $form->get('category')->getConfig()->getOption('choices'));
+
+        $this->assertInstanceOf(ChoiceType::class, $form->get('keywords')->getConfig()->getType()->getInnerType());
+        $this->assertTrue($form->get('keywords')->getConfig()->getOption('multiple'));
+        $this->assertFalse($form->get('keywords')->getConfig()->getOption('required'));
+        $this->assertSame($keywords, $form->get('keywords')->getConfig()->getOption('choices'));
 
         $this->assertInstanceOf(DateTimeType::class, $form->get('publishedAt')->getConfig()->getType()->getInnerType());
         $this->assertFalse($form->get('publishedAt')->getConfig()->getOption('required'));
