@@ -85,6 +85,30 @@ function createCustomSelect(select){
     wrapper.classList.toggle('is-invalid', select.getAttribute('aria-invalid') === 'true');
   };
 
+  const syncAccessibilityState = ()=>{
+    const describedBy = select.getAttribute('aria-describedby');
+    const required = select.getAttribute('aria-required');
+    const invalid = select.getAttribute('aria-invalid');
+
+    if(describedBy){
+      trigger.setAttribute('aria-describedby', describedBy);
+    } else {
+      trigger.removeAttribute('aria-describedby');
+    }
+
+    if(required){
+      trigger.setAttribute('aria-required', required);
+    } else {
+      trigger.removeAttribute('aria-required');
+    }
+
+    if(invalid){
+      trigger.setAttribute('aria-invalid', invalid);
+    } else {
+      trigger.removeAttribute('aria-invalid');
+    }
+  };
+
   const syncActiveDescendant = ()=>{
     const activeOption = getActiveOption(panel);
     if(activeOption?.id){
@@ -112,6 +136,7 @@ function createCustomSelect(select){
 
   const sync = ()=>{
     syncInvalidState();
+    syncAccessibilityState();
     trigger.disabled = select.disabled;
     trigger.classList.toggle('is-disabled', select.disabled);
 

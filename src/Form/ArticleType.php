@@ -100,12 +100,12 @@ class ArticleType extends AbstractType
                     $keyword->getName(),
                     $keyword->getLanguage()->label(),
                 ),
-                'choice_attr' => static fn (ArticleKeyword $keyword): array => [
+                'choice_attr' => static fn (ArticleKeyword $keyword): array => array_filter([
                     'data-keyword-language' => $keyword->getLanguage()->value,
-                    'data-keyword-status' => $keyword->getStatus()->value,
                     'data-keyword-name' => $keyword->getName(),
                     'data-keyword-scope-key' => $keyword->getLanguage()->translationKey(),
-                ],
+                    'disabled' => !$keyword->isActive() ? 'disabled' : null,
+                ], static fn (mixed $value): bool => null !== $value),
                 'attr' => [
                     'class' => 'article-editor-input',
                 ],

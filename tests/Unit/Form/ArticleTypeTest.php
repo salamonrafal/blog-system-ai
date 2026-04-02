@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Form;
 use App\Entity\Article;
 use App\Entity\ArticleCategory;
 use App\Entity\ArticleKeyword;
+use App\Enum\ArticleCategoryStatus;
 use App\Enum\ArticleKeywordLanguage;
 use App\Enum\ArticleLanguage;
 use App\Enum\ArticleStatus;
@@ -43,7 +44,7 @@ final class ArticleTypeTest extends TestCase
         ];
         $keywords = [
             (new ArticleKeyword())->setName('php')->setLanguage(ArticleKeywordLanguage::ALL),
-            (new ArticleKeyword())->setName('ai')->setLanguage(ArticleKeywordLanguage::EN),
+            (new ArticleKeyword())->setName('ai')->setLanguage(ArticleKeywordLanguage::EN)->setStatus(ArticleCategoryStatus::INACTIVE),
         ];
         $form = $factory->create(ArticleType::class, new Article(), [
             'categories' => $categories,
@@ -85,6 +86,10 @@ final class ArticleTypeTest extends TestCase
         $enKeywordAttrs = $keywordChoiceAttr($keywords[1]);
         $this->assertSame('article_keyword_language_all', $allKeywordAttrs['data-keyword-scope-key']);
         $this->assertSame('article_language_en', $enKeywordAttrs['data-keyword-scope-key']);
+        $this->assertArrayNotHasKey('disabled', $allKeywordAttrs);
+        $this->assertSame('disabled', $enKeywordAttrs['disabled']);
+        $this->assertArrayNotHasKey('data-keyword-status', $allKeywordAttrs);
+        $this->assertArrayNotHasKey('data-keyword-status', $enKeywordAttrs);
 
         $this->assertInstanceOf(DateTimeType::class, $form->get('publishedAt')->getConfig()->getType()->getInnerType());
         $this->assertFalse($form->get('publishedAt')->getConfig()->getOption('required'));
