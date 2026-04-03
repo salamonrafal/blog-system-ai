@@ -171,7 +171,7 @@ class BlogController extends AbstractController
         $topKeywordLinks = null;
 
         if (null === $currentCategory && null === $currentKeyword) {
-            $topKeywordLinks = $this->buildTopKeywordLinks($articleKeywordRepository->findTopUsedInPublishedArticles());
+            $topKeywordLinks = $this->buildTopKeywordLinks($articleKeywordRepository->findTopUsedInPublishedArticles(5));
         }
 
         return $this->render('blog/index.html.twig', [

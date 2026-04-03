@@ -16,6 +16,36 @@ function shouldUseCollapsedAdminSubmenuPopover(submenu){
     && isDesktopAdminShortcutsViewport();
 }
 
+function syncCollapsedSubmenuAccessibility(shortcuts){
+  if(!(shortcuts instanceof HTMLElement)) return;
+
+  const isCollapsed = shortcuts.classList.contains('is-docked')
+    && shortcuts.classList.contains('is-collapsed')
+    && isDesktopAdminShortcutsViewport();
+
+  qsa('[data-admin-shortcuts-submenu]', shortcuts).forEach((submenu)=>{
+    const trigger = qs('[data-action="toggle-admin-submenu"]', submenu);
+    const panel = qs('.admin-shortcuts-submenu-panel', submenu);
+    if(!(trigger instanceof HTMLElement) || !(panel instanceof HTMLElement)) return;
+
+    const originalControls = trigger.dataset.originalAriaControls || trigger.getAttribute('aria-controls') || panel.id;
+    if(originalControls){
+      trigger.dataset.originalAriaControls = originalControls;
+    }
+
+    if(isCollapsed){
+      if(!submenu.classList.contains('is-open')){
+        trigger.removeAttribute('aria-controls');
+      }
+      return;
+    }
+
+    if(originalControls){
+      trigger.setAttribute('aria-controls', originalControls);
+    }
+  });
+}
+
 function syncCollapsedShortcutTooltips(shortcuts){
   if(!shortcuts) return;
 
@@ -122,9 +152,7 @@ export function syncAdminShortcuts(){
       if(isDocked){
         shortcuts.setAttribute('open', '');
       }else{
-        if(isDesktopViewport){
-          shortcuts.removeAttribute('open');
-        }
+        shortcuts.removeAttribute('open');
         shortcuts.classList.remove('is-collapsed');
       }
     }else{
@@ -132,6 +160,7 @@ export function syncAdminShortcuts(){
       shortcuts.classList.remove('is-collapsed');
     }
 
+    syncCollapsedSubmenuAccessibility(shortcuts);
     syncCollapsedShortcutTooltips(shortcuts);
   });
 }
@@ -159,6 +188,17 @@ export function setupAdminShortcuts(){
       const ownerTrigger = qs('[data-action="toggle-admin-submenu"]', collapsedSubmenuOwner);
       if(ownerTrigger){
         ownerTrigger.setAttribute('aria-expanded', 'false');
+        const ownerShortcuts = collapsedSubmenuOwner.closest('.admin-shortcuts');
+        if(
+          ownerShortcuts instanceof HTMLElement
+          && ownerShortcuts.classList.contains('is-docked')
+          && ownerShortcuts.classList.contains('is-collapsed')
+          && isDesktopAdminShortcutsViewport()
+        ){
+          ownerTrigger.removeAttribute('aria-controls');
+        }else if(ownerTrigger.dataset.originalAriaControls){
+          ownerTrigger.setAttribute('aria-controls', ownerTrigger.dataset.originalAriaControls);
+        }
       }
     }
 
@@ -181,12 +221,13 @@ export function setupAdminShortcuts(){
 
     const popover = ensureCollapsedSubmenuPopover();
     const clone = sourcePanel.cloneNode(true);
-    clone.removeAttribute('id');
+    clone.id = `${sourcePanel.id || 'admin-shortcuts-submenu'}-popover`;
     clone.classList.add('admin-shortcuts-collapsed-popover-panel');
 
     closeCollapsedSubmenuPopover();
     submenu.classList.add('is-open');
     trigger.setAttribute('aria-expanded', 'true');
+    trigger.setAttribute('aria-controls', clone.id);
     collapsedSubmenuOwner = submenu;
 
     popover.innerHTML = '';
@@ -229,6 +270,9 @@ export function setupAdminShortcuts(){
     const trigger = qs('[data-action="toggle-admin-submenu"]', submenu);
     if(trigger){
       trigger.setAttribute('aria-expanded', 'false');
+      if(trigger.dataset.originalAriaControls){
+        trigger.setAttribute('aria-controls', trigger.dataset.originalAriaControls);
+      }
     }
   };
 
@@ -243,6 +287,9 @@ export function setupAdminShortcuts(){
     const trigger = qs('[data-action="toggle-admin-submenu"]', submenu);
     if(trigger){
       trigger.setAttribute('aria-expanded', 'true');
+      if(trigger.dataset.originalAriaControls){
+        trigger.setAttribute('aria-controls', trigger.dataset.originalAriaControls);
+      }
     }
   };
 
