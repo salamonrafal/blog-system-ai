@@ -28,6 +28,7 @@ class BlogController extends AbstractController
         Request $request,
         ArticleRepository $articleRepository,
         ArticleCategoryRepository $articleCategoryRepository,
+        ArticleKeywordRepository $articleKeywordRepository,
         BlogSettingsProvider $blogSettingsProvider,
         PaginationBuilder $paginationBuilder,
         UserLanguageResolver $userLanguageResolver,
@@ -37,6 +38,7 @@ class BlogController extends AbstractController
             $request,
             $articleRepository,
             $articleCategoryRepository,
+            $articleKeywordRepository,
             $blogSettingsProvider,
             $paginationBuilder,
             $userLanguageResolver,
@@ -49,6 +51,7 @@ class BlogController extends AbstractController
         Request $request,
         ArticleRepository $articleRepository,
         ArticleCategoryRepository $articleCategoryRepository,
+        ArticleKeywordRepository $articleKeywordRepository,
         BlogSettingsProvider $blogSettingsProvider,
         PaginationBuilder $paginationBuilder,
         UserLanguageResolver $userLanguageResolver,
@@ -58,6 +61,7 @@ class BlogController extends AbstractController
             $request,
             $articleRepository,
             $articleCategoryRepository,
+            $articleKeywordRepository,
             $blogSettingsProvider,
             $paginationBuilder,
             $userLanguageResolver,
@@ -82,6 +86,7 @@ class BlogController extends AbstractController
             $request,
             $articleRepository,
             $articleCategoryRepository,
+            $articleKeywordRepository,
             $blogSettingsProvider,
             $paginationBuilder,
             $userLanguageResolver,
@@ -137,6 +142,7 @@ class BlogController extends AbstractController
         Request $request,
         ArticleRepository $articleRepository,
         ArticleCategoryRepository $articleCategoryRepository,
+        ArticleKeywordRepository $articleKeywordRepository,
         BlogSettingsProvider $blogSettingsProvider,
         PaginationBuilder $paginationBuilder,
         UserLanguageResolver $userLanguageResolver,
@@ -162,6 +168,11 @@ class BlogController extends AbstractController
         $currentCategorySlug = $this->findCategorySlug($categoryLinks, $currentCategory);
         $paginationRoute = $this->resolvePaginationRoute($currentCategory, $currentKeyword);
         $paginationRouteParams = $this->buildPaginationRouteParams($currentCategorySlug, $currentKeyword, $language);
+        $topKeywordLinks = null;
+
+        if (null === $currentCategory && null === $currentKeyword) {
+            $topKeywordLinks = $this->buildTopKeywordLinks($articleKeywordRepository->findTopUsedInPublishedArticles());
+        }
 
         return $this->render('blog/index.html.twig', [
             'articles' => $articleRepository->findPublishedPaginated(null, $currentPage, $articlesPerPage, $currentCategory, $currentKeyword),
@@ -176,6 +187,7 @@ class BlogController extends AbstractController
             'pagination_items' => $paginationBuilder->buildPaginationItems($currentPage, $totalPages),
             'pagination_route' => $paginationRoute,
             'pagination_route_params' => $paginationRouteParams,
+            'top_keywords' => $topKeywordLinks,
         ]);
     }
 
@@ -276,6 +288,25 @@ class BlogController extends AbstractController
                 ],
             ],
             $keywords,
+        );
+    }
+
+    /**
+     * @param list<array{keyword: ArticleKeyword, article_count: int}> $topKeywords
+     * @return list<array{keyword: ArticleKeyword, article_count: int, route_params: array{language: string, name: string}}>
+     */
+    private function buildTopKeywordLinks(array $topKeywords): array
+    {
+        return array_map(
+            static fn (array $item): array => [
+                'keyword' => $item['keyword'],
+                'article_count' => $item['article_count'],
+                'route_params' => [
+                    'language' => $item['keyword']->getLanguage()->value,
+                    'name' => $item['keyword']->getName(),
+                ],
+            ],
+            $topKeywords,
         );
     }
 

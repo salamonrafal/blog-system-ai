@@ -1,6 +1,8 @@
 import { getBrowserTimeZone, getContrastColor, hexToRgb, normalizeHexColor, qsa } from './shared.js';
 
 const ADMIN_DEVICE_STORAGE_KEY = 'admin_device_remembered';
+const ADMIN_SHORTCUTS_DOCKED_STORAGE_KEY = 'admin_shortcuts_docked';
+const ADMIN_SHORTCUTS_COLLAPSED_STORAGE_KEY = 'admin_shortcuts_collapsed';
 const USER_LANGUAGE_COOKIE_NAME = 'user_language';
 const USER_TIMEZONE_COOKIE_NAME = 'user_timezone';
 
@@ -83,6 +85,32 @@ export function setAdminDeviceRemembered(remembered){
   }
 
   localStorage.removeItem(ADMIN_DEVICE_STORAGE_KEY);
+}
+
+export function isAdminShortcutsDocked(){
+  return localStorage.getItem(ADMIN_SHORTCUTS_DOCKED_STORAGE_KEY) === '1';
+}
+
+export function setAdminShortcutsDocked(docked){
+  if(docked){
+    localStorage.setItem(ADMIN_SHORTCUTS_DOCKED_STORAGE_KEY, '1');
+    return;
+  }
+
+  localStorage.removeItem(ADMIN_SHORTCUTS_DOCKED_STORAGE_KEY);
+}
+
+export function isAdminShortcutsCollapsed(){
+  return localStorage.getItem(ADMIN_SHORTCUTS_COLLAPSED_STORAGE_KEY) === '1';
+}
+
+export function setAdminShortcutsCollapsed(collapsed){
+  if(collapsed){
+    localStorage.setItem(ADMIN_SHORTCUTS_COLLAPSED_STORAGE_KEY, '1');
+    return;
+  }
+
+  localStorage.removeItem(ADMIN_SHORTCUTS_COLLAPSED_STORAGE_KEY);
 }
 
 export function persistUserTimeZone(){

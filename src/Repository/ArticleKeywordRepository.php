@@ -7,6 +7,7 @@ namespace App\Repository;
 use App\Entity\ArticleKeyword;
 use App\Enum\ArticleCategoryStatus;
 use App\Enum\ArticleKeywordLanguage;
+use App\Enum\ArticleStatus;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -93,5 +94,37 @@ class ArticleKeywordRepository extends ServiceEntityRepository
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
+    }
+
+    /**
+     * @return list<array{keyword: ArticleKeyword, article_count: int}>
+     */
+    public function findTopUsedInPublishedArticles(int $limit = 5): array
+    {
+        $limit = max(1, $limit);
+
+        /** @var list<array{0: ArticleKeyword, articleCount: string|int}> $rows */
+        $rows = $this->createQueryBuilder('keyword')
+            ->select('keyword, COUNT(DISTINCT article.id) AS articleCount')
+            ->innerJoin('keyword.articles', 'article')
+            ->andWhere('keyword.status = :keywordStatus')
+            ->andWhere('article.status = :articleStatus')
+            ->setParameter('keywordStatus', ArticleCategoryStatus::ACTIVE)
+            ->setParameter('articleStatus', ArticleStatus::PUBLISHED)
+            ->groupBy('keyword.id')
+            ->orderBy('articleCount', 'DESC')
+            ->addOrderBy('keyword.name', 'ASC')
+            ->addOrderBy('keyword.id', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        return array_map(
+            static fn (array $row): array => [
+                'keyword' => $row[0],
+                'article_count' => (int) $row['articleCount'],
+            ],
+            $rows,
+        );
     }
 }

@@ -135,6 +135,27 @@
                         {% endif %}
                     </nav>
                 {% endif %}
+
+                {% if top_keywords is not empty %}
+                    <section class="article-keywords-panel article-keywords-panel-top-list">
+                        <div class="article-keywords-header">
+                            <span class="blog-category-title article-keywords-top-title" data-i18n="blog_top_keywords_title">TOP 5 słów kluczowych</span>
+                        </div>
+                        <div class="article-keywords-top-listing">
+                            {% for item in top_keywords %}
+                                <a
+                                    class="article-keyword-badge article-keyword-badge-top"
+                                    href="{{ path('blog_keyword', item.route_params) }}"
+                                    {% if item.keyword.color %}style="--keyword-accent: {{ item.keyword.color }};"{% endif %}
+                                >
+                                    <span class="article-keyword-badge-dot" aria-hidden="true"></span>
+                                    <span class="article-keyword-badge-label">{{ item.keyword.name }}</span>
+                                    <span class="article-keyword-count">{{ item.article_count }}</span>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </section>
+                {% endif %}
             {% else %}
                 <div class="blog-empty-state">
                     <p class="meta blog-empty-state-message" role="status" data-i18n="blog_no_articles">Brak opublikowanych artykułów.</p>

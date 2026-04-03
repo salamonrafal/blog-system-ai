@@ -53,6 +53,21 @@ final class BlogControllerTest extends TestCase
             ->method('findActiveOrderedByName')
             ->willReturn([$category]);
 
+        $keyword = (new ArticleKeyword())
+            ->setName('php')
+            ->setLanguage(ArticleKeywordLanguage::PL);
+        $keywordRepository = $this->createMock(ArticleKeywordRepository::class);
+        $keywordRepository
+            ->expects($this->once())
+            ->method('findTopUsedInPublishedArticles')
+            ->with(5)
+            ->willReturn([
+                [
+                    'keyword' => $keyword,
+                    'article_count' => 3,
+                ],
+            ]);
+
         $settingsProvider = $this->createMock(BlogSettingsProvider::class);
         $settingsProvider
             ->expects($this->once())
@@ -68,6 +83,7 @@ final class BlogControllerTest extends TestCase
             $request,
             $articleRepository,
             $categoryRepository,
+            $keywordRepository,
             $settingsProvider,
             new PaginationBuilder(),
             $userLanguageResolver,
@@ -82,6 +98,16 @@ final class BlogControllerTest extends TestCase
         $this->assertSame('programowanie-php', $controller->capturedParameters['categories'][0]['slug']);
         $this->assertSame([1, 2], $controller->capturedParameters['pagination_items']);
         $this->assertSame('PHP', $controller->capturedParameters['categories'][0]['category']->getLocalizedTitle('pl'));
+        $this->assertSame([
+            [
+                'keyword' => $keyword,
+                'article_count' => 3,
+                'route_params' => [
+                    'language' => 'pl',
+                    'name' => 'php',
+                ],
+            ],
+        ], $controller->capturedParameters['top_keywords']);
     }
 
     public function testCategoryRendersOnlyArticlesFromMatchedCategory(): void
@@ -113,6 +139,11 @@ final class BlogControllerTest extends TestCase
             ->method('findActiveOrderedByName')
             ->willReturn([$category]);
 
+        $keywordRepository = $this->createMock(ArticleKeywordRepository::class);
+        $keywordRepository
+            ->expects($this->never())
+            ->method('findTopUsedInPublishedArticles');
+
         $settingsProvider = $this->createMock(BlogSettingsProvider::class);
         $settingsProvider
             ->expects($this->once())
@@ -130,6 +161,7 @@ final class BlogControllerTest extends TestCase
             $request,
             $articleRepository,
             $categoryRepository,
+            $keywordRepository,
             $settingsProvider,
             new PaginationBuilder(),
             $userLanguageResolver,
@@ -144,6 +176,7 @@ final class BlogControllerTest extends TestCase
         ], $controller->capturedParameters['pagination_route_params']);
         $this->assertSame('Artificial Intelligence', $controller->capturedParameters['current_category']->getLocalizedTitle('en'));
         $this->assertSame('Articles about AI and machine learning.', $controller->capturedParameters['current_category']->getLocalizedDescription('en'));
+        $this->assertNull($controller->capturedParameters['top_keywords']);
     }
 
     public function testCategoryThrowsNotFoundWhenSlugDoesNotMatchActiveCategory(): void
@@ -183,6 +216,7 @@ final class BlogControllerTest extends TestCase
             new Request(),
             $articleRepository,
             $categoryRepository,
+            $this->createMock(ArticleKeywordRepository::class),
             $settingsProvider,
             new PaginationBuilder(),
             $userLanguageResolver,
@@ -335,6 +369,9 @@ final class BlogControllerTest extends TestCase
             ->method('findOneActiveByLanguageAndName')
             ->with(ArticleKeywordLanguage::EN, 'symfony')
             ->willReturn($keyword);
+        $keywordRepository
+            ->expects($this->never())
+            ->method('findTopUsedInPublishedArticles');
 
         $settingsProvider = $this->createMock(BlogSettingsProvider::class);
         $settingsProvider
@@ -368,6 +405,7 @@ final class BlogControllerTest extends TestCase
             'language' => 'en',
             'name' => 'symfony',
         ], $controller->capturedParameters['pagination_route_params']);
+        $this->assertNull($controller->capturedParameters['top_keywords']);
     }
 
     public function testKeywordThrowsNotFoundWhenSlugDoesNotMatchActiveKeyword(): void

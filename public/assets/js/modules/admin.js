@@ -1,6 +1,69 @@
 import { applyI18n, getTranslation, registerI18nListener } from './i18n.js';
-import { getLang, isAdminDeviceRemembered, setAdminDeviceRemembered } from './preferences.js';
+import { getLang, isAdminDeviceRemembered, isAdminShortcutsCollapsed, isAdminShortcutsDocked, setAdminDeviceRemembered, setAdminShortcutsCollapsed, setAdminShortcutsDocked } from './preferences.js';
 import { normalizeHexColor, qs, qsa } from './shared.js';
+
+function isDesktopAdminShortcutsViewport(){
+  return window.matchMedia('(min-width: 769px)').matches;
+}
+
+function shouldUseCollapsedAdminSubmenuPopover(submenu){
+  if(!(submenu instanceof HTMLElement)) return false;
+
+  const shortcuts = submenu.closest('.admin-shortcuts');
+  return shortcuts instanceof HTMLElement
+    && shortcuts.classList.contains('is-docked')
+    && shortcuts.classList.contains('is-collapsed')
+    && isDesktopAdminShortcutsViewport();
+}
+
+function syncCollapsedShortcutTooltips(shortcuts){
+  if(!shortcuts) return;
+
+  const isCollapsed = shortcuts.classList.contains('is-docked') && shortcuts.classList.contains('is-collapsed');
+  qsa('.admin-shortcuts-link, .admin-shortcuts-desktop-collapse, .admin-shortcuts-desktop-dock', shortcuts).forEach((element)=>{
+    if(!(element instanceof HTMLElement)) return;
+
+    if(!isCollapsed){
+      element.removeAttribute('data-tooltip');
+      return;
+    }
+
+    const label = qsa('span', element)
+      .map((span)=> span.textContent ? span.textContent.trim() : '')
+      .find((text)=> text.length > 0 && !/^\d+$/.test(text));
+    const badge = qs('.admin-shortcuts-badge', element);
+    const badgeValue = badge?.textContent?.trim();
+    const fallbackLabel = element.getAttribute('aria-label')?.trim();
+    const tooltipLabel = label || fallbackLabel;
+    const tooltip = badgeValue ? `${tooltipLabel}: ${badgeValue}` : tooltipLabel;
+
+    if(tooltip){
+      element.setAttribute('data-tooltip', tooltip);
+    }else{
+      element.removeAttribute('data-tooltip');
+    }
+  });
+
+  qsa('.admin-shortcuts-settings .admin-shortcuts-link', shortcuts).forEach((element)=>{
+    if(!(element instanceof HTMLElement)) return;
+    const tooltipKey = element.getAttribute('data-collapsed-tooltip-key');
+
+    if(!isCollapsed){
+      element.removeAttribute('data-tooltip');
+      element.removeAttribute('aria-label');
+      return;
+    }
+
+    const label = tooltipKey ? getTranslation(tooltipKey) : qsa('span', element)
+      .map((span)=> span.textContent ? span.textContent.trim() : '')
+      .find((text)=> text.length > 0 && !/^\d+$/.test(text));
+
+    if(label){
+      element.setAttribute('data-tooltip', label);
+      element.setAttribute('aria-label', label);
+    }
+  });
+}
 
 export function syncAdminShortcuts(){
   qsa('[data-admin-shortcuts]').forEach((menu)=>{
@@ -17,28 +80,151 @@ export function syncAdminShortcuts(){
     }
 
     const rememberButton = qs('[data-action="toggle-device-login"]', menu);
-    if(!rememberButton) return;
-
     const remembered = isAdminDeviceRemembered();
-    const label = qs('[data-device-remember-label]', rememberButton);
-    const labelKey = remembered ? 'admin_shortcut_forget_device' : 'admin_shortcut_remember_device';
+    if(rememberButton){
+      const label = qs('[data-device-remember-label]', rememberButton);
+      const labelKey = remembered ? 'admin_shortcut_forget_device' : 'admin_shortcut_remember_device';
 
-    rememberButton.classList.toggle('is-active', remembered);
-    rememberButton.setAttribute('aria-pressed', remembered ? 'true' : 'false');
+      rememberButton.classList.toggle('is-active', remembered);
+      rememberButton.setAttribute('aria-pressed', remembered ? 'true' : 'false');
 
-    if(label){
-      label.setAttribute('data-i18n', labelKey);
-      label.textContent = getTranslation(labelKey);
+      if(label){
+        label.setAttribute('data-i18n', labelKey);
+        label.textContent = getTranslation(labelKey);
+      }
     }
+
+    const dockButton = qs('[data-action="toggle-admin-shortcuts-dock"]', menu);
+    const collapseButton = qs('[data-action="toggle-admin-shortcuts-collapse"]', menu);
+    if(dockButton){
+      const shouldDock = isAdminShortcutsDocked();
+      const isDesktopViewport = isDesktopAdminShortcutsViewport();
+      const isDocked = shouldDock && isDesktopViewport;
+      const labelKey = shouldDock ? 'admin_shortcut_undock' : 'admin_shortcut_dock';
+      const isCollapsed = isDocked && isAdminShortcutsCollapsed();
+
+      shortcuts.classList.toggle('is-docked', isDocked);
+      shortcuts.classList.toggle('is-collapsed', isCollapsed);
+      dockButton.setAttribute('aria-pressed', shouldDock ? 'true' : 'false');
+      dockButton.setAttribute('data-i18n-aria', labelKey);
+      dockButton.setAttribute('aria-label', getTranslation(labelKey));
+      dockButton.classList.toggle('is-active', shouldDock);
+
+      if(collapseButton){
+        const collapseLabelKey = isCollapsed ? 'admin_shortcut_expand' : 'admin_shortcut_collapse';
+        collapseButton.hidden = !isDocked;
+        collapseButton.setAttribute('aria-pressed', isCollapsed ? 'true' : 'false');
+        collapseButton.setAttribute('data-i18n-aria', collapseLabelKey);
+        collapseButton.setAttribute('aria-label', getTranslation(collapseLabelKey));
+        collapseButton.classList.toggle('is-active', isCollapsed);
+      }
+
+      if(isDocked){
+        shortcuts.setAttribute('open', '');
+      }else{
+        if(isDesktopViewport){
+          shortcuts.removeAttribute('open');
+        }
+        shortcuts.classList.remove('is-collapsed');
+      }
+    }else{
+      shortcuts.classList.remove('is-docked');
+      shortcuts.classList.remove('is-collapsed');
+    }
+
+    syncCollapsedShortcutTooltips(shortcuts);
   });
 }
 
 export function setupAdminShortcuts(){
   registerI18nListener(syncAdminShortcuts);
   syncAdminShortcuts();
+  let collapsedSubmenuPopover = null;
+  let collapsedSubmenuOwner = null;
+
+  const ensureCollapsedSubmenuPopover = ()=>{
+    if(collapsedSubmenuPopover) return collapsedSubmenuPopover;
+
+    const popover = document.createElement('div');
+    popover.className = 'admin-shortcuts-collapsed-popover';
+    popover.hidden = true;
+    document.body.appendChild(popover);
+    collapsedSubmenuPopover = popover;
+    return popover;
+  };
+
+  const closeCollapsedSubmenuPopover = ()=>{
+    if(collapsedSubmenuOwner){
+      collapsedSubmenuOwner.classList.remove('is-open');
+      const ownerTrigger = qs('[data-action="toggle-admin-submenu"]', collapsedSubmenuOwner);
+      if(ownerTrigger){
+        ownerTrigger.setAttribute('aria-expanded', 'false');
+      }
+    }
+
+    if(collapsedSubmenuPopover){
+      collapsedSubmenuPopover.hidden = true;
+      collapsedSubmenuPopover.innerHTML = '';
+      collapsedSubmenuPopover.style.removeProperty('top');
+      collapsedSubmenuPopover.style.removeProperty('left');
+    }
+
+    collapsedSubmenuOwner = null;
+  };
+
+  const openCollapsedSubmenuPopover = (submenu)=>{
+    const sourcePanel = qs('.admin-shortcuts-submenu-panel', submenu);
+    const trigger = qs('[data-action="toggle-admin-submenu"]', submenu);
+    if(!(sourcePanel instanceof HTMLElement) || !(trigger instanceof HTMLElement)){
+      return;
+    }
+
+    const popover = ensureCollapsedSubmenuPopover();
+    const clone = sourcePanel.cloneNode(true);
+    clone.removeAttribute('id');
+    clone.classList.add('admin-shortcuts-collapsed-popover-panel');
+
+    closeCollapsedSubmenuPopover();
+    submenu.classList.add('is-open');
+    trigger.setAttribute('aria-expanded', 'true');
+    collapsedSubmenuOwner = submenu;
+
+    popover.innerHTML = '';
+    popover.appendChild(clone);
+    popover.hidden = false;
+
+    const triggerRect = trigger.getBoundingClientRect();
+    const popoverRect = popover.getBoundingClientRect();
+    const viewportPadding = 12;
+    const left = Math.min(
+      Math.max(triggerRect.right + 8, viewportPadding),
+      window.innerWidth - popoverRect.width - viewportPadding
+    );
+    const top = Math.max(
+      viewportPadding,
+      Math.min(triggerRect.top, window.innerHeight - popoverRect.height - viewportPadding)
+    );
+
+    popover.style.left = `${left}px`;
+    popover.style.top = `${top}px`;
+  };
+
+  const closeAdminShortcuts = (shortcuts)=>{
+    if(!shortcuts) return;
+    shortcuts.removeAttribute('open');
+    closeCollapsedSubmenuPopover();
+    qsa('[data-admin-shortcuts-submenu].is-open', shortcuts).forEach((submenu)=>{
+      closeAdminSubmenu(submenu);
+    });
+  };
 
   const closeAdminSubmenu = (submenu)=>{
     if(!submenu) return;
+    if(collapsedSubmenuOwner === submenu){
+      closeCollapsedSubmenuPopover();
+      return;
+    }
+
     submenu.classList.remove('is-open');
     const trigger = qs('[data-action="toggle-admin-submenu"]', submenu);
     if(trigger){
@@ -48,6 +234,11 @@ export function setupAdminShortcuts(){
 
   const openAdminSubmenu = (submenu)=>{
     if(!submenu) return;
+    if(shouldUseCollapsedAdminSubmenuPopover(submenu)){
+      openCollapsedSubmenuPopover(submenu);
+      return;
+    }
+
     submenu.classList.add('is-open');
     const trigger = qs('[data-action="toggle-admin-submenu"]', submenu);
     if(trigger){
@@ -61,6 +252,7 @@ export function setupAdminShortcuts(){
 
     trigger.addEventListener('click', (event)=>{
       event.preventDefault();
+      event.stopPropagation();
       const isOpen = submenu.classList.contains('is-open');
 
       qsa('[data-admin-shortcuts-submenu].is-open').forEach((openSubmenu)=>{
@@ -84,7 +276,78 @@ export function setupAdminShortcuts(){
     });
   });
 
+  qsa('.admin-shortcuts').forEach((shortcuts)=>{
+    const summary = qs('.admin-shortcuts-toggle', shortcuts);
+    const menu = qs('[data-admin-shortcuts]', shortcuts);
+    if(!summary || !menu) return;
+
+    const closeButton = qs('[data-action="close-admin-shortcuts"]', menu);
+    if(closeButton){
+      closeButton.addEventListener('click', ()=>{
+        closeAdminShortcuts(shortcuts);
+      });
+    }
+
+    const dockButton = qs('[data-action="toggle-admin-shortcuts-dock"]', menu);
+    if(dockButton){
+      dockButton.addEventListener('click', (event)=>{
+        event.preventDefault();
+        event.stopPropagation();
+
+        const nextDocked = !shortcuts.classList.contains('is-docked');
+        setAdminShortcutsDocked(nextDocked);
+
+        shortcuts.classList.toggle('is-docked', nextDocked && isDesktopAdminShortcutsViewport());
+        shortcuts.toggleAttribute('open', nextDocked && isDesktopAdminShortcutsViewport());
+
+        if(!nextDocked){
+          setAdminShortcutsCollapsed(false);
+          shortcuts.classList.remove('is-collapsed');
+        }
+
+        syncAdminShortcuts();
+      });
+    }
+
+    const collapseButton = qs('[data-action="toggle-admin-shortcuts-collapse"]', menu);
+    if(collapseButton){
+      collapseButton.addEventListener('click', (event)=>{
+        event.preventDefault();
+        event.stopPropagation();
+
+        if(!shortcuts.classList.contains('is-docked')) return;
+        setAdminShortcutsCollapsed(!shortcuts.classList.contains('is-collapsed'));
+        syncAdminShortcuts();
+      });
+    }
+
+    menu.addEventListener('click', (event)=>{
+      const target = event.target;
+      if(!(target instanceof Element)) return;
+      if(!target.closest('a[href]')) return;
+      if(shortcuts.classList.contains('is-docked') && isDesktopAdminShortcutsViewport()) return;
+
+      closeAdminShortcuts(shortcuts);
+    });
+  });
+
   document.addEventListener('click', (event)=>{
+    qsa('.admin-shortcuts[open]').forEach((shortcuts)=>{
+      if(shortcuts.classList.contains('is-docked')) return;
+      if(!shortcuts.contains(event.target)){
+        closeAdminShortcuts(shortcuts);
+      }
+    });
+
+    if(
+      collapsedSubmenuPopover
+      && !collapsedSubmenuPopover.hidden
+      && !collapsedSubmenuPopover.contains(event.target)
+      && !(collapsedSubmenuOwner && collapsedSubmenuOwner.contains(event.target))
+    ){
+      closeCollapsedSubmenuPopover();
+    }
+
     qsa('[data-admin-shortcuts-submenu].is-open').forEach((submenu)=>{
       if(!submenu.contains(event.target)){
         closeAdminSubmenu(submenu);
@@ -95,10 +358,24 @@ export function setupAdminShortcuts(){
   document.addEventListener('keydown', (event)=>{
     if(event.key !== 'Escape') return;
 
+    closeCollapsedSubmenuPopover();
+
+    qsa('.admin-shortcuts[open]').forEach((shortcuts)=>{
+      closeAdminShortcuts(shortcuts);
+    });
+
     qsa('[data-admin-shortcuts-submenu].is-open').forEach((submenu)=>{
       closeAdminSubmenu(submenu);
     });
   });
+
+  const syncAdminShortcutsOnViewportChange = ()=>{
+    syncAdminShortcuts();
+    closeCollapsedSubmenuPopover();
+  };
+
+  window.addEventListener('resize', syncAdminShortcutsOnViewportChange, { passive: true });
+  window.addEventListener('orientationchange', syncAdminShortcutsOnViewportChange);
 }
 
 export function setupCharacterCounters(){
