@@ -154,6 +154,7 @@ function createOptionList(root){
   const renderSelected = ()=>{
     selectedContainer.replaceChildren();
     const selectedItems = cachedItems.filter((item)=> item.selected);
+    const isDisabled = select.disabled;
 
     selectedItems.forEach((item)=>{
       const chip = document.createElement('span');
@@ -174,8 +175,10 @@ function createOptionList(root){
       remove.type = 'button';
       remove.className = 'app-option-list-chip-remove';
       remove.textContent = '×';
+      remove.disabled = isDisabled;
       remove.setAttribute('aria-label', `${t('data-option-list-remove-label-key', 'Remove')} ${item.label}`);
       remove.addEventListener('click', ()=>{
+        if(select.disabled) return;
         item.option.selected = false;
         select.dispatchEvent(new Event('change', { bubbles: true }));
         sync();
@@ -190,6 +193,11 @@ function createOptionList(root){
   const renderResults = ()=>{
     const query = input.value.trim().toLowerCase();
     const shouldShowResults = document.activeElement === input && query.length >= 1;
+    if(select.disabled){
+      hideResults();
+      return;
+    }
+
     const availableItems = cachedItems
       .filter((item)=> !item.disabled && !item.selected)
       .filter((item)=> matchesFilter(root, item));
@@ -239,6 +247,7 @@ function createOptionList(root){
       button.append(name, meta);
 
       button.addEventListener('click', ()=>{
+        if(select.disabled) return;
         item.option.selected = true;
         input.value = '';
         select.dispatchEvent(new Event('change', { bubbles: true }));
@@ -263,6 +272,7 @@ function createOptionList(root){
   const sync = ()=>{
     refreshItems();
     syncAccessibilityState();
+    input.disabled = select.disabled;
     renderSelected();
     renderResults();
   };
@@ -283,10 +293,12 @@ function createOptionList(root){
   };
 
   input.addEventListener('focus', ()=> {
+    if(select.disabled) return;
     renderResults();
   });
 
   input.addEventListener('input', ()=> {
+    if(select.disabled) return;
     renderResults();
   });
 
@@ -298,6 +310,8 @@ function createOptionList(root){
   });
 
   input.addEventListener('keydown', (event)=>{
+    if(select.disabled) return;
+
     if(event.key === 'ArrowDown'){
       event.preventDefault();
       moveActive(1);

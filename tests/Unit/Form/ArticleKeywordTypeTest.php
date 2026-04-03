@@ -34,6 +34,8 @@ final class ArticleKeywordTypeTest extends TestCase
         $this->assertSame(ArticleKeywordLanguage::class, $form->get('language')->getConfig()->getOption('class'));
         $this->assertInstanceOf(TextType::class, $form->get('color')->getConfig()->getType()->getInnerType());
         $this->assertFalse($form->get('color')->getConfig()->getOption('required'));
+        $this->assertSame(7, $form->get('color')->getConfig()->getOption('attr')['maxlength']);
+        $this->assertSame('^#?[0-9A-Fa-f]{6}$', $form->get('color')->getConfig()->getOption('attr')['pattern']);
         $this->assertInstanceOf(TextType::class, $form->get('name')->getConfig()->getType()->getInnerType());
         $this->assertSame('', $form->get('name')->getConfig()->getOption('empty_data'));
         $this->assertSame(255, $form->get('name')->getConfig()->getOption('attr')['maxlength']);
