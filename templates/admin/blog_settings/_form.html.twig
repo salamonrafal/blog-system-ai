@@ -8,27 +8,42 @@
     {% endif %}
 
     <div class="article-editor-fields">
-        <section class="blog-settings-subsection" aria-labelledby="blog-settings-section-general">
+        <section class="blog-settings-subsection" aria-label="Tożsamość i SEO">
             <div class="blog-settings-subsection-header">
                 <span class="pill">admin://identity-and-seo</span>
-                <h2 id="blog-settings-section-general" class="blog-settings-subsection-title" data-i18n="blog_settings_section_identity_title">Tożsamość i SEO</h2>
                 <p class="blog-settings-subsection-lede" data-i18n="blog_settings_section_identity_lede">Ustawienia odpowiedzialne za adres aplikacji, nazwę bloga oraz metadane strony głównej.</p>
             </div>
 
             {% set app_url_has_errors = form.appUrl.vars.errors|length > 0 %}
             {% set app_url_counter_id = form.appUrl.vars.id ~ '-char-count' %}
             {% set app_url_described_by = app_url_counter_id ~ (app_url_has_errors ? ' ' ~ form.appUrl.vars.id ~ '-error' : '') %}
-            <div class="field article-editor-field{{ app_url_has_errors ? ' has-error' : '' }}">
-                {{ form_label(form.appUrl) }}
-                {{ form_widget(form.appUrl, { attr: {
-                    class: 'article-editor-input',
-                    placeholder: 'https://twoja-domena.pl',
-                    'data-character-count-input': 'true',
-                    'aria-describedby': app_url_described_by
-                }|merge(app_url_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
-                <div class="article-editor-field-meta">
-                    <span id="{{ app_url_counter_id }}" class="article-editor-character-count" data-character-count-target>{{ form.appUrl.vars.value|default('')|length }} / {{ form.appUrl.vars.attr.maxlength }}</span>
-                    <span class="article-editor-field-hint article-editor-field-hint-help" data-i18n="blog_settings_app_url_hint">Ten adres jest używany do budowania canonicali, linków do udostępniania i pełnych URL-i obrazków SEO.</span>
+            <div class="field article-editor-field blog-settings-inline-field blog-settings-inline-field-with-counter{{ app_url_has_errors ? ' has-error' : '' }}">
+                <div class="blog-settings-inline-field-copy">
+                    <div class="blog-settings-label-row">
+                        {{ form_label(form.appUrl) }}
+                        <button
+                            type="button"
+                            class="article-keyword-help-trigger"
+                            data-i18n-tooltip="blog_settings_app_url_hint"
+                            data-tooltip="Ten adres jest używany do budowania canonicali, linków do udostępniania i pełnych URL-i obrazków SEO."
+                            data-tooltip-wide="true"
+                            data-tooltip-wrap="true"
+                            aria-label="Pomoc do pola URL aplikacji"
+                        >?</button>
+                    </div>
+                </div>
+                <div class="blog-settings-input-stack">
+                    <div class="blog-settings-input-row">
+                        {{ form_widget(form.appUrl, { attr: {
+                            class: 'article-editor-input',
+                            placeholder: 'https://twoja-domena.pl',
+                            'data-character-count-input': 'true',
+                            'aria-describedby': app_url_described_by
+                        }|merge(app_url_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
+                        <div class="article-editor-field-meta">
+                            <span id="{{ app_url_counter_id }}" class="article-editor-character-count" data-character-count-target>{{ form.appUrl.vars.value|default('')|length }} / {{ form.appUrl.vars.attr.maxlength }}</span>
+                        </div>
+                    </div>
                 </div>
                 {% if app_url_has_errors %}
                     <div id="{{ form.appUrl.vars.id }}-error" class="article-editor-error-message" role="alert">
@@ -42,16 +57,22 @@
             {% set title_has_errors = form.blogTitle.vars.errors|length > 0 %}
             {% set title_counter_id = form.blogTitle.vars.id ~ '-char-count' %}
             {% set title_described_by = title_counter_id ~ (title_has_errors ? ' ' ~ form.blogTitle.vars.id ~ '-error' : '') %}
-            <div class="field article-editor-field{{ title_has_errors ? ' has-error' : '' }}">
-                {{ form_label(form.blogTitle) }}
-                {{ form_widget(form.blogTitle, { attr: {
-                    class: 'article-editor-input',
-                    placeholder: 'Np. Blog System AI',
-                    'data-character-count-input': 'true',
-                    'aria-describedby': title_described_by
-                }|merge(title_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
-                <div class="article-editor-field-meta">
-                    <span id="{{ title_counter_id }}" class="article-editor-character-count" data-character-count-target>{{ form.blogTitle.vars.value|default('')|length }} / {{ form.blogTitle.vars.attr.maxlength }}</span>
+            <div class="field article-editor-field blog-settings-inline-field blog-settings-inline-field-with-counter{{ title_has_errors ? ' has-error' : '' }}">
+                <div class="blog-settings-inline-field-copy">
+                    {{ form_label(form.blogTitle) }}
+                </div>
+                <div class="blog-settings-input-stack">
+                    <div class="blog-settings-input-row">
+                        {{ form_widget(form.blogTitle, { attr: {
+                            class: 'article-editor-input',
+                            placeholder: 'Np. Blog System AI',
+                            'data-character-count-input': 'true',
+                            'aria-describedby': title_described_by
+                        }|merge(title_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
+                        <div class="article-editor-field-meta">
+                            <span id="{{ title_counter_id }}" class="article-editor-character-count" data-character-count-target>{{ form.blogTitle.vars.value|default('')|length }} / {{ form.blogTitle.vars.attr.maxlength }}</span>
+                        </div>
+                    </div>
                 </div>
                 {% if title_has_errors %}
                     <div id="{{ form.blogTitle.vars.id }}-error" class="article-editor-error-message" role="alert">
@@ -65,8 +86,10 @@
             {% set description_has_errors = form.homepageSeoDescription.vars.errors|length > 0 %}
             {% set description_counter_id = form.homepageSeoDescription.vars.id ~ '-char-count' %}
             {% set description_described_by = description_counter_id ~ (description_has_errors ? ' ' ~ form.homepageSeoDescription.vars.id ~ '-error' : '') %}
-            <div class="field article-editor-field{{ description_has_errors ? ' has-error' : '' }}">
-                {{ form_label(form.homepageSeoDescription) }}
+            <div class="field article-editor-field blog-settings-inline-field blog-settings-textarea-field{{ description_has_errors ? ' has-error' : '' }}">
+                <div class="blog-settings-inline-field-copy">
+                    {{ form_label(form.homepageSeoDescription) }}
+                </div>
                 {{ form_widget(form.homepageSeoDescription, { attr: {
                     class: 'article-editor-input article-editor-textarea',
                     placeholder: 'Krótki opis strony głównej bloga dla Google i innych wyszukiwarek',
@@ -88,17 +111,33 @@
             {% set social_image_has_errors = form.homepageSocialImage.vars.errors|length > 0 %}
             {% set social_image_counter_id = form.homepageSocialImage.vars.id ~ '-char-count' %}
             {% set social_image_described_by = social_image_counter_id ~ (social_image_has_errors ? ' ' ~ form.homepageSocialImage.vars.id ~ '-error' : '') %}
-            <div class="field article-editor-field{{ social_image_has_errors ? ' has-error' : '' }}">
-                {{ form_label(form.homepageSocialImage) }}
-                {{ form_widget(form.homepageSocialImage, { attr: {
-                    class: 'article-editor-input',
-                    placeholder: 'https://... lub /assets/img/...',
-                    'data-character-count-input': 'true',
-                    'aria-describedby': social_image_described_by
-                }|merge(social_image_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
-                <div class="article-editor-field-meta">
-                    <span id="{{ social_image_counter_id }}" class="article-editor-character-count" data-character-count-target>{{ form.homepageSocialImage.vars.value|default('')|length }} / {{ form.homepageSocialImage.vars.attr.maxlength }}</span>
-                    <span class="article-editor-field-hint article-editor-field-hint-help" data-i18n="blog_settings_homepage_social_image_hint">Podaj pełny URL albo ścieżkę zaczynającą się od /.</span>
+            <div class="field article-editor-field blog-settings-inline-field blog-settings-inline-field-with-counter{{ social_image_has_errors ? ' has-error' : '' }}">
+                <div class="blog-settings-inline-field-copy">
+                    <div class="blog-settings-label-row">
+                        {{ form_label(form.homepageSocialImage) }}
+                        <button
+                            type="button"
+                            class="article-keyword-help-trigger"
+                            data-i18n-tooltip="blog_settings_homepage_social_image_hint"
+                            data-tooltip="Podaj pełny URL albo ścieżkę zaczynającą się od /."
+                            data-tooltip-wide="true"
+                            data-tooltip-wrap="true"
+                            aria-label="Pomoc do pola obrazek dla strony głównej"
+                        >?</button>
+                    </div>
+                </div>
+                <div class="blog-settings-input-stack">
+                    <div class="blog-settings-input-row">
+                        {{ form_widget(form.homepageSocialImage, { attr: {
+                            class: 'article-editor-input',
+                            placeholder: 'https://... lub /assets/img/...',
+                            'data-character-count-input': 'true',
+                            'aria-describedby': social_image_described_by
+                        }|merge(social_image_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
+                        <div class="article-editor-field-meta">
+                            <span id="{{ social_image_counter_id }}" class="article-editor-character-count" data-character-count-target>{{ form.homepageSocialImage.vars.value|default('')|length }} / {{ form.homepageSocialImage.vars.attr.maxlength }}</span>
+                        </div>
+                    </div>
                 </div>
                 {% if social_image_has_errors %}
                     <div id="{{ form.homepageSocialImage.vars.id }}-error" class="article-editor-error-message" role="alert">
@@ -112,8 +151,10 @@
             {% set keywords_has_errors = form.homepageSeoKeywords.vars.errors|length > 0 %}
             {% set keywords_counter_id = form.homepageSeoKeywords.vars.id ~ '-char-count' %}
             {% set keywords_described_by = keywords_counter_id ~ (keywords_has_errors ? ' ' ~ form.homepageSeoKeywords.vars.id ~ '-error' : '') %}
-            <div class="field article-editor-field{{ keywords_has_errors ? ' has-error' : '' }}">
-                {{ form_label(form.homepageSeoKeywords) }}
+            <div class="field article-editor-field blog-settings-inline-field blog-settings-textarea-field{{ keywords_has_errors ? ' has-error' : '' }}">
+                <div class="blog-settings-inline-field-copy">
+                    {{ form_label(form.homepageSeoKeywords) }}
+                </div>
                 {{ form_widget(form.homepageSeoKeywords, { attr: {
                     class: 'article-editor-input article-editor-textarea',
                     placeholder: 'Np. blog, php, programowanie, architektura aplikacji',
@@ -133,27 +174,35 @@
             </div>
         </section>
 
-        <section class="blog-settings-subsection" aria-labelledby="blog-settings-section-pagination">
+        <section class="blog-settings-subsection" data-blog-settings-pagination-section aria-label="Globalne ustawienia paginacji">
             <div class="blog-settings-subsection-header">
-                <span class="pill">admin://homepage-pagination</span>
-                <h2 id="blog-settings-section-pagination" class="blog-settings-subsection-title" data-i18n="blog_settings_section_home_pagination_title">Paginacja strony głównej</h2>
-                <p class="blog-settings-subsection-lede" data-i18n="blog_settings_section_home_pagination_lede">Steruj tym, ile opublikowanych artykułów ma pojawiać się na jednej stronie listy.</p>
+                <span class="pill">admin://pagination-settings</span>
+                <p class="blog-settings-subsection-lede" data-i18n="blog_settings_section_pagination_lede">Skonfiguruj liczbę elementów widocznych na jednej stronie zarówno na stronie głównej bloga, jak i na listach w panelu administracyjnym.</p>
             </div>
 
             {% set articles_per_page_has_errors = form.articlesPerPage.vars.errors|length > 0 %}
             {% set articles_per_page_error_id = form.articlesPerPage.vars.id ~ '-error' %}
-            {% set articles_per_page_hint_id = form.articlesPerPage.vars.id ~ '-hint' %}
-            {% set articles_per_page_described_by = articles_per_page_hint_id ~ (articles_per_page_has_errors ? ' ' ~ articles_per_page_error_id : '') %}
-            <div class="field article-editor-field{{ articles_per_page_has_errors ? ' has-error' : '' }}">
-                {{ form_label(form.articlesPerPage) }}
+            {% set articles_per_page_described_by = articles_per_page_has_errors ? articles_per_page_error_id : null %}
+            <div class="field article-editor-field blog-settings-pagination-field{{ articles_per_page_has_errors ? ' has-error' : '' }}">
+                <div class="blog-settings-pagination-field-copy">
+                    <div class="blog-settings-label-row">
+                        {{ form_label(form.articlesPerPage) }}
+                        <button
+                            type="button"
+                            class="article-keyword-help-trigger"
+                            data-i18n-tooltip="blog_settings_articles_per_page_hint"
+                            data-tooltip="Domyślna wartość to 5. Zmiana wpływa na publiczną listę artykułów na stronie głównej."
+                            data-tooltip-wide="true"
+                            data-tooltip-wrap="true"
+                            aria-label="Pomoc do pola ilość artykułów na stronę"
+                        >?</button>
+                    </div>
+                </div>
                 {{ form_widget(form.articlesPerPage, { attr: {
                     class: 'article-editor-input blog-settings-number-input',
                     placeholder: '5',
                     'aria-describedby': articles_per_page_described_by
                 }|merge(articles_per_page_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
-                <div class="article-editor-field-meta">
-                    <span id="{{ articles_per_page_hint_id }}" class="article-editor-field-hint article-editor-field-hint-help" data-i18n="blog_settings_articles_per_page_hint">Domyślna wartość to 5. Zmiana wpływa na publiczną listę artykułów na stronie głównej.</span>
-                </div>
                 {% if articles_per_page_has_errors %}
                     <div id="{{ articles_per_page_error_id }}" class="article-editor-error-message" role="alert">
                         {% for error in form.articlesPerPage.vars.errors %}
@@ -162,29 +211,30 @@
                     </div>
                 {% endif %}
             </div>
-        </section>
-
-        <section class="blog-settings-subsection" aria-labelledby="blog-settings-section-admin-pagination">
-            <div class="blog-settings-subsection-header">
-                <span class="pill">admin://article-index-pagination</span>
-                <h2 id="blog-settings-section-admin-pagination" class="blog-settings-subsection-title" data-i18n="blog_settings_section_admin_pagination_title">Paginacja list w panelu</h2>
-                <p class="blog-settings-subsection-lede" data-i18n="blog_settings_section_admin_pagination_lede">To ustawienie działa niezależnie od strony głównej i steruje liczbą rekordów widocznych na listach w panelu administracyjnym.</p>
-            </div>
 
             {% set admin_listing_items_per_page_has_errors = form.adminListingItemsPerPage.vars.errors|length > 0 %}
             {% set admin_listing_items_per_page_error_id = form.adminListingItemsPerPage.vars.id ~ '-error' %}
-            {% set admin_listing_items_per_page_hint_id = form.adminListingItemsPerPage.vars.id ~ '-hint' %}
-            {% set admin_listing_items_per_page_described_by = admin_listing_items_per_page_hint_id ~ (admin_listing_items_per_page_has_errors ? ' ' ~ admin_listing_items_per_page_error_id : '') %}
-            <div class="field article-editor-field{{ admin_listing_items_per_page_has_errors ? ' has-error' : '' }}">
-                {{ form_label(form.adminListingItemsPerPage) }}
+            {% set admin_listing_items_per_page_described_by = admin_listing_items_per_page_has_errors ? admin_listing_items_per_page_error_id : null %}
+            <div class="field article-editor-field blog-settings-pagination-field{{ admin_listing_items_per_page_has_errors ? ' has-error' : '' }}">
+                <div class="blog-settings-pagination-field-copy">
+                    <div class="blog-settings-label-row">
+                        {{ form_label(form.adminListingItemsPerPage) }}
+                        <button
+                            type="button"
+                            class="article-keyword-help-trigger"
+                            data-i18n-tooltip="blog_settings_admin_listing_items_per_page_hint"
+                            data-tooltip="Domyślna wartość to 25. Zmiana wpływa na listy w panelu administracyjnym, w tym artykuły i eksporty."
+                            data-tooltip-wide="true"
+                            data-tooltip-wrap="true"
+                            aria-label="Pomoc do pola ilość elementów na stronę w panelu administracyjnym"
+                        >?</button>
+                    </div>
+                </div>
                 {{ form_widget(form.adminListingItemsPerPage, { attr: {
                     class: 'article-editor-input blog-settings-number-input',
                     placeholder: '25',
                     'aria-describedby': admin_listing_items_per_page_described_by
                 }|merge(admin_listing_items_per_page_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
-                <div class="article-editor-field-meta">
-                    <span id="{{ admin_listing_items_per_page_hint_id }}" class="article-editor-field-hint article-editor-field-hint-help" data-i18n="blog_settings_admin_listing_items_per_page_hint">Domyślna wartość to 25. Zmiana wpływa na listy w panelu administracyjnym, w tym artykuły i eksporty.</span>
-                </div>
                 {% if admin_listing_items_per_page_has_errors %}
                     <div id="{{ admin_listing_items_per_page_error_id }}" class="article-editor-error-message" role="alert">
                         {% for error in form.adminListingItemsPerPage.vars.errors %}

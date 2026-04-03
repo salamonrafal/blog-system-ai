@@ -2,6 +2,31 @@ import { applyI18n, getTranslation, registerI18nListener } from './i18n.js';
 import { getLang, isAdminDeviceRemembered, isAdminShortcutsCollapsed, isAdminShortcutsDocked, setAdminDeviceRemembered, setAdminShortcutsCollapsed, setAdminShortcutsDocked } from './preferences.js';
 import { normalizeHexColor, qs, qsa } from './shared.js';
 
+export function setupAdminPreloader(){
+  const body = document.body;
+  const preloader = qs('[data-admin-preloader]');
+  if(!(body instanceof HTMLBodyElement) || !(preloader instanceof HTMLElement)) return;
+
+  let released = false;
+  const release = ()=>{
+    if(released) return;
+    released = true;
+    body.classList.remove('admin-preload-pending');
+    body.classList.add('admin-preload-ready');
+  };
+
+  if(document.readyState === 'complete'){
+    window.requestAnimationFrame(release);
+    return;
+  }
+
+  window.addEventListener('load', ()=>{
+    window.requestAnimationFrame(release);
+  }, { once: true });
+
+  window.setTimeout(release, 5000);
+}
+
 function isDesktopAdminShortcutsViewport(){
   return window.matchMedia('(min-width: 769px)').matches;
 }

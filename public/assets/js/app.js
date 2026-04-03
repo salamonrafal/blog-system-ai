@@ -1,4 +1,5 @@
 import {
+  setupAdminPreloader,
   setupAdminShortcuts,
   setupAdminListingFilters,
   setupArticleKeywordDeleteConfirmation,
@@ -32,6 +33,7 @@ import { setupImagePreview } from './modules/preview.js';
 import { setupPrivacyNotice } from './modules/privacy.js';
 
 function init(){
+  setupAdminPreloader();
   persistUserLanguage(getLang());
   persistUserTimeZone();
   setupNav();
