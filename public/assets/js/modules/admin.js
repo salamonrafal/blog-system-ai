@@ -194,14 +194,11 @@ export function setupOptionalColorFields(){
       const rawValue = valueInput.value.trim();
       const normalizedColor = normalizeHexColor(rawValue);
       const hasInvalidValue = '' !== rawValue && null === normalizedColor;
-      const isBlank = null === normalizedColor;
-      if(hasInvalidValue){
-        valueInput.value = '';
-      }
+      const isBlank = '' === rawValue || hasInvalidValue;
       picker.value = normalizedColor ?? fallbackColor;
       picker.classList.toggle('is-blank', isBlank);
       pickerShell.classList.toggle('is-blank', isBlank);
-      clearButton.hidden = isBlank && !hasInvalidValue;
+      clearButton.hidden = '' === rawValue;
       clearButton.setAttribute('aria-hidden', clearButton.hidden ? 'true' : 'false');
       syncAccessibilityState();
     };
