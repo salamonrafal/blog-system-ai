@@ -252,6 +252,14 @@ export function setupAdminShortcuts(){
 
   const closeAdminShortcuts = (shortcuts)=>{
     if(!shortcuts) return;
+    if(shortcuts.classList.contains('is-docked') && isDesktopAdminShortcutsViewport()){
+      closeCollapsedSubmenuPopover();
+      qsa('[data-admin-shortcuts-submenu].is-open', shortcuts).forEach((submenu)=>{
+        closeAdminSubmenu(submenu);
+      });
+      return;
+    }
+
     shortcuts.removeAttribute('open');
     closeCollapsedSubmenuPopover();
     qsa('[data-admin-shortcuts-submenu].is-open', shortcuts).forEach((submenu)=>{
