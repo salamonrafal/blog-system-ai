@@ -85,7 +85,7 @@ class ArticleRepository extends ServiceEntityRepository
     ): int
     {
         return (int) $this->createPublishedQueryBuilder($language, $category, $keyword)
-            ->select('COUNT(DISTINCT article.id)')
+            ->select('COUNT(article.id)')
             ->getQuery()
             ->getSingleScalarResult();
     }
