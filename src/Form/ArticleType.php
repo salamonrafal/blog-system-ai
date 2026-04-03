@@ -25,12 +25,16 @@ class ArticleType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $article = $builder->getData();
+        $assignedKeywords = $article instanceof Article ? iterator_to_array($article->getKeywords()) : [];
         $assignedKeywordIds = $article instanceof Article
             ? array_fill_keys(
-                array_map(
-                    static fn (ArticleKeyword $keyword): int => (int) $keyword->getId(),
-                    iterator_to_array($article->getKeywords()),
-                ),
+                array_values(array_filter(
+                    array_map(
+                        static fn (ArticleKeyword $keyword): ?int => $keyword->getId(),
+                        $assignedKeywords,
+                    ),
+                    static fn (?int $keywordId): bool => null !== $keywordId,
+                )),
                 true,
             )
             : [];
@@ -120,6 +124,7 @@ class ArticleType extends AbstractType
                     'data-keyword-scope-key' => $keyword->getLanguage()->translationKey(),
                     'disabled' => !$keyword->isActive()
                         && !isset($assignedKeywordIds[(int) $keyword->getId()])
+                        && !in_array($keyword, $assignedKeywords, true)
                         ? 'disabled'
                         : null,
                 ], static fn (mixed $value): bool => null !== $value),

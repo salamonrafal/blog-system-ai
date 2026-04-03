@@ -3,6 +3,7 @@ import { qs, qsa } from './shared.js';
 
 const customSelectRegistry = new WeakMap();
 let documentClickHandlerRegistered = false;
+let customSelectInstanceCounter = 0;
 
 function isEnhanceableSelect(select){
   return select instanceof HTMLSelectElement
@@ -29,6 +30,7 @@ function getActiveOption(panel){
 function createCustomSelect(select){
   const wrapper = document.createElement('div');
   wrapper.className = 'app-select';
+  const instanceId = ++customSelectInstanceCounter;
   const triggerId = select.id ? `${select.id}--trigger` : '';
   const panelId = select.id ? `${select.id}--panel` : '';
   const label = select.id ? document.querySelector(`label[for="${select.id}"]`) : null;
@@ -149,7 +151,9 @@ function createCustomSelect(select){
       const optionButton = document.createElement('button');
       optionButton.type = 'button';
       optionButton.className = 'app-select-option';
-      optionButton.id = panelId ? `${panelId}--option-${item.index}` : `app-select-option-${item.index}`;
+      optionButton.id = panelId
+        ? `${panelId}--option-${item.index}`
+        : `app-select-option-${instanceId}-${item.index}`;
       optionButton.setAttribute('role', 'option');
       optionButton.setAttribute('data-value', item.value);
       optionButton.setAttribute('aria-selected', item.selected ? 'true' : 'false');
