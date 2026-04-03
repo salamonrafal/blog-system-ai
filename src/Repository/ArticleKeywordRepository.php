@@ -6,6 +6,7 @@ namespace App\Repository;
 
 use App\Entity\ArticleKeyword;
 use App\Enum\ArticleCategoryStatus;
+use App\Enum\ArticleKeywordLanguage;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -78,5 +79,19 @@ class ArticleKeywordRepository extends ServiceEntityRepository
         }
 
         return (int) $queryBuilder->getQuery()->getSingleScalarResult() > 0;
+    }
+
+    public function findOneActiveByLanguageAndName(ArticleKeywordLanguage $language, string $name): ?ArticleKeyword
+    {
+        return $this->createQueryBuilder('keyword')
+            ->andWhere('keyword.language = :language')
+            ->andWhere('keyword.name = :name')
+            ->andWhere('keyword.status = :status')
+            ->setParameter('language', $language)
+            ->setParameter('name', trim($name))
+            ->setParameter('status', ArticleCategoryStatus::ACTIVE)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 }

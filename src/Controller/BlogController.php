@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\ArticleCategory;
+use App\Entity\ArticleKeyword;
+use App\Entity\Article;
 use App\Enum\ArticleLanguage;
+use App\Enum\ArticleKeywordLanguage;
 use App\Enum\ArticleStatus;
 use App\Repository\ArticleCategoryRepository;
+use App\Repository\ArticleKeywordRepository;
 use App\Repository\ArticleRepository;
 use App\Service\BlogSettingsProvider;
 use App\Service\PaginationBuilder;
@@ -26,6 +30,7 @@ class BlogController extends AbstractController
         ArticleCategoryRepository $articleCategoryRepository,
         BlogSettingsProvider $blogSettingsProvider,
         PaginationBuilder $paginationBuilder,
+        UserLanguageResolver $userLanguageResolver,
     ): Response
     {
         return $this->renderIndex(
@@ -34,6 +39,7 @@ class BlogController extends AbstractController
             $articleCategoryRepository,
             $blogSettingsProvider,
             $paginationBuilder,
+            $userLanguageResolver,
         );
     }
 
@@ -45,6 +51,7 @@ class BlogController extends AbstractController
         ArticleCategoryRepository $articleCategoryRepository,
         BlogSettingsProvider $blogSettingsProvider,
         PaginationBuilder $paginationBuilder,
+        UserLanguageResolver $userLanguageResolver,
     ): Response
     {
         return $this->renderIndex(
@@ -53,7 +60,33 @@ class BlogController extends AbstractController
             $articleCategoryRepository,
             $blogSettingsProvider,
             $paginationBuilder,
+            $userLanguageResolver,
             $slug,
+        );
+    }
+
+    #[Route('/keyword/{language}/{name}', name: 'blog_keyword', methods: ['GET'])]
+    public function keyword(
+        string $language,
+        string $name,
+        Request $request,
+        ArticleRepository $articleRepository,
+        ArticleCategoryRepository $articleCategoryRepository,
+        ArticleKeywordRepository $articleKeywordRepository,
+        BlogSettingsProvider $blogSettingsProvider,
+        PaginationBuilder $paginationBuilder,
+        UserLanguageResolver $userLanguageResolver,
+    ): Response
+    {
+        return $this->renderIndex(
+            $request,
+            $articleRepository,
+            $articleCategoryRepository,
+            $blogSettingsProvider,
+            $paginationBuilder,
+            $userLanguageResolver,
+            null,
+            $this->resolveCurrentKeyword($articleKeywordRepository, $language, $name),
         );
     }
 
@@ -74,13 +107,20 @@ class BlogController extends AbstractController
             $this->denyAccessUnlessGranted('IS_AUTHENTICATED_REMEMBERED');
         }
 
+        $userLanguage = null;
         $articleCategory = $article->getCategory();
         $articleCategoryRouteParams = null;
         if (null !== $articleCategory && $articleCategory->isActive()) {
+            $userLanguage = $userLanguageResolver->getLanguage();
             $articleCategoryRouteParams = [
                 'slug' => $articleCategory->getSlug(),
-                'lang' => $userLanguageResolver->getLanguage(),
+                'lang' => $userLanguage,
             ];
+        }
+
+        $articleKeywordLinks = [];
+        if (!$article->getKeywords()->isEmpty()) {
+            $articleKeywordLinks = $this->buildArticleKeywordLinks($article);
         }
 
         $recommendedArticles = $articleRepository->findRecommendedPublished($article);
@@ -88,6 +128,7 @@ class BlogController extends AbstractController
         return $this->render('blog/show.html.twig', [
             'article' => $article,
             'article_category_route_params' => $articleCategoryRouteParams,
+            'article_keywords' => $articleKeywordLinks,
             'recommended_articles' => $recommendedArticles,
         ]);
     }
@@ -98,10 +139,13 @@ class BlogController extends AbstractController
         ArticleCategoryRepository $articleCategoryRepository,
         BlogSettingsProvider $blogSettingsProvider,
         PaginationBuilder $paginationBuilder,
+        UserLanguageResolver $userLanguageResolver,
         ?string $categorySlug = null,
+        ?ArticleKeyword $currentKeyword = null,
     ): Response
     {
-        $language = ArticleLanguage::tryFrom((string) $request->query->get('lang', ''));
+        $language = ArticleLanguage::tryFrom((string) $request->query->get('lang', ''))
+            ?? ArticleLanguage::tryFrom($userLanguageResolver->getLanguage());
         $settings = $blogSettingsProvider->getSettings();
         $categoryLinks = $this->buildCategoryLinks($articleCategoryRepository->findActiveOrderedByName());
         $currentCategory = $this->resolveCurrentCategory($categoryLinks, $categorySlug);
@@ -112,26 +156,26 @@ class BlogController extends AbstractController
 
         $articlesPerPage = max(1, $settings->getArticlesPerPage());
         $requestedPage = max(1, $request->query->getInt('page', 1));
-        $totalArticles = $articleRepository->countPublished($language, $currentCategory);
+        $totalArticles = $articleRepository->countPublished(null, $currentCategory, $currentKeyword);
         $totalPages = max(1, (int) ceil($totalArticles / $articlesPerPage));
         $currentPage = min($requestedPage, $totalPages);
         $currentCategorySlug = $this->findCategorySlug($categoryLinks, $currentCategory);
+        $paginationRoute = $this->resolvePaginationRoute($currentCategory, $currentKeyword);
+        $paginationRouteParams = $this->buildPaginationRouteParams($currentCategorySlug, $currentKeyword, $language);
 
         return $this->render('blog/index.html.twig', [
-            'articles' => $articleRepository->findPublishedPaginated($language, $currentPage, $articlesPerPage, $currentCategory),
+            'articles' => $articleRepository->findPublishedPaginated(null, $currentPage, $articlesPerPage, $currentCategory, $currentKeyword),
             'categories' => $categoryLinks,
             'current_category' => $currentCategory,
             'current_category_slug' => $currentCategorySlug,
+            'current_keyword' => $currentKeyword,
             'current_language' => $language,
             'language_options' => ArticleLanguage::cases(),
             'current_page' => $currentPage,
             'total_pages' => $totalPages,
             'pagination_items' => $paginationBuilder->buildPaginationItems($currentPage, $totalPages),
-            'pagination_route' => null === $currentCategory ? 'blog_index' : 'blog_category',
-            'pagination_route_params' => array_filter([
-                'slug' => $currentCategorySlug,
-                'lang' => $language?->value,
-            ], static fn (mixed $value): bool => null !== $value && '' !== $value),
+            'pagination_route' => $paginationRoute,
+            'pagination_route_params' => $paginationRouteParams,
         ]);
     }
 
@@ -184,5 +228,79 @@ class BlogController extends AbstractController
         }
 
         return null;
+    }
+
+    private function resolveCurrentKeyword(
+        ArticleKeywordRepository $articleKeywordRepository,
+        string $language,
+        string $name,
+    ): ArticleKeyword
+    {
+        $keywordLanguage = ArticleKeywordLanguage::tryFrom(strtolower(trim($language)));
+        if (null === $keywordLanguage) {
+            throw $this->createNotFoundException('Keyword not found.');
+        }
+
+        $keyword = $articleKeywordRepository->findOneActiveByLanguageAndName($keywordLanguage, $name);
+        if (null === $keyword) {
+            throw $this->createNotFoundException('Keyword not found.');
+        }
+
+        return $keyword;
+    }
+
+    /**
+     * @return list<array{keyword: ArticleKeyword, route_params: array{language: string, name: string}}>
+     */
+    private function buildArticleKeywordLinks(Article $article): array
+    {
+        $keywords = array_filter(
+            $article->getKeywords()->toArray(),
+            static fn (mixed $keyword): bool => $keyword instanceof ArticleKeyword
+                && $keyword->isActive()
+                && $keyword->getLanguage()->matchesArticleLanguage($article->getLanguage()),
+        );
+
+        usort(
+            $keywords,
+            static fn (ArticleKeyword $left, ArticleKeyword $right): int => [$left->getName(), $left->getId() ?? 0]
+                <=> [$right->getName(), $right->getId() ?? 0],
+        );
+
+        return array_map(
+            static fn (ArticleKeyword $keyword): array => [
+                'keyword' => $keyword,
+                'route_params' => [
+                    'language' => $keyword->getLanguage()->value,
+                    'name' => $keyword->getName(),
+                ],
+            ],
+            $keywords,
+        );
+    }
+
+    private function resolvePaginationRoute(?ArticleCategory $currentCategory, ?ArticleKeyword $currentKeyword): string
+    {
+        if (null !== $currentKeyword) {
+            return 'blog_keyword';
+        }
+
+        return null === $currentCategory ? 'blog_index' : 'blog_category';
+    }
+
+    /**
+     * @return array{slug?: string, language?: string, name?: string, lang?: string}
+     */
+    private function buildPaginationRouteParams(
+        ?string $currentCategorySlug,
+        ?ArticleKeyword $currentKeyword,
+        ?ArticleLanguage $language,
+    ): array {
+        return array_filter([
+            'slug' => $currentCategorySlug,
+            'language' => $currentKeyword?->getLanguage()->value,
+            'name' => $currentKeyword?->getName(),
+            'lang' => null === $currentKeyword ? $language?->value : null,
+        ], static fn (mixed $value): bool => null !== $value && '' !== $value);
     }
 }

@@ -57,6 +57,29 @@
                 <div class="article-body">
                     {{ article.content|article_markup }}
                 </div>
+                {% if article_keywords is not empty %}
+                    <section class="article-keywords-panel">
+                        <div class="article-keywords-header">
+                            <div class="article-keywords-eyebrow">
+                                <span data-lang="pl">Słowa kluczowe</span>
+                                <span data-lang="en">Keywords</span>
+                            </div>
+                        </div>
+                        <div class="article-keywords-list">
+                            {% for item in article_keywords %}
+                                {% set keyword = item.keyword %}
+                                <a
+                                    class="article-keyword-badge"
+                                    href="{{ path('blog_keyword', item.route_params) }}"
+                                    {% if keyword.color %}style="--keyword-accent: {{ keyword.color }};"{% endif %}
+                                >
+                                    <span class="article-keyword-badge-dot" aria-hidden="true"></span>
+                                    <span class="article-keyword-badge-label">{{ keyword.name }}</span>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </section>
+                {% endif %}
                 <div class="actions article-content-actions">
                     <a
                         class="button secondary article-action-button"

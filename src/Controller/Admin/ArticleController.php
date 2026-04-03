@@ -66,6 +66,7 @@ class ArticleController extends AbstractController
         ArticlePublisher $articlePublisher,
         ArticleCategoryRepository $articleCategoryRepository,
         ArticleKeywordRepository $articleKeywordRepository,
+        UserLanguageResolver $userLanguageResolver,
     ): Response {
         $article = new Article();
         $currentUser = $this->resolveAuthenticatedUser();
@@ -86,7 +87,7 @@ class ArticleController extends AbstractController
             $entityManager->persist($article);
             $entityManager->flush();
 
-            $this->addFlash('success', 'Article created.');
+            $this->addFlash('success', $userLanguageResolver->translate('Artykuł został dodany.', 'Article created.'));
 
             return $this->redirectToRoute('admin_article_index');
         }
@@ -104,6 +105,7 @@ class ArticleController extends AbstractController
         ArticlePublisher $articlePublisher,
         ArticleCategoryRepository $articleCategoryRepository,
         ArticleKeywordRepository $articleKeywordRepository,
+        UserLanguageResolver $userLanguageResolver,
     ): Response {
         $currentUser = $this->resolveAuthenticatedUser();
         $form = $this->createArticleForm($article, $articleCategoryRepository, $articleKeywordRepository);
@@ -117,7 +119,7 @@ class ArticleController extends AbstractController
             $article->setUpdatedBy($currentUser);
             $entityManager->flush();
 
-            $this->addFlash('success', 'Article updated.');
+            $this->addFlash('success', $userLanguageResolver->translate('Artykuł został zaktualizowany.', 'Article updated.'));
 
             return $this->redirectToRoute('admin_article_index');
         }

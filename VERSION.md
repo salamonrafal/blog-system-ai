@@ -258,8 +258,6 @@
 - Rozszerzono moduł eksportów o kategorie artykułów, dodając akcje eksportu pojedynczego i zbiorczego na `admin_article_category_index`, nowy typ eksportu `categories`, osobną kolejkę `category_export_queue`, dedykowany command `app:category-export:process-queue`, writer plików JSON oraz skrót `composer category-export:process-queue`.
 - Zachowano wspólną listę gotowych eksportów na `admin_article_export_index`, jednocześnie rozdzielając procesy przetwarzania eksportu artykułów i kategorii oraz aktualizując `admin_queue_status`, dashboard i badge w skrótach administracyjnych tak, aby agregowały oba typy kolejek eksportu.
 - Rozbudowano ekran `admin_article_export_index` o filtrowanie po typie eksportu oraz stronicowanie, a następnie dopracowano wygląd filtra typu tak, aby korzystał z tego samego customowego dropdownu i stylu co filtr kategorii na `admin_article_index`.
-- Uogólniono w modelu `BlogSettings` nazwę limitu elementów na stronę w panelu administracyjnym do zastosowań szerszych niż sama lista artykułów, aktualizując formularz ustawień bloga, tłumaczenia i walidację, a listę eksportów spięto z domyślną wartością `25` dla listingów administracyjnych.
-- Uzupełniono proces eksportu kategorii, widoki eksportów i kolejek oraz formularz ustawień bloga o brakujące tłumaczenia `PL/EN`, a także rozszerzono zestaw testów jednostkowych o nowe encje, commandy, writer'y i ścieżki kontrolerów związane z eksportem kategorii i paginacją eksportów.
 
 ## 2026-03-31
 
@@ -311,3 +309,14 @@
 - Dodano reużywalny komponent customowego selecta z osobnym modułem JavaScript i komponentem CSS, a następnie zastosowano go na ekranach dodawania i edycji słów kluczowych zamiast natywnego wyglądu systemowego.
 - Zmieniono wybór słów kluczowych na formularzu artykułu z klasycznego `select` na reużywalny komponent listy z wyszukiwaniem, podpowiedziami i usuwalnymi elementami, który filtruje wyniki do słów zgodnych z językiem artykułu lub zakresem `Dla wszystkich`.
 - Dopracowano zachowanie listy podpowiedzi słów kluczowych, wynosząc ją nad układ formularza jak overlay, pokazując dopiero po uzyskaniu fokusu i wpisaniu minimum jednego znaku oraz spinając wszystkie etykiety, komunikaty i akcje komponentu z i18n zamiast wartości hardcoded.
+
+## 2026-04-03
+
+- Ujednolicono komunikaty potwierdzające zapis artykułu w panelu administracyjnym, tak aby na ekranach tworzenia i edycji korzystały z `UserLanguageResolver` i wyświetlały się zgodnie z wybranym językiem interfejsu.
+- Rozszerzono publiczny widok `blog_show` o sekcję słów kluczowych pod treścią artykułu, prezentowaną jako klikane badge z opcjonalnym akcentem kolorystycznym pobieranym z konfiguracji słowa kluczowego.
+- Dodano nową stronę filtrowania artykułów po słowie kluczowym pod trasą `/keyword/{language}/{name}`, wykorzystującą ten sam widok listy co `blog_index` oraz zachowując spójny układ kart i paginacji.
+- Zmieniono publiczne listingi artykułów tak, aby nie filtrowały wpisów po języku `PL/EN`, traktując parametr `lang` wyłącznie jako warstwę interfejsu i SEO, a nie kryterium ograniczające wyniki.
+- Dopracowano wizualnie sekcję słów kluczowych na `blog_show`, usuwając dodatkowy nagłówek, zmniejszając badge, zdejmując obramowanie sekcji oraz zwiększając odstęp między końcem treści a listą słów kluczowych.
+- Zmieniono etykietę pola wyboru kategorii w formularzach dodawania i edycji artykułu z `Nazwa` na `Kategoria`, wprowadzając dla tego pola osobny klucz `i18n` bez wpływu na formularz zarządzania samymi kategoriami.
+- Uogólniono w modelu `BlogSettings` nazwę limitu elementów na stronę w panelu administracyjnym do zastosowań szerszych niż sama lista artykułów, aktualizując formularz ustawień bloga, tłumaczenia i walidację, a listę eksportów spięto z domyślną wartością `25` dla listingów administracyjnych.
+- Uzupełniono proces eksportu kategorii, widoki eksportów i kolejek oraz formularz ustawień bloga o brakujące tłumaczenia `PL/EN`, a także rozszerzono zestaw testów jednostkowych o nowe encje, commandy, writer'y i ścieżki kontrolerów związane z eksportem kategorii i paginacją eksportów.
