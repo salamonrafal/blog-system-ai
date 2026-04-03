@@ -39,10 +39,13 @@
                         aria-label="Podpowiedź dla pola koloru"
                     >?</button>
                 </div>
-                {{ form_widget(form.color, { type: 'hidden', attr: {
-                    'data-optional-color-value': 'true'
+                {{ form_widget(form.color, { attr: {
+                    class: 'article-editor-input',
+                    'data-optional-color-value': 'true',
+                    'data-i18n-placeholder': 'article_keyword_form_color_placeholder',
+                    placeholder: '#39ff14'
                 }|merge(color_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.color.vars.id ~ '-error'} : {}) }) }}
-                <div class="article-keyword-form-color-controls" data-optional-color-field>
+                <div class="article-keyword-form-color-controls" data-optional-color-field hidden>
                     <span class="article-keyword-form-color-picker-shell" data-optional-color-picker-shell>
                         <input
                             type="color"

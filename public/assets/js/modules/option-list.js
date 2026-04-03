@@ -39,6 +39,8 @@ function matchesFilter(root, item){
 function createMessage(text){
   const element = document.createElement('div');
   element.className = 'app-option-list-message';
+  element.setAttribute('role', 'option');
+  element.setAttribute('aria-disabled', 'true');
   element.textContent = text;
 
   return element;
@@ -327,7 +329,7 @@ function createOptionList(root){
 
   const instance = { sync };
   optionListRegistry.set(root, instance);
-  renderSelected();
+  sync();
   hideResults();
 
   return instance;

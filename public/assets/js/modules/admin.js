@@ -139,33 +139,62 @@ export function setupHeadlineImageToggle(){
 
 export function setupOptionalColorFields(){
   qsa('[data-optional-color-field]').forEach((field)=>{
-    const hiddenInput = qs('[data-optional-color-value]', field.parentElement);
+    const valueInput = qs('[data-optional-color-value]', field.parentElement);
     const picker = qs('[data-optional-color-picker]', field);
     const pickerShell = qs('[data-optional-color-picker-shell]', field);
     const clearButton = qs('[data-action="clear-optional-color"]', field);
-    if(!hiddenInput || !picker || !pickerShell || !clearButton) return;
+    if(!(valueInput instanceof HTMLInputElement) || !picker || !pickerShell || !clearButton) return;
 
     const fallbackColor = '#39ff14';
+    field.hidden = false;
+    valueInput.classList.add('sr-only');
+    valueInput.tabIndex = -1;
+    valueInput.setAttribute('aria-hidden', 'true');
+
+    const syncAccessibilityState = ()=>{
+      const describedBy = valueInput.getAttribute('aria-describedby');
+      const required = valueInput.getAttribute('aria-required');
+      const invalid = valueInput.getAttribute('aria-invalid');
+
+      if(describedBy){
+        picker.setAttribute('aria-describedby', describedBy);
+      } else {
+        picker.removeAttribute('aria-describedby');
+      }
+
+      if(required){
+        picker.setAttribute('aria-required', required);
+      } else {
+        picker.removeAttribute('aria-required');
+      }
+
+      if(invalid){
+        picker.setAttribute('aria-invalid', invalid);
+      } else {
+        picker.removeAttribute('aria-invalid');
+      }
+    };
 
     const sync = ()=>{
-      const normalizedColor = normalizeHexColor(hiddenInput.value);
+      const normalizedColor = normalizeHexColor(valueInput.value);
       const isBlank = null === normalizedColor;
       picker.value = normalizedColor ?? fallbackColor;
       picker.classList.toggle('is-blank', isBlank);
       pickerShell.classList.toggle('is-blank', isBlank);
       clearButton.hidden = isBlank;
       clearButton.setAttribute('aria-hidden', isBlank ? 'true' : 'false');
+      syncAccessibilityState();
     };
 
     sync();
 
     picker.addEventListener('input', ()=>{
-      hiddenInput.value = normalizeHexColor(picker.value) ?? '';
+      valueInput.value = normalizeHexColor(picker.value) ?? '';
       sync();
     });
 
     clearButton.addEventListener('click', ()=>{
-      hiddenInput.value = '';
+      valueInput.value = '';
       sync();
     });
   });
