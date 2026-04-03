@@ -14,7 +14,7 @@ final class ArticleKeywordLanguageTest extends TestCase
     {
         $this->assertSame('Dla Wszystkich', ArticleKeywordLanguage::ALL->label());
         $this->assertSame('Polski (PL)', ArticleKeywordLanguage::PL->label());
-        $this->assertSame('English (EN)', ArticleKeywordLanguage::EN->label());
+        $this->assertSame('Angielski (EN)', ArticleKeywordLanguage::EN->label());
     }
 
     public function testMatchesArticleLanguageAllowsSharedKeywords(): void

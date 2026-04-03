@@ -15,7 +15,7 @@ enum ArticleKeywordLanguage: string
         return match ($this) {
             self::ALL => 'Dla Wszystkich',
             self::PL => 'Polski (PL)',
-            self::EN => 'English (EN)',
+            self::EN => 'Angielski (EN)',
         };
     }
 

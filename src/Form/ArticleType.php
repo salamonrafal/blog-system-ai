@@ -26,18 +26,26 @@ class ArticleType extends AbstractType
     {
         $article = $builder->getData();
         $assignedKeywords = $article instanceof Article ? iterator_to_array($article->getKeywords()) : [];
-        $assignedKeywordIds = $article instanceof Article
-            ? array_fill_keys(
-                array_values(array_filter(
-                    array_map(
-                        static fn (ArticleKeyword $keyword): ?int => $keyword->getId(),
-                        $assignedKeywords,
-                    ),
-                    static fn (?int $keywordId): bool => null !== $keywordId,
-                )),
-                true,
-            )
-            : [];
+        $assignedKeywordIds = array_fill_keys(
+            array_values(array_filter(
+                array_map(
+                    static fn (ArticleKeyword $keyword): ?int => $keyword->getId(),
+                    $assignedKeywords,
+                ),
+                static fn (?int $keywordId): bool => null !== $keywordId,
+            )),
+            true,
+        );
+        $assignedKeywordObjectHashes = array_fill_keys(
+            array_map(
+                static fn (ArticleKeyword $keyword): string => spl_object_hash($keyword),
+                array_filter(
+                    $assignedKeywords,
+                    static fn (ArticleKeyword $keyword): bool => null === $keyword->getId(),
+                ),
+            ),
+            true,
+        );
 
         $builder
             ->add('title', TextType::class, [
@@ -124,7 +132,7 @@ class ArticleType extends AbstractType
                     'data-keyword-scope-key' => $keyword->getLanguage()->translationKey(),
                     'disabled' => !$keyword->isActive()
                         && !isset($assignedKeywordIds[(int) $keyword->getId()])
-                        && !in_array($keyword, $assignedKeywords, true)
+                        && !isset($assignedKeywordObjectHashes[spl_object_hash($keyword)])
                         ? 'disabled'
                         : null,
                 ], static fn (mixed $value): bool => null !== $value),
