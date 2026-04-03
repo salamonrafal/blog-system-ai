@@ -78,6 +78,58 @@
             </div>
         </div>
 
+        {% set keywords_has_errors = form.keywords.vars.errors|length > 0 %}
+        {% set keywords_help_id = form.keywords.vars.id ~ '-help' %}
+        <div class="field article-editor-field{{ keywords_has_errors ? ' has-error' : '' }}">
+            {{ form_label(form.keywords) }}
+            <div
+                class="app-option-list"
+                data-option-list
+                data-option-list-label-attribute="data-keyword-name"
+                data-option-list-meta-key-attribute="data-keyword-scope-key"
+                data-option-list-filter-source-id="{{ form.language.vars.id }}"
+                data-option-list-filter-attribute="data-keyword-language"
+                data-option-list-shared-value="all"
+                data-option-list-placeholder-key="article_form_keywords_placeholder"
+                data-option-list-empty-key="article_form_keywords_empty"
+                data-option-list-all-selected-key="article_form_keywords_all_selected"
+                data-option-list-no-results-key="article_form_keywords_no_results"
+                data-option-list-remove-label-key="article_form_keywords_remove"
+                data-option-list-selected-aria-key="article_form_keywords_selected_aria"
+                data-option-list-results-aria-key="article_form_keywords_results_aria"
+            >
+                {{ form_widget(form.keywords, { attr: {
+                    'data-option-list-select': 'true',
+                    'data-i18n-aria': 'article_form_keywords_select_aria',
+                    'aria-label': 'Wybierz słowa kluczowe artykułu'
+                }|merge(keywords_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.keywords.vars.id ~ '-error'} : {}) }) }}
+                <div class="app-option-list-shell" data-option-list-shell hidden>
+                    <div class="app-option-list-selected" data-option-list-selected aria-live="polite" aria-atomic="true" data-i18n-aria="article_form_keywords_selected_aria" aria-label="Wybrane słowa kluczowe"></div>
+                    <div class="app-option-list-input-wrap">
+                        <input
+                            type="text"
+                            class="article-editor-input app-option-list-input"
+                            data-option-list-input
+                            data-i18n-placeholder="article_form_keywords_placeholder"
+                            placeholder="Wpisz, aby wyszukać słowa kluczowe"
+                            autocomplete="off"
+                            spellcheck="false"
+                            aria-describedby="{{ keywords_help_id }}"
+                        >
+                        <span id="{{ keywords_help_id }}" class="sr-only" data-i18n="article_form_keywords_help">Wpisz, aby wyszukać i dodać słowo kluczowe.</span>
+                    </div>
+                    <div class="app-option-list-results" data-option-list-results data-i18n-aria="article_form_keywords_results_aria" aria-label="Podpowiedzi słów kluczowych" hidden></div>
+                </div>
+            </div>
+            {% if keywords_has_errors %}
+                <div id="{{ form.keywords.vars.id }}-error" class="article-editor-error-message" role="alert">
+                    {% for error in form.keywords.vars.errors %}
+                        <p data-i18n="{{ error.message }}">{{ i18n_fallback(error.message) }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
         {% set excerpt_has_errors = form.excerpt.vars.errors|length > 0 %}
         {% set excerpt_counter_id = form.excerpt.vars.id ~ '-char-count' %}
         {% set excerpt_described_by = excerpt_counter_id ~ (excerpt_has_errors ? ' ' ~ form.excerpt.vars.id ~ '-error' : '') %}

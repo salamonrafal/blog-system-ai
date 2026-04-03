@@ -1,6 +1,6 @@
 import { applyI18n, getTranslation, registerI18nListener } from './i18n.js';
 import { getLang, isAdminDeviceRemembered, setAdminDeviceRemembered } from './preferences.js';
-import { qs, qsa } from './shared.js';
+import { normalizeHexColor, qs, qsa } from './shared.js';
 
 export function syncAdminShortcuts(){
   qsa('[data-admin-shortcuts]').forEach((menu)=>{
@@ -134,6 +134,91 @@ export function setupHeadlineImageToggle(){
 
     syncVisibility();
     toggle.addEventListener('change', syncVisibility);
+  });
+}
+
+export function setupOptionalColorFields(){
+  qsa('[data-optional-color-field]').forEach((field)=>{
+    const valueInput = qs('[data-optional-color-value]', field.parentElement);
+    const picker = qs('[data-optional-color-picker]', field);
+    const pickerShell = qs('[data-optional-color-picker-shell]', field);
+    const clearButton = qs('[data-action="clear-optional-color"]', field);
+    if(!(valueInput instanceof HTMLInputElement) || !picker || !pickerShell || !clearButton) return;
+
+    const fallbackColor = '#39ff14';
+    const label = valueInput.id
+      ? document.querySelector(`label[for="${valueInput.id}"]`)
+      : null;
+    const labelId = label instanceof HTMLLabelElement
+      ? (label.id || `${valueInput.id}--label`)
+      : '';
+    field.hidden = false;
+    valueInput.classList.add('sr-only');
+    valueInput.tabIndex = -1;
+    valueInput.setAttribute('aria-hidden', 'true');
+
+    if(label instanceof HTMLLabelElement && labelId){
+      label.id = labelId;
+      picker.setAttribute('aria-labelledby', labelId);
+      label.addEventListener('click', (event)=>{
+        event.preventDefault();
+        picker.focus({ preventScroll: true });
+      });
+    }
+
+    const syncAccessibilityState = ()=>{
+      const describedBy = valueInput.getAttribute('aria-describedby');
+      const required = valueInput.getAttribute('aria-required');
+      const invalid = valueInput.getAttribute('aria-invalid');
+
+      if(describedBy){
+        picker.setAttribute('aria-describedby', describedBy);
+      } else {
+        picker.removeAttribute('aria-describedby');
+      }
+
+      if(required){
+        picker.setAttribute('aria-required', required);
+      } else {
+        picker.removeAttribute('aria-required');
+      }
+
+      if(invalid){
+        picker.setAttribute('aria-invalid', invalid);
+      } else {
+        picker.removeAttribute('aria-invalid');
+      }
+    };
+
+    const sync = ()=>{
+      const rawValue = valueInput.value.trim();
+      const normalizedColor = normalizeHexColor(rawValue);
+      const hasInvalidValue = '' !== rawValue && null === normalizedColor;
+      const isBlank = '' === rawValue || hasInvalidValue;
+      const isDisabled = valueInput.disabled;
+      picker.value = normalizedColor ?? fallbackColor;
+      picker.classList.toggle('is-blank', isBlank);
+      pickerShell.classList.toggle('is-blank', isBlank);
+      picker.disabled = isDisabled;
+      clearButton.disabled = isDisabled;
+      clearButton.hidden = '' === rawValue;
+      clearButton.setAttribute('aria-hidden', clearButton.hidden ? 'true' : 'false');
+      syncAccessibilityState();
+    };
+
+    sync();
+
+    picker.addEventListener('input', ()=>{
+      if(valueInput.disabled) return;
+      valueInput.value = normalizeHexColor(picker.value) ?? '';
+      sync();
+    });
+
+    clearButton.addEventListener('click', ()=>{
+      if(valueInput.disabled) return;
+      valueInput.value = '';
+      sync();
+    });
   });
 }
 
@@ -690,6 +775,29 @@ export function setupTopMenuDeleteConfirmation(){
     cancelFallback: 'Przerwij',
     submitI18n: 'admin_top_menu_delete_popup_confirm',
     submitFallback: 'Usuń element',
+    closeI18n: 'admin_close_alert',
+    closeFallback: 'Zamknij alert',
+  });
+}
+
+export function setupArticleKeywordDeleteConfirmation(){
+  setupDangerConfirmation({
+    triggerSelector: '[data-action="confirm-delete-article-keyword"]',
+    modalClass: 'confirm-delete-article-keyword-modal',
+    modalIdPrefix: 'confirm-delete-article-keyword',
+    titleI18n: 'admin_article_keywords_delete_popup_title',
+    titleFallback: 'Usunąć słowo kluczowe?',
+    textI18n: 'admin_article_keywords_delete_popup_text',
+    textFallback: 'Ta operacja trwale usunie słowo kluczowe z panelu administracyjnego.',
+    detailsClass: 'confirm-delete-article-keyword-name',
+    detailsText: (trigger)=> trigger.getAttribute('data-article-keyword-name') || '',
+    cancelAction: 'cancel-delete-article-keyword',
+    submitAction: 'submit-delete-article-keyword',
+    closeAction: 'close-delete-article-keyword',
+    cancelI18n: 'admin_article_keywords_delete_popup_cancel',
+    cancelFallback: 'Przerwij',
+    submitI18n: 'admin_article_keywords_delete_popup_confirm',
+    submitFallback: 'Usuń słowo kluczowe',
     closeI18n: 'admin_close_alert',
     closeFallback: 'Zamknij alert',
   });

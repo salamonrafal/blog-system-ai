@@ -6,6 +6,9 @@ namespace App\Tests\Unit\Form;
 
 use App\Entity\Article;
 use App\Entity\ArticleCategory;
+use App\Entity\ArticleKeyword;
+use App\Enum\ArticleCategoryStatus;
+use App\Enum\ArticleKeywordLanguage;
 use App\Enum\ArticleLanguage;
 use App\Enum\ArticleStatus;
 use App\Form\ArticleType;
@@ -39,8 +42,15 @@ final class ArticleTypeTest extends TestCase
             (new ArticleCategory())->setName('PHP'),
             (new ArticleCategory())->setName('AI'),
         ];
+        $keywords = [
+            (new ArticleKeyword())->setName('php')->setLanguage(ArticleKeywordLanguage::ALL),
+            (new ArticleKeyword())->setName('ai')->setLanguage(ArticleKeywordLanguage::EN)->setStatus(ArticleCategoryStatus::INACTIVE),
+        ];
+        $this->setEntityId($keywords[0], 11);
+        $this->setEntityId($keywords[1], 12);
         $form = $factory->create(ArticleType::class, new Article(), [
             'categories' => $categories,
+            'keywords' => $keywords,
         ]);
 
         $this->assertInstanceOf(TextType::class, $form->get('title')->getConfig()->getType()->getInnerType());
@@ -69,11 +79,55 @@ final class ArticleTypeTest extends TestCase
         $this->assertSame('---', $form->get('category')->getConfig()->getOption('placeholder'));
         $this->assertSame($categories, $form->get('category')->getConfig()->getOption('choices'));
 
+        $this->assertInstanceOf(ChoiceType::class, $form->get('keywords')->getConfig()->getType()->getInnerType());
+        $this->assertTrue($form->get('keywords')->getConfig()->getOption('multiple'));
+        $this->assertFalse($form->get('keywords')->getConfig()->getOption('required'));
+        $this->assertSame($keywords, $form->get('keywords')->getConfig()->getOption('choices'));
+        $keywordChoiceValue = $form->get('keywords')->getConfig()->getOption('choice_value');
+        $this->assertSame('11', $keywordChoiceValue($keywords[0]));
+        $this->assertSame('12', $keywordChoiceValue($keywords[1]));
+        $keywordChoiceAttr = $form->get('keywords')->getConfig()->getOption('choice_attr');
+        $allKeywordAttrs = $keywordChoiceAttr($keywords[0]);
+        $enKeywordAttrs = $keywordChoiceAttr($keywords[1]);
+        $this->assertSame('article_keyword_language_all', $allKeywordAttrs['data-keyword-scope-key']);
+        $this->assertSame('article_language_en', $enKeywordAttrs['data-keyword-scope-key']);
+        $this->assertArrayNotHasKey('disabled', $allKeywordAttrs);
+        $this->assertSame('disabled', $enKeywordAttrs['disabled']);
+        $this->assertArrayNotHasKey('data-keyword-status', $allKeywordAttrs);
+        $this->assertArrayNotHasKey('data-keyword-status', $enKeywordAttrs);
+
         $this->assertInstanceOf(DateTimeType::class, $form->get('publishedAt')->getConfig()->getType()->getInnerType());
         $this->assertFalse($form->get('publishedAt')->getConfig()->getOption('required'));
         $this->assertSame('single_text', $form->get('publishedAt')->getConfig()->getOption('widget'));
         $this->assertSame('datetime_immutable', $form->get('publishedAt')->getConfig()->getOption('input'));
         $this->assertSame('UTC', $form->get('publishedAt')->getConfig()->getOption('model_timezone'));
         $this->assertSame('UTC', $form->get('publishedAt')->getConfig()->getOption('view_timezone'));
+    }
+
+    public function testInactiveAssignedKeywordIsNotDisabledDuringArticleEdit(): void
+    {
+        $inactiveAssignedKeyword = (new ArticleKeyword())
+            ->setName('legacy-keyword')
+            ->setLanguage(ArticleKeywordLanguage::EN)
+            ->setStatus(ArticleCategoryStatus::INACTIVE);
+
+        $article = (new Article())
+            ->addKeyword($inactiveAssignedKeyword);
+
+        $form = Forms::createFormFactoryBuilder()->getFormFactory()->create(ArticleType::class, $article, [
+            'categories' => [],
+            'keywords' => [$inactiveAssignedKeyword],
+        ]);
+
+        $keywordChoiceAttr = $form->get('keywords')->getConfig()->getOption('choice_attr');
+        $assignedKeywordAttrs = $keywordChoiceAttr($inactiveAssignedKeyword);
+
+        $this->assertArrayNotHasKey('disabled', $assignedKeywordAttrs);
+    }
+
+    private function setEntityId(object $entity, int $id): void
+    {
+        $reflectionProperty = new \ReflectionProperty($entity, 'id');
+        $reflectionProperty->setValue($entity, $id);
     }
 }

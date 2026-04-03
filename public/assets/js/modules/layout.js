@@ -44,6 +44,7 @@ export function setupTooltips(){
 
     activeTrigger = trigger;
     tooltip.classList.toggle('is-wide', trigger.getAttribute('data-tooltip-wide') === 'true');
+    tooltip.classList.toggle('is-wrap', trigger.getAttribute('data-tooltip-wrap') === 'true');
     tooltip.classList.toggle('is-multiline', trigger.getAttribute('data-tooltip-multiline') === 'true');
     tooltip.textContent = text;
     tooltip.removeAttribute('hidden');
@@ -55,6 +56,7 @@ export function setupTooltips(){
     tooltip.setAttribute('hidden', '');
     tooltip.setAttribute('aria-hidden', 'true');
     tooltip.classList.remove('is-wide');
+    tooltip.classList.remove('is-wrap');
     tooltip.classList.remove('is-multiline');
     activeTrigger = null;
   };

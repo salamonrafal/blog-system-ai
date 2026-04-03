@@ -301,3 +301,13 @@
 - Naprawiono regresję stylowania tabel w panelu administracyjnym po rozbiciu CSS na pliki modułowe, przywracając wspólne bazowe reguły `table`, `th` i `td`, dzięki czemu poprawny wygląd odzyskały ekrany `Zarządzanie artykułami`, `Zarządzanie kategoriami artykułów`, `Zarządzanie górnym menu bloga`, `Stan kolejek`, `Importy`, `Import kategorii`, `Import menu` i `Eksporty`.
 - Dopracowano pływające menu administracyjne, usuwając ucinanie ostatnich pozycji w rozwijanym panelu `Importy & Eksporty`, dodając subtelne przewijanie przy ograniczonej wysokości oraz zmieniając układ tak, aby scroll dotyczył wyłącznie środkowej części listy, a górny przycisk szybkiej akcji i dolny blok `Szybkie ustawienia` pozostawały przypięte.
 - Poszerzono pływające menu administracyjne, aby etykieta `Importy & Eksporty` wraz z badge mieściła się w jednym wierszu bez niepożądanego zawijania.
+
+## 2026-04-02
+
+- Dodano pełny moduł zarządzania słowami kluczowymi artykułów w panelu administracyjnym, obejmujący listę, formularze tworzenia i edycji, relację z artykułami, skrót w pływającym menu oraz komplet tłumaczeń i18n, walidacji i testów jednostkowych.
+- Rozszerzono model słów kluczowych o stabilną unikalną nazwę, status aktywności, opcjonalny kolor oraz zakres językowy `PL`, `EN` i `Dla wszystkich`, dzięki czemu można współdzielić te same słowa kluczowe między wersjami językowymi bez duplikowania danych.
+- Wydzielono wspólny serwis generowania unikalnych nazw opartych o slug, porządkując logikę identyfikatorów wykorzystywaną zarówno przez słowa kluczowe, jak i elementy `Top menu`.
+- Przebudowano formularz tworzenia i edycji słowa kluczowego, ustawiając pola `Język`, `Kolor` i `Status` w jednym rzędzie, dodając pusty stan `brak koloru` z możliwością wyczyszczenia wyboru oraz przenosząc podpowiedzi pól do tooltipów otwieranych z ikony `?`.
+- Dodano reużywalny komponent customowego selecta z osobnym modułem JavaScript i komponentem CSS, a następnie zastosowano go na ekranach dodawania i edycji słów kluczowych zamiast natywnego wyglądu systemowego.
+- Zmieniono wybór słów kluczowych na formularzu artykułu z klasycznego `select` na reużywalny komponent listy z wyszukiwaniem, podpowiedziami i usuwalnymi elementami, który filtruje wyniki do słów zgodnych z językiem artykułu lub zakresem `Dla wszystkich`.
+- Dopracowano zachowanie listy podpowiedzi słów kluczowych, wynosząc ją nad układ formularza jak overlay, pokazując dopiero po uzyskaniu fokusu i wpisaniu minimum jednego znaku oraz spinając wszystkie etykiety, komunikaty i akcje komponentu z i18n zamiast wartości hardcoded.

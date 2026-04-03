@@ -11,6 +11,7 @@ use App\Enum\ArticleStatus;
 use App\Form\ArticleType;
 use App\Repository\ArticleCategoryRepository;
 use App\Repository\ArticleExportQueueRepository;
+use App\Repository\ArticleKeywordRepository;
 use App\Repository\ArticleRepository;
 use App\Service\ArticlePublisher;
 use App\Service\BlogSettingsProvider;
@@ -64,10 +65,11 @@ class ArticleController extends AbstractController
         EntityManagerInterface $entityManager,
         ArticlePublisher $articlePublisher,
         ArticleCategoryRepository $articleCategoryRepository,
+        ArticleKeywordRepository $articleKeywordRepository,
     ): Response {
         $article = new Article();
         $currentUser = $this->resolveAuthenticatedUser();
-        $form = $this->createArticleForm($article, $articleCategoryRepository);
+        $form = $this->createArticleForm($article, $articleCategoryRepository, $articleKeywordRepository);
         $form->handleRequest($request);
 
         if ($form->isSubmitted()) {
@@ -101,9 +103,10 @@ class ArticleController extends AbstractController
         EntityManagerInterface $entityManager,
         ArticlePublisher $articlePublisher,
         ArticleCategoryRepository $articleCategoryRepository,
+        ArticleKeywordRepository $articleKeywordRepository,
     ): Response {
         $currentUser = $this->resolveAuthenticatedUser();
-        $form = $this->createArticleForm($article, $articleCategoryRepository);
+        $form = $this->createArticleForm($article, $articleCategoryRepository, $articleKeywordRepository);
         $form->handleRequest($request);
 
         if ($form->isSubmitted()) {
@@ -377,10 +380,15 @@ class ArticleController extends AbstractController
         return $category instanceof ArticleCategory ? $category : null;
     }
 
-    private function createArticleForm(Article $article, ArticleCategoryRepository $articleCategoryRepository): FormInterface
+    private function createArticleForm(
+        Article $article,
+        ArticleCategoryRepository $articleCategoryRepository,
+        ArticleKeywordRepository $articleKeywordRepository,
+    ): FormInterface
     {
         return $this->createForm(ArticleType::class, $article, [
             'categories' => $articleCategoryRepository->findForAdminIndex(),
+            'keywords' => $articleKeywordRepository->findForArticleAssignment(),
         ]);
     }
 

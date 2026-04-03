@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Entity;
 
 use App\Entity\Article;
 use App\Entity\ArticleCategory;
+use App\Entity\ArticleKeyword;
 use App\Entity\User;
 use App\Enum\ArticleLanguage;
 use App\Enum\ArticleStatus;
@@ -19,6 +20,7 @@ final class ArticleTest extends TestCase
         $creator = (new User())->setEmail('creator@example.com');
         $updater = (new User())->setEmail('updater@example.com');
         $category = (new ArticleCategory())->setName('PHP');
+        $keyword = (new ArticleKeyword())->setName('php');
 
         $article = (new Article())
             ->setTitle('Tytul artykulu')
@@ -31,7 +33,8 @@ final class ArticleTest extends TestCase
             ->setPublishedAt($publishedAt)
             ->setCategory($category)
             ->setCreatedBy($creator)
-            ->setUpdatedBy($updater);
+            ->setUpdatedBy($updater)
+            ->addKeyword($keyword);
 
         $this->assertSame('Tytul artykulu', $article->getTitle());
         $this->assertSame(ArticleLanguage::EN, $article->getLanguage());
@@ -45,9 +48,25 @@ final class ArticleTest extends TestCase
         $this->assertSame('2026-03-16 09:00:00', $article->getPublishedAt()?->format('Y-m-d H:i:s'));
         $this->assertSame('UTC', $article->getPublishedAt()?->getTimezone()->getName());
         $this->assertSame($category, $article->getCategory());
+        $this->assertCount(1, $article->getKeywords());
+        $this->assertSame($keyword, $article->getKeywords()->first());
         $this->assertSame($creator, $article->getCreatedBy());
         $this->assertSame($updater, $article->getUpdatedBy());
         $this->assertFalse($article->isPublished());
+    }
+
+    public function testSyncKeywordsReplacesAssignedKeywords(): void
+    {
+        $firstKeyword = (new ArticleKeyword())->setName('php');
+        $secondKeyword = (new ArticleKeyword())->setName('symfony');
+
+        $article = (new Article())
+            ->addKeyword($firstKeyword)
+            ->syncKeywords([$secondKeyword]);
+
+        $this->assertCount(1, $article->getKeywords());
+        $this->assertTrue($article->getKeywords()->contains($secondKeyword));
+        $this->assertFalse($article->getKeywords()->contains($firstKeyword));
     }
 
     public function testResolvedHeadlineImageFallsBackToDefaultWhenEnabledWithoutCustomImage(): void

@@ -7,6 +7,8 @@ namespace App\Entity;
 use App\Enum\ArticleLanguage;
 use App\Enum\ArticleStatus;
 use App\Repository\ArticleRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -65,6 +67,13 @@ class Article
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?ArticleCategory $category = null;
 
+    /**
+     * @var Collection<int, ArticleKeyword>
+     */
+    #[ORM\ManyToMany(targetEntity: ArticleKeyword::class, inversedBy: 'articles')]
+    #[ORM\JoinTable(name: 'article_keyword_assignment')]
+    private Collection $keywords;
+
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?User $createdBy = null;
@@ -81,6 +90,7 @@ class Article
 
     public function __construct()
     {
+        $this->keywords = new ArrayCollection();
         $now = self::utcNow();
         $this->createdAt = $now;
         $this->updatedAt = $now;
@@ -217,6 +227,49 @@ class Article
     public function setCategory(?ArticleCategory $category): self
     {
         $this->category = $category;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ArticleKeyword>
+     */
+    public function getKeywords(): Collection
+    {
+        return $this->keywords;
+    }
+
+    public function addKeyword(ArticleKeyword $keyword): self
+    {
+        if (!$this->keywords->contains($keyword)) {
+            $this->keywords->add($keyword);
+            $keyword->addArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeKeyword(ArticleKeyword $keyword): self
+    {
+        if ($this->keywords->removeElement($keyword)) {
+            $keyword->removeArticle($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param iterable<ArticleKeyword> $keywords
+     */
+    public function syncKeywords(iterable $keywords): self
+    {
+        foreach ($this->keywords->toArray() as $keyword) {
+            $this->removeKeyword($keyword);
+        }
+
+        foreach ($keywords as $keyword) {
+            $this->addKeyword($keyword);
+        }
 
         return $this;
     }
