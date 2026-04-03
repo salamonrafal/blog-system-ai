@@ -36,14 +36,6 @@
 {% set route_name = app.request.attributes.get('_route')|default('') %}
 {% set is_admin_route = route_name starts with 'admin_' %}
 
-{% if is_admin_route %}
-    {% if app_env == 'prod' %}
-        {% set admin_preloader_script = '/assets/build/admin-preloader.min.js' %}
-    {% else %}
-        {% set admin_preloader_script = '/assets/js/admin-preloader.js' %}
-    {% endif %}
-{% endif %}
-
 <body
     data-page-title="{% block page_title %}{{ block('title') }}{% endblock %}"
     {% if is_admin_route %}
@@ -55,7 +47,31 @@
     {% endif %}
 >
 {% if is_admin_route %}
-    <script src="{{ admin_preloader_script }}"></script>
+    <script>
+        (function(){
+            var body = document.body;
+
+            if(!(body instanceof HTMLBodyElement)){
+                return;
+            }
+
+            var released = false;
+            var release = function(){
+                if(released){
+                    return;
+                }
+
+                released = true;
+                body.classList.remove('admin-preload-pending');
+            };
+
+            body.classList.add('admin-preload-pending');
+            window.addEventListener('load', function(){
+                window.requestAnimationFrame(release);
+            }, { once: true });
+            window.setTimeout(release, 5000);
+        })();
+    </script>
     <div class="admin-preloader" data-admin-preloader>
         <div class="admin-preloader-backdrop" aria-hidden="true"></div>
         <div class="admin-preloader-status" role="status" aria-live="polite" aria-atomic="true">

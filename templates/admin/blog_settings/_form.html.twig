@@ -16,7 +16,8 @@
 
             {% set app_url_has_errors = form.appUrl.vars.errors|length > 0 %}
             {% set app_url_counter_id = form.appUrl.vars.id ~ '-char-count' %}
-            {% set app_url_described_by = app_url_counter_id ~ (app_url_has_errors ? ' ' ~ form.appUrl.vars.id ~ '-error' : '') %}
+            {% set app_url_hint_id = form.appUrl.vars.id ~ '-hint' %}
+            {% set app_url_described_by = app_url_hint_id ~ ' ' ~ app_url_counter_id ~ (app_url_has_errors ? ' ' ~ form.appUrl.vars.id ~ '-error' : '') %}
             <div class="field article-editor-field blog-settings-inline-field blog-settings-inline-field-with-counter{{ app_url_has_errors ? ' has-error' : '' }}">
                 <div class="blog-settings-inline-field-copy">
                     <div class="blog-settings-label-row">
@@ -32,6 +33,7 @@
                             aria-label="Pomoc do pola URL aplikacji"
                         >?</button>
                     </div>
+                    <span id="{{ app_url_hint_id }}" class="sr-only" data-i18n="blog_settings_app_url_hint">Ten adres jest używany do budowania canonicali, linków do udostępniania i pełnych URL-i obrazków SEO.</span>
                 </div>
                 <div class="blog-settings-input-stack">
                     <div class="blog-settings-input-row">
@@ -111,7 +113,8 @@
 
             {% set social_image_has_errors = form.homepageSocialImage.vars.errors|length > 0 %}
             {% set social_image_counter_id = form.homepageSocialImage.vars.id ~ '-char-count' %}
-            {% set social_image_described_by = social_image_counter_id ~ (social_image_has_errors ? ' ' ~ form.homepageSocialImage.vars.id ~ '-error' : '') %}
+            {% set social_image_hint_id = form.homepageSocialImage.vars.id ~ '-hint' %}
+            {% set social_image_described_by = social_image_hint_id ~ ' ' ~ social_image_counter_id ~ (social_image_has_errors ? ' ' ~ form.homepageSocialImage.vars.id ~ '-error' : '') %}
             <div class="field article-editor-field blog-settings-inline-field blog-settings-inline-field-with-counter{{ social_image_has_errors ? ' has-error' : '' }}">
                 <div class="blog-settings-inline-field-copy">
                     <div class="blog-settings-label-row">
@@ -127,6 +130,7 @@
                             aria-label="Pomoc do pola obrazek dla strony głównej"
                         >?</button>
                     </div>
+                    <span id="{{ social_image_hint_id }}" class="sr-only" data-i18n="blog_settings_homepage_social_image_hint">Podaj pełny URL albo ścieżkę zaczynającą się od /.</span>
                 </div>
                 <div class="blog-settings-input-stack">
                     <div class="blog-settings-input-row">
