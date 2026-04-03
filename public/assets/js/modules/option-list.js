@@ -55,6 +55,7 @@ function createOptionList(root){
   if(!(select instanceof HTMLSelectElement) || !(input instanceof HTMLInputElement) || !selectedContainer || !resultsContainer || !shell) return null;
 
   let activeIndex = -1;
+  let cachedItems = [];
   const label = select.id ? document.querySelector(`label[for="${select.id}"]`) : null;
   const labelId = label instanceof HTMLLabelElement
     ? (label.id || `${select.id}--label`)
@@ -146,9 +147,13 @@ function createOptionList(root){
     syncActiveDescendant();
   };
 
+  const refreshItems = ()=>{
+    cachedItems = getOptions(root, select);
+  };
+
   const renderSelected = ()=>{
     selectedContainer.replaceChildren();
-    const selectedItems = getOptions(root, select).filter((item)=> item.selected);
+    const selectedItems = cachedItems.filter((item)=> item.selected);
 
     selectedItems.forEach((item)=>{
       const chip = document.createElement('span');
@@ -185,7 +190,7 @@ function createOptionList(root){
   const renderResults = ()=>{
     const query = input.value.trim().toLowerCase();
     const shouldShowResults = document.activeElement === input && query.length >= 1;
-    const availableItems = getOptions(root, select)
+    const availableItems = cachedItems
       .filter((item)=> !item.disabled && !item.selected)
       .filter((item)=> matchesFilter(root, item));
     const matchingItems = availableItems.filter((item)=> item.label.toLowerCase().includes(query));
@@ -256,6 +261,7 @@ function createOptionList(root){
   };
 
   const sync = ()=>{
+    refreshItems();
     syncAccessibilityState();
     renderSelected();
     renderResults();
@@ -314,7 +320,7 @@ function createOptionList(root){
     }
 
     if(event.key === 'Backspace' && '' === input.value){
-      const selectedItems = getOptions(root, select).filter((item)=> item.selected);
+      const selectedItems = cachedItems.filter((item)=> item.selected);
       const lastSelected = selectedItems[selectedItems.length - 1];
       if(lastSelected){
         lastSelected.option.selected = false;
