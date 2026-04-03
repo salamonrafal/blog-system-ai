@@ -6,6 +6,7 @@ namespace App\Repository;
 
 use App\Entity\Article;
 use App\Entity\ArticleCategory;
+use App\Entity\ArticleKeyword;
 use App\Entity\BlogSettings;
 use App\Enum\ArticleLanguage;
 use App\Enum\ArticleStatus;
@@ -28,9 +29,13 @@ class ArticleRepository extends ServiceEntityRepository
     /**
      * @return list<Article>
      */
-    public function findPublishedOrderedByDate(?ArticleLanguage $language = null, ?ArticleCategory $category = null): array
+    public function findPublishedOrderedByDate(
+        ?ArticleLanguage $language = null,
+        ?ArticleCategory $category = null,
+        ?ArticleKeyword $keyword = null,
+    ): array
     {
-        return $this->createPublishedOrderedByDateQueryBuilder($language, $category)
+        return $this->createPublishedOrderedByDateQueryBuilder($language, $category, $keyword)
             ->getQuery()
             ->getResult();
     }
@@ -38,9 +43,15 @@ class ArticleRepository extends ServiceEntityRepository
     /**
      * @return list<Article>
      */
-    public function findPublishedPaginated(?ArticleLanguage $language, int $page, int $limit, ?ArticleCategory $category = null): array
+    public function findPublishedPaginated(
+        ?ArticleLanguage $language,
+        int $page,
+        int $limit,
+        ?ArticleCategory $category = null,
+        ?ArticleKeyword $keyword = null,
+    ): array
     {
-        return $this->createPublishedOrderedByDateQueryBuilder($language, $category)
+        return $this->createPublishedOrderedByDateQueryBuilder($language, $category, $keyword)
             ->setFirstResult(max(0, ($page - 1) * $limit))
             ->setMaxResults($limit)
             ->getQuery()
@@ -67,9 +78,13 @@ class ArticleRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
-    public function countPublished(?ArticleLanguage $language = null, ?ArticleCategory $category = null): int
+    public function countPublished(
+        ?ArticleLanguage $language = null,
+        ?ArticleCategory $category = null,
+        ?ArticleKeyword $keyword = null,
+    ): int
     {
-        return (int) $this->createPublishedQueryBuilder($language, $category)
+        return (int) $this->createPublishedQueryBuilder($language, $category, $keyword)
             ->select('COUNT(article.id)')
             ->getQuery()
             ->getSingleScalarResult();
@@ -109,6 +124,7 @@ class ArticleRepository extends ServiceEntityRepository
         return $this->createPublishedOrderedByDateQueryBuilder(
             $currentArticle->getLanguage(),
             $currentArticle->getCategory(),
+            null,
         )
             ->andWhere('article != :currentArticle')
             ->setParameter('currentArticle', $currentArticle)
@@ -145,7 +161,7 @@ class ArticleRepository extends ServiceEntityRepository
         }
 
         /** @var list<Article> $articles */
-        $articles = $this->createPublishedOrderedByDateQueryBuilder(null, null)
+        $articles = $this->createPublishedOrderedByDateQueryBuilder(null, null, null)
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
@@ -153,16 +169,24 @@ class ArticleRepository extends ServiceEntityRepository
         return $articles;
     }
 
-    private function createPublishedOrderedByDateQueryBuilder(?ArticleLanguage $language, ?ArticleCategory $category): QueryBuilder
+    private function createPublishedOrderedByDateQueryBuilder(
+        ?ArticleLanguage $language,
+        ?ArticleCategory $category,
+        ?ArticleKeyword $keyword,
+    ): QueryBuilder
     {
-        return $this->createPublishedQueryBuilder($language, $category)
+        return $this->createPublishedQueryBuilder($language, $category, $keyword)
             ->addSelect('COALESCE(article.publishedAt, article.createdAt) AS HIDDEN publicationOrderAt')
             ->orderBy('publicationOrderAt', 'DESC')
             ->addOrderBy('article.createdAt', 'DESC')
             ->addOrderBy('article.id', 'DESC');
     }
 
-    private function createPublishedQueryBuilder(?ArticleLanguage $language, ?ArticleCategory $category): QueryBuilder
+    private function createPublishedQueryBuilder(
+        ?ArticleLanguage $language,
+        ?ArticleCategory $category,
+        ?ArticleKeyword $keyword,
+    ): QueryBuilder
     {
         $queryBuilder = $this->createQueryBuilder('article')
             ->andWhere('article.status = :status')
@@ -178,6 +202,13 @@ class ArticleRepository extends ServiceEntityRepository
             $queryBuilder
                 ->andWhere('article.category = :category')
                 ->setParameter('category', $category);
+        }
+
+        if (null !== $keyword) {
+            $queryBuilder
+                ->innerJoin('article.keywords', 'keyword')
+                ->andWhere('keyword = :keyword')
+                ->setParameter('keyword', $keyword);
         }
 
         return $queryBuilder;

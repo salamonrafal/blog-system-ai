@@ -7,10 +7,13 @@ namespace App\Tests\Unit\Controller;
 use App\Controller\BlogController;
 use App\Entity\Article;
 use App\Entity\ArticleCategory;
+use App\Entity\ArticleKeyword;
 use App\Entity\BlogSettings;
 use App\Enum\ArticleLanguage;
+use App\Enum\ArticleKeywordLanguage;
 use App\Enum\ArticleStatus;
 use App\Repository\ArticleCategoryRepository;
+use App\Repository\ArticleKeywordRepository;
 use App\Repository\ArticleRepository;
 use App\Service\BlogSettingsProvider;
 use App\Service\PaginationBuilder;
@@ -36,12 +39,12 @@ final class BlogControllerTest extends TestCase
         $articleRepository
             ->expects($this->once())
             ->method('countPublished')
-            ->with(ArticleLanguage::PL, null)
+            ->with(null, null, null)
             ->willReturn(8);
         $articleRepository
             ->expects($this->once())
             ->method('findPublishedPaginated')
-            ->with(ArticleLanguage::PL, 2, 5, null)
+            ->with(null, 2, 5, null, null)
             ->willReturn([$article]);
 
         $categoryRepository = $this->createMock(ArticleCategoryRepository::class);
@@ -55,6 +58,10 @@ final class BlogControllerTest extends TestCase
             ->expects($this->once())
             ->method('getSettings')
             ->willReturn($settings);
+        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
+        $userLanguageResolver
+            ->expects($this->never())
+            ->method('getLanguage');
 
         $controller = new TestBlogController();
         $response = $controller->index(
@@ -63,6 +70,7 @@ final class BlogControllerTest extends TestCase
             $categoryRepository,
             $settingsProvider,
             new PaginationBuilder(),
+            $userLanguageResolver,
         );
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
@@ -91,12 +99,12 @@ final class BlogControllerTest extends TestCase
         $articleRepository
             ->expects($this->once())
             ->method('countPublished')
-            ->with(ArticleLanguage::EN, $category)
+            ->with(null, $category, null)
             ->willReturn(1);
         $articleRepository
             ->expects($this->once())
             ->method('findPublishedPaginated')
-            ->with(ArticleLanguage::EN, 1, 6, $category)
+            ->with(null, 1, 6, $category, null)
             ->willReturn([$article]);
 
         $categoryRepository = $this->createMock(ArticleCategoryRepository::class);
@@ -110,6 +118,11 @@ final class BlogControllerTest extends TestCase
             ->expects($this->once())
             ->method('getSettings')
             ->willReturn($settings);
+        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
+        $userLanguageResolver
+            ->expects($this->never())
+            ->method('getLanguage')
+            ->willReturn('pl');
 
         $controller = new TestBlogController();
         $controller->category(
@@ -119,6 +132,7 @@ final class BlogControllerTest extends TestCase
             $categoryRepository,
             $settingsProvider,
             new PaginationBuilder(),
+            $userLanguageResolver,
         );
 
         $this->assertSame($category, $controller->capturedParameters['current_category']);
@@ -153,6 +167,11 @@ final class BlogControllerTest extends TestCase
             ->expects($this->once())
             ->method('getSettings')
             ->willReturn(new BlogSettings());
+        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
+        $userLanguageResolver
+            ->expects($this->once())
+            ->method('getLanguage')
+            ->willReturn('pl');
 
         $controller = new TestBlogController();
 
@@ -166,6 +185,7 @@ final class BlogControllerTest extends TestCase
             $categoryRepository,
             $settingsProvider,
             new PaginationBuilder(),
+            $userLanguageResolver,
         );
     }
 
@@ -206,6 +226,7 @@ final class BlogControllerTest extends TestCase
             'slug' => 'architektura-systemow',
             'lang' => 'en',
         ], $controller->capturedParameters['article_category_route_params']);
+        $this->assertSame([], $controller->capturedParameters['article_keywords']);
         $this->assertSame([], $controller->capturedParameters['recommended_articles']);
     }
 
@@ -243,6 +264,7 @@ final class BlogControllerTest extends TestCase
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
         $this->assertNull($controller->capturedParameters['article_category_route_params']);
+        $this->assertSame([], $controller->capturedParameters['article_keywords']);
         $this->assertSame([], $controller->capturedParameters['recommended_articles']);
     }
 
@@ -278,6 +300,173 @@ final class BlogControllerTest extends TestCase
         $controller->show('article', $articleRepository, $userLanguageResolver);
 
         $this->assertSame([$recommendedArticle], $controller->capturedParameters['recommended_articles']);
+    }
+
+    public function testKeywordRendersArticlesFilteredBySelectedKeyword(): void
+    {
+        $request = new Request(['page' => '2']);
+        $settings = (new BlogSettings())->setArticlesPerPage(4);
+        $article = (new Article())->setTitle('Tagged article');
+        $keyword = (new ArticleKeyword())
+            ->setName('symfony')
+            ->setLanguage(ArticleKeywordLanguage::EN);
+
+        $articleRepository = $this->createMock(ArticleRepository::class);
+        $articleRepository
+            ->expects($this->once())
+            ->method('countPublished')
+            ->with(null, null, $keyword)
+            ->willReturn(6);
+        $articleRepository
+            ->expects($this->once())
+            ->method('findPublishedPaginated')
+            ->with(null, 2, 4, null, $keyword)
+            ->willReturn([$article]);
+
+        $categoryRepository = $this->createMock(ArticleCategoryRepository::class);
+        $categoryRepository
+            ->expects($this->once())
+            ->method('findActiveOrderedByName')
+            ->willReturn([]);
+
+        $keywordRepository = $this->createMock(ArticleKeywordRepository::class);
+        $keywordRepository
+            ->expects($this->once())
+            ->method('findOneActiveByLanguageAndName')
+            ->with(ArticleKeywordLanguage::EN, 'symfony')
+            ->willReturn($keyword);
+
+        $settingsProvider = $this->createMock(BlogSettingsProvider::class);
+        $settingsProvider
+            ->expects($this->once())
+            ->method('getSettings')
+            ->willReturn($settings);
+        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
+        $userLanguageResolver
+            ->expects($this->once())
+            ->method('getLanguage')
+            ->willReturn('en');
+
+        $controller = new TestBlogController();
+        $response = $controller->keyword(
+            'en',
+            'symfony',
+            $request,
+            $articleRepository,
+            $categoryRepository,
+            $keywordRepository,
+            $settingsProvider,
+            new PaginationBuilder(),
+            $userLanguageResolver,
+        );
+
+        $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
+        $this->assertSame('blog/index.html.twig', $controller->capturedView);
+        $this->assertSame($keyword, $controller->capturedParameters['current_keyword']);
+        $this->assertSame('blog_keyword', $controller->capturedParameters['pagination_route']);
+        $this->assertSame([
+            'language' => 'en',
+            'name' => 'symfony',
+        ], $controller->capturedParameters['pagination_route_params']);
+    }
+
+    public function testKeywordThrowsNotFoundWhenSlugDoesNotMatchActiveKeyword(): void
+    {
+        $articleRepository = $this->createMock(ArticleRepository::class);
+        $articleRepository
+            ->expects($this->never())
+            ->method('countPublished');
+        $articleRepository
+            ->expects($this->never())
+            ->method('findPublishedPaginated');
+
+        $categoryRepository = $this->createMock(ArticleCategoryRepository::class);
+        $categoryRepository
+            ->expects($this->never())
+            ->method('findActiveOrderedByName');
+
+        $keywordRepository = $this->createMock(ArticleKeywordRepository::class);
+        $keywordRepository
+            ->expects($this->once())
+            ->method('findOneActiveByLanguageAndName')
+            ->with(ArticleKeywordLanguage::PL, 'php')
+            ->willReturn(null);
+
+        $settingsProvider = $this->createMock(BlogSettingsProvider::class);
+        $settingsProvider
+            ->expects($this->never())
+            ->method('getSettings');
+        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
+        $userLanguageResolver
+            ->expects($this->never())
+            ->method('getLanguage');
+
+        $controller = new TestBlogController();
+
+        $this->expectException(NotFoundHttpException::class);
+        $this->expectExceptionMessage('Keyword not found.');
+
+        $controller->keyword(
+            'pl',
+            'php',
+            new Request(),
+            $articleRepository,
+            $categoryRepository,
+            $keywordRepository,
+            $settingsProvider,
+            new PaginationBuilder(),
+            $userLanguageResolver,
+        );
+    }
+
+    public function testShowExposesVisibleKeywordLinksForArticle(): void
+    {
+        $keyword = (new ArticleKeyword())
+            ->setName('symfony')
+            ->setLanguage(ArticleKeywordLanguage::EN)
+            ->setColor('#1f7ae0');
+        $inactiveKeyword = (new ArticleKeyword())
+            ->setName('hidden')
+            ->setLanguage(ArticleKeywordLanguage::EN)
+            ->setStatus(\App\Enum\ArticleCategoryStatus::INACTIVE);
+        $article = (new Article())
+            ->setTitle('Article')
+            ->setSlug('article')
+            ->setStatus(ArticleStatus::PUBLISHED)
+            ->setLanguage(ArticleLanguage::EN)
+            ->addKeyword($keyword)
+            ->addKeyword($inactiveKeyword);
+
+        $articleRepository = $this->createMock(ArticleRepository::class);
+        $articleRepository
+            ->expects($this->once())
+            ->method('findOneBySlug')
+            ->with('article')
+            ->willReturn($article);
+        $articleRepository
+            ->expects($this->once())
+            ->method('findRecommendedPublished')
+            ->with($article)
+            ->willReturn([]);
+
+        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
+        $userLanguageResolver
+            ->expects($this->never())
+            ->method('getLanguage')
+            ->willReturn('en');
+
+        $controller = new TestBlogController();
+        $controller->show('article', $articleRepository, $userLanguageResolver);
+
+        $this->assertSame([
+            [
+                'keyword' => $keyword,
+                'route_params' => [
+                    'language' => 'en',
+                    'name' => 'symfony',
+                ],
+            ],
+        ], $controller->capturedParameters['article_keywords']);
     }
 }
 

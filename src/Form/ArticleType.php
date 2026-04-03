@@ -103,7 +103,7 @@ class ArticleType extends AbstractType
             ])
             ->add('category', ChoiceType::class, [
                 'label' => 'Category',
-                'label_attr' => ['data-i18n' => 'category_form_name'],
+                'label_attr' => ['data-i18n' => 'article_form_category'],
                 'required' => false,
                 'placeholder' => '---',
                 'choice_translation_domain' => false,

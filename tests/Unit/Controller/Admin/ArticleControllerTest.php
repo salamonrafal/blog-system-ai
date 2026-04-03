@@ -11,16 +11,23 @@ use App\Entity\BlogSettings;
 use App\Entity\User;
 use App\Repository\ArticleCategoryRepository;
 use App\Repository\ArticleExportQueueRepository;
+use App\Repository\ArticleKeywordRepository;
 use App\Repository\ArticleRepository;
+use App\Service\ArticlePublisher;
 use App\Service\BlogSettingsProvider;
 use App\Service\PaginationBuilder;
 use App\Service\UserLanguageResolver;
 use App\Tests\Unit\Support\MocksUserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Form\Extension\HttpFoundation\HttpFoundationExtension;
+use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
+use Symfony\Component\Form\FormInterface;
+use Symfony\Component\Form\Forms;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Validator\Validation;
 
 final class ArticleControllerTest extends TestCase
 {
@@ -227,6 +234,135 @@ final class ArticleControllerTest extends TestCase
         $this->assertSame([], $controller->capturedParameters['pagination_route_params']);
     }
 
+    public function testNewDisplaysPolishFlashMessageWhenAdminLanguageIsPolish(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager
+            ->expects($this->once())
+            ->method('persist')
+            ->with($this->isInstanceOf(Article::class));
+        $entityManager
+            ->expects($this->once())
+            ->method('flush');
+
+        $articlePublisher = $this->createMock(ArticlePublisher::class);
+        $articlePublisher
+            ->expects($this->once())
+            ->method('prepareForSave')
+            ->with($this->callback(static fn (Article $article): bool => 'Nowy artykul' === $article->getTitle()));
+
+        $categoryRepository = $this->createMock(ArticleCategoryRepository::class);
+        $categoryRepository
+            ->expects($this->once())
+            ->method('findForAdminIndex')
+            ->willReturn([]);
+
+        $keywordRepository = $this->createMock(ArticleKeywordRepository::class);
+        $keywordRepository
+            ->expects($this->once())
+            ->method('findForArticleAssignment')
+            ->willReturn([]);
+
+        $controller = new TestArticleController();
+        $controller->authenticatedUser = (new User())
+            ->setEmail('author@example.com')
+            ->setPassword('hashed-password');
+
+        $request = new Request([], [
+            'article' => [
+                'title' => 'Nowy artykul',
+                'language' => 'pl',
+                'excerpt' => 'Krotki opis',
+                'headlineImageEnabled' => '1',
+                'headlineImage' => '/assets/img/article.png',
+                'content' => 'Tresc artykulu',
+                'status' => 'draft',
+                'category' => '',
+                'keywords' => [],
+                'publishedAt' => '',
+            ],
+        ], [], [], [], ['REQUEST_METHOD' => 'POST']);
+
+        $response = $controller->new(
+            $request,
+            $entityManager,
+            $articlePublisher,
+            $categoryRepository,
+            $keywordRepository,
+            $this->createUserLanguageResolverMock('pl'),
+        );
+
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertSame('/admin/articles', $response->getTargetUrl());
+        $this->assertSame([['success', 'Artykuł został dodany.']], $controller->flashes);
+    }
+
+    public function testEditDisplaysPolishFlashMessageWhenAdminLanguageIsPolish(): void
+    {
+        $article = (new Article())
+            ->setTitle('Stary tytul')
+            ->setSlug('stary-tytul')
+            ->setContent('Stara tresc');
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager
+            ->expects($this->once())
+            ->method('flush');
+
+        $articlePublisher = $this->createMock(ArticlePublisher::class);
+        $articlePublisher
+            ->expects($this->once())
+            ->method('prepareForSave')
+            ->with($article);
+
+        $categoryRepository = $this->createMock(ArticleCategoryRepository::class);
+        $categoryRepository
+            ->expects($this->once())
+            ->method('findForAdminIndex')
+            ->willReturn([]);
+
+        $keywordRepository = $this->createMock(ArticleKeywordRepository::class);
+        $keywordRepository
+            ->expects($this->once())
+            ->method('findForArticleAssignment')
+            ->willReturn([]);
+
+        $controller = new TestArticleController();
+        $controller->authenticatedUser = (new User())
+            ->setEmail('editor@example.com')
+            ->setPassword('hashed-password');
+
+        $request = new Request([], [
+            'article' => [
+                'title' => 'Zmieniony tytul',
+                'language' => 'pl',
+                'excerpt' => 'Zmieniony opis',
+                'headlineImageEnabled' => '1',
+                'headlineImage' => '/assets/img/article-updated.png',
+                'content' => 'Zmieniona tresc',
+                'status' => 'draft',
+                'category' => '',
+                'keywords' => [],
+                'publishedAt' => '',
+            ],
+        ], [], [], [], ['REQUEST_METHOD' => 'POST']);
+
+        $response = $controller->edit(
+            $article,
+            $request,
+            $entityManager,
+            $articlePublisher,
+            $categoryRepository,
+            $keywordRepository,
+            $this->createUserLanguageResolverMock('pl'),
+        );
+
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertSame('/admin/articles', $response->getTargetUrl());
+        $this->assertSame('Zmieniony tytul', $article->getTitle());
+        $this->assertSame([['success', 'Artykuł został zaktualizowany.']], $controller->flashes);
+    }
+
     public function testAssignToMeSetsCurrentUserAsAuthorWhenArticleHasNoAuthor(): void
     {
         $currentUser = (new User())
@@ -404,5 +540,18 @@ final class TestArticleController extends ArticleController
     protected function redirectToRoute(string $route, array $parameters = [], int $status = 302): RedirectResponse
     {
         return new RedirectResponse('/admin/articles', $status);
+    }
+
+    protected function createForm(string $type, mixed $data = null, array $options = []): FormInterface
+    {
+        $validator = Validation::createValidatorBuilder()
+            ->enableAttributeMapping()
+            ->getValidator();
+
+        return Forms::createFormFactoryBuilder()
+            ->addExtension(new HttpFoundationExtension())
+            ->addExtension(new ValidatorExtension($validator))
+            ->getFormFactory()
+            ->create($type, $data, $options);
     }
 }

@@ -1,6 +1,12 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Articles | {{ app_name }}{% endblock %}
+{% block title %}
+    {% if current_keyword %}
+        {{ current_keyword.name }} | {{ app_name }}
+    {% else %}
+        Articles | {{ app_name }}
+    {% endif %}
+{% endblock %}
 {% block meta_description %}{{ blog_settings.homepageSeoDescription }}{% endblock %}
 {% block meta_keywords %}{{ blog_settings.homepageSeoKeywords }}{% endblock %}
 {% block og_description %}{{ blog_settings.homepageSeoDescription }}{% endblock %}
@@ -20,12 +26,24 @@
                 {% set category_localized_description = current_category ? current_category.description(category_language_code, null) : null %}
                 {% set category_title_fallback = ui_translate('Wybrana kategoria', 'Selected category') %}
                 {% set category_description_fallback = ui_translate('Artykuły przypisane do wybranej kategorii.', 'Articles assigned to the selected category.') %}
+                {% set keyword_title_fallback = ui_translate('Słowo kluczowe', 'Keyword') %}
+                {% set keyword_description_fallback = ui_translate('Artykuły oznaczone wybranym słowem kluczowym.', 'Articles tagged with the selected keyword.') %}
                 {% set category_base_title = current_category ? current_category.name : null %}
                 {% set category_base_description = current_category ? current_category.shortDescription : null %}
                 {% set category_title = current_category ? (category_localized_title ?: category_base_title ?: category_title_fallback) : null %}
                 {% set category_description = current_category ? (category_localized_description ?: category_base_description ?: category_description_fallback) : null %}
-                <h1{% if not current_category %} data-i18n="blog_feed_title"{% elseif not category_localized_title and not category_base_title %} data-i18n="blog_category_fallback_title"{% endif %}>{{ category_title ?: 'Blog o programowaniu, technologii i praktyce tworzenia produktów' }}</h1>
-                <p class="lede"{% if not current_category %} data-i18n="blog_feed_lede"{% elseif not category_localized_description and not category_base_description %} data-i18n="blog_category_fallback_description"{% endif %}>{{ category_description ?: 'Znajdziesz tutaj artykuły o PHP, web developmencie, architekturze aplikacji, jakości kodu i codziennej pracy nad nowoczesnymi produktami cyfrowymi.' }}</p>
+                {% set keyword_title = current_keyword ? (keyword_title_fallback ~ ': ' ~ current_keyword.name) : null %}
+                {% set keyword_description = current_keyword ? keyword_description_fallback : null %}
+                <h1{% if not current_category and not current_keyword %} data-i18n="blog_feed_title"{% elseif current_category and not category_localized_title and not category_base_title %} data-i18n="blog_category_fallback_title"{% endif %}>{{ keyword_title ?: category_title ?: 'Blog o programowaniu, technologii i praktyce tworzenia produktów' }}</h1>
+                <p class="lede"{% if not current_category and not current_keyword %} data-i18n="blog_feed_lede"{% elseif current_category and not category_localized_description and not category_base_description %} data-i18n="blog_category_fallback_description"{% endif %}>{{ keyword_description ?: category_description ?: 'Znajdziesz tutaj artykuły o PHP, web developmencie, architekturze aplikacji, jakości kodu i codziennej pracy nad nowoczesnymi produktami cyfrowymi.' }}</p>
+                {% if current_keyword %}
+                    <div class="article-keywords-list article-keywords-list-featured">
+                        <span class="article-keyword-badge is-static"{% if current_keyword.color %} style="--keyword-accent: {{ current_keyword.color }};"{% endif %}>
+                            <span class="article-keyword-badge-dot" aria-hidden="true"></span>
+                            <span class="article-keyword-badge-label">{{ current_keyword.name }}</span>
+                        </span>
+                    </div>
+                {% endif %}
             </div>
 
             <nav class="blog-category-section" data-i18n-aria="blog_categories_aria" aria-label="Lista kategorii artykułów">

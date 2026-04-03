@@ -151,6 +151,101 @@
   background:transparent;
 }
 
+.article-keywords-panel {
+  margin: 2.4rem 0 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+}
+
+.article-keywords-header {
+  display: grid;
+  gap: .28rem;
+  margin-bottom: .85rem;
+}
+
+.article-keywords-eyebrow {
+  color: var(--muted);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.article-keywords-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+
+.article-keywords-list-featured {
+  margin-top: .95rem;
+}
+
+.article-keyword-badge {
+  --keyword-accent: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  gap: .58rem;
+  min-height: 34px;
+  padding: .42rem .68rem;
+  border: 1px solid color-mix(in oklab, var(--keyword-accent) 24%, var(--border));
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--panel-2) 92%, color-mix(in oklab, var(--keyword-accent) 8%, transparent)), color-mix(in oklab, var(--panel) 88%, color-mix(in oklab, var(--keyword-accent) 10%, transparent)));
+  color: color-mix(in oklab, var(--text) 86%, var(--keyword-accent) 14%);
+  text-decoration: none;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+  transition: border-color .18s ease, background-color .18s ease, color .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+
+.article-keyword-badge:hover,
+.article-keyword-badge:focus-visible {
+  border-color: color-mix(in oklab, var(--keyword-accent) 46%, var(--border));
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--panel-2) 90%, color-mix(in oklab, var(--keyword-accent) 14%, transparent)), color-mix(in oklab, var(--panel) 84%, color-mix(in oklab, var(--keyword-accent) 18%, transparent)));
+  color: color-mix(in oklab, var(--keyword-accent) 52%, var(--text) 48%);
+  text-decoration: none;
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 10px 24px rgba(0,0,0,.12);
+}
+
+.article-keyword-badge.is-static {
+  cursor: default;
+}
+
+.article-keyword-badge.is-static:hover,
+.article-keyword-badge.is-static:focus-visible {
+  transform: none;
+  color: color-mix(in oklab, var(--text) 86%, var(--keyword-accent) 14%);
+  border-color: color-mix(in oklab, var(--keyword-accent) 24%, var(--border));
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--panel-2) 92%, color-mix(in oklab, var(--keyword-accent) 8%, transparent)), color-mix(in oklab, var(--panel) 88%, color-mix(in oklab, var(--keyword-accent) 10%, transparent)));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+.article-keyword-badge-dot {
+  width: .56rem;
+  height: .56rem;
+  border-radius: 999px;
+  flex: 0 0 .56rem;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,.86), rgba(255,255,255,.08) 45%),
+    var(--keyword-accent);
+  box-shadow:
+    0 0 0 4px color-mix(in oklab, var(--keyword-accent) 14%, transparent),
+    0 4px 10px color-mix(in oklab, var(--keyword-accent) 28%, transparent);
+}
+
+.article-keyword-badge-label {
+  font-size: .84rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
 .article-author-panel {
   display: flex;
   align-items: center;
@@ -354,6 +449,10 @@
     padding:18px 18px 18px;
   }
 
+  .article-keywords-panel {
+    padding: 0;
+  }
+
   .article-headline-figure {
     margin-bottom: 1.1rem;
     border-radius: 20px;
@@ -377,6 +476,15 @@
 
   .article-headline-header {
     align-items: stretch;
+  }
+
+  .article-keywords-list {
+    gap: .45rem;
+  }
+
+  .article-keyword-badge {
+    min-height: 32px;
+    padding: .38rem .62rem;
   }
 
   .article-headline-category {
