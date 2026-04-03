@@ -57,11 +57,20 @@ function createOptionList(root){
   const labelId = label instanceof HTMLLabelElement
     ? (label.id || `${select.id}--label`)
     : '';
+  const resultsId = select.id ? `${select.id}--results` : '';
 
   select.classList.add('app-option-list-native');
   select.tabIndex = -1;
   select.setAttribute('aria-hidden', 'true');
   shell.hidden = false;
+  input.setAttribute('role', 'combobox');
+  input.setAttribute('aria-autocomplete', 'list');
+  input.setAttribute('aria-expanded', 'false');
+  if(resultsId){
+    resultsContainer.id = resultsId;
+    input.setAttribute('aria-controls', resultsId);
+  }
+  resultsContainer.setAttribute('role', 'listbox');
 
   if(label instanceof HTMLLabelElement && labelId){
     label.id = labelId;
@@ -111,6 +120,23 @@ function createOptionList(root){
     }
   };
 
+  const syncActiveDescendant = ()=>{
+    const activeItem = qsa('[data-option-list-item]', resultsContainer)[activeIndex];
+    if(activeItem?.id){
+      input.setAttribute('aria-activedescendant', activeItem.id);
+      return;
+    }
+
+    input.removeAttribute('aria-activedescendant');
+  };
+
+  const hideResults = ()=>{
+    resultsContainer.hidden = true;
+    input.setAttribute('aria-expanded', 'false');
+    activeIndex = -1;
+    syncActiveDescendant();
+  };
+
   const renderSelected = ()=>{
     selectedContainer.replaceChildren();
     const selectedItems = getOptions(root, select).filter((item)=> item.selected);
@@ -157,21 +183,24 @@ function createOptionList(root){
 
     resultsContainer.replaceChildren();
     activeIndex = -1;
+    syncActiveDescendant();
 
     if(!shouldShowResults){
-      resultsContainer.hidden = true;
+      hideResults();
       return;
     }
 
     if(!availableItems.length){
       resultsContainer.appendChild(createMessage(t('data-option-list-empty-key', '')));
       resultsContainer.hidden = false;
+      input.setAttribute('aria-expanded', 'true');
       return;
     }
 
     if(!matchingItems.length){
       resultsContainer.appendChild(createMessage(t('data-option-list-no-results-key', '')));
       resultsContainer.hidden = false;
+      input.setAttribute('aria-expanded', 'true');
       return;
     }
 
@@ -179,8 +208,11 @@ function createOptionList(root){
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'app-option-list-item';
+      button.id = resultsId ? `${resultsId}--option-${index}` : `app-option-list-option-${index}`;
       button.setAttribute('data-option-list-item', 'true');
       button.setAttribute('data-value', item.value);
+      button.setAttribute('role', 'option');
+      button.setAttribute('aria-selected', 'false');
 
       const name = document.createElement('span');
       name.className = 'app-option-list-item-name';
@@ -204,12 +236,14 @@ function createOptionList(root){
         qsa('[data-option-list-item]', resultsContainer).forEach((element)=> element.classList.remove('is-active'));
         button.classList.add('is-active');
         activeIndex = index;
+        syncActiveDescendant();
       });
 
       resultsContainer.appendChild(button);
     });
 
     resultsContainer.hidden = false;
+    input.setAttribute('aria-expanded', 'true');
   };
 
   const sync = ()=>{
@@ -223,9 +257,14 @@ function createOptionList(root){
     if(!items.length) return;
 
     activeIndex = (activeIndex + direction + items.length) % items.length;
-    items.forEach((item)=> item.classList.remove('is-active'));
+    items.forEach((item)=> {
+      item.classList.remove('is-active');
+      item.setAttribute('aria-selected', 'false');
+    });
     items[activeIndex]?.classList.add('is-active');
+    items[activeIndex]?.setAttribute('aria-selected', 'true');
     items[activeIndex]?.scrollIntoView({ block: 'nearest' });
+    syncActiveDescendant();
   };
 
   input.addEventListener('focus', ()=> {
@@ -239,7 +278,7 @@ function createOptionList(root){
   input.addEventListener('blur', ()=> {
     window.setTimeout(()=>{
       if(root.contains(document.activeElement)) return;
-      resultsContainer.hidden = true;
+      hideResults();
     }, 0);
   });
 
@@ -289,7 +328,7 @@ function createOptionList(root){
   const instance = { sync };
   optionListRegistry.set(root, instance);
   renderSelected();
-  resultsContainer.hidden = true;
+  hideResults();
 
   return instance;
 }
@@ -302,8 +341,13 @@ function registerDocumentClickHandler(){
       if(root.contains(event.target)) return;
 
       const resultsContainer = qs('[data-option-list-results]', root);
+      const input = qs('[data-option-list-input]', root);
       if(resultsContainer){
         resultsContainer.hidden = true;
+      }
+      if(input instanceof HTMLInputElement){
+        input.setAttribute('aria-expanded', 'false');
+        input.removeAttribute('aria-activedescendant');
       }
     });
   });

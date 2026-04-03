@@ -81,7 +81,9 @@
                                         <input type="hidden" name="_token" value="{{ csrf_token('delete_article_keyword_' ~ keyword.id) }}">
                                         <button
                                             class="button secondary button-danger article-action-button"
-                                            type="submit"
+                                            type="button"
+                                            data-action="confirm-delete-article-keyword"
+                                            data-article-keyword-name="{{ keyword.name }}"
                                             data-i18n-tooltip="admin_table_delete"
                                             data-i18n-aria="admin_table_delete"
                                             data-tooltip="Usuń"

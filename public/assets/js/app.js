@@ -1,6 +1,7 @@
 import {
   setupAdminShortcuts,
   setupAdminListingFilters,
+  setupArticleKeywordDeleteConfirmation,
   setupArticleBulkExport,
   setupCharacterCounters,
   setupDashboardCarousels,
@@ -59,6 +60,7 @@ function init(){
   setupArticleMarkupEditor();
   setupImagePreview();
   setupDeleteConfirmation();
+  setupArticleKeywordDeleteConfirmation();
   setupCategoryDeleteConfirmation();
   setupTopMenuDeleteConfirmation();
   setupUserDeleteConfirmation();

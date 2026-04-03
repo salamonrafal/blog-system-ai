@@ -729,6 +729,29 @@ export function setupTopMenuDeleteConfirmation(){
   });
 }
 
+export function setupArticleKeywordDeleteConfirmation(){
+  setupDangerConfirmation({
+    triggerSelector: '[data-action="confirm-delete-article-keyword"]',
+    modalClass: 'confirm-delete-article-keyword-modal',
+    modalIdPrefix: 'confirm-delete-article-keyword',
+    titleI18n: 'admin_article_keywords_delete_popup_title',
+    titleFallback: 'Usunąć słowo kluczowe?',
+    textI18n: 'admin_article_keywords_delete_popup_text',
+    textFallback: 'Ta operacja trwale usunie słowo kluczowe z panelu administracyjnego.',
+    detailsClass: 'confirm-delete-article-keyword-name',
+    detailsText: (trigger)=> trigger.getAttribute('data-article-keyword-name') || '',
+    cancelAction: 'cancel-delete-article-keyword',
+    submitAction: 'submit-delete-article-keyword',
+    closeAction: 'close-delete-article-keyword',
+    cancelI18n: 'admin_article_keywords_delete_popup_cancel',
+    cancelFallback: 'Przerwij',
+    submitI18n: 'admin_article_keywords_delete_popup_confirm',
+    submitFallback: 'Usuń słowo kluczowe',
+    closeI18n: 'admin_close_alert',
+    closeFallback: 'Zamknij alert',
+  });
+}
+
 export function setupQueueClearConfirmation(){
   setupDangerConfirmation({
     triggerSelector: '[data-action="confirm-clear-queue"]',
