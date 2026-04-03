@@ -97,6 +97,9 @@ class ArticleType extends AbstractType
                 'by_reference' => false,
                 'choice_translation_domain' => false,
                 'choices' => $options['keywords'],
+                'choice_value' => static fn (?ArticleKeyword $keyword): ?string => null !== $keyword?->getId()
+                    ? (string) $keyword->getId()
+                    : null,
                 'choice_label' => static fn (ArticleKeyword $keyword): string => sprintf(
                     '%s (%s)',
                     $keyword->getName(),

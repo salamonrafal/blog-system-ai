@@ -46,6 +46,8 @@ final class ArticleTypeTest extends TestCase
             (new ArticleKeyword())->setName('php')->setLanguage(ArticleKeywordLanguage::ALL),
             (new ArticleKeyword())->setName('ai')->setLanguage(ArticleKeywordLanguage::EN)->setStatus(ArticleCategoryStatus::INACTIVE),
         ];
+        $this->setEntityId($keywords[0], 11);
+        $this->setEntityId($keywords[1], 12);
         $form = $factory->create(ArticleType::class, new Article(), [
             'categories' => $categories,
             'keywords' => $keywords,
@@ -81,6 +83,9 @@ final class ArticleTypeTest extends TestCase
         $this->assertTrue($form->get('keywords')->getConfig()->getOption('multiple'));
         $this->assertFalse($form->get('keywords')->getConfig()->getOption('required'));
         $this->assertSame($keywords, $form->get('keywords')->getConfig()->getOption('choices'));
+        $keywordChoiceValue = $form->get('keywords')->getConfig()->getOption('choice_value');
+        $this->assertSame('11', $keywordChoiceValue($keywords[0]));
+        $this->assertSame('12', $keywordChoiceValue($keywords[1]));
         $keywordChoiceAttr = $form->get('keywords')->getConfig()->getOption('choice_attr');
         $allKeywordAttrs = $keywordChoiceAttr($keywords[0]);
         $enKeywordAttrs = $keywordChoiceAttr($keywords[1]);
@@ -118,5 +123,11 @@ final class ArticleTypeTest extends TestCase
         $assignedKeywordAttrs = $keywordChoiceAttr($inactiveAssignedKeyword);
 
         $this->assertArrayNotHasKey('disabled', $assignedKeywordAttrs);
+    }
+
+    private function setEntityId(object $entity, int $id): void
+    {
+        $reflectionProperty = new \ReflectionProperty($entity, 'id');
+        $reflectionProperty->setValue($entity, $id);
     }
 }
