@@ -14,6 +14,7 @@ use App\Tests\Unit\Support\MocksUserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Form\Extension\HttpFoundation\HttpFoundationExtension;
 use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
 use Symfony\Component\Form\FormInterface;
@@ -22,6 +23,10 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Component\Validator\Constraint;
+use Symfony\Component\Validator\ConstraintValidator;
+use Symfony\Component\Validator\ConstraintValidatorFactory;
+use Symfony\Component\Validator\ConstraintValidatorFactoryInterface;
 use Symfony\Component\Validator\Validation;
 
 final class ArticleKeywordControllerTest extends TestCase
@@ -348,7 +353,32 @@ final class TestArticleKeywordController extends ArticleKeywordController
 
     protected function createForm(string $type, mixed $data = null, array $options = []): FormInterface
     {
-        $validator = Validation::createValidator();
+        $validator = Validation::createValidatorBuilder()
+            ->enableAttributeMapping()
+            ->setConstraintValidatorFactory(new class implements ConstraintValidatorFactoryInterface
+            {
+                private readonly ConstraintValidatorFactory $decorated;
+
+                public function __construct()
+                {
+                    $this->decorated = new ConstraintValidatorFactory();
+                }
+
+                public function getInstance(Constraint $constraint): ConstraintValidator
+                {
+                    if ($constraint instanceof UniqueEntity) {
+                        return new class extends ConstraintValidator
+                        {
+                            public function validate(mixed $value, Constraint $constraint): void
+                            {
+                            }
+                        };
+                    }
+
+                    return $this->decorated->getInstance($constraint);
+                }
+            })
+            ->getValidator();
 
         return Forms::createFormFactoryBuilder()
             ->addExtension(new HttpFoundationExtension())
