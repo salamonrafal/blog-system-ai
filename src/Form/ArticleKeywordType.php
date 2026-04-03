@@ -37,7 +37,7 @@ final class ArticleKeywordType extends AbstractType
                 'empty_data' => '',
                 'attr' => [
                     'maxlength' => 7,
-                    'pattern' => '^#?[0-9A-Fa-f]{6}$',
+                    'pattern' => '^#[0-9A-Fa-f]{6}$',
                     'inputmode' => 'text',
                     'data-optional-color-value' => 'true',
                 ],
