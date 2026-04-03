@@ -8,7 +8,7 @@
     {% endif %}
 
     <div class="article-editor-fields">
-        <section class="blog-settings-subsection" aria-label="Tożsamość i SEO">
+        <section class="blog-settings-subsection" data-i18n-aria="blog_settings_section_identity_title" aria-label="Tożsamość i SEO">
             <div class="blog-settings-subsection-header">
                 <span class="pill">admin://identity-and-seo</span>
                 <p class="blog-settings-subsection-lede" data-i18n="blog_settings_section_identity_lede">Ustawienia odpowiedzialne za adres aplikacji, nazwę bloga oraz metadane strony głównej.</p>
@@ -25,6 +25,7 @@
                             type="button"
                             class="article-keyword-help-trigger"
                             data-i18n-tooltip="blog_settings_app_url_hint"
+                            data-i18n-aria="blog_settings_app_url_hint_aria"
                             data-tooltip="Ten adres jest używany do budowania canonicali, linków do udostępniania i pełnych URL-i obrazków SEO."
                             data-tooltip-wide="true"
                             data-tooltip-wrap="true"
@@ -119,6 +120,7 @@
                             type="button"
                             class="article-keyword-help-trigger"
                             data-i18n-tooltip="blog_settings_homepage_social_image_hint"
+                            data-i18n-aria="blog_settings_homepage_social_image_hint_aria"
                             data-tooltip="Podaj pełny URL albo ścieżkę zaczynającą się od /."
                             data-tooltip-wide="true"
                             data-tooltip-wrap="true"
@@ -174,7 +176,7 @@
             </div>
         </section>
 
-        <section class="blog-settings-subsection" data-blog-settings-pagination-section aria-label="Globalne ustawienia paginacji">
+        <section class="blog-settings-subsection" data-blog-settings-pagination-section data-i18n-aria="blog_settings_section_pagination_title" aria-label="Globalne ustawienia paginacji">
             <div class="blog-settings-subsection-header">
                 <span class="pill">admin://pagination-settings</span>
                 <p class="blog-settings-subsection-lede" data-i18n="blog_settings_section_pagination_lede">Skonfiguruj liczbę elementów widocznych na jednej stronie zarówno na stronie głównej bloga, jak i na listach w panelu administracyjnym.</p>
@@ -191,6 +193,7 @@
                             type="button"
                             class="article-keyword-help-trigger"
                             data-i18n-tooltip="blog_settings_articles_per_page_hint"
+                            data-i18n-aria="blog_settings_articles_per_page_hint_aria"
                             data-tooltip="Domyślna wartość to 5. Zmiana wpływa na publiczną listę artykułów na stronie głównej."
                             data-tooltip-wide="true"
                             data-tooltip-wrap="true"
@@ -223,6 +226,7 @@
                             type="button"
                             class="article-keyword-help-trigger"
                             data-i18n-tooltip="blog_settings_admin_listing_items_per_page_hint"
+                            data-i18n-aria="blog_settings_admin_listing_items_per_page_hint_aria"
                             data-tooltip="Domyślna wartość to 25. Zmiana wpływa na listy w panelu administracyjnym, w tym artykuły i eksporty."
                             data-tooltip-wide="true"
                             data-tooltip-wrap="true"

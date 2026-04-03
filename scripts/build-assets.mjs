@@ -8,6 +8,7 @@ const __dirname = path.dirname(__filename);
 const projectDir = path.resolve(__dirname, '..');
 const outputDir = path.join(projectDir, 'public', 'assets', 'build');
 const jsEntryFile = path.join(projectDir, 'public', 'assets', 'js', 'app.js');
+const adminPreloaderEntryFile = path.join(projectDir, 'public', 'assets', 'js', 'admin-preloader.js');
 const cssEntryFile = path.join(projectDir, 'public', 'assets', 'css', 'styles.css');
 const mode = process.argv[2] === 'prod' ? 'prod' : 'dev';
 
@@ -40,6 +41,17 @@ async function build(){
         legalComments: 'none',
       }),
       esbuild.build({
+        entryPoints: [adminPreloaderEntryFile],
+        outfile: path.join(outputDir, 'admin-preloader.min.js'),
+        bundle: true,
+        minify: true,
+        sourcemap: false,
+        format: 'iife',
+        target: ['es2020'],
+        platform: 'browser',
+        legalComments: 'none',
+      }),
+      esbuild.build({
         entryPoints: [cssEntryFile],
         outfile: path.join(outputDir, 'styles.min.css'),
         bundle: true,
@@ -49,7 +61,7 @@ async function build(){
       }),
     ]);
 
-    console.log('Built production assets: public/assets/build/app.min.js, public/assets/build/styles.min.css');
+    console.log('Built production assets: public/assets/build/app.min.js, public/assets/build/admin-preloader.min.js, public/assets/build/styles.min.css');
     return;
   }
 
@@ -65,6 +77,16 @@ async function build(){
       platform: 'browser',
     }),
     esbuild.build({
+      entryPoints: [adminPreloaderEntryFile],
+      outfile: path.join(outputDir, 'admin-preloader.js'),
+      bundle: true,
+      minify: false,
+      sourcemap: true,
+      format: 'iife',
+      target: ['es2020'],
+      platform: 'browser',
+    }),
+    esbuild.build({
       entryPoints: [cssEntryFile],
       outfile: path.join(outputDir, 'styles.css'),
       bundle: true,
@@ -73,7 +95,7 @@ async function build(){
     }),
   ]);
 
-  console.log('Built development assets: public/assets/build/app.js, public/assets/build/styles.css');
+  console.log('Built development assets: public/assets/build/app.js, public/assets/build/admin-preloader.js, public/assets/build/styles.css');
 }
 
 build().catch((error)=>{

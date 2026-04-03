@@ -36,10 +36,17 @@
 {% set route_name = app.request.attributes.get('_route')|default('') %}
 {% set is_admin_route = route_name starts with 'admin_' %}
 
+{% if is_admin_route %}
+    {% if app_env == 'prod' %}
+        {% set admin_preloader_script = '/assets/build/admin-preloader.min.js' %}
+    {% else %}
+        {% set admin_preloader_script = '/assets/js/admin-preloader.js' %}
+    {% endif %}
+{% endif %}
+
 <body
     data-page-title="{% block page_title %}{{ block('title') }}{% endblock %}"
     {% if is_admin_route %}
-        class="admin-preload-pending"
         data-admin-page="true"
     {% endif %}
     {% if is_granted('ROLE_ADMIN') %}
@@ -48,9 +55,10 @@
     {% endif %}
 >
 {% if is_admin_route %}
-    <div class="admin-preloader" data-admin-preloader aria-hidden="true">
-        <div class="admin-preloader-backdrop"></div>
-        <div class="admin-preloader-status">
+    <script src="{{ admin_preloader_script }}"></script>
+    <div class="admin-preloader" data-admin-preloader>
+        <div class="admin-preloader-backdrop" aria-hidden="true"></div>
+        <div class="admin-preloader-status" role="status" aria-live="polite" aria-atomic="true">
             <div class="admin-preloader-scene" aria-hidden="true">
                 <div class="admin-preloader-ekg">
                     <span class="admin-preloader-ekg-line"></span>
@@ -71,7 +79,7 @@
     </div>
     <noscript>
         <style>
-            body.admin-preload-pending > :not(.admin-preloader){ visibility: visible !important; }
+            body.admin-preload-pending{ overflow: auto !important; }
             body.admin-preload-pending .admin-preloader{ display: none !important; }
         </style>
     </noscript>
