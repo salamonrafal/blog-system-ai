@@ -183,8 +183,9 @@
             </div>
 
             {% set articles_per_page_has_errors = form.articlesPerPage.vars.errors|length > 0 %}
+            {% set articles_per_page_hint_id = form.articlesPerPage.vars.id ~ '-hint' %}
             {% set articles_per_page_error_id = form.articlesPerPage.vars.id ~ '-error' %}
-            {% set articles_per_page_described_by = articles_per_page_has_errors ? articles_per_page_error_id : null %}
+            {% set articles_per_page_described_by = articles_per_page_hint_id ~ (articles_per_page_has_errors ? ' ' ~ articles_per_page_error_id : '') %}
             <div class="field article-editor-field blog-settings-pagination-field{{ articles_per_page_has_errors ? ' has-error' : '' }}">
                 <div class="blog-settings-pagination-field-copy">
                     <div class="blog-settings-label-row">
@@ -200,6 +201,7 @@
                             aria-label="Pomoc do pola ilość artykułów na stronę"
                         >?</button>
                     </div>
+                    <span id="{{ articles_per_page_hint_id }}" class="sr-only" data-i18n="blog_settings_articles_per_page_hint">Domyślna wartość to 5. Zmiana wpływa na publiczną listę artykułów na stronie głównej.</span>
                 </div>
                 {{ form_widget(form.articlesPerPage, { attr: {
                     class: 'article-editor-input blog-settings-number-input',
@@ -216,8 +218,9 @@
             </div>
 
             {% set admin_listing_items_per_page_has_errors = form.adminListingItemsPerPage.vars.errors|length > 0 %}
+            {% set admin_listing_items_per_page_hint_id = form.adminListingItemsPerPage.vars.id ~ '-hint' %}
             {% set admin_listing_items_per_page_error_id = form.adminListingItemsPerPage.vars.id ~ '-error' %}
-            {% set admin_listing_items_per_page_described_by = admin_listing_items_per_page_has_errors ? admin_listing_items_per_page_error_id : null %}
+            {% set admin_listing_items_per_page_described_by = admin_listing_items_per_page_hint_id ~ (admin_listing_items_per_page_has_errors ? ' ' ~ admin_listing_items_per_page_error_id : '') %}
             <div class="field article-editor-field blog-settings-pagination-field{{ admin_listing_items_per_page_has_errors ? ' has-error' : '' }}">
                 <div class="blog-settings-pagination-field-copy">
                     <div class="blog-settings-label-row">
@@ -233,6 +236,7 @@
                             aria-label="Pomoc do pola ilość elementów na stronę w panelu administracyjnym"
                         >?</button>
                     </div>
+                    <span id="{{ admin_listing_items_per_page_hint_id }}" class="sr-only" data-i18n="blog_settings_admin_listing_items_per_page_hint">Domyślna wartość to 25. Zmiana wpływa na listy w panelu administracyjnym, w tym artykuły i eksporty.</span>
                 </div>
                 {{ form_widget(form.adminListingItemsPerPage, { attr: {
                     class: 'article-editor-input blog-settings-number-input',
