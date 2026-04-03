@@ -198,9 +198,12 @@ function createOptionList(root){
       return;
     }
 
-    const availableItems = cachedItems
-      .filter((item)=> !item.disabled && !item.selected)
+    const filteredItems = cachedItems
       .filter((item)=> matchesFilter(root, item));
+    const selectableItems = filteredItems
+      .filter((item)=> !item.disabled);
+    const availableItems = selectableItems
+      .filter((item)=> !item.selected);
     const matchingItems = availableItems.filter((item)=> item.label.toLowerCase().includes(query));
 
     resultsContainer.replaceChildren();
@@ -212,8 +215,15 @@ function createOptionList(root){
       return;
     }
 
-    if(!availableItems.length){
+    if(!selectableItems.length){
       resultsContainer.appendChild(createMessage(t('data-option-list-empty-key', '')));
+      resultsContainer.hidden = false;
+      input.setAttribute('aria-expanded', 'true');
+      return;
+    }
+
+    if(!availableItems.length){
+      resultsContainer.appendChild(createMessage(t('data-option-list-all-selected-key', '')));
       resultsContainer.hidden = false;
       input.setAttribute('aria-expanded', 'true');
       return;
