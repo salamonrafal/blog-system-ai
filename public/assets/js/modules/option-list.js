@@ -60,6 +60,7 @@ function createOptionList(root){
     ? (label.id || `${select.id}--label`)
     : '';
   const resultsId = select.id ? `${select.id}--results` : '';
+  const baseDescribedBy = input.getAttribute('aria-describedby') || '';
 
   select.classList.add('app-option-list-native');
   select.tabIndex = -1;
@@ -89,7 +90,10 @@ function createOptionList(root){
   };
 
   const syncAccessibilityState = ()=>{
-    const describedBy = select.getAttribute('aria-describedby');
+    const describedBy = [baseDescribedBy, select.getAttribute('aria-describedby') || '']
+      .filter(Boolean)
+      .filter((value, index, values)=> values.indexOf(value) === index)
+      .join(' ');
     const required = select.getAttribute('aria-required');
     const invalid = select.getAttribute('aria-invalid');
     const ariaLabel = select.getAttribute('aria-label');
@@ -112,14 +116,17 @@ function createOptionList(root){
       input.removeAttribute('aria-invalid');
     }
 
-    if(ariaLabel && !labelId){
+    if(labelId){
+      input.removeAttribute('aria-label');
+      return;
+    }
+
+    if(ariaLabel){
       input.setAttribute('aria-label', ariaLabel);
       return;
     }
 
-    if(!labelId){
-      input.removeAttribute('aria-label');
-    }
+    input.removeAttribute('aria-label');
   };
 
   const syncActiveDescendant = ()=>{

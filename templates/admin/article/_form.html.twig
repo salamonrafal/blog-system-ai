@@ -79,6 +79,7 @@
         </div>
 
         {% set keywords_has_errors = form.keywords.vars.errors|length > 0 %}
+        {% set keywords_help_id = form.keywords.vars.id ~ '-help' %}
         <div class="field article-editor-field{{ keywords_has_errors ? ' has-error' : '' }}">
             {{ form_label(form.keywords) }}
             <div
@@ -112,9 +113,9 @@
                             placeholder="Wpisz, aby wyszukać słowa kluczowe"
                             autocomplete="off"
                             spellcheck="false"
-                            data-i18n-aria="article_form_keywords_help"
-                            aria-label="Wpisz, aby wyszukać słowa kluczowe"
+                            aria-describedby="{{ keywords_help_id }}"
                         >
+                        <span id="{{ keywords_help_id }}" class="sr-only" data-i18n="article_form_keywords_help">Wpisz, aby wyszukać i dodać słowo kluczowe.</span>
                     </div>
                     <div class="app-option-list-results" data-option-list-results data-i18n-aria="article_form_keywords_results_aria" aria-label="Podpowiedzi słów kluczowych" hidden></div>
                 </div>
