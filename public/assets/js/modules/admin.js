@@ -146,10 +146,25 @@ export function setupOptionalColorFields(){
     if(!(valueInput instanceof HTMLInputElement) || !picker || !pickerShell || !clearButton) return;
 
     const fallbackColor = '#39ff14';
+    const label = valueInput.id
+      ? document.querySelector(`label[for="${valueInput.id}"]`)
+      : null;
+    const labelId = label instanceof HTMLLabelElement
+      ? (label.id || `${valueInput.id}--label`)
+      : '';
     field.hidden = false;
     valueInput.classList.add('sr-only');
     valueInput.tabIndex = -1;
     valueInput.setAttribute('aria-hidden', 'true');
+
+    if(label instanceof HTMLLabelElement && labelId){
+      label.id = labelId;
+      picker.setAttribute('aria-labelledby', labelId);
+      label.addEventListener('click', (event)=>{
+        event.preventDefault();
+        picker.focus({ preventScroll: true });
+      });
+    }
 
     const syncAccessibilityState = ()=>{
       const describedBy = valueInput.getAttribute('aria-describedby');

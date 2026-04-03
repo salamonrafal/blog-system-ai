@@ -19,8 +19,6 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/admin/article-keywords')]
 class ArticleKeywordController extends AbstractController
 {
-    use AuthenticatedAdminUserTrait;
-
     #[Route('', name: 'admin_article_keyword_index', methods: ['GET'])]
     public function index(ArticleKeywordRepository $articleKeywordRepository): Response
     {
