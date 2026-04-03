@@ -166,6 +166,17 @@
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .admin-preloader{
+    transition:none;
+  }
+
+  .admin-preloader-ekg-trace path,
+  .admin-preloader-heart{
+    animation:none;
+  }
+}
+
 @media (max-width: 768px) {
   .admin-preloader-status{
     margin:0 16px;
