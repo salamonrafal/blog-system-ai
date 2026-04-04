@@ -181,8 +181,13 @@ export function setupArticleMarkupEditor(){
         if(!level) return;
 
         applyHeading(textarea, level);
+        const selectionStart = textarea.selectionStart ?? 0;
+        const selectionEnd = textarea.selectionEnd ?? selectionStart;
         headingSelect.value = '';
         headingSelect.dispatchEvent(new Event('custom-select:sync'));
+        requestAnimationFrame(()=>{
+          preserveEditorView(textarea, selectionStart, selectionEnd);
+        });
       });
     }
 
