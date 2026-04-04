@@ -6,12 +6,17 @@ export function qsa(sel, root = document){
   return [...root.querySelectorAll(sel)];
 }
 
+function getScrollLockCount(doc){
+  const parsedCount = Number(doc.dataset.scrollLockCount);
+  return Number.isFinite(parsedCount) && parsedCount > 0 ? parsedCount : 0;
+}
+
 export function lockDocumentScroll(){
   const doc = document.documentElement;
   const body = document.body;
   if(!body) return;
 
-  const currentLocks = Number(doc.dataset.scrollLockCount || '0');
+  const currentLocks = getScrollLockCount(doc);
   if(currentLocks === 0){
     doc.dataset.scrollLockHtmlOverflow = doc.style.overflow || '';
     doc.dataset.scrollLockBodyOverflow = body.style.overflow || '';
@@ -27,7 +32,9 @@ export function unlockDocumentScroll(){
   const body = document.body;
   if(!body) return;
 
-  const currentLocks = Number(doc.dataset.scrollLockCount || '0');
+  const currentLocks = getScrollLockCount(doc);
+  if(currentLocks === 0) return;
+
   if(currentLocks <= 1){
     doc.style.overflow = doc.dataset.scrollLockHtmlOverflow || '';
     body.style.overflow = doc.dataset.scrollLockBodyOverflow || '';

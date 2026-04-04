@@ -664,7 +664,8 @@
   display:grid;
   gap:14px;
   min-height:0;
-  overflow:visible;
+  overflow-y:auto;
+  overflow-x:visible;
   padding-right:4px;
   color:var(--muted);
 }

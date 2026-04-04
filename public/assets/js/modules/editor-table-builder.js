@@ -27,7 +27,7 @@ export function createArticleTableBuilder({ field, textarea, insertText, t }){
   const escapeTableCell = (value)=> String(value ?? '')
     .trim()
     .replace(/\|/g, '\\|')
-    .replace(/\r?\n/g, '<br>');
+    .replace(/\r?\n/g, ' ');
 
   const createTableState = ()=> ({
     hasHeader: true,
@@ -298,6 +298,10 @@ export function createArticleTableBuilder({ field, textarea, insertText, t }){
     tableModal.removeAttribute('hidden');
     tableModal.setAttribute('aria-hidden', 'false');
     lockDocumentScroll();
+    const closeButton = tableCloseButtons[0];
+    if(closeButton){
+      closeButton.focus({ preventScroll: true });
+    }
   };
 
   const getColumnIndexFromPointer = (clientX)=>{
