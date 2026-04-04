@@ -224,7 +224,7 @@
                     <button type="button" class="article-editor-toolbar-button" data-markup-action="bold" data-i18n-tooltip="editor_tooltip_bold" data-tooltip="Pogrubienie" data-i18n-aria="editor_tooltip_bold" aria-label="Pogrubienie"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5h5.5a3.5 3.5 0 0 1 0 7H8zm0 7h6.5a3.5 3.5 0 0 1 0 7H8z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
                     <button type="button" class="article-editor-toolbar-button" data-markup-action="italic" data-i18n-tooltip="editor_tooltip_italic" data-tooltip="Kursywa" data-i18n-aria="editor_tooltip_italic" aria-label="Kursywa"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 5h5M5 19h5M14 5l-4 14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
                     <button type="button" class="article-editor-toolbar-button" data-markup-action="underline" data-i18n-tooltip="editor_tooltip_underline" data-tooltip="Podkreślenie" data-i18n-aria="editor_tooltip_underline" aria-label="Podkreślenie"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v5a4 4 0 0 0 8 0V5M6 19h12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
-                    <div class="article-editor-toolbar-select">
+                    <div class="article-editor-toolbar-select article-editor-toolbar-select-headings">
                         <label for="{{ form.content.vars.id }}-heading-select" class="sr-only" data-i18n="editor_headings_label">Nagłówki</label>
                         <select
                             id="{{ form.content.vars.id }}-heading-select"
@@ -249,13 +249,47 @@
                     <button type="button" class="article-editor-toolbar-button" data-markup-action="align" data-markup-align="right" data-i18n-tooltip="editor_tooltip_align_right" data-tooltip="Wyrównaj do prawej" data-i18n-aria="editor_tooltip_align_right" aria-label="Wyrównaj do prawej"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 7h14M9 11h10M5 15h14M9 19h10" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg></span></button>
                     <button type="button" class="article-editor-toolbar-button" data-markup-action="align" data-markup-align="justify" data-i18n-tooltip="editor_tooltip_align_justify" data-tooltip="Wyjustuj" data-i18n-aria="editor_tooltip_align_justify" aria-label="Wyjustuj"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 7h14M5 11h14M5 15h14M5 19h14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg></span></button>
                     <span class="article-editor-toolbar-divider" aria-hidden="true"></span>
-                    <button type="button" class="article-editor-toolbar-button" data-markup-action="inline-code" data-i18n-tooltip="editor_tooltip_inline_code" data-tooltip="Kod inline" data-i18n-aria="editor_tooltip_inline_code" aria-label="Kod inline"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="6" width="17" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="m10 10-2 2 2 2M14 10l2 2-2 2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
-                    <button type="button" class="article-editor-toolbar-button" data-markup-action="code-block" data-i18n-tooltip="editor_tooltip_code_block" data-tooltip="Blok kodu" data-i18n-aria="editor_tooltip_code_block" aria-label="Blok kodu"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 8-4 4 4 4M15 8l4 4-4 4M13 6l-2 12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
-                    <button type="button" class="article-editor-toolbar-button" data-markup-action="preformatted" data-i18n-tooltip="editor_tooltip_preformatted" data-tooltip="Blok preformatowany" data-i18n-aria="editor_tooltip_preformatted" aria-label="Blok preformatowany"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 6v12M17 6v12M10 9h4M10 12h4M10 15h4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
-                    <button type="button" class="article-editor-toolbar-button" data-markup-action="quote" data-i18n-tooltip="editor_tooltip_quote" data-tooltip="Cytat" data-i18n-aria="editor_tooltip_quote" aria-label="Cytat"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 8H6a1 1 0 0 0-1 1v4a3 3 0 0 0 3 3h1V8Zm10 0h-3a1 1 0 0 0-1 1v4a3 3 0 0 0 3 3h1V8Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="bullet-list" data-i18n-tooltip="editor_tooltip_bullet_list" data-tooltip="Lista punktowana" data-i18n-aria="editor_tooltip_bullet_list" aria-label="Lista punktowana"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 7h9M10 12h9M10 17h9" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.2"/><circle cx="6" cy="7" r="1.8" fill="currentColor"/><circle cx="6" cy="12" r="1.8" fill="currentColor"/><circle cx="6" cy="17" r="1.8" fill="currentColor"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="numbered-list" data-i18n-tooltip="editor_tooltip_numbered_list" data-tooltip="Lista numerowana" data-i18n-aria="editor_tooltip_numbered_list" aria-label="Lista numerowana"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M11 7h8M11 12h8M11 17h8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.2"/><path d="M4.5 8V6.5h1.3V10" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9"/><path d="M4.2 12.2c.2-.8.8-1.2 1.7-1.2.9 0 1.5.5 1.5 1.2 0 .5-.2.8-.9 1.4l-1.8 1.5h2.8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9"/><path d="M4.4 16.2h2.3c.5 0 .9.4.9.9s-.4.9-.9.9H4.4m1.2-1.8V19" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9"/></svg></span></button>
                     <span class="article-editor-toolbar-divider" aria-hidden="true"></span>
-                    <button type="button" class="article-editor-toolbar-button" data-markup-action="bullet-list" data-i18n-tooltip="editor_tooltip_bullet_list" data-tooltip="Lista punktowana" data-i18n-aria="editor_tooltip_bullet_list" aria-label="Lista punktowana"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 7h10M9 12h10M9 17h10" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/><circle cx="5" cy="7" r="1.3" fill="currentColor"/><circle cx="5" cy="12" r="1.3" fill="currentColor"/><circle cx="5" cy="17" r="1.3" fill="currentColor"/></svg></span></button>
-                    <button type="button" class="article-editor-toolbar-button" data-markup-action="numbered-list" data-i18n-tooltip="editor_tooltip_numbered_list" data-tooltip="Lista numerowana" data-i18n-aria="editor_tooltip_numbered_list" aria-label="Lista numerowana"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 7h9M10 12h9M10 17h9" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/><path d="M4 7h1v3M4 12h2a1 1 0 0 1 0 2H4l2 2M4 17h2l-2 2h2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
+                    <div class="app-dropdown-menu article-editor-toolbar-menu" data-dropdown-menu data-markup-blocks-menu>
+                        <button
+                            type="button"
+                            class="article-editor-toolbar-button"
+                            data-dropdown-menu-trigger
+                            data-i18n-tooltip="editor_blocks_label"
+                            data-tooltip="Dodatkowe bloki tekstu"
+                            data-i18n-aria="editor_blocks_label"
+                            aria-label="Dodatkowe bloki tekstu"
+                            aria-haspopup="true"
+                            aria-expanded="false"
+                            aria-controls="{{ form.content.vars.id }}-blocks-menu"
+                        >
+                            <span class="article-editor-toolbar-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24">
+                                    <rect x="4" y="5" width="7" height="6" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/>
+                                    <rect x="13" y="5" width="7" height="6" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/>
+                                    <rect x="4" y="13" width="7" height="6" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M14 15h6M14 18h6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/>
+                                </svg>
+                            </span>
+                            <span class="article-editor-toolbar-caret" aria-hidden="true">
+                                <svg viewBox="0 0 12 12">
+                                    <path d="m3 4 3 3 3-3" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/>
+                                </svg>
+                            </span>
+                        </button>
+                        <div id="{{ form.content.vars.id }}-blocks-menu" class="app-dropdown-menu-panel article-editor-toolbar-menu-panel" data-dropdown-menu-panel hidden>
+                            <button type="button" class="app-dropdown-menu-item article-editor-toolbar-menu-item" data-markup-action="inline-code" data-i18n-tooltip="editor_tooltip_inline_code" data-tooltip="Kod inline" data-i18n-aria="editor_tooltip_inline_code" aria-label="Kod inline">
+                                <span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 8-4 4 4 4M15 8l4 4-4 4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span>
+                            </button>
+                            <button type="button" class="app-dropdown-menu-item article-editor-toolbar-menu-item" data-markup-action="preformatted" data-i18n-tooltip="editor_tooltip_preformatted" data-tooltip="Blok preformatowany" data-i18n-aria="editor_tooltip_preformatted" aria-label="Blok preformatowany">
+                                <span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 7H6.5A1.5 1.5 0 0 0 5 8.5v7A1.5 1.5 0 0 0 6.5 17H8M16 7h1.5A1.5 1.5 0 0 1 19 8.5v7A1.5 1.5 0 0 1 17.5 17H16M11 6v12M13 6v12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="code-block" data-i18n-tooltip="editor_tooltip_code_block" data-tooltip="Blok kodu" data-i18n-aria="editor_tooltip_code_block" aria-label="Blok kodu"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 8-4 4 4 4M15 8l4 4-4 4M13 6l-2 12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="quote" data-i18n-tooltip="editor_tooltip_quote" data-tooltip="Cytat" data-i18n-aria="editor_tooltip_quote" aria-label="Cytat"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 8H6a1 1 0 0 0-1 1v4a3 3 0 0 0 3 3h1V8Zm10 0h-3a1 1 0 0 0-1 1v4a3 3 0 0 0 3 3h1V8Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
                     <span class="article-editor-toolbar-divider" aria-hidden="true"></span>
                     <button type="button" class="article-editor-toolbar-button" data-markup-action="line-break" data-i18n-tooltip="editor_tooltip_line_break" data-tooltip="Nowa linia" data-i18n-aria="editor_tooltip_line_break" aria-label="Nowa linia"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 7v4a3 3 0 0 0 3 3h8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><path d="m13 11 4 4-4 4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
                     <button type="button" class="article-editor-toolbar-button" data-markup-action="separator" data-i18n-tooltip="editor_tooltip_separator" data-tooltip="Separator" data-i18n-aria="editor_tooltip_separator" aria-label="Separator"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12h16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/><path d="M8 8h1M12 8h1M16 8h1M8 16h1M12 16h1M16 16h1" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg></span></button>
@@ -263,6 +297,7 @@
                     <button type="button" class="article-editor-toolbar-button" data-markup-action="link" data-i18n-tooltip="editor_tooltip_link" data-tooltip="Link" data-i18n-aria="editor_tooltip_link" aria-label="Link"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 14l4-4M8.5 16.5l-2 2a3 3 0 1 1-4-4l2-2M15.5 7.5l2-2a3 3 0 1 1 4 4l-2 2M9 15a3 3 0 0 1 0-4l2-2m4 6-2 2a3 3 0 0 1-4 0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
                     <button type="button" class="article-editor-toolbar-button" data-markup-action="image" data-i18n-tooltip="editor_tooltip_image" data-tooltip="Obraz" data-i18n-aria="editor_tooltip_image" aria-label="Obraz"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="10" r="1.5" fill="currentColor"/><path d="m20 16-4.5-4.5L8 19" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
                     <button type="button" class="article-editor-toolbar-button" data-markup-action="table" data-i18n-tooltip="editor_tooltip_table" data-tooltip="Tabela" data-i18n-aria="editor_tooltip_table" aria-label="Tabela"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 10h16M10 6v12M16 6v12" fill="none" stroke="currentColor" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="table-builder" data-i18n-tooltip="editor_tooltip_table_builder" data-tooltip="Edytor tabeli" data-i18n-aria="editor_tooltip_table_builder" aria-label="Edytor tabeli" aria-haspopup="dialog" aria-controls="{{ form.content.vars.id }}-table-builder-modal"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 10h17M9 5v14M15 5v14" fill="none" stroke="currentColor" stroke-width="2"/><path d="M18 3v4M16 5h4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg></span></button>
                     <span class="article-editor-toolbar-divider" aria-hidden="true"></span>
                     <button type="button" class="article-editor-toolbar-button" data-markup-action="help" data-i18n-tooltip="editor_tooltip_help" data-tooltip="Pomoc formatowania" data-i18n-aria="editor_tooltip_help" aria-label="Pomoc formatowania" aria-haspopup="dialog" aria-controls="{{ form.content.vars.id }}-format-help-modal"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9.1 9a3 3 0 1 1 5.8 1c-.5 1.3-1.9 1.8-2.9 2.6-.7.6-1 1.1-1 2M12 17h.01" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/></svg></span></button>
                 </div>
@@ -275,7 +310,7 @@
             </div>
             <div class="article-editor-help-modal" data-markup-help-modal hidden aria-hidden="true">
                 <div id="{{ form.content.vars.id }}-format-help-modal" class="article-editor-help-dialog" role="dialog" aria-modal="true" aria-labelledby="{{ form.content.vars.id }}-format-help-title" aria-describedby="{{ form.content.vars.id }}-format-help-text">
-                    <button type="button" class="article-editor-help-close" data-markup-help-close aria-label="Zamknij pomoc formatowania" title="Zamknij"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-help-close" data-markup-help-close data-i18n-tooltip="editor_modal_close" data-i18n-aria="editor_modal_close" aria-label="Zamknij"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg></span></button>
                     <div class="article-editor-help-eyebrow">admin://format-help</div>
                     <h2 id="{{ form.content.vars.id }}-format-help-title" class="article-editor-help-title">Zasady formatowania</h2>
                     <div id="{{ form.content.vars.id }}-format-help-text" class="article-editor-help-content">
@@ -323,6 +358,33 @@ const message = 'Hello';
                                 </div>
                             </section>
                         </div>
+                    </div>
+                </div>
+            </div>
+            <div class="article-editor-help-modal" data-markup-table-modal hidden aria-hidden="true">
+                <div id="{{ form.content.vars.id }}-table-builder-modal" class="article-editor-help-dialog article-editor-table-dialog" role="dialog" aria-modal="true" aria-labelledby="{{ form.content.vars.id }}-table-builder-title" aria-describedby="{{ form.content.vars.id }}-table-builder-text">
+                    <button type="button" class="article-editor-help-close" data-markup-table-close data-i18n-tooltip="editor_modal_close" data-i18n-aria="editor_modal_close" aria-label="Zamknij"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg></span></button>
+                    <div class="article-editor-help-eyebrow">admin://table-builder</div>
+                    <h2 id="{{ form.content.vars.id }}-table-builder-title" class="article-editor-help-title" data-i18n="editor_table_builder_title">Generator tabeli</h2>
+                    <div id="{{ form.content.vars.id }}-table-builder-text" class="article-editor-help-content article-editor-table-content">
+                        <p class="article-editor-help-intro" data-i18n="editor_table_builder_intro">Skonfiguruj układ tabeli, uzupełnij komórki i wstaw gotowy markdown do treści artykułu.</p>
+                        <label class="article-editor-switch-row article-editor-table-switch">
+                            <span class="article-editor-switch-copy">
+                                <span class="article-editor-switch-label" data-i18n="editor_table_header_toggle">Wiersz nagłówków</span>
+                                <span class="article-editor-switch-hint" data-i18n="editor_table_header_toggle_hint">Po wyłączeniu generator wstawi pusty nagłówek wymagany przez markdown.</span>
+                            </span>
+                            <span class="article-editor-switch">
+                                <input type="checkbox" class="article-editor-switch-input" data-markup-table-header-toggle checked>
+                                <span class="article-editor-switch-slider" aria-hidden="true"></span>
+                            </span>
+                        </label>
+                        <div class="article-editor-table-grid-wrap">
+                            <div class="article-editor-table-grid" data-markup-table-grid></div>
+                        </div>
+                    </div>
+                    <div class="article-editor-table-actions">
+                        <button type="button" class="button secondary" data-markup-table-close data-i18n="form_cancel">Anuluj</button>
+                        <button type="button" class="button" data-markup-table-insert data-i18n="editor_table_insert">Wstaw tabelę</button>
                     </div>
                 </div>
             </div>

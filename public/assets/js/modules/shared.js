@@ -6,6 +6,40 @@ export function qsa(sel, root = document){
   return [...root.querySelectorAll(sel)];
 }
 
+export function lockDocumentScroll(){
+  const doc = document.documentElement;
+  const body = document.body;
+  if(!body) return;
+
+  const currentLocks = Number(doc.dataset.scrollLockCount || '0');
+  if(currentLocks === 0){
+    doc.dataset.scrollLockHtmlOverflow = doc.style.overflow || '';
+    doc.dataset.scrollLockBodyOverflow = body.style.overflow || '';
+    doc.style.overflow = 'hidden';
+    body.style.overflow = 'hidden';
+  }
+
+  doc.dataset.scrollLockCount = String(currentLocks + 1);
+}
+
+export function unlockDocumentScroll(){
+  const doc = document.documentElement;
+  const body = document.body;
+  if(!body) return;
+
+  const currentLocks = Number(doc.dataset.scrollLockCount || '0');
+  if(currentLocks <= 1){
+    doc.style.overflow = doc.dataset.scrollLockHtmlOverflow || '';
+    body.style.overflow = doc.dataset.scrollLockBodyOverflow || '';
+    delete doc.dataset.scrollLockCount;
+    delete doc.dataset.scrollLockHtmlOverflow;
+    delete doc.dataset.scrollLockBodyOverflow;
+    return;
+  }
+
+  doc.dataset.scrollLockCount = String(currentLocks - 1);
+}
+
 export function sleep(ms){
   return new Promise((resolve)=> setTimeout(resolve, ms));
 }

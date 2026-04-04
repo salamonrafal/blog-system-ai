@@ -12,8 +12,10 @@
 @import "./components/admin-shortcuts.css";
 @import "./components/admin-preloader.css";
 @import "./components/editor-select.css";
+@import "./components/dropdown-menu.css";
 @import "./components/option-list.css";
 @import "./components/editor.css";
+@import "./components/editor-table-builder.css";
 @import "./pages/home.css";
 @import "./responsive.css";
 @import "./pages/error.css";

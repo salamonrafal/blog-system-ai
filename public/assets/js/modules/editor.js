@@ -1,5 +1,7 @@
+import { createDropdownMenu } from './dropdown-menu.js';
+import { createArticleTableBuilder } from './editor-table-builder.js';
 import { getTranslation } from './i18n.js';
-import { qs, qsa } from './shared.js';
+import { lockDocumentScroll, qs, qsa, unlockDocumentScroll } from './shared.js';
 
 export function setupArticleMarkupEditor(){
   const editors = qsa('[data-markup-editor]');
@@ -64,6 +66,7 @@ export function setupArticleMarkupEditor(){
     const field = textarea.closest('.article-editor-field');
     const toolbar = qs('[data-markup-toolbar]', field);
     const headingSelect = qs('[data-markup-heading-select]', field);
+    const blocksMenu = qs('[data-markup-blocks-menu]', field);
     const helpModal = qs('[data-markup-help-modal]', field);
     const helpDialog = qs('.article-editor-help-dialog', helpModal);
     const helpClose = qs('[data-markup-help-close]', helpModal);
@@ -72,6 +75,14 @@ export function setupArticleMarkupEditor(){
     let lastHelpTrigger = null;
 
     if(!toolbar) return;
+
+    const tableBuilder = createArticleTableBuilder({
+      field,
+      textarea,
+      insertText,
+      t,
+    });
+    const blocksDropdown = createDropdownMenu(blocksMenu);
 
     const activateHelpTab = (name)=>{
       if(!helpTabs.length || !helpPanels.length) return;
@@ -90,11 +101,13 @@ export function setupArticleMarkupEditor(){
       });
     };
 
+    const closeBlocksMenu = (options = {})=> blocksDropdown?.close(options);
+
     const closeHelpModal = ()=>{
       if(!helpModal) return;
       helpModal.setAttribute('hidden', '');
       helpModal.setAttribute('aria-hidden', 'true');
-      document.body.style.overflow = '';
+      unlockDocumentScroll();
       if(lastHelpTrigger){
         lastHelpTrigger.focus({ preventScroll: true });
       }
@@ -107,7 +120,7 @@ export function setupArticleMarkupEditor(){
       activateHelpTab('basic');
       helpModal.removeAttribute('hidden');
       helpModal.setAttribute('aria-hidden', 'false');
-      document.body.style.overflow = 'hidden';
+      lockDocumentScroll();
       if(helpClose){
         helpClose.focus({ preventScroll: true });
       }
@@ -118,6 +131,9 @@ export function setupArticleMarkupEditor(){
       if(!button) return;
 
       const action = button.getAttribute('data-markup-action');
+      if(action === 'table-builder'){
+        tableBuilder.handleToolbarMouseDown(button);
+      }
       if(action && action !== 'help'){
         event.preventDefault();
       }
@@ -135,40 +151,64 @@ export function setupArticleMarkupEditor(){
         return;
       }
 
-      if(['bold', 'italic', 'underline', 'inline-code'].includes(action)) return applyInlineFormat(textarea, action);
-      if(action === 'line-break') return insertText(textarea, "\\\n");
-      if(action === 'separator') return insertText(textarea, "\n---\n");
+      if(action === 'table-builder'){
+        closeBlocksMenu();
+        tableBuilder.handleToolbarAction(button);
+        return;
+      }
+
+      if(['bold', 'italic', 'underline', 'inline-code'].includes(action)){
+        closeBlocksMenu();
+        return applyInlineFormat(textarea, action);
+      }
+      if(action === 'line-break'){
+        closeBlocksMenu();
+        return insertText(textarea, "\\\n");
+      }
+      if(action === 'separator'){
+        closeBlocksMenu();
+        return insertText(textarea, "\n---\n");
+      }
       if(action === 'table'){
+        closeBlocksMenu();
         return insertText(
           textarea,
           `| ${t('editor_table_column_a')} | ${t('editor_table_column_b')} |\n| --- | --- |\n| ${t('editor_table_value_1')} | ${t('editor_table_value_2')} |`
         );
       }
       if(action === 'preformatted'){
+        closeBlocksMenu();
         return transformSelectedLines(textarea, (value)=> `:::pre\n${value || t('editor_placeholder_preformatted')}\n:::`);
       }
       if(action === 'quote'){
+        closeBlocksMenu();
         return transformSelectedLines(textarea, (value)=> value.split('\n').map((line)=> `> ${line.replace(/^\s*>\s?/, '')}`).join('\n'));
       }
       if(action === 'bullet-list'){
+        closeBlocksMenu();
         return transformSelectedLines(textarea, (value)=> value.split('\n').map((line)=> `- ${line.replace(/^\s*[-*]\s+/, '').trim() || t('editor_placeholder_list_item')}`).join('\n'));
       }
       if(action === 'numbered-list'){
+        closeBlocksMenu();
         return transformSelectedLines(textarea, (value)=> value.split('\n').map((line, index)=> `${index + 1}. ${line.replace(/^\s*\d+\.\s+/, '').trim() || t('editor_placeholder_list_item')}`).join('\n'));
       }
       if(action === 'align'){
+        closeBlocksMenu();
         const align = button.getAttribute('data-markup-align') || 'left';
         return transformSelectedLines(textarea, (value)=> `:::${align}\n${value.trim() || t('editor_placeholder_aligned_text')}\n:::`);
       }
       if(action === 'code-block'){
+        closeBlocksMenu();
         return wrapSelection(textarea, "```\n", "\n```", t('editor_placeholder_code_block'));
       }
       if(action === 'link'){
+        closeBlocksMenu();
         const url = window.prompt(t('editor_prompt_link_url'), 'https://');
         if(!url) return;
         return wrapSelection(textarea, '[', `](${url})`, t('editor_placeholder_link_text'));
       }
       if(action === 'image'){
+        closeBlocksMenu();
         const url = window.prompt(t('editor_prompt_image_url'), 'https://');
         if(!url) return;
         return wrapSelection(textarea, '![', `](${url})`, t('editor_placeholder_image_alt'));
