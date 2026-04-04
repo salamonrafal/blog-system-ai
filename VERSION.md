@@ -339,3 +339,6 @@
 - Dodano obsługę `prefers-reduced-motion` dla preloadera tras administracyjnych, wyłączając animacje oraz przejścia w środowiskach z ograniczonym ruchem.
 - Przeniesiono animacje preloadera do stanu `pending`, dzięki czemu puls serca i przebieg EKG uruchamiają się tylko wtedy, gdy overlay faktycznie przechodzi w aktywny stan ładowania.
 - Uzupełniono formularz `Ustawienia bloga` o placeholdery sterowane przez `data-i18n-placeholder`, poprawiając lokalizację pól tekstowych i paginacyjnych oraz porządkując wspólną zmienną szerokości kolumny etykiet w warstwie stylów.
+- Dodano automatyzację wersjonowania wydań przez `composer`, obejmującą wyliczanie kolejnej wersji semantycznej na podstawie tagów Git oraz tworzenie nowego anotowanego taga dla wariantów `patch`, `minor` i `major`.
+- Rozszerzono workflow release o warianty publikujące, które po utworzeniu nowego taga automatycznie wypychają bieżący branch oraz tag do zdalnego repozytorium `origin`, z zabezpieczeniem przed uruchomieniem na brudnym worktree lub w stanie `detached HEAD`.
+- Uzupełniono `README.md` o dokumentację procesu release, dostępnych komend `composer release:*` i `composer release:publish:*` oraz zalecanego przebiegu publikacji zmian z tagiem.
