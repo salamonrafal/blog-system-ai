@@ -156,10 +156,6 @@ export function setupArticleMarkupEditor(){
       if(action === 'numbered-list'){
         return transformSelectedLines(textarea, (value)=> value.split('\n').map((line, index)=> `${index + 1}. ${line.replace(/^\s*\d+\.\s+/, '').trim() || t('editor_placeholder_list_item')}`).join('\n'));
       }
-      if(action === 'heading'){
-        const level = button.getAttribute('data-markup-level') || '1';
-        return applyHeading(textarea, level);
-      }
       if(action === 'align'){
         const align = button.getAttribute('data-markup-align') || 'left';
         return transformSelectedLines(textarea, (value)=> `:::${align}\n${value.trim() || t('editor_placeholder_aligned_text')}\n:::`);
