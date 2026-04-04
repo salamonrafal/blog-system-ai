@@ -40,6 +40,7 @@
                         {{ form_widget(form.appUrl, { attr: {
                             class: 'article-editor-input',
                             placeholder: 'https://twoja-domena.pl',
+                            'data-i18n-placeholder': 'blog_settings_app_url_placeholder',
                             'data-character-count-input': 'true',
                             'aria-describedby': app_url_described_by
                         }|merge(app_url_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
@@ -69,6 +70,7 @@
                         {{ form_widget(form.blogTitle, { attr: {
                             class: 'article-editor-input',
                             placeholder: 'Np. Blog System AI',
+                            'data-i18n-placeholder': 'blog_settings_blog_title_placeholder',
                             'data-character-count-input': 'true',
                             'aria-describedby': title_described_by
                         }|merge(title_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
@@ -96,6 +98,7 @@
                 {{ form_widget(form.homepageSeoDescription, { attr: {
                     class: 'article-editor-input article-editor-textarea',
                     placeholder: 'Krótki opis strony głównej bloga dla Google i innych wyszukiwarek',
+                    'data-i18n-placeholder': 'blog_settings_homepage_seo_description_placeholder',
                     'data-character-count-input': 'true',
                     'aria-describedby': description_described_by
                 }|merge(description_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
@@ -137,6 +140,7 @@
                         {{ form_widget(form.homepageSocialImage, { attr: {
                             class: 'article-editor-input',
                             placeholder: 'https://... lub /assets/img/...',
+                            'data-i18n-placeholder': 'blog_settings_homepage_social_image_placeholder',
                             'data-character-count-input': 'true',
                             'aria-describedby': social_image_described_by
                         }|merge(social_image_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
@@ -164,6 +168,7 @@
                 {{ form_widget(form.homepageSeoKeywords, { attr: {
                     class: 'article-editor-input article-editor-textarea',
                     placeholder: 'Np. blog, php, programowanie, architektura aplikacji',
+                    'data-i18n-placeholder': 'blog_settings_homepage_seo_keywords_placeholder',
                     'data-character-count-input': 'true',
                     'aria-describedby': keywords_described_by
                 }|merge(keywords_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
@@ -210,6 +215,7 @@
                 {{ form_widget(form.articlesPerPage, { attr: {
                     class: 'article-editor-input blog-settings-number-input',
                     placeholder: '5',
+                    'data-i18n-placeholder': 'blog_settings_articles_per_page_placeholder',
                     'aria-describedby': articles_per_page_described_by
                 }|merge(articles_per_page_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
                 {% if articles_per_page_has_errors %}
@@ -245,6 +251,7 @@
                 {{ form_widget(form.adminListingItemsPerPage, { attr: {
                     class: 'article-editor-input blog-settings-number-input',
                     placeholder: '25',
+                    'data-i18n-placeholder': 'blog_settings_admin_listing_items_per_page_placeholder',
                     'aria-describedby': admin_listing_items_per_page_described_by
                 }|merge(admin_listing_items_per_page_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
                 {% if admin_listing_items_per_page_has_errors %}

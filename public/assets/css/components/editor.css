@@ -1,5 +1,6 @@
 .article-editor-form {
   margin:22px 20px 20px;
+  --blog-settings-label-column: 460px;
 }
 
 .article-editor-errors {
@@ -35,10 +36,6 @@
   margin:0;
   color:var(--muted);
   line-height:1.6;
-}
-
-.article-editor-form {
-  --blog-settings-label-column: 460px;
 }
 
 [data-blog-settings-pagination-section] .blog-settings-subsection-header {
