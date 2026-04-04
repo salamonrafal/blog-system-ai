@@ -320,3 +320,25 @@
 - Zmieniono etykietę pola wyboru kategorii w formularzach dodawania i edycji artykułu z `Nazwa` na `Kategoria`, wprowadzając dla tego pola osobny klucz `i18n` bez wpływu na formularz zarządzania samymi kategoriami.
 - Uogólniono w modelu `BlogSettings` nazwę limitu elementów na stronę w panelu administracyjnym do zastosowań szerszych niż sama lista artykułów, aktualizując formularz ustawień bloga, tłumaczenia i walidację, a listę eksportów spięto z domyślną wartością `25` dla listingów administracyjnych.
 - Uzupełniono proces eksportu kategorii, widoki eksportów i kolejek oraz formularz ustawień bloga o brakujące tłumaczenia `PL/EN`, a także rozszerzono zestaw testów jednostkowych o nowe encje, commandy, writer'y i ścieżki kontrolerów związane z eksportem kategorii i paginacją eksportów.
+- Dopracowano mobilny układ strony głównej bloga i dashboardu administracyjnego, wymuszając pojedynczą kolumnę paneli i kart na mniejszych ekranach.
+- Dodano na stronie głównej bloga sekcję `TOP 5 słów kluczowych`, opartą o najczęściej używane słowa z opublikowanych artykułów, wraz z linkami do filtrów, licznikami oraz testami kontrolera.
+- Uzupełniono internacjonalizację sekcji `TOP 5 słów kluczowych` oraz dopracowano jej wygląd, spacing, separator z nagłówkiem osadzonym na linii i czytelność badge z licznikami.
+- Przebudowano mobilne zachowanie pływającego menu administracyjnego, zamieniając je na pełnoekranowy drawer z przyciskiem zamknięcia, obsługą `Escape`, kliknięcia poza panelem i zamykania po przejściu w link.
+- Rozszerzono desktopowe skróty administracyjne o możliwość dokowania panelu do lewej krawędzi ekranu, zapamiętywanie stanu dokowania i pełną wysokość zadokowanego widoku.
+- Dodano w zadokowanym panelu możliwość zwijania do wąskiego raila po lewej stronie oraz zapamiętywanie stanu zwinięcia między odświeżeniami.
+- Ustabilizowano skróty administracyjne przy przełączaniu między viewportem desktopowym i mobilnym, usuwając błędy pozycji zębatki, domykania panelu i synchronizacji stanu dokowania.
+- Dopracowano zwinięty wariant zadokowanego raila, pokazując skróty jako same ikonki z tooltipami i badge oraz zachowując działanie akcji ustawień w dolnej sekcji.
+- Rozszerzono globalny mechanizm tooltipów o obsługę elementów dodawanych dynamicznie oraz automatyczne przenoszenie tooltipa nad element, gdy przy dolnej krawędzi ekranu nie mieści się pod nim.
+- Poprawiono kontrast ikon w zwiniętym, zadokowanym panelu skrótów administracyjnych, dzięki czemu pozostają czytelne również przy jasnych kolorach akcentu.
+- Dodano preloader dla tras administracyjnych w formie `blur overlay`, wygaszany po pełnym załadowaniu strony, z fallbackiem `noscript`, internacjonalizacją statusu oraz finalną animacją EKG z pulsującym sercem.
+- Przebudowano ekran `Ustawienia bloga`, usuwając blok `admin://seo-preview`, łącząc ustawienia `Paginacja strony głównej` i `Paginacja list w panelu` w jedną sekcję oraz upraszczając nagłówki sekcji `Tożsamość i SEO` i `Globalne ustawienia paginacji`.
+- Ujednolicono układ wszystkich sekcji formularza ustawień bloga: poszerzono wspólną kolumnę etykiet, przeniesiono podpowiedzi do tooltipów pod ikoną `?`, dodano subtelne rozróżnienie wierszy paginacji oraz dopracowano pozycje liczników i etykiet dla pól tekstowych i `textarea`.
+
+## 2026-04-04
+
+- Dodano obsługę `prefers-reduced-motion` dla preloadera tras administracyjnych, wyłączając animacje oraz przejścia w środowiskach z ograniczonym ruchem.
+- Przeniesiono animacje preloadera do stanu `pending`, dzięki czemu puls serca i przebieg EKG uruchamiają się tylko wtedy, gdy overlay faktycznie przechodzi w aktywny stan ładowania.
+- Uzupełniono formularz `Ustawienia bloga` o placeholdery sterowane przez `data-i18n-placeholder`, poprawiając lokalizację pól tekstowych i paginacyjnych oraz porządkując wspólną zmienną szerokości kolumny etykiet w warstwie stylów.
+- Dodano automatyzację wersjonowania wydań przez `composer`, obejmującą wyliczanie kolejnej wersji semantycznej na podstawie tagów Git oraz tworzenie nowego anotowanego taga dla wariantów `patch`, `minor` i `major`.
+- Rozszerzono workflow release o warianty publikujące, które po utworzeniu nowego taga automatycznie wypychają bieżący branch oraz tag do zdalnego repozytorium `origin`, z zabezpieczeniem przed uruchomieniem na brudnym worktree lub w stanie `detached HEAD`.
+- Uzupełniono `README.md` o dokumentację procesu release, dostępnych komend `composer release:*` i `composer release:publish:*` oraz zalecanego przebiegu publikacji zmian z tagiem.

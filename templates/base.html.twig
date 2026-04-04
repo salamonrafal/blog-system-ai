@@ -33,13 +33,73 @@
     <title>{{ block('title') }}</title>
 </head>
 
+{% set route_name = app.request.attributes.get('_route')|default('') %}
+{% set is_admin_route = route_name starts with 'admin_' %}
+
 <body
     data-page-title="{% block page_title %}{{ block('title') }}{% endblock %}"
+    {% if is_admin_route %}
+        data-admin-page="true"
+    {% endif %}
     {% if is_granted('ROLE_ADMIN') %}
         data-user-notifications-endpoint="{{ path('admin_user_notification_pending') }}"
         data-user-notifications-csrf="{{ csrf_token('consume_user_notifications') }}"
     {% endif %}
 >
+{% if is_admin_route %}
+    <script>
+        (function(){
+            var body = document.body;
+
+            if(!(body instanceof HTMLBodyElement)){
+                return;
+            }
+
+            var released = false;
+            var release = function(){
+                if(released){
+                    return;
+                }
+
+                released = true;
+                body.classList.remove('admin-preload-pending');
+            };
+
+            body.classList.add('admin-preload-pending');
+            window.addEventListener('load', function(){
+                window.requestAnimationFrame(release);
+            }, { once: true });
+            window.setTimeout(release, 5000);
+        })();
+    </script>
+    <div class="admin-preloader" data-admin-preloader>
+        <div class="admin-preloader-backdrop" aria-hidden="true"></div>
+        <div class="admin-preloader-status" role="status" aria-live="polite" aria-atomic="true">
+            <div class="admin-preloader-scene" aria-hidden="true">
+                <div class="admin-preloader-ekg">
+                    <span class="admin-preloader-ekg-line"></span>
+                    <span class="admin-preloader-ekg-trace">
+                        <svg viewBox="0 0 180 72" preserveAspectRatio="none" aria-hidden="true">
+                            <path d="M0 40 H44 L54 40 L62 24 L70 56 L80 34 L92 40 H180"></path>
+                        </svg>
+                    </span>
+                    <span class="admin-preloader-heart">
+                        <svg viewBox="0 0 32 32" aria-hidden="true">
+                            <path d="M16 28 5 17.5C2.6 15.2 2.4 11.2 4.5 8.9c2.2-2.4 6-2.5 8.4-.4L16 11.2l3.1-2.7c2.4-2.1 6.2-2 8.4.4 2.1 2.3 1.9 6.3-.5 8.6Z"></path>
+                        </svg>
+                    </span>
+                </div>
+            </div>
+            <span class="sr-only" data-i18n="admin_preloader_status">Ładowanie panelu administracyjnego</span>
+        </div>
+    </div>
+    <noscript>
+        <style>
+            .admin-preloader{ display: none !important; }
+        </style>
+    </noscript>
+{% endif %}
+
 <header class="topbar">
     <div class="topbar-inner">
         <a class="brand" href="{{ path('blog_index') }}" data-i18n-aria="site_home_aria" aria-label="Strona główna">
@@ -119,6 +179,47 @@ Fullstack Developer</span>
             </span>
         </summary>
         <nav class="admin-shortcuts-menu" data-i18n-aria="admin_shortcut_menu_label" aria-label="Skróty administratora" data-admin-shortcuts data-authenticated="{{ app.user ? 'true' : 'false' }}">
+            <div class="admin-shortcuts-desktop-bar">
+                <span class="admin-shortcuts-desktop-title" data-i18n="admin_shortcut_menu_label">Skróty administratora</span>
+                <div class="admin-shortcuts-desktop-actions">
+                    <button
+                        type="button"
+                        class="admin-shortcuts-desktop-collapse"
+                        data-action="toggle-admin-shortcuts-collapse"
+                        data-i18n-aria="admin_shortcut_collapse"
+                        aria-label="Zwiń panel skrótów"
+                        aria-pressed="false"
+                    >
+                        <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                            <svg viewBox="0 0 32 32">
+                                <path d="M20 8l-8 8 8 8"></path>
+                            </svg>
+                        </span>
+                    </button>
+                    <button
+                        type="button"
+                        class="admin-shortcuts-desktop-dock"
+                        data-action="toggle-admin-shortcuts-dock"
+                        data-i18n-aria="admin_shortcut_dock"
+                        aria-label="Dokuj panel skrótów"
+                        aria-pressed="false"
+                    >
+                        <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                            <svg viewBox="0 0 32 32">
+                                <rect x="6" y="7" width="20" height="18" rx="3"></rect>
+                                <path d="M12 11v10"></path>
+                                <path d="M15 16h8"></path>
+                            </svg>
+                        </span>
+                    </button>
+                </div>
+            </div>
+            <div class="admin-shortcuts-mobile-bar">
+                <span class="admin-shortcuts-mobile-title" data-i18n="admin_shortcut_menu_label">Skróty administratora</span>
+                <button type="button" class="admin-shortcuts-mobile-close" data-action="close-admin-shortcuts" data-i18n-aria="admin_shortcut_close_panel" aria-label="Zamknij panel skrótów">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
             {% if app.user %}
                 <div class="admin-shortcuts-section admin-shortcuts-section-pinned">
                     <a class="admin-shortcuts-link primary" href="{{ path('admin_article_new') }}">
@@ -367,7 +468,7 @@ Fullstack Developer</span>
                 </div>
                 <section class="admin-shortcuts-section admin-shortcuts-settings" data-i18n-aria="admin_shortcut_settings_title" aria-label="Szybkie ustawienia">
                     <p class="admin-shortcuts-section-title" data-i18n="admin_shortcut_settings_title">Szybkie ustawienia</p>
-                    <button type="button" class="admin-shortcuts-link admin-shortcuts-button" data-action="toggle-device-login" aria-pressed="false">
+                    <button type="button" class="admin-shortcuts-link admin-shortcuts-button" data-action="toggle-device-login" data-collapsed-tooltip-key="admin_shortcut_remember_device" data-i18n-tooltip="admin_shortcut_remember_device" aria-pressed="false">
                         <span class="admin-shortcuts-link-icon" aria-hidden="true">
                             <svg viewBox="0 0 32 32">
                                 <rect x="8" y="5" width="16" height="22" rx="3"></rect>
@@ -377,7 +478,7 @@ Fullstack Developer</span>
                         </span>
                         <span data-device-remember-label data-i18n="admin_shortcut_remember_device">Zapamiętaj urządzenie</span>
                     </button>
-                    <a class="admin-shortcuts-link" href="{{ path('admin_blog_settings') }}">
+                    <a class="admin-shortcuts-link" href="{{ path('admin_blog_settings') }}" data-collapsed-tooltip-key="admin_shortcut_blog_settings" data-i18n-tooltip="admin_shortcut_blog_settings">
                         <span class="admin-shortcuts-link-icon" aria-hidden="true">
                             <svg viewBox="0 0 32 32">
                                 <path d="M7 11h18"></path>

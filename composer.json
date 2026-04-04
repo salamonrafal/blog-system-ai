@@ -94,6 +94,24 @@
         "assets:build:prod": [
             "npm run build:assets:prod"
         ],
+        "release:patch": [
+            "@php bin/release-version.php patch"
+        ],
+        "release:minor": [
+            "@php bin/release-version.php minor"
+        ],
+        "release:major": [
+            "@php bin/release-version.php major"
+        ],
+        "release:publish:patch": [
+            "@php bin/release-version.php patch --push"
+        ],
+        "release:publish:minor": [
+            "@php bin/release-version.php minor --push"
+        ],
+        "release:publish:major": [
+            "@php bin/release-version.php major --push"
+        ],
         "post-install-cmd": [
             "@php bin/console cache:clear"
         ],

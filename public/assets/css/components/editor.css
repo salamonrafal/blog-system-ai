@@ -1,5 +1,6 @@
 .article-editor-form {
   margin:22px 20px 20px;
+  --blog-settings-label-column: 460px;
 }
 
 .article-editor-errors {
@@ -35,6 +36,112 @@
   margin:0;
   color:var(--muted);
   line-height:1.6;
+}
+
+[data-blog-settings-pagination-section] .blog-settings-subsection-header {
+  gap:6px;
+}
+
+.blog-settings-inline-field,
+.blog-settings-pagination-field {
+  display:grid;
+  align-items:start;
+  column-gap:16px;
+  row-gap:10px;
+  padding:14px 16px;
+  border:1px solid color-mix(in oklab, var(--accent-2) 12%, var(--border));
+  border-radius:16px;
+  background:color-mix(in oklab, var(--panel) 74%, transparent);
+}
+
+.blog-settings-inline-field {
+  grid-template-columns:var(--blog-settings-label-column) minmax(0, 1.6fr);
+}
+
+.blog-settings-inline-field-with-counter {
+  align-items:center;
+}
+
+.blog-settings-pagination-field {
+  grid-template-columns:var(--blog-settings-label-column) minmax(120px, 180px);
+  align-items:center;
+}
+
+.blog-settings-inline-field-copy,
+.blog-settings-pagination-field-copy {
+  display:grid;
+  gap:6px;
+}
+
+.blog-settings-label-row {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  width:100%;
+}
+
+.blog-settings-inline-field label,
+.blog-settings-pagination-field label {
+  margin:0;
+}
+
+.blog-settings-inline-field .article-editor-input,
+.blog-settings-pagination-field .blog-settings-number-input {
+  width:100%;
+}
+
+.blog-settings-input-stack {
+  width:100%;
+}
+
+.blog-settings-input-row {
+  display:grid;
+  grid-template-columns:minmax(0, 1fr) auto;
+  align-items:center;
+  gap:10px;
+  width:100%;
+}
+
+.blog-settings-input-row .article-editor-input {
+  min-width:0;
+}
+
+.blog-settings-input-row .article-editor-field-meta {
+  margin-top:0;
+  justify-self:end;
+}
+
+.blog-settings-inline-field-copy .article-editor-field-meta,
+.blog-settings-pagination-field-copy .article-editor-field-meta {
+  margin-top:0;
+}
+
+.blog-settings-inline-field-copy .article-editor-field-hint,
+.blog-settings-pagination-field-copy .article-editor-field-hint {
+  font-size:11px;
+  line-height:1.45;
+}
+
+.blog-settings-inline-field .article-editor-error-message,
+.blog-settings-pagination-field .article-editor-error-message {
+  grid-column:1 / -1;
+}
+
+.blog-settings-textarea-field {
+  grid-template-columns:1fr;
+}
+
+.blog-settings-textarea-field .blog-settings-inline-field-copy {
+  gap:4px;
+}
+
+.blog-settings-textarea-field .article-editor-input {
+  width:100%;
+}
+
+.blog-settings-textarea-field .article-editor-field-meta {
+  justify-self:end;
 }
 
 .article-editor-grid {
@@ -871,6 +978,23 @@
   .article-editor-grid {
     grid-template-columns:1fr;
     gap:18px;
+  }
+
+  .blog-settings-inline-field,
+  .blog-settings-pagination-field {
+    grid-template-columns:1fr;
+    align-items:stretch;
+    padding:13px 14px;
+  }
+
+  .blog-settings-input-row {
+    grid-template-columns:1fr;
+    align-items:stretch;
+    gap:6px;
+  }
+
+  .blog-settings-input-row .article-editor-field-meta {
+    justify-self:start;
   }
 
   .article-keyword-form-grid {

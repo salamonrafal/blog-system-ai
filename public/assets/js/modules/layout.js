@@ -22,13 +22,21 @@ export function setupTooltips(){
   document.body.appendChild(tooltip);
 
   let activeTrigger = null;
+  let activeTriggerTooltipText = '';
 
   const positionTooltip = (trigger)=>{
     if(!trigger || tooltip.hasAttribute('hidden')) return;
 
     const rect = trigger.getBoundingClientRect();
     const tooltipRect = tooltip.getBoundingClientRect();
-    const top = window.scrollY + rect.bottom + 10;
+    const viewportPadding = 12;
+    const defaultTop = window.scrollY + rect.bottom + 10;
+    const aboveTop = window.scrollY + rect.top - tooltipRect.height - 10;
+    const maxTop = window.scrollY + window.innerHeight - tooltipRect.height - viewportPadding;
+    const minTop = window.scrollY + viewportPadding;
+    const top = defaultTop + tooltipRect.height > window.scrollY + window.innerHeight - viewportPadding
+      ? Math.max(aboveTop, minTop)
+      : Math.min(defaultTop, maxTop);
     const maxLeft = window.scrollX + window.innerWidth - tooltipRect.width - 12;
     const minLeft = window.scrollX + 12;
     const centeredLeft = window.scrollX + rect.left + (rect.width / 2) - (tooltipRect.width / 2);
@@ -43,6 +51,7 @@ export function setupTooltips(){
     if(!text) return;
 
     activeTrigger = trigger;
+    activeTriggerTooltipText = text;
     tooltip.classList.toggle('is-wide', trigger.getAttribute('data-tooltip-wide') === 'true');
     tooltip.classList.toggle('is-wrap', trigger.getAttribute('data-tooltip-wrap') === 'true');
     tooltip.classList.toggle('is-multiline', trigger.getAttribute('data-tooltip-multiline') === 'true');
@@ -59,14 +68,40 @@ export function setupTooltips(){
     tooltip.classList.remove('is-wrap');
     tooltip.classList.remove('is-multiline');
     activeTrigger = null;
+    activeTriggerTooltipText = '';
   };
 
   qsa('[data-tooltip]').forEach((element)=>{
     element.removeAttribute('title');
-    element.addEventListener('mouseenter', ()=> showTooltip(element));
-    element.addEventListener('mouseleave', hideTooltip);
-    element.addEventListener('focus', ()=> showTooltip(element));
-    element.addEventListener('blur', hideTooltip);
+  });
+
+  document.addEventListener('mouseover', (event)=>{
+    const trigger = event.target instanceof Element ? event.target.closest('[data-tooltip]') : null;
+    if(!(trigger instanceof HTMLElement)) return;
+    if(trigger === activeTrigger && activeTriggerTooltipText === trigger.getAttribute('data-tooltip')) return;
+    showTooltip(trigger);
+  });
+
+  document.addEventListener('mouseout', (event)=>{
+    if(!activeTrigger) return;
+    const nextTarget = event.relatedTarget;
+    if(nextTarget instanceof Node && activeTrigger.contains(nextTarget)) return;
+    const currentTarget = event.target;
+    if(currentTarget instanceof Node && !activeTrigger.contains(currentTarget)) return;
+    hideTooltip();
+  });
+
+  document.addEventListener('focusin', (event)=>{
+    const trigger = event.target instanceof Element ? event.target.closest('[data-tooltip]') : null;
+    if(!(trigger instanceof HTMLElement)) return;
+    showTooltip(trigger);
+  });
+
+  document.addEventListener('focusout', (event)=>{
+    if(!activeTrigger) return;
+    const nextTarget = event.relatedTarget;
+    if(nextTarget instanceof Node && activeTrigger.contains(nextTarget)) return;
+    hideTooltip();
   });
 
   window.addEventListener('scroll', ()=>{
