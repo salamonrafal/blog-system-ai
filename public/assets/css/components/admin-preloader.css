@@ -95,7 +95,6 @@
   stroke-dasharray:220;
   stroke-dashoffset:220;
   filter:drop-shadow(0 0 8px color-mix(in oklab, var(--accent) 18%, transparent));
-  animation:admin-preloader-ekg-trace 1.8s ease-in-out infinite;
 }
 
 .admin-preloader-heart{
@@ -105,6 +104,13 @@
   height:22px;
   color:color-mix(in oklab, #ff6b7a 82%, white 18%);
   transform-origin:center;
+}
+
+.admin-preload-pending .admin-preloader-ekg-trace path{
+  animation:admin-preloader-ekg-trace 1.8s ease-in-out infinite;
+}
+
+.admin-preload-pending .admin-preloader-heart{
   animation:admin-preloader-heartbeat 1.8s ease-in-out infinite;
 }
 
