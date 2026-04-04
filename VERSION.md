@@ -333,3 +333,12 @@
 - Dodano preloader dla tras administracyjnych w formie `blur overlay`, wygaszany po pełnym załadowaniu strony, z fallbackiem `noscript`, internacjonalizacją statusu oraz finalną animacją EKG z pulsującym sercem.
 - Przebudowano ekran `Ustawienia bloga`, usuwając blok `admin://seo-preview`, łącząc ustawienia `Paginacja strony głównej` i `Paginacja list w panelu` w jedną sekcję oraz upraszczając nagłówki sekcji `Tożsamość i SEO` i `Globalne ustawienia paginacji`.
 - Ujednolicono układ wszystkich sekcji formularza ustawień bloga: poszerzono wspólną kolumnę etykiet, przeniesiono podpowiedzi do tooltipów pod ikoną `?`, dodano subtelne rozróżnienie wierszy paginacji oraz dopracowano pozycje liczników i etykiet dla pól tekstowych i `textarea`.
+
+## 2026-04-04
+
+- Dodano obsługę `prefers-reduced-motion` dla preloadera tras administracyjnych, wyłączając animacje oraz przejścia w środowiskach z ograniczonym ruchem.
+- Przeniesiono animacje preloadera do stanu `pending`, dzięki czemu puls serca i przebieg EKG uruchamiają się tylko wtedy, gdy overlay faktycznie przechodzi w aktywny stan ładowania.
+- Uzupełniono formularz `Ustawienia bloga` o placeholdery sterowane przez `data-i18n-placeholder`, poprawiając lokalizację pól tekstowych i paginacyjnych oraz porządkując wspólną zmienną szerokości kolumny etykiet w warstwie stylów.
+- Dodano automatyzację wersjonowania wydań przez `composer`, obejmującą wyliczanie kolejnej wersji semantycznej na podstawie tagów Git oraz tworzenie nowego anotowanego taga dla wariantów `patch`, `minor` i `major`.
+- Rozszerzono workflow release o warianty publikujące, które po utworzeniu nowego taga automatycznie wypychają bieżący branch oraz tag do zdalnego repozytorium `origin`, z zabezpieczeniem przed uruchomieniem na brudnym worktree lub w stanie `detached HEAD`.
+- Uzupełniono `README.md` o dokumentację procesu release, dostępnych komend `composer release:*` i `composer release:publish:*` oraz zalecanego przebiegu publikacji zmian z tagiem.

@@ -46,6 +46,7 @@
 !bin/dev-router.php
 !bin/dev-server.php
 !bin/symfony_requirements
+!bin/release-version.php
 /vendor/
 
 # Assets and user uploads
