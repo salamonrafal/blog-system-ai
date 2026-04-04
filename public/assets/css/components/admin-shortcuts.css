@@ -496,6 +496,17 @@
   }
 
   .admin-shortcuts.is-docked.is-collapsed .admin-shortcuts-link-icon{
+    color:var(--shortcut-icon-contrast);
+  }
+
+  .admin-shortcuts.is-docked.is-collapsed .admin-shortcuts-link.primary,
+  .admin-shortcuts.is-docked.is-collapsed .admin-shortcuts-link.primary:hover,
+  .admin-shortcuts.is-docked.is-collapsed .admin-shortcuts-link.primary:focus-visible{
+    background:transparent;
+    color:var(--text);
+  }
+
+  .admin-shortcuts.is-docked.is-collapsed .admin-shortcuts-link-icon{
     width:20px;
     height:20px;
   }

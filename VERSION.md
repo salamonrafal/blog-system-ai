@@ -329,3 +329,7 @@
 - Ustabilizowano skróty administracyjne przy przełączaniu między viewportem desktopowym i mobilnym, usuwając błędy pozycji zębatki, domykania panelu i synchronizacji stanu dokowania.
 - Dopracowano zwinięty wariant zadokowanego raila, pokazując skróty jako same ikonki z tooltipami i badge oraz zachowując działanie akcji ustawień w dolnej sekcji.
 - Rozszerzono globalny mechanizm tooltipów o obsługę elementów dodawanych dynamicznie oraz automatyczne przenoszenie tooltipa nad element, gdy przy dolnej krawędzi ekranu nie mieści się pod nim.
+- Poprawiono kontrast ikon w zwiniętym, zadokowanym panelu skrótów administracyjnych, dzięki czemu pozostają czytelne również przy jasnych kolorach akcentu.
+- Dodano preloader dla tras administracyjnych w formie `blur overlay`, wygaszany po pełnym załadowaniu strony, z fallbackiem `noscript`, internacjonalizacją statusu oraz finalną animacją EKG z pulsującym sercem.
+- Przebudowano ekran `Ustawienia bloga`, usuwając blok `admin://seo-preview`, łącząc ustawienia `Paginacja strony głównej` i `Paginacja list w panelu` w jedną sekcję oraz upraszczając nagłówki sekcji `Tożsamość i SEO` i `Globalne ustawienia paginacji`.
+- Ujednolicono układ wszystkich sekcji formularza ustawień bloga: poszerzono wspólną kolumnę etykiet, przeniesiono podpowiedzi do tooltipów pod ikoną `?`, dodano subtelne rozróżnienie wierszy paginacji oraz dopracowano pozycje liczników i etykiet dla pól tekstowych i `textarea`.
