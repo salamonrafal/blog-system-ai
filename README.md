@@ -139,13 +139,14 @@ Notes:
 
 - if no semantic tag exists yet, the first generated tag starts from `v0.0.1`, `v0.1.0` or `v1.0.0`
 - `release:publish:*` requires an existing `origin` remote and an active branch, not detached `HEAD`
+- `release:*` can also be used on detached `HEAD`; in that case it only creates the tag and suggests pushing just the tag manually
 - if you use `release:*` without publish, push branch and tag manually, for example:
   `git push origin feature/my-branch v0.0.1`
 
 Recommended flow:
 
 1. Commit your changes:
-   `git add . && git commit -m "Opis zmian"`
+   `git add . && git commit -m "Describe changes"`
 2. Create the tag and push branch with tag in one step:
    `composer release:publish:patch`
 

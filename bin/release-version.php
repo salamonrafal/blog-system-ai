@@ -54,6 +54,11 @@ gitCommandOrFail(sprintf(
 $currentBranch = getCurrentBranchName();
 
 if ($shouldPush) {
+    if ($currentBranch === null) {
+        fwrite(STDERR, "Current Git branch could not be determined. Detached HEAD is not supported for release publishing.\n");
+        exit(1);
+    }
+
     gitCommandOrFail(sprintf(
         'push origin %s %s',
         escapeshellarg($currentBranch),
@@ -71,12 +76,24 @@ if ($shouldPush) {
     exit(0);
 }
 
+if ($currentBranch !== null) {
+    fwrite(STDOUT, sprintf(
+        "Created tag %s (from %s, %s bump).\nPush branch and tag with: git push origin %s %s\n",
+        $nextTag,
+        $latestTag ?? '0.0.0',
+        $releaseType,
+        escapeshellarg($currentBranch),
+        escapeshellarg($nextTag)
+    ));
+
+    exit(0);
+}
+
 fwrite(STDOUT, sprintf(
-    "Created tag %s (from %s, %s bump).\nPush branch and tag with: git push origin %s %s\n",
+    "Created tag %s (from %s, %s bump) on detached HEAD.\nPush the tag with: git push origin %s\n",
     $nextTag,
     $latestTag ?? '0.0.0',
     $releaseType,
-    escapeshellarg($currentBranch),
     escapeshellarg($nextTag)
 ));
 
@@ -146,13 +163,12 @@ function assertCleanWorktree(): void
     }
 }
 
-function getCurrentBranchName(): string
+function getCurrentBranchName(): ?string
 {
     $branch = trim(gitCommandOrFail('branch --show-current'));
 
     if ($branch === '') {
-        fwrite(STDERR, "Current Git branch could not be determined. Detached HEAD is not supported for release tagging.\n");
-        exit(1);
+        return null;
     }
 
     return $branch;
