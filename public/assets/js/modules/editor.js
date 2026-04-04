@@ -46,9 +46,24 @@ export function setupArticleMarkupEditor(){
     preserveEditorView(textarea, blockStart, blockStart + nextBlock.length);
   };
 
+  const applyHeading = (textarea, level)=>{
+    transformSelectedLines(textarea, (value)=>{
+      const prefix = '#'.repeat(Number(level));
+      return `${prefix} ${value.replace(/^\s*#{1,7}\s+/, '').trim() || t('editor_placeholder_heading')}`;
+    });
+  };
+
+  const applyInlineFormat = (textarea, action)=>{
+    if(action === 'bold') return wrapSelection(textarea, '**', '**', t('editor_placeholder_bold'));
+    if(action === 'italic') return wrapSelection(textarea, '*', '*', t('editor_placeholder_italic'));
+    if(action === 'underline') return wrapSelection(textarea, '++', '++', t('editor_placeholder_underline'));
+    if(action === 'inline-code') return wrapSelection(textarea, '`', '`', t('editor_placeholder_inline_code'));
+  };
+
   editors.forEach((textarea)=>{
     const field = textarea.closest('.article-editor-field');
     const toolbar = qs('[data-markup-toolbar]', field);
+    const headingSelect = qs('[data-markup-heading-select]', field);
     const helpModal = qs('[data-markup-help-modal]', field);
     const helpDialog = qs('.article-editor-help-dialog', helpModal);
     const helpClose = qs('[data-markup-help-close]', helpModal);
@@ -120,10 +135,7 @@ export function setupArticleMarkupEditor(){
         return;
       }
 
-      if(action === 'bold') return wrapSelection(textarea, '**', '**', t('editor_placeholder_bold'));
-      if(action === 'italic') return wrapSelection(textarea, '*', '*', t('editor_placeholder_italic'));
-      if(action === 'underline') return wrapSelection(textarea, '++', '++', t('editor_placeholder_underline'));
-      if(action === 'inline-code') return wrapSelection(textarea, '`', '`', t('editor_placeholder_inline_code'));
+      if(['bold', 'italic', 'underline', 'inline-code'].includes(action)) return applyInlineFormat(textarea, action);
       if(action === 'line-break') return insertText(textarea, "\\\n");
       if(action === 'separator') return insertText(textarea, "\n---\n");
       if(action === 'table'){
@@ -144,13 +156,6 @@ export function setupArticleMarkupEditor(){
       if(action === 'numbered-list'){
         return transformSelectedLines(textarea, (value)=> value.split('\n').map((line, index)=> `${index + 1}. ${line.replace(/^\s*\d+\.\s+/, '').trim() || t('editor_placeholder_list_item')}`).join('\n'));
       }
-      if(action === 'heading'){
-        const level = button.getAttribute('data-markup-level') || '1';
-        return transformSelectedLines(textarea, (value)=>{
-          const prefix = '#'.repeat(Number(level));
-          return `${prefix} ${value.replace(/^\s*#{1,7}\s+/, '').trim() || t('editor_placeholder_heading')}`;
-        });
-      }
       if(action === 'align'){
         const align = button.getAttribute('data-markup-align') || 'left';
         return transformSelectedLines(textarea, (value)=> `:::${align}\n${value.trim() || t('editor_placeholder_aligned_text')}\n:::`);
@@ -167,6 +172,44 @@ export function setupArticleMarkupEditor(){
         const url = window.prompt(t('editor_prompt_image_url'), 'https://');
         if(!url) return;
         return wrapSelection(textarea, '![', `](${url})`, t('editor_placeholder_image_alt'));
+      }
+    });
+
+    if(headingSelect){
+      headingSelect.addEventListener('change', ()=>{
+        const level = headingSelect.value;
+        if(!level) return;
+
+        applyHeading(textarea, level);
+        const selectionStart = textarea.selectionStart ?? 0;
+        const selectionEnd = textarea.selectionEnd ?? selectionStart;
+        headingSelect.value = '';
+        headingSelect.dispatchEvent(new Event('custom-select:sync'));
+        requestAnimationFrame(()=>{
+          preserveEditorView(textarea, selectionStart, selectionEnd);
+        });
+      });
+    }
+
+    textarea.addEventListener('keydown', (event)=>{
+      if(!(event.ctrlKey || event.metaKey) || event.altKey) return;
+
+      const key = event.key.toLowerCase();
+      if(key === 'b'){
+        event.preventDefault();
+        applyInlineFormat(textarea, 'bold');
+        return;
+      }
+
+      if(key === 'i'){
+        event.preventDefault();
+        applyInlineFormat(textarea, 'italic');
+        return;
+      }
+
+      if(key === 'u'){
+        event.preventDefault();
+        applyInlineFormat(textarea, 'underline');
       }
     });
 
