@@ -102,6 +102,53 @@ You can also run PHPUnit directly:
 
 The unit tests do not require a database. Repository-dependent logic uses PHPUnit mocks.
 
+## Release versioning
+
+The project includes Composer shortcuts for semantic version bumps and Git tagging after finishing work.
+
+Available commands:
+
+- Patch release:
+  `composer release:patch`
+- Minor release:
+  `composer release:minor`
+- Major release:
+  `composer release:major`
+- Patch release with push:
+  `composer release:publish:patch`
+- Minor release with push:
+  `composer release:publish:minor`
+- Major release with push:
+  `composer release:publish:major`
+
+How it works:
+
+- the command reads the latest semantic Git tag
+- it calculates the next version based on `patch`, `minor` or `major`
+- it creates a new annotated Git tag on the current `HEAD`
+- it stops if the Git working tree is not clean
+- the `release:publish:*` variants also push the current branch and the new tag to `origin`
+
+Supported tag formats:
+
+- `v1.2.3`
+- `1.2.3`
+- prerelease tags such as `1.2.3-beta-1` or `v1.2.3-rc.1`
+
+Notes:
+
+- if no semantic tag exists yet, the first generated tag starts from `v0.0.1`, `v0.1.0` or `v1.0.0`
+- `release:publish:*` requires an existing `origin` remote and an active branch, not detached `HEAD`
+- if you use `release:*` without publish, push branch and tag manually, for example:
+  `git push origin feature/my-branch v0.0.1`
+
+Recommended flow:
+
+1. Commit your changes:
+   `git add . && git commit -m "Opis zmian"`
+2. Create the tag and push branch with tag in one step:
+   `composer release:publish:patch`
+
 ## Suggested structure
 
 ```text
