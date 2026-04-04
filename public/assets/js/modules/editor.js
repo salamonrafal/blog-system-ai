@@ -182,7 +182,7 @@ export function setupArticleMarkupEditor(){
 
         applyHeading(textarea, level);
         headingSelect.value = '';
-        headingSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        headingSelect.dispatchEvent(new Event('custom-select:sync'));
       });
     }
 

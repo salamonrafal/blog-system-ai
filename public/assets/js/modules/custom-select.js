@@ -279,6 +279,7 @@ function createCustomSelect(select){
   });
 
   select.addEventListener('change', sync);
+  select.addEventListener('custom-select:sync', sync);
 
   const instance = { sync, close };
   customSelectRegistry.set(select, instance);
