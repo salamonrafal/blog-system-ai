@@ -91,6 +91,7 @@ function createCustomSelect(select){
     const describedBy = select.getAttribute('aria-describedby');
     const required = select.getAttribute('aria-required');
     const invalid = select.getAttribute('aria-invalid');
+    const ariaLabel = select.getAttribute('aria-label');
 
     if(describedBy){
       trigger.setAttribute('aria-describedby', describedBy);
@@ -108,6 +109,14 @@ function createCustomSelect(select){
       trigger.setAttribute('aria-invalid', invalid);
     } else {
       trigger.removeAttribute('aria-invalid');
+    }
+
+    if(labelId){
+      trigger.removeAttribute('aria-label');
+    } else if(ariaLabel){
+      trigger.setAttribute('aria-label', ariaLabel);
+    } else {
+      trigger.removeAttribute('aria-label');
     }
   };
 
