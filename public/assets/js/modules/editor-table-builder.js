@@ -1,3 +1,4 @@
+import { registerI18nListener } from './i18n.js';
 import { lockDocumentScroll, qs, qsa, unlockDocumentScroll } from './shared.js';
 
 export function createArticleTableBuilder({ field, textarea, insertText, t }){
@@ -157,6 +158,7 @@ export function createArticleTableBuilder({ field, textarea, insertText, t }){
             ${rows.map((row, rowIndex)=>{
       const displayRowIndex = tableState.hasHeader ? rowIndex : rowIndex + 1;
       const isColumnControlRow = rowIndex === 0;
+      const showRowActions = row.type === 'body';
       const cells = Array.from({ length: columnCount }, (_, columnIndex)=>{
         const value = row.values[columnIndex] ?? '';
         const isLastColumnControlCell = isColumnControlRow && columnIndex === columnCount - 1;
@@ -206,7 +208,7 @@ export function createArticleTableBuilder({ field, textarea, insertText, t }){
       return `
         <div class="article-editor-table-grid-row${row.type === 'header' ? ' is-header' : ''}" data-row-index="${row.type === 'header' ? -1 : tableState.hasHeader ? rowIndex - 1 : rowIndex}">
           <div class="article-editor-table-grid-cells">${cells}</div>
-          ${isColumnControlRow ? '' : `
+          ${showRowActions ? `
             <div class="article-editor-table-row-actions">
               <button
                 type="button"
@@ -218,7 +220,7 @@ export function createArticleTableBuilder({ field, textarea, insertText, t }){
                 ${tableState.rows.length <= 1 ? 'disabled' : ''}
               ><span class="article-editor-table-icon article-editor-table-icon-minus" aria-hidden="true"></span></button>
             </div>
-          `}
+          ` : ''}
         </div>
       `;
     }).join('')}
@@ -488,6 +490,11 @@ export function createArticleTableBuilder({ field, textarea, insertText, t }){
 
   tableCloseButtons.forEach((button)=>{
     button.addEventListener('click', closeTableModal);
+  });
+
+  registerI18nListener(()=>{
+    if(tableModal.hasAttribute('hidden')) return;
+    renderTableGrid();
   });
 
   document.addEventListener('keydown', (event)=>{

@@ -1,5 +1,37 @@
 import { qs } from './shared.js';
 
+const dropdownMenuInstances = new Set();
+let dropdownMenuGlobalsBound = false;
+
+function bindDropdownMenuGlobals(){
+  if(dropdownMenuGlobalsBound) return;
+
+  document.addEventListener('click', (event)=>{
+    dropdownMenuInstances.forEach((instance)=>{
+      if(!instance.isOpen()) return;
+      if(instance.root.contains(event.target)) return;
+      instance.close();
+    });
+  });
+
+  document.addEventListener('keydown', (event)=>{
+    if(event.key !== 'Escape') return;
+
+    let handled = false;
+    dropdownMenuInstances.forEach((instance)=>{
+      if(!instance.isOpen()) return;
+      handled = true;
+      instance.close({ restoreFocus: true });
+    });
+
+    if(handled){
+      event.preventDefault();
+    }
+  });
+
+  dropdownMenuGlobalsBound = true;
+}
+
 export function createDropdownMenu(root){
   if(!root) return null;
 
@@ -7,6 +39,8 @@ export function createDropdownMenu(root){
   const panel = qs('[data-dropdown-menu-panel]', root);
 
   if(!trigger || !panel) return null;
+
+  bindDropdownMenuGlobals();
 
   const hideTooltip = ()=>{
     document.dispatchEvent(new Event('app:hide-tooltip'));
@@ -19,7 +53,6 @@ export function createDropdownMenu(root){
       activeTooltip.classList.remove('is-multiline');
       activeTooltip.textContent = '';
     }
-    trigger.blur();
   };
 
   const suspendTooltip = ()=>{
@@ -79,19 +112,7 @@ export function createDropdownMenu(root){
     toggle();
   });
 
-  document.addEventListener('click', (event)=>{
-    if(!isOpen()) return;
-    if(root.contains(event.target)) return;
-    close();
-  });
-
-  document.addEventListener('keydown', (event)=>{
-    if(!isOpen() || event.key !== 'Escape') return;
-    event.preventDefault();
-    close({ restoreFocus: true });
-  });
-
-  return {
+  const instance = {
     close,
     isOpen,
     open,
@@ -100,4 +121,8 @@ export function createDropdownMenu(root){
     toggle,
     trigger,
   };
+
+  dropdownMenuInstances.add(instance);
+
+  return instance;
 }
