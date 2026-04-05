@@ -15,17 +15,17 @@
             <div class="dashboard-feed-intro">
                 <div class="queue-status-intro-header">
                     <div class="queue-status-intro-copy">
-                        <h1 data-i18n="admin_media_gallery_title">Galeria mediów</h1>
-                        <p class="lede" data-i18n="admin_media_gallery_lede">Przeglądaj obrazy zapisane w bibliotece, zmieniaj ich nazwy i usuwaj niepotrzebne pliki.</p>
+                        <h1 data-i18n="admin_media_gallery_title">{{ i18n_fallback('admin_media_gallery_title') }}</h1>
+                        <p class="lede" data-i18n="admin_media_gallery_lede">{{ i18n_fallback('admin_media_gallery_lede') }}</p>
                     </div>
                     <div class="actions media-gallery-toolbar-actions">
                         <a
                             class="button secondary media-gallery-toolbar-button"
                             href="{{ path('admin_media_index') }}"
                             data-i18n-tooltip="admin_media_add_new"
-                            data-tooltip="Dodaj nowy obrazek"
+                            data-tooltip="{{ i18n_fallback('admin_media_add_new') }}"
                             data-i18n-aria="admin_media_add_new"
-                            aria-label="Dodaj nowy obrazek"
+                            aria-label="{{ i18n_fallback('admin_media_add_new') }}"
                         >
                             <span class="article-action-icon is-add" aria-hidden="true"></span>
                         </a>
@@ -33,9 +33,9 @@
                             class="button secondary media-gallery-toolbar-button"
                             href="{{ path('admin_media_gallery') }}"
                             data-i18n-tooltip="admin_refresh"
-                            data-tooltip="Odśwież"
+                            data-tooltip="{{ i18n_fallback('admin_refresh') }}"
                             data-i18n-aria="admin_refresh"
-                            aria-label="Odśwież"
+                            aria-label="{{ i18n_fallback('admin_refresh') }}"
                         >
                             <span class="article-action-icon is-refresh" aria-hidden="true"></span>
                         </a>
@@ -47,9 +47,9 @@
                                     type="button"
                                     data-action="confirm-clear-media-gallery"
                                     data-i18n-tooltip="admin_media_clear"
-                                    data-tooltip="Wyczyść galerię"
+                                    data-tooltip="{{ i18n_fallback('admin_media_clear') }}"
                                     data-i18n-aria="admin_media_clear"
-                                    aria-label="Wyczyść galerię"
+                                    aria-label="{{ i18n_fallback('admin_media_clear') }}"
                                 >
                                     <span class="article-action-icon is-delete" aria-hidden="true"></span>
                                 </button>
@@ -73,7 +73,7 @@
                         }
                     }) }}
                 {{ form_end(upload_form) }}
-                <div class="media-gallery-grid" data-i18n-aria="admin_media_gallery_aria" aria-label="Galeria obrazów">
+                <div class="media-gallery-grid" data-i18n-aria="admin_media_gallery_aria" aria-label="{{ i18n_fallback('admin_media_gallery_aria') }}">
                     {% for image in gallery_images %}
                         <article class="media-gallery-card">
                             <a
@@ -117,8 +117,8 @@
                                         data-media-custom-name="{{ image.customName ?? '' }}"
                                         data-i18n-tooltip="admin_table_edit"
                                         data-i18n-aria="admin_table_edit"
-                                        data-tooltip="Edytuj"
-                                        aria-label="Edytuj"
+                                        data-tooltip="{{ i18n_fallback('admin_table_edit') }}"
+                                        aria-label="{{ i18n_fallback('admin_table_edit') }}"
                                     >
                                         <span class="article-action-icon is-edit" aria-hidden="true"></span>
                                     </button>
@@ -129,8 +129,8 @@
                                         rel="noreferrer"
                                         data-i18n-tooltip="admin_media_open_image"
                                         data-i18n-aria="admin_media_open_image"
-                                        data-tooltip="Otwórz obrazek"
-                                        aria-label="Otwórz obrazek"
+                                        data-tooltip="{{ i18n_fallback('admin_media_open_image') }}"
+                                        aria-label="{{ i18n_fallback('admin_media_open_image') }}"
                                     >
                                         <span class="article-action-icon is-export" aria-hidden="true"></span>
                                     </a>
@@ -141,8 +141,8 @@
                                         data-link="{{ app_url ~ image.publicPath }}"
                                         data-i18n-tooltip="admin_media_copy_public_url"
                                         data-i18n-aria="admin_media_copy_public_url"
-                                        data-tooltip="Kopiuj adres publiczny obrazka"
-                                        aria-label="Kopiuj adres publiczny obrazka"
+                                        data-tooltip="{{ i18n_fallback('admin_media_copy_public_url') }}"
+                                        aria-label="{{ i18n_fallback('admin_media_copy_public_url') }}"
                                     >
                                         <span class="article-action-icon is-copy" aria-hidden="true"></span>
                                     </button>
@@ -155,8 +155,8 @@
                                             data-media-file="{{ image.displayName }}"
                                             data-i18n-tooltip="admin_media_delete_image"
                                             data-i18n-aria="admin_media_delete_image"
-                                            data-tooltip="Usuń obrazek"
-                                            aria-label="Usuń obrazek"
+                                            data-tooltip="{{ i18n_fallback('admin_media_delete_image') }}"
+                                            aria-label="{{ i18n_fallback('admin_media_delete_image') }}"
                                         >
                                             <span class="article-action-icon is-delete" aria-hidden="true"></span>
                                         </button>
@@ -168,7 +168,7 @@
                     <article class="media-gallery-card media-gallery-card-empty" data-media-gallery-drop-slot>
                         <div class="media-gallery-preview"></div>
                         <div class="media-gallery-body">
-                            <p class="media-gallery-empty-label" data-i18n="admin_media_empty_drop_hint">Upuść obrazek, aby dodać</p>
+                            <p class="media-gallery-empty-label" data-i18n="admin_media_empty_drop_hint">{{ i18n_fallback('admin_media_empty_drop_hint') }}</p>
                         </div>
                         <div class="media-gallery-upload-loader" aria-hidden="true">
                             <span></span>
@@ -179,7 +179,7 @@
                 </div>
             {% else %}
                 <div class="blog-empty-state">
-                    <p class="meta blog-empty-state-message" role="status" data-i18n="admin_media_empty">Galeria jest pusta.</p>
+                    <p class="meta blog-empty-state-message" role="status" data-i18n="admin_media_empty">{{ i18n_fallback('admin_media_empty') }}</p>
                 </div>
             {% endif %}
         </div>

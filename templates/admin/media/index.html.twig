@@ -15,12 +15,12 @@
             <div class="dashboard-feed-intro">
                 <div class="queue-status-intro-header">
                     <div class="queue-status-intro-copy">
-                        <h1 data-i18n="admin_media_upload_title">Dodaj obrazek</h1>
-                        <p class="lede" data-i18n="admin_media_upload_lede">Prześlij nowy obrazek do biblioteki mediów. Po zapisaniu od razu zobaczysz go w galerii.</p>
+                        <h1 data-i18n="admin_media_upload_title">{{ i18n_fallback('admin_media_upload_title') }}</h1>
+                        <p class="lede" data-i18n="admin_media_upload_lede">{{ i18n_fallback('admin_media_upload_lede') }}</p>
                     </div>
                     <div class="actions">
-                        <a class="button secondary" href="{{ path('admin_media_index') }}" data-i18n="admin_refresh">Odśwież</a>
-                        <a class="button secondary" href="{{ path('admin_media_gallery') }}" data-i18n="admin_media_open_gallery">Otwórz galerię</a>
+                        <a class="button secondary" href="{{ path('admin_media_index') }}" data-i18n="admin_refresh">{{ i18n_fallback('admin_refresh') }}</a>
+                        <a class="button secondary" href="{{ path('admin_media_gallery') }}" data-i18n="admin_media_open_gallery">{{ i18n_fallback('admin_media_open_gallery') }}</a>
                     </div>
                 </div>
             </div>
@@ -56,27 +56,27 @@
                                         data-empty-label-key="file_upload_no_file"
                                         data-selected-label-key="file_upload_selected"
                                         data-i18n="file_upload_no_file"
-                                    >Nie wybrano pliku</span>
+                                    >{{ i18n_fallback('file_upload_no_file') }}</span>
                                     <button
                                         type="button"
                                         class="button secondary file-upload-trigger"
                                         data-file-upload-trigger
                                         data-i18n="file_upload_choose"
-                                    >Wybierz plik</button>
+                                    >{{ i18n_fallback('file_upload_choose') }}</button>
                                     <button
                                         type="button"
                                         class="article-keyword-help-trigger"
                                         data-i18n-tooltip="admin_media_form_file_hint"
                                         data-i18n-aria="admin_media_form_file_help_aria"
-                                        data-tooltip="Dozwolone formaty: JPG, PNG, WEBP, GIF, AVIF. Maksymalny rozmiar pliku: 5 MB."
+                                        data-tooltip="{{ i18n_fallback('admin_media_form_file_hint') }}"
                                         data-tooltip-wide="true"
                                         data-tooltip-wrap="true"
-                                        aria-label="Pomoc do pola obrazka"
+                                        aria-label="{{ i18n_fallback('admin_media_form_file_help_aria') }}"
                                     >?</button>
                                 </div>
                             </div>
                         </div>
-                        <span id="{{ image_file_hint_id }}" class="sr-only" data-i18n="admin_media_form_file_hint">Dozwolone formaty: JPG, PNG, WEBP, GIF, AVIF. Maksymalny rozmiar pliku: 5 MB.</span>
+                        <span id="{{ image_file_hint_id }}" class="sr-only" data-i18n="admin_media_form_file_hint">{{ i18n_fallback('admin_media_form_file_hint') }}</span>
                         {% if image_file_has_errors %}
                             <div id="{{ image_file_error_id }}" class="article-editor-error-message" role="alert">
                                 {% for error in form.imageFile.vars.errors %}
@@ -88,8 +88,8 @@
                 </div>
 
                 <div class="actions article-editor-actions">
-                    <button type="submit" class="button" data-i18n="admin_media_form_submit">Dodaj obrazek</button>
-                    <a class="button secondary" href="{{ path('admin_media_gallery') }}" data-i18n="admin_media_open_gallery">Otwórz galerię</a>
+                    <button type="submit" class="button" data-i18n="admin_media_form_submit">{{ i18n_fallback('admin_media_form_submit') }}</button>
+                    <a class="button secondary" href="{{ path('admin_media_gallery') }}" data-i18n="admin_media_open_gallery">{{ i18n_fallback('admin_media_open_gallery') }}</a>
                 </div>
             {{ form_end(form) }}
         </div>

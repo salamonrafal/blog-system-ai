@@ -1436,17 +1436,17 @@ export function setupMediaRenameDialog(){
     <div class="confirm-delete-dialog media-rename-dialog" role="dialog" aria-modal="true" aria-labelledby="${titleId}" aria-describedby="${textId}">
       <div class="confirm-delete-topbar">
         <div class="confirm-delete-eyebrow">admin://media</div>
-        <button type="button" class="confirm-delete-close" data-action="close-media-rename" data-i18n-aria="admin_close_alert" aria-label="Zamknij alert">
+        <button type="button" class="confirm-delete-close" data-action="close-media-rename" data-i18n-aria="admin_close_alert" aria-label="${getTranslation('admin_close_alert')}">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
-      <h2 id="${titleId}" class="confirm-delete-title" data-i18n="admin_media_rename_popup_title">Edytuj nazwę obrazka</h2>
-      <p id="${textId}" class="confirm-delete-text" data-i18n="admin_media_rename_popup_text">Nadaj unikalną nazwę widoczną w galerii, zachowując oryginalną nazwę pliku.</p>
-      <label class="sr-only" for="media-rename-input" data-i18n="admin_media_custom_name">Niestandardowa nazwa</label>
-      <input id="media-rename-input" class="article-editor-input" type="text" maxlength="255" data-i18n-placeholder="admin_media_custom_name_placeholder" placeholder="Wpisz unikalną nazwę">
+      <h2 id="${titleId}" class="confirm-delete-title" data-i18n="admin_media_rename_popup_title">${getTranslation('admin_media_rename_popup_title')}</h2>
+      <p id="${textId}" class="confirm-delete-text" data-i18n="admin_media_rename_popup_text">${getTranslation('admin_media_rename_popup_text')}</p>
+      <label class="sr-only" for="media-rename-input" data-i18n="admin_media_custom_name">${getTranslation('admin_media_custom_name')}</label>
+      <input id="media-rename-input" class="article-editor-input" type="text" maxlength="255" data-i18n-placeholder="admin_media_custom_name_placeholder" placeholder="${getTranslation('admin_media_custom_name_placeholder')}">
       <div class="confirm-delete-actions">
-        <button type="button" class="button secondary" data-action="cancel-media-rename" data-i18n="admin_media_rename_popup_cancel">Przerwij</button>
-        <button type="button" class="button" data-action="submit-media-rename" data-i18n="admin_media_custom_name_save">Zapisz nazwę</button>
+        <button type="button" class="button secondary" data-action="cancel-media-rename" data-i18n="admin_media_rename_popup_cancel">${getTranslation('admin_media_rename_popup_cancel')}</button>
+        <button type="button" class="button" data-action="submit-media-rename" data-i18n="admin_media_custom_name_save">${getTranslation('admin_media_custom_name_save')}</button>
       </div>
     </div>
   `;
