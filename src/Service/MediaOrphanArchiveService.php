@@ -73,6 +73,11 @@ class MediaOrphanArchiveService
         }
     }
 
+    public function getMediaDirectory(): string
+    {
+        return trim($this->mediaDirectory, '/');
+    }
+
     /**
      * @return array<string, true>
      */

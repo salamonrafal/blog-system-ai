@@ -13,22 +13,27 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:media:archive-orphans',
-    description: 'Archive files from public/uploads/media that no longer have a database record.',
+    description: 'Archive media files that no longer have a database record.',
 )]
 class ArchiveOrphanedMediaCommand extends Command
 {
     public function __construct(private readonly MediaOrphanArchiveService $mediaOrphanArchiveService)
     {
         parent::__construct();
+        $this->setDescription(sprintf(
+            'Archive files from %s that no longer have a database record.',
+            $this->mediaOrphanArchiveService->getMediaDirectory(),
+        ));
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
         $result = $this->mediaOrphanArchiveService->archiveOrphans();
+        $mediaDirectory = $this->mediaOrphanArchiveService->getMediaDirectory();
 
         if ([] === $result['moved_files']) {
-            $io->success('No orphaned media files were found in public/uploads/media.');
+            $io->success(sprintf('No orphaned media files were found in %s.', $mediaDirectory));
 
             return Command::SUCCESS;
         }

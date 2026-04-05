@@ -18,6 +18,9 @@ final class ArchiveOrphanedMediaCommandTest extends TestCase
         /** @var MediaOrphanArchiveService&MockObject $service */
         $service = $this->createMock(MediaOrphanArchiveService::class);
         $service
+            ->method('getMediaDirectory')
+            ->willReturn('public/uploads/media');
+        $service
             ->expects($this->once())
             ->method('archiveOrphans')
             ->willReturn([
@@ -43,6 +46,9 @@ final class ArchiveOrphanedMediaCommandTest extends TestCase
         /** @var MediaOrphanArchiveService&MockObject $service */
         $service = $this->createMock(MediaOrphanArchiveService::class);
         $service
+            ->method('getMediaDirectory')
+            ->willReturn('custom/media/path');
+        $service
             ->expects($this->once())
             ->method('archiveOrphans')
             ->willReturn([
@@ -54,6 +60,6 @@ final class ArchiveOrphanedMediaCommandTest extends TestCase
         $exitCode = $tester->execute([]);
 
         $this->assertSame(Command::SUCCESS, $exitCode);
-        $this->assertStringContainsString('No orphaned media files were found in public/uploads/media.', $tester->getDisplay());
+        $this->assertStringContainsString('No orphaned media files were found in custom/media/path.', $tester->getDisplay());
     }
 }

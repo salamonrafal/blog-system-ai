@@ -28,11 +28,12 @@ class MediaController extends AbstractController
     public function index(
         Request $request,
         MediaImageStorage $mediaImageStorage,
+        MediaGalleryManager $mediaGalleryManager,
         EntityManagerInterface $entityManager,
         UserLanguageResolver $userLanguageResolver,
     ): Response {
         $form = $this->createForm(MediaImageUploadType::class);
-        $response = $this->handleUploadForm($form, $request, $mediaImageStorage, $entityManager, $userLanguageResolver);
+        $response = $this->handleUploadForm($form, $request, $mediaImageStorage, $mediaGalleryManager, $entityManager, $userLanguageResolver);
         if (null !== $response) {
             return $response;
         }
@@ -47,11 +48,12 @@ class MediaController extends AbstractController
         Request $request,
         MediaImageRepository $mediaImageRepository,
         MediaImageStorage $mediaImageStorage,
+        MediaGalleryManager $mediaGalleryManager,
         EntityManagerInterface $entityManager,
         UserLanguageResolver $userLanguageResolver,
     ): Response {
         $form = $this->createForm(MediaImageUploadType::class);
-        $response = $this->handleUploadForm($form, $request, $mediaImageStorage, $entityManager, $userLanguageResolver);
+        $response = $this->handleUploadForm($form, $request, $mediaImageStorage, $mediaGalleryManager, $entityManager, $userLanguageResolver);
         if (null !== $response) {
             return $response;
         }
@@ -74,9 +76,9 @@ class MediaController extends AbstractController
             throw $this->createAccessDeniedException('Invalid CSRF token.');
         }
 
-        $mediaGalleryManager->delete($mediaImage);
         $entityManager->remove($mediaImage);
         $entityManager->flush();
+        $mediaGalleryManager->delete($mediaImage);
 
         $this->addFlash('success', $userLanguageResolver->translate('Obrazek został usunięty z galerii.', 'The image has been removed from the gallery.'));
 
@@ -96,11 +98,11 @@ class MediaController extends AbstractController
         }
 
         $mediaImages = $mediaImageRepository->findBy([]);
-        $mediaGalleryManager->clear($mediaImages);
         foreach ($mediaImages as $mediaImage) {
             $entityManager->remove($mediaImage);
         }
         $entityManager->flush();
+        $mediaGalleryManager->clear($mediaImages);
 
         $this->addFlash('success', $userLanguageResolver->translate('Galeria została wyczyszczona.', 'The gallery has been cleared.'));
 
@@ -156,6 +158,7 @@ class MediaController extends AbstractController
         FormInterface $form,
         Request $request,
         MediaImageStorage $mediaImageStorage,
+        MediaGalleryManager $mediaGalleryManager,
         EntityManagerInterface $entityManager,
         UserLanguageResolver $userLanguageResolver,
     ): ?Response {
@@ -183,7 +186,16 @@ class MediaController extends AbstractController
             ->setRequestedBy($this->resolveAuthenticatedUser());
 
         $entityManager->persist($mediaImage);
-        $entityManager->flush();
+        try {
+            $entityManager->flush();
+        } catch (\Throwable $exception) {
+            try {
+                $mediaGalleryManager->delete($mediaImage);
+            } catch (\Throwable) {
+            }
+
+            throw $exception;
+        }
 
         $this->addFlash('success', $userLanguageResolver->translate('Obrazek został dodany do galerii.', 'The image has been added to the gallery.'));
 

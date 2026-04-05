@@ -29,7 +29,7 @@ class ManagedUploadedFileStorage
         $absoluteTargetDirectory = $this->projectDir.'/'.$normalizedTargetDirectory;
 
         if (!is_dir($absoluteTargetDirectory) && !mkdir($absoluteTargetDirectory, 0775, true) && !is_dir($absoluteTargetDirectory)) {
-            throw new \RuntimeException(sprintf('Directory "%s" could not be created.', $absoluteTargetDirectory));
+            throw new \RuntimeException(sprintf('Directory "%s" could not be created.', $this->toProjectRelativePath($absoluteTargetDirectory)));
         }
 
         $originalFilename = $this->normalizeOriginalFilename($uploadedFile->getClientOriginalName());
@@ -66,5 +66,17 @@ class ManagedUploadedFileStorage
         $normalizedSeparators = str_replace('\\', '/', $trimmedFilename);
 
         return basename($normalizedSeparators);
+    }
+
+    private function toProjectRelativePath(string $path): string
+    {
+        $normalized = str_replace('\\', '/', $path);
+        $projectPrefix = rtrim(str_replace('\\', '/', $this->projectDir), '/').'/';
+
+        if (str_starts_with($normalized, $projectPrefix)) {
+            return substr($normalized, strlen($projectPrefix));
+        }
+
+        return ltrim($normalized, '/');
     }
 }

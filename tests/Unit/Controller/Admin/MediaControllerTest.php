@@ -8,6 +8,7 @@ use App\Controller\Admin\MediaController;
 use App\Entity\MediaImage;
 use App\Form\MediaImageUploadType;
 use App\Repository\MediaImageRepository;
+use App\Service\MediaGalleryManager;
 use App\Service\MediaImageStorage;
 use App\Service\UserLanguageResolver;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -20,6 +21,7 @@ use Symfony\Component\Form\Forms;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Validation;
 
 final class MediaControllerTest extends TestCase
@@ -28,6 +30,9 @@ final class MediaControllerTest extends TestCase
     {
         $storage = $this->createMock(MediaImageStorage::class);
         $storage->expects($this->never())->method('store');
+
+        $galleryManager = $this->createMock(MediaGalleryManager::class);
+        $galleryManager->expects($this->never())->method('delete');
 
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects($this->never())->method('persist');
@@ -38,7 +43,7 @@ final class MediaControllerTest extends TestCase
 
         $controller = new TestMediaController();
 
-        $response = $controller->index(new Request(), $storage, $entityManager, $userLanguageResolver);
+        $response = $controller->index(new Request(), $storage, $galleryManager, $entityManager, $userLanguageResolver);
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
         $this->assertSame('admin/media/index.html.twig', $controller->capturedView);
@@ -65,6 +70,9 @@ final class MediaControllerTest extends TestCase
         $storage = $this->createMock(MediaImageStorage::class);
         $storage->expects($this->never())->method('store');
 
+        $galleryManager = $this->createMock(MediaGalleryManager::class);
+        $galleryManager->expects($this->never())->method('delete');
+
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects($this->never())->method('persist');
         $entityManager->expects($this->never())->method('flush');
@@ -72,7 +80,7 @@ final class MediaControllerTest extends TestCase
         $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
         $userLanguageResolver->expects($this->never())->method('translate');
 
-        $response = $controller->gallery(new Request(), $repository, $storage, $entityManager, $userLanguageResolver);
+        $response = $controller->gallery(new Request(), $repository, $storage, $galleryManager, $entityManager, $userLanguageResolver);
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
         $this->assertSame('admin/media/gallery.html.twig', $controller->capturedView);
@@ -99,6 +107,9 @@ final class MediaControllerTest extends TestCase
         $storage = $this->createMock(MediaImageStorage::class);
         $storage->expects($this->never())->method('store');
 
+        $galleryManager = $this->createMock(MediaGalleryManager::class);
+        $galleryManager->expects($this->never())->method('delete');
+
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects($this->never())->method('persist');
         $entityManager->expects($this->never())->method('flush');
@@ -113,7 +124,7 @@ final class MediaControllerTest extends TestCase
         $controller = new TestMediaController();
         $request = new Request([], ['media_image_upload' => []], [], [], [], ['REQUEST_METHOD' => 'POST']);
 
-        $response = $controller->gallery($request, $repository, $storage, $entityManager, $userLanguageResolver);
+        $response = $controller->gallery($request, $repository, $storage, $galleryManager, $entityManager, $userLanguageResolver);
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
         $this->assertSame('admin/media/gallery.html.twig', $controller->capturedView);
@@ -216,6 +227,184 @@ final class MediaControllerTest extends TestCase
             ],
         ], $controller->capturedFlashes);
     }
+
+    public function testGalleryRemovesStoredFileWhenFlushFails(): void
+    {
+        $repository = $this->createMock(MediaImageRepository::class);
+        $repository->expects($this->never())->method('findAllForAdminIndex');
+
+        $storage = $this->createMock(MediaImageStorage::class);
+        $storage
+            ->expects($this->once())
+            ->method('store')
+            ->willReturn([
+                'relative_path' => 'public/uploads/media/2026/04/05/media-image-1.webp',
+                'original_filename' => 'hero.webp',
+                'file_size' => 1234,
+                'mime_type' => 'image/webp',
+            ]);
+
+        $galleryManager = $this->createMock(MediaGalleryManager::class);
+        $galleryManager
+            ->expects($this->once())
+            ->method('delete')
+            ->with($this->callback(static function (MediaImage $mediaImage): bool {
+                return 'public/uploads/media/2026/04/05/media-image-1.webp' === $mediaImage->getFilePath()
+                    && 'hero.webp' === $mediaImage->getOriginalFilename()
+                    && 1234 === $mediaImage->getFileSize()
+                    && 'image/webp' === $mediaImage->getMimeType();
+            }));
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->once())->method('persist');
+        $entityManager
+            ->expects($this->once())
+            ->method('flush')
+            ->willThrowException(new \RuntimeException('flush failed'));
+
+        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
+        $userLanguageResolver->expects($this->never())->method('translate');
+
+        $controller = new TestMediaController();
+        $sourcePath = sys_get_temp_dir().'/blog-system-ai-media-controller-upload-'.bin2hex(random_bytes(4)).'.webp';
+        file_put_contents($sourcePath, base64_decode('UklGRiQAAABXRUJQVlA4IBgAAAAwAQCdASoBAAEAAUAmJaACdLoB+AADsAD+8ut//NgVzXPv9//S4P0uD9Lg/9KQAAA='));
+
+        $request = new Request([], ['media_image_upload' => []], [], [], [
+            'media_image_upload' => [
+                'imageFile' => new \Symfony\Component\HttpFoundation\File\UploadedFile(
+                    $sourcePath,
+                    'hero.webp',
+                    'image/webp',
+                    null,
+                    true
+                ),
+            ],
+        ], ['REQUEST_METHOD' => 'POST']);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('flush failed');
+
+        try {
+            $controller->gallery($request, $repository, $storage, $galleryManager, $entityManager, $userLanguageResolver);
+        } finally {
+            @unlink($sourcePath);
+        }
+    }
+
+    public function testDeleteFlushesEntityBeforeRemovingFile(): void
+    {
+        $mediaImage = (new MediaImage())
+            ->setOriginalFilename('hero.webp')
+            ->setFilePath('public/uploads/media/2026/04/05/media-image-1.webp')
+            ->setFileSize(1234)
+            ->setMimeType('image/webp');
+
+        $flushCompleted = false;
+
+        $galleryManager = $this->createMock(MediaGalleryManager::class);
+        $galleryManager
+            ->expects($this->once())
+            ->method('delete')
+            ->with($mediaImage)
+            ->willReturnCallback(function () use (&$flushCompleted): void {
+                self::assertTrue($flushCompleted, 'File deletion should happen after flush succeeds.');
+            });
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->once())->method('remove')->with($mediaImage);
+        $entityManager
+            ->expects($this->once())
+            ->method('flush')
+            ->willReturnCallback(function () use (&$flushCompleted): void {
+                $flushCompleted = true;
+            });
+
+        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
+        $userLanguageResolver
+            ->expects($this->once())
+            ->method('translate')
+            ->with('Obrazek został usunięty z galerii.', 'The image has been removed from the gallery.')
+            ->willReturn('Obrazek został usunięty z galerii.');
+
+        $controller = new TestMediaController();
+        $controller->setCsrfValidity(true);
+
+        $response = $controller->delete($mediaImage, new Request([], ['_token' => 'valid']), $galleryManager, $entityManager, $userLanguageResolver);
+
+        $this->assertSame(Response::HTTP_FOUND, $response->getStatusCode());
+        $this->assertSame([
+            [
+                'type' => 'success',
+                'message' => 'Obrazek został usunięty z galerii.',
+            ],
+        ], $controller->capturedFlashes);
+    }
+
+    public function testClearFlushesEntitiesBeforeRemovingFiles(): void
+    {
+        $mediaImages = [
+            (new MediaImage())
+                ->setOriginalFilename('hero.webp')
+                ->setFilePath('public/uploads/media/2026/04/05/media-image-1.webp')
+                ->setFileSize(1234)
+                ->setMimeType('image/webp'),
+            (new MediaImage())
+                ->setOriginalFilename('cover.webp')
+                ->setFilePath('public/uploads/media/2026/04/05/media-image-2.webp')
+                ->setFileSize(5678)
+                ->setMimeType('image/webp'),
+        ];
+
+        $flushCompleted = false;
+
+        $repository = $this->createMock(MediaImageRepository::class);
+        $repository
+            ->expects($this->once())
+            ->method('findBy')
+            ->with([])
+            ->willReturn($mediaImages);
+
+        $galleryManager = $this->createMock(MediaGalleryManager::class);
+        $galleryManager
+            ->expects($this->once())
+            ->method('clear')
+            ->with($mediaImages)
+            ->willReturnCallback(function () use (&$flushCompleted): void {
+                self::assertTrue($flushCompleted, 'File deletion should happen after flush succeeds.');
+            });
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager
+            ->expects($this->exactly(2))
+            ->method('remove')
+            ->with($this->callback(static fn (MediaImage $mediaImage): bool => in_array($mediaImage, $mediaImages, true)));
+        $entityManager
+            ->expects($this->once())
+            ->method('flush')
+            ->willReturnCallback(function () use (&$flushCompleted): void {
+                $flushCompleted = true;
+            });
+
+        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
+        $userLanguageResolver
+            ->expects($this->once())
+            ->method('translate')
+            ->with('Galeria została wyczyszczona.', 'The gallery has been cleared.')
+            ->willReturn('Galeria została wyczyszczona.');
+
+        $controller = new TestMediaController();
+        $controller->setCsrfValidity(true);
+
+        $response = $controller->clear(new Request([], ['_token' => 'valid']), $repository, $galleryManager, $entityManager, $userLanguageResolver);
+
+        $this->assertSame(Response::HTTP_FOUND, $response->getStatusCode());
+        $this->assertSame([
+            [
+                'type' => 'success',
+                'message' => 'Galeria została wyczyszczona.',
+            ],
+        ], $controller->capturedFlashes);
+    }
 }
 
 final class TestMediaController extends MediaController
@@ -259,6 +448,11 @@ final class TestMediaController extends MediaController
     protected function redirectToRoute(string $route, array $parameters = [], int $status = 302): RedirectResponse
     {
         return new RedirectResponse('/'.$route, $status);
+    }
+
+    protected function getUser(): ?UserInterface
+    {
+        return null;
     }
 
     protected function createForm(string $type, mixed $data = null, array $options = []): FormInterface
