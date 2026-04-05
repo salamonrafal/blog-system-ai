@@ -1,5 +1,5 @@
 import { registerI18nListener } from './i18n.js';
-import { lockDocumentScroll, qs, qsa, unlockDocumentScroll } from './shared.js';
+import { hideAppTooltip, lockDocumentScroll, qs, qsa, restoreElementTooltip, suspendElementTooltip, unlockDocumentScroll } from './shared.js';
 
 export function createArticleTableBuilder({ field, textarea, insertText, t }){
   const tableModal = qs('[data-markup-table-modal]', field);
@@ -63,30 +63,6 @@ export function createArticleTableBuilder({ field, textarea, insertText, t }){
     state.hasHeader = nextState.hasHeader;
     state.header = [...nextState.header];
     state.rows = nextState.rows.map((row)=> [...row]);
-  };
-
-  const hideTooltip = (trigger = null)=>{
-    document.dispatchEvent(new Event('app:hide-tooltip'));
-    if(trigger instanceof HTMLElement){
-      trigger.blur();
-    }
-  };
-
-  const suspendTooltip = (trigger)=>{
-    if(!(trigger instanceof HTMLElement)) return;
-    const tooltip = trigger.getAttribute('data-tooltip');
-    if(tooltip !== null){
-      trigger.setAttribute('data-suspended-tooltip', tooltip);
-      trigger.removeAttribute('data-tooltip');
-    }
-  };
-
-  const restoreTooltip = (trigger)=>{
-    if(!(trigger instanceof HTMLElement)) return;
-    const tooltip = trigger.getAttribute('data-suspended-tooltip');
-    if(tooltip === null) return;
-    trigger.setAttribute('data-tooltip', tooltip);
-    trigger.removeAttribute('data-suspended-tooltip');
   };
 
   let lastTableTrigger = null;
@@ -281,13 +257,13 @@ export function createArticleTableBuilder({ field, textarea, insertText, t }){
     tableModal.setAttribute('aria-hidden', 'true');
     unlockDocumentScroll();
     const trigger = lastTableTrigger;
-    hideTooltip();
+    hideAppTooltip();
     if(trigger){
       trigger.focus({ preventScroll: true });
       restoreTooltipFrame = requestAnimationFrame(()=>{
         restoreTooltipFrame = 0;
         if(!tableModal.hasAttribute('hidden')) return;
-        restoreTooltip(trigger);
+        restoreElementTooltip(trigger);
       });
     }
     lastTableTrigger = null;
@@ -301,8 +277,8 @@ export function createArticleTableBuilder({ field, textarea, insertText, t }){
 
     syncHoveredColumn(null);
     lastTableTrigger = trigger;
-    suspendTooltip(trigger);
-    hideTooltip(trigger);
+    suspendElementTooltip(trigger);
+    hideAppTooltip({ blurTarget: trigger });
     renderTableGrid();
     tableModal.removeAttribute('hidden');
     tableModal.setAttribute('aria-hidden', 'false');
@@ -509,8 +485,8 @@ export function createArticleTableBuilder({ field, textarea, insertText, t }){
 
   return {
     handleToolbarMouseDown(trigger){
-      suspendTooltip(trigger);
-      hideTooltip(trigger);
+      suspendElementTooltip(trigger);
+      hideAppTooltip({ blurTarget: trigger });
     },
     handleToolbarAction(trigger){
       openTableModal(trigger);

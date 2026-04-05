@@ -1,4 +1,4 @@
-import { qs } from './shared.js';
+import { hideAppTooltip, qs, restoreElementTooltip, suspendElementTooltip } from './shared.js';
 
 const dropdownMenuInstances = new Set();
 let dropdownMenuGlobalsBound = false;
@@ -51,29 +51,10 @@ export function createDropdownMenu(root){
 
   bindDropdownMenuGlobals();
 
-  const hideTooltip = ()=>{
-    document.dispatchEvent(new Event('app:hide-tooltip'));
-  };
-
-  const suspendTooltip = ()=>{
-    const tooltip = trigger.getAttribute('data-tooltip');
-    if(tooltip !== null){
-      trigger.setAttribute('data-suspended-tooltip', tooltip);
-      trigger.removeAttribute('data-tooltip');
-    }
-  };
-
-  const restoreTooltip = ()=>{
-    const tooltip = trigger.getAttribute('data-suspended-tooltip');
-    if(tooltip === null) return;
-    trigger.setAttribute('data-tooltip', tooltip);
-    trigger.removeAttribute('data-suspended-tooltip');
-  };
-
   const isOpen = ()=> root.classList.contains('is-open');
   let restoreTooltipFrame = 0;
 
-  const close = ({ restoreFocus = false } = {})=>{
+  const close = ({ restoreFocus = false, restoreTooltipAsync = true } = {})=>{
     if(restoreTooltipFrame){
       cancelAnimationFrame(restoreTooltipFrame);
       restoreTooltipFrame = 0;
@@ -82,12 +63,16 @@ export function createDropdownMenu(root){
     root.classList.remove('is-open');
     panel.hidden = true;
     trigger.setAttribute('aria-expanded', 'false');
-    hideTooltip();
-    restoreTooltipFrame = requestAnimationFrame(()=>{
-      restoreTooltipFrame = 0;
-      if(isOpen()) return;
-      restoreTooltip();
-    });
+    hideAppTooltip();
+    if(restoreTooltipAsync){
+      restoreTooltipFrame = requestAnimationFrame(()=>{
+        restoreTooltipFrame = 0;
+        if(isOpen()) return;
+        restoreElementTooltip(trigger);
+      });
+    }else{
+      restoreElementTooltip(trigger);
+    }
 
     if(restoreFocus){
       trigger.focus({ preventScroll: true });
@@ -100,8 +85,8 @@ export function createDropdownMenu(root){
       restoreTooltipFrame = 0;
     }
 
-    hideTooltip();
-    suspendTooltip();
+    hideAppTooltip();
+    suspendElementTooltip(trigger);
     root.classList.add('is-open');
     panel.hidden = false;
     trigger.setAttribute('aria-expanded', 'true');
@@ -117,7 +102,7 @@ export function createDropdownMenu(root){
   };
 
   trigger.addEventListener('mousedown', ()=>{
-    hideTooltip();
+    hideAppTooltip();
   });
 
   trigger.addEventListener('click', (event)=>{
@@ -130,7 +115,7 @@ export function createDropdownMenu(root){
       cancelAnimationFrame(restoreTooltipFrame);
       restoreTooltipFrame = 0;
     }
-    close();
+    close({ restoreTooltipAsync: false });
     dropdownMenuInstances.delete(instance);
   };
 

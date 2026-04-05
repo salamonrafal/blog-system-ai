@@ -47,6 +47,33 @@ export function unlockDocumentScroll(){
   doc.dataset.scrollLockCount = String(currentLocks - 1);
 }
 
+export function hideAppTooltip({ blurTarget = null } = {}){
+  document.dispatchEvent(new Event('app:hide-tooltip'));
+  if(blurTarget instanceof HTMLElement){
+    blurTarget.blur();
+  }
+}
+
+export function suspendElementTooltip(element){
+  if(!(element instanceof HTMLElement)) return;
+
+  const tooltip = element.getAttribute('data-tooltip');
+  if(tooltip !== null){
+    element.setAttribute('data-suspended-tooltip', tooltip);
+    element.removeAttribute('data-tooltip');
+  }
+}
+
+export function restoreElementTooltip(element){
+  if(!(element instanceof HTMLElement)) return;
+
+  const tooltip = element.getAttribute('data-suspended-tooltip');
+  if(tooltip === null) return;
+
+  element.setAttribute('data-tooltip', tooltip);
+  element.removeAttribute('data-suspended-tooltip');
+}
+
 export function sleep(ms){
   return new Promise((resolve)=> setTimeout(resolve, ms));
 }

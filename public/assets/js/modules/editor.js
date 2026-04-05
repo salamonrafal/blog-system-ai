@@ -1,7 +1,7 @@
 import { createDropdownMenu } from './dropdown-menu.js';
 import { createArticleTableBuilder } from './editor-table-builder.js';
 import { getTranslation } from './i18n.js';
-import { lockDocumentScroll, qs, qsa, unlockDocumentScroll } from './shared.js';
+import { hideAppTooltip, lockDocumentScroll, qs, qsa, restoreElementTooltip, suspendElementTooltip, unlockDocumentScroll } from './shared.js';
 
 export function setupArticleMarkupEditor(){
   const editors = qsa('[data-markup-editor]');
@@ -103,26 +103,6 @@ export function setupArticleMarkupEditor(){
 
     const closeBlocksMenu = (options = {})=> blocksDropdown?.close(options);
 
-    const hideTooltip = ()=>{
-      document.dispatchEvent(new Event('app:hide-tooltip'));
-    };
-
-    const suspendTooltip = (trigger)=>{
-      if(!(trigger instanceof HTMLElement)) return;
-      const tooltip = trigger.getAttribute('data-tooltip');
-      if(tooltip !== null){
-        trigger.setAttribute('data-suspended-tooltip', tooltip);
-        trigger.removeAttribute('data-tooltip');
-      }
-    };
-
-    const restoreTooltip = (trigger)=>{
-      if(!(trigger instanceof HTMLElement)) return;
-      const tooltip = trigger.getAttribute('data-suspended-tooltip');
-      if(tooltip === null) return;
-      trigger.setAttribute('data-tooltip', tooltip);
-      trigger.removeAttribute('data-suspended-tooltip');
-    };
     let restoreHelpTooltipFrame = 0;
 
     const closeHelpModal = ()=>{
@@ -136,12 +116,12 @@ export function setupArticleMarkupEditor(){
       helpModal.setAttribute('aria-hidden', 'true');
       unlockDocumentScroll();
       if(lastHelpTrigger){
-        hideTooltip();
+        hideAppTooltip();
         lastHelpTrigger.focus({ preventScroll: true });
         restoreHelpTooltipFrame = requestAnimationFrame(()=>{
           restoreHelpTooltipFrame = 0;
           if(!helpModal.hasAttribute('hidden')) return;
-          restoreTooltip(lastHelpTrigger);
+          restoreElementTooltip(lastHelpTrigger);
         });
       }
       lastHelpTrigger = null;
@@ -154,12 +134,12 @@ export function setupArticleMarkupEditor(){
         restoreHelpTooltipFrame = 0;
       }
       lastHelpTrigger = trigger;
-      suspendTooltip(trigger);
+      suspendElementTooltip(trigger);
       activateHelpTab('basic');
       helpModal.removeAttribute('hidden');
       helpModal.setAttribute('aria-hidden', 'false');
       lockDocumentScroll();
-      hideTooltip();
+      hideAppTooltip();
       if(helpDialog){
         helpDialog.setAttribute('tabindex', '-1');
         helpDialog.focus({ preventScroll: true });
@@ -175,7 +155,7 @@ export function setupArticleMarkupEditor(){
         tableBuilder.handleToolbarMouseDown(button);
       }
       if(action === 'help'){
-        hideTooltip();
+        hideAppTooltip();
       }
       if(action && action !== 'help'){
         event.preventDefault();
@@ -308,11 +288,11 @@ export function setupArticleMarkupEditor(){
       });
 
       helpModal.addEventListener('focusin', ()=>{
-        document.dispatchEvent(new Event('app:hide-tooltip'));
+        hideAppTooltip();
       });
 
       helpModal.addEventListener('pointerenter', ()=>{
-        document.dispatchEvent(new Event('app:hide-tooltip'));
+        hideAppTooltip();
       });
     }
 
