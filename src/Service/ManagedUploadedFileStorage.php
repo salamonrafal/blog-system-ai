@@ -32,7 +32,7 @@ class ManagedUploadedFileStorage
             throw new \RuntimeException(sprintf('Directory "%s" could not be created.', $absoluteTargetDirectory));
         }
 
-        $originalFilename = trim((string) $uploadedFile->getClientOriginalName());
+        $originalFilename = $this->normalizeOriginalFilename($uploadedFile->getClientOriginalName());
         $safeOriginalFilename = '' !== $originalFilename ? $originalFilename : $defaultFilename;
         $extension = strtolower(pathinfo($safeOriginalFilename, PATHINFO_EXTENSION));
 
@@ -54,5 +54,17 @@ class ManagedUploadedFileStorage
             'relative_path' => $normalizedTargetDirectory.'/'.$storedFilename,
             'original_filename' => $safeOriginalFilename,
         ];
+    }
+
+    private function normalizeOriginalFilename(string $originalFilename): string
+    {
+        $trimmedFilename = trim($originalFilename);
+        if ('' === $trimmedFilename) {
+            return '';
+        }
+
+        $normalizedSeparators = str_replace('\\', '/', $trimmedFilename);
+
+        return basename($normalizedSeparators);
     }
 }
