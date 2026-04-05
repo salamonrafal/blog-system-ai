@@ -310,6 +310,47 @@ Fullstack Developer</span>
                         </div>
                     </div>
                     <div class="admin-shortcuts-submenu" data-admin-shortcuts-submenu>
+                        <button type="button" class="admin-shortcuts-link admin-shortcuts-button admin-shortcuts-submenu-trigger" data-action="toggle-admin-submenu" aria-haspopup="true" aria-expanded="false" aria-controls="admin-shortcuts-media-panel">
+                            <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                                <svg viewBox="0 0 32 32">
+                                    <rect x="5" y="7" width="22" height="18" rx="3"></rect>
+                                    <circle cx="11" cy="13" r="2"></circle>
+                                    <path d="M9 22l5-5 4 4 3-3 3 4"></path>
+                                    <path d="M23 7v-2"></path>
+                                    <path d="M20 5h6"></path>
+                                </svg>
+                            </span>
+                            <span data-i18n="admin_shortcut_media_title">Media</span>
+                            <span class="admin-shortcuts-submenu-caret" aria-hidden="true">
+                                <svg viewBox="0 0 32 32">
+                                    <path d="M10 13l6 6 6-6"></path>
+                                </svg>
+                            </span>
+                        </button>
+                        <div class="admin-shortcuts-submenu-panel" id="admin-shortcuts-media-panel" data-i18n-aria="admin_shortcut_media_title" aria-label="Media">
+                            <a class="admin-shortcuts-link admin-shortcuts-sublink" href="{{ path('admin_media_index') }}">
+                                <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 32 32">
+                                        <path d="M16 7v18"></path>
+                                        <path d="M7 16h18"></path>
+                                        <rect x="6" y="6" width="20" height="20" rx="4"></rect>
+                                    </svg>
+                                </span>
+                                <span data-i18n="admin_shortcut_media_add">Dodaj obrazek</span>
+                            </a>
+                            <a class="admin-shortcuts-link admin-shortcuts-sublink" href="{{ path('admin_media_gallery') }}">
+                                <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 32 32">
+                                        <rect x="6" y="8" width="20" height="16" rx="3"></rect>
+                                        <circle cx="12" cy="13" r="2"></circle>
+                                        <path d="M10 21l5-5 4 4 3-3 3 4"></path>
+                                    </svg>
+                                </span>
+                                <span data-i18n="admin_shortcut_media_gallery">Galeria</span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="admin-shortcuts-submenu" data-admin-shortcuts-submenu>
                         <button type="button" class="admin-shortcuts-link admin-shortcuts-button admin-shortcuts-submenu-trigger" data-action="toggle-admin-submenu" aria-haspopup="true" aria-expanded="false" aria-controls="admin-shortcuts-users-panel">
                             <span class="admin-shortcuts-link-icon" aria-hidden="true">
                                 <svg viewBox="0 0 32 32">

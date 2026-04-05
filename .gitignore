@@ -25,6 +25,15 @@
 /var/log/*
 !var/log/.gitkeep
 
+# Orphans media
+/var/media-orphans/*
+!/var/media-orphans/
+!/var/media-orphans/.gitkeep
+
+/var/media-orphans/tmp/*
+!/var/media-orphans/tmp/
+!/var/media-orphans/tmp/.gitkeep
+
 # Exports
 /var/exports/*
 !var/exports/.gitkeep
@@ -48,6 +57,10 @@
 !bin/symfony_requirements
 !bin/release-version.php
 /vendor/
+
+# Uploads media
+/public/uploads/media/*
+!public/uploads/media/.gitkeep
 
 # Assets and user uploads
 /web/bundles/

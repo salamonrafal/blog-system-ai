@@ -50,3 +50,194 @@ select {
   background: color-mix(in oklab, var(--panel-2) 92%, transparent);
   color:var(--text);
 }
+
+.file-upload{
+  position:relative;
+}
+
+.file-upload-surface{
+  position:relative;
+  display:grid;
+  gap:14px;
+  padding:20px;
+  border:1px dashed color-mix(in oklab, var(--accent) 34%, var(--border));
+  border-radius:22px;
+  background:
+    radial-gradient(circle at top right, color-mix(in oklab, var(--accent) 12%, transparent), transparent 42%),
+    linear-gradient(180deg, color-mix(in oklab, var(--panel) 97%, transparent), color-mix(in oklab, var(--panel-2) 94%, transparent));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+  transition:border-color .18s ease, background-color .18s ease, transform .18s ease, box-shadow .18s ease;
+  isolation:isolate;
+  overflow:hidden;
+  --file-upload-surface-radius:22px;
+}
+
+.file-upload-topbar{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.file-upload-surface > *{
+  position:relative;
+  z-index:1;
+  transition:filter .18s ease, opacity .18s ease;
+}
+
+.file-upload-surface::before,
+.file-upload-surface::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .18s ease;
+}
+
+.file-upload-surface::before{
+  z-index:2;
+  background:color-mix(in oklab, var(--panel) 34%, transparent);
+  backdrop-filter:blur(10px);
+}
+
+.file-upload-surface::after{
+  inset:50%;
+  z-index:3;
+  width:78px;
+  height:78px;
+  margin:-39px 0 0 -39px;
+  border-radius:24px;
+  background:
+    linear-gradient(90deg, transparent 34px, color-mix(in oklab, var(--accent) 78%, white 22%) 34px, color-mix(in oklab, var(--accent) 78%, white 22%) 44px, transparent 44px),
+    linear-gradient(transparent 34px, color-mix(in oklab, var(--accent) 78%, white 22%) 34px, color-mix(in oklab, var(--accent) 78%, white 22%) 44px, transparent 44px),
+    color-mix(in oklab, var(--panel) 78%, transparent);
+  box-shadow:
+    0 18px 40px rgba(3, 10, 20, .24),
+    inset 0 1px 0 rgba(255,255,255,.08);
+}
+
+.file-upload.is-drag-over .file-upload-surface{
+  border-color:color-mix(in oklab, var(--accent) 62%, white 8%);
+  background:
+    radial-gradient(circle at top right, color-mix(in oklab, var(--accent) 16%, transparent), transparent 42%),
+    linear-gradient(180deg, color-mix(in oklab, var(--panel) 97%, transparent), color-mix(in oklab, var(--accent) 10%, var(--panel-2) 90%));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 16px 32px rgba(3, 10, 20, .14);
+}
+
+.file-upload.is-drag-over .file-upload-surface > *{
+  filter:blur(4px);
+  opacity:.42;
+}
+
+.file-upload.is-drag-over .file-upload-surface::before,
+.file-upload.is-drag-over .file-upload-surface::after{
+  opacity:1;
+}
+
+.file-upload.is-drop-disabled .file-upload-surface{
+  border-style:solid;
+}
+
+.file-upload-icon{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:52px;
+  height:52px;
+  border-radius:16px;
+  border:1px solid color-mix(in oklab, var(--accent) 32%, var(--border));
+  background:color-mix(in oklab, var(--panel) 84%, transparent);
+  color:color-mix(in oklab, var(--accent) 74%, white 26%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+.file-upload-icon::before{
+  content:"";
+  width:24px;
+  height:24px;
+  background-color:currentColor;
+  -webkit-mask-repeat:no-repeat;
+  mask-repeat:no-repeat;
+  -webkit-mask-position:center;
+  mask-position:center;
+  -webkit-mask-size:contain;
+  mask-size:contain;
+  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M19 15v4H5v-4H3v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-4Zm-8 2h2V8.83l2.59 2.58L17 10l-5-5-5 5 1.41 1.41L11 8.83V17Z'/%3E%3C/svg%3E");
+  mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M19 15v4H5v-4H3v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-4Zm-8 2h2V8.83l2.59 2.58L17 10l-5-5-5 5 1.41 1.41L11 8.83V17Z'/%3E%3C/svg%3E");
+}
+
+.file-upload-copy{
+  display:grid;
+  gap:6px;
+}
+
+.file-upload-title{
+  margin:0;
+  color:var(--text);
+  font-size:1rem;
+  font-weight:700;
+  line-height:1.35;
+}
+
+.file-upload-description{
+  margin:0;
+  color:var(--muted);
+  line-height:1.6;
+}
+
+.file-upload-footer{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+.file-upload-filename{
+  display:inline-flex;
+  align-items:center;
+  flex:1 1 auto;
+  min-width:0;
+  min-height:2.5rem;
+  padding:0 12px;
+  border:1px solid color-mix(in oklab, var(--accent) 20%, var(--border));
+  border-radius:999px;
+  background:color-mix(in oklab, var(--panel) 84%, transparent);
+  color:var(--muted);
+  font-size:.92rem;
+  line-height:1.35;
+  word-break:break-word;
+  overflow-wrap:anywhere;
+}
+
+.file-upload.has-file .file-upload-filename{
+  color:var(--text);
+}
+
+.file-upload-trigger{
+  min-width:148px;
+}
+
+@media (max-width: 640px){
+  .file-upload-surface{
+    padding:18px;
+  }
+
+  .file-upload-footer{
+    align-items:stretch;
+  }
+
+  .file-upload-topbar{
+    align-items:flex-start;
+    flex-wrap:wrap;
+  }
+
+  .file-upload-trigger{
+    width:100%;
+  }
+
+  .file-upload-filename{
+    flex-basis:calc(100% - 64px);
+  }
+}

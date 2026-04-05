@@ -1267,6 +1267,27 @@ export function setupImportClearConfirmation(){
     closeI18n: 'admin_close_alert',
     closeFallback: 'Zamknij alert',
   });
+
+  setupDangerConfirmation({
+    triggerSelector: '[data-action="confirm-clear-media-gallery"]',
+    modalClass: 'confirm-clear-media-gallery-modal',
+    modalIdPrefix: 'confirm-clear-media-gallery',
+    titleI18n: 'admin_media_clear_popup_title',
+    titleFallback: 'Wyczyścić galerię?',
+    textI18n: 'admin_media_clear_popup_text',
+    textFallback: 'Ta operacja usunie wszystkie obsługiwane obrazki z galerii.',
+    detailsClass: null,
+    detailsText: null,
+    cancelAction: 'cancel-clear-media-gallery',
+    submitAction: 'submit-clear-media-gallery',
+    closeAction: 'close-clear-media-gallery',
+    cancelI18n: 'admin_media_clear_popup_cancel',
+    cancelFallback: 'Przerwij',
+    submitI18n: 'admin_media_clear_popup_confirm',
+    submitFallback: 'Wyczyść galerię',
+    closeI18n: 'admin_close_alert',
+    closeFallback: 'Zamknij alert',
+  });
 }
 
 export function setupImportDeleteConfirmation(){
@@ -1287,6 +1308,27 @@ export function setupImportDeleteConfirmation(){
     cancelFallback: 'Przerwij',
     submitI18n: 'admin_imports_delete_popup_confirm',
     submitFallback: 'Usuń import',
+    closeI18n: 'admin_close_alert',
+    closeFallback: 'Zamknij alert',
+  });
+
+  setupDangerConfirmation({
+    triggerSelector: '[data-action="confirm-delete-media-image"]',
+    modalClass: 'confirm-delete-media-image-modal',
+    modalIdPrefix: 'confirm-delete-media-image',
+    titleI18n: 'admin_media_delete_popup_title',
+    titleFallback: 'Usunąć obrazek?',
+    textI18n: 'admin_media_delete_popup_text',
+    textFallback: 'Ta operacja usunie obrazek z galerii.',
+    detailsClass: 'confirm-delete-media-image-name',
+    detailsText: (trigger)=> trigger.getAttribute('data-media-file') || '',
+    cancelAction: 'cancel-delete-media-image',
+    submitAction: 'submit-delete-media-image',
+    closeAction: 'close-delete-media-image',
+    cancelI18n: 'admin_media_delete_popup_cancel',
+    cancelFallback: 'Przerwij',
+    submitI18n: 'admin_media_delete_popup_confirm',
+    submitFallback: 'Usuń obrazek',
     closeI18n: 'admin_close_alert',
     closeFallback: 'Zamknij alert',
   });
@@ -1372,5 +1414,178 @@ export function setupImportMessageDialog(){
       event.preventDefault();
       closeModal();
     }
+  });
+}
+
+export function setupMediaRenameDialog(){
+  const triggers = qsa('[data-action="edit-media-name"]');
+  if(!triggers.length) return;
+
+  const existingModal = qs('.media-rename-modal');
+  if(existingModal){
+    existingModal.remove();
+  }
+
+  const titleId = 'media-rename-title';
+  const textId = 'media-rename-text';
+  const modal = document.createElement('div');
+  modal.className = 'confirm-delete-modal media-rename-modal';
+  modal.setAttribute('hidden', '');
+  modal.setAttribute('aria-hidden', 'true');
+  modal.innerHTML = `
+    <div class="confirm-delete-dialog media-rename-dialog" role="dialog" aria-modal="true" aria-labelledby="${titleId}" aria-describedby="${textId}">
+      <div class="confirm-delete-topbar">
+        <div class="confirm-delete-eyebrow">admin://media</div>
+        <button type="button" class="confirm-delete-close" data-action="close-media-rename" data-i18n-aria="admin_close_alert" aria-label="Zamknij alert">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <h2 id="${titleId}" class="confirm-delete-title" data-i18n="admin_media_rename_popup_title">Edytuj nazwę obrazka</h2>
+      <p id="${textId}" class="confirm-delete-text" data-i18n="admin_media_rename_popup_text">Nadaj unikalną nazwę widoczną w galerii, zachowując oryginalną nazwę pliku.</p>
+      <label class="sr-only" for="media-rename-input" data-i18n="admin_media_custom_name">Niestandardowa nazwa</label>
+      <input id="media-rename-input" class="article-editor-input" type="text" maxlength="255" data-i18n-placeholder="admin_media_custom_name_placeholder" placeholder="Wpisz unikalną nazwę">
+      <div class="confirm-delete-actions">
+        <button type="button" class="button secondary" data-action="cancel-media-rename" data-i18n="admin_media_rename_popup_cancel">Przerwij</button>
+        <button type="button" class="button" data-action="submit-media-rename" data-i18n="admin_media_custom_name_save">Zapisz nazwę</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  applyI18n(getLang());
+
+  const dialog = qs('.media-rename-dialog', modal);
+  const input = qs('#media-rename-input', modal);
+  const closeButton = qs('[data-action="close-media-rename"]', modal);
+  const cancelButton = qs('[data-action="cancel-media-rename"]', modal);
+  const submitButton = qs('[data-action="submit-media-rename"]', modal);
+  let activeForm = null;
+  let activeHiddenInput = null;
+  let lastTrigger = null;
+
+  const closeModal = ()=>{
+    modal.setAttribute('hidden', '');
+    modal.setAttribute('aria-hidden', 'true');
+    activeForm = null;
+    activeHiddenInput = null;
+    if(lastTrigger){
+      lastTrigger.focus({ preventScroll: true });
+    }
+  };
+
+  const openModal = (trigger)=>{
+    const actions = trigger.closest('.actions');
+    const form = actions?.previousElementSibling;
+    const hiddenInput = form instanceof HTMLFormElement ? qs('.media-gallery-rename-input', form) : null;
+
+    if(!(form instanceof HTMLFormElement) || !(hiddenInput instanceof HTMLInputElement) || !(input instanceof HTMLInputElement)){
+      return;
+    }
+
+    activeForm = form;
+    activeHiddenInput = hiddenInput;
+    lastTrigger = trigger;
+
+    input.value = trigger.getAttribute('data-media-custom-name') || trigger.getAttribute('data-media-original-name') || '';
+
+    modal.removeAttribute('hidden');
+    modal.setAttribute('aria-hidden', 'false');
+    input.focus({ preventScroll: true });
+    input.select();
+  };
+
+  triggers.forEach((trigger)=>{
+    trigger.addEventListener('click', ()=>{
+      openModal(trigger);
+    });
+  });
+
+  closeButton?.addEventListener('click', closeModal);
+  cancelButton?.addEventListener('click', closeModal);
+
+  submitButton?.addEventListener('click', ()=>{
+    if(activeForm instanceof HTMLFormElement && activeHiddenInput instanceof HTMLInputElement && input instanceof HTMLInputElement){
+      activeHiddenInput.value = input.value.trim();
+      activeForm.submit();
+    }
+  });
+
+  dialog?.addEventListener('click', (event)=>{
+    event.stopPropagation();
+  });
+
+  modal.addEventListener('click', (event)=>{
+    if(event.target === modal){
+      closeModal();
+    }
+  });
+
+  document.addEventListener('keydown', (event)=>{
+    if(modal.hasAttribute('hidden')) return;
+
+    if(event.key === 'Escape'){
+      event.preventDefault();
+      closeModal();
+    }
+
+    if(event.key === 'Enter' && event.target === input){
+      event.preventDefault();
+      submitButton?.click();
+    }
+  });
+}
+
+export function setupMediaGalleryDropSlot(){
+  const uploadForm = qs('[data-gallery-upload-form]');
+  const uploadInput = qs('[data-gallery-upload-input]');
+
+  qsa('[data-media-gallery-drop-slot]').forEach((slot)=>{
+    if(!(slot instanceof HTMLElement)) return;
+
+    let dragDepth = 0;
+    const setActive = (isActive)=>{
+      slot.classList.toggle('is-drag-over', isActive);
+    };
+
+    ['dragenter', 'dragover'].forEach((eventName)=>{
+      slot.addEventListener(eventName, (event)=>{
+        event.preventDefault();
+
+        if(eventName === 'dragenter'){
+          dragDepth += 1;
+        }
+
+        setActive(true);
+      });
+    });
+
+    slot.addEventListener('dragleave', (event)=>{
+      event.preventDefault();
+      dragDepth = Math.max(0, dragDepth - 1);
+
+      if(dragDepth === 0){
+        setActive(false);
+      }
+    });
+
+    slot.addEventListener('drop', (event)=>{
+      event.preventDefault();
+      event.stopPropagation();
+      dragDepth = 0;
+      setActive(false);
+
+      if(!(uploadForm instanceof HTMLFormElement) || !(uploadInput instanceof HTMLInputElement)){
+        return;
+      }
+
+      const files = event.dataTransfer?.files;
+      if(!files || files.length === 0){
+        return;
+      }
+
+      uploadInput.files = files;
+      slot.classList.add('is-uploading');
+      uploadForm.requestSubmit();
+    });
   });
 }

@@ -18,6 +18,7 @@ use App\Repository\ArticleImportQueueRepository;
 use App\Repository\CategoryImportQueueRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\BlogSettingsRepository;
+use App\Repository\MediaImageRepository;
 use App\Repository\TopMenuImportQueueRepository;
 use App\Repository\TopMenuItemRepository;
 use App\Repository\TopMenuExportQueueRepository;
@@ -43,6 +44,7 @@ class DashboardController extends AbstractController
         BlogSettingsRepository $blogSettingsRepository,
         TopMenuItemRepository $topMenuItemRepository,
         UserRepository $userRepository,
+        MediaImageRepository $mediaImageRepository,
     ): Response
     {
         $settings = $blogSettingsRepository->findCurrent();
@@ -215,6 +217,19 @@ class DashboardController extends AbstractController
                     'meta' => [],
                     'primary_action' => $this->dashboardAction('admin_dashboard_action_browse', 'Przeglądaj', 'admin_top_menu_index'),
                     'secondary_action' => $this->dashboardAction('admin_dashboard_action_add', 'Dodaj', 'admin_top_menu_new'),
+                ],
+                [
+                    'label' => 'admin://media',
+                    'title_key' => 'admin_dashboard_panel_media_title',
+                    'title' => 'Media',
+                    'description_key' => 'admin_dashboard_panel_media_description',
+                    'description' => 'Biblioteka obrazów do wykorzystania na blogu z szybkim uploadem i porządkowaniem galerii.',
+                    'stats' => [
+                        $this->dashboardStat($mediaImageRepository->count([]), 'admin_dashboard_stat_all', 'Wszystkie'),
+                    ],
+                    'meta' => [],
+                    'primary_action' => $this->dashboardAction('admin_dashboard_action_browse', 'Przeglądaj', 'admin_media_gallery'),
+                    'secondary_action' => $this->dashboardAction('admin_dashboard_action_add', 'Dodaj', 'admin_media_index'),
                 ],
                 [
                     'label' => 'admin://blog-settings',
