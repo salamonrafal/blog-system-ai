@@ -26,7 +26,7 @@ final class MediaImageStorageTest extends TestCase
     public function testStoreMovesImageIntoConfiguredDirectory(): void
     {
         $sourcePath = $this->projectDir.'/upload.webp';
-        file_put_contents($sourcePath, 'image-bytes');
+        file_put_contents($sourcePath, base64_decode('UklGRiQAAABXRUJQVlA4IBgAAAAwAQCdASoBAAEAAUAmJaACdLoB+AADsAD+8ut//NgVzXPv9//S4P0uD9Lg/9KQAAA='));
 
         $uploadedFile = new UploadedFile($sourcePath, 'hero.webp', 'image/webp', null, true);
         $storage = new MediaImageStorage('public/uploads/media', $this->projectDir);
@@ -37,7 +37,7 @@ final class MediaImageStorageTest extends TestCase
         $this->assertStringStartsWith('public/uploads/media/', $storedFile['relative_path']);
         $this->assertStringContainsString('/'.(new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format('Y/m/d').'/', $storedFile['relative_path']);
         $this->assertStringEndsWith('.webp', $storedFile['relative_path']);
-        $this->assertSame(11, $storedFile['file_size']);
+        $this->assertSame(68, $storedFile['file_size']);
         $this->assertSame('image/webp', $storedFile['mime_type']);
         $this->assertFileExists($this->projectDir.'/'.$storedFile['relative_path']);
     }

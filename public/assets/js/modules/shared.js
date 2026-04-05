@@ -146,3 +146,25 @@ export function getBrowserTimeZone(){
     return null;
   }
 }
+
+export function assignFilesToInput(input, files){
+  if(!(input instanceof HTMLInputElement) || !(files instanceof FileList) || files.length === 0){
+    return false;
+  }
+
+  if(typeof DataTransfer === 'function'){
+    const dataTransfer = new DataTransfer();
+    [...files].forEach((file)=>{
+      dataTransfer.items.add(file);
+    });
+    input.files = dataTransfer.files;
+    return input.files instanceof FileList && input.files.length > 0;
+  }
+
+  try{
+    input.files = files;
+    return input.files instanceof FileList && input.files.length > 0;
+  }catch(err){
+    return false;
+  }
+}

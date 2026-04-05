@@ -1,6 +1,6 @@
 import { applyI18n, getTranslation, registerI18nListener } from './i18n.js';
 import { getLang, isAdminDeviceRemembered, isAdminShortcutsCollapsed, isAdminShortcutsDocked, setAdminDeviceRemembered, setAdminShortcutsCollapsed, setAdminShortcutsDocked } from './preferences.js';
-import { normalizeHexColor, qs, qsa } from './shared.js';
+import { assignFilesToInput, normalizeHexColor, qs, qsa } from './shared.js';
 
 function isDesktopAdminShortcutsViewport(){
   return window.matchMedia('(min-width: 769px)').matches;
@@ -1583,7 +1583,10 @@ export function setupMediaGalleryDropSlot(){
         return;
       }
 
-      uploadInput.files = files;
+      if(!assignFilesToInput(uploadInput, files)){
+        return;
+      }
+
       slot.classList.add('is-uploading');
       uploadForm.requestSubmit();
     });

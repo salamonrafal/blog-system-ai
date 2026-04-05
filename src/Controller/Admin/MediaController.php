@@ -9,6 +9,7 @@ use App\Form\MediaImageUploadType;
 use App\Repository\MediaImageRepository;
 use App\Service\MediaGalleryManager;
 use App\Service\MediaImageStorage;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Service\UserLanguageResolver;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -138,7 +139,13 @@ class MediaController extends AbstractController
         }
 
         $mediaImage->setCustomName($customName);
-        $entityManager->flush();
+        try {
+            $entityManager->flush();
+        } catch (UniqueConstraintViolationException) {
+            $this->addFlash('error', $userLanguageResolver->translate('Taka niestandardowa nazwa obrazka już istnieje.', 'This custom image name already exists.'));
+
+            return $this->redirectToRoute('admin_media_gallery');
+        }
 
         $this->addFlash('success', $userLanguageResolver->translate('Niestandardowa nazwa obrazka została zapisana.', 'The custom image name has been saved.'));
 
@@ -154,7 +161,13 @@ class MediaController extends AbstractController
     ): ?Response {
         $form->handleRequest($request);
 
-        if (!$form->isSubmitted() || !$form->isValid()) {
+        if (!$form->isSubmitted()) {
+            return null;
+        }
+
+        if (!$form->isValid()) {
+            $this->addFlash('error', $userLanguageResolver->translate('Nie udało się dodać obrazka. Sprawdź błędy formularza.', 'The image could not be added. Check the form errors.'));
+
             return null;
         }
 

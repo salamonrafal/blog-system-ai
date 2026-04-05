@@ -1,5 +1,5 @@
 import { getTranslation, registerI18nListener } from './i18n.js';
-import { qsa } from './shared.js';
+import { assignFilesToInput, qsa } from './shared.js';
 
 function isDropEnabled(root){
   return root.getAttribute('data-file-upload-drop-enabled') !== 'false';
@@ -83,7 +83,11 @@ function bindFileUpload(root){
       return;
     }
 
-    input.files = files;
+    if(!assignFilesToInput(input, files)){
+      updateFileUploadState(root);
+      return;
+    }
+
     input.dispatchEvent(new Event('change', { bubbles: true }));
   });
 }

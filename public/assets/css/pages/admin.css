@@ -1094,3 +1094,58 @@
   height:20px;
   flex-basis:20px;
 }
+.media-gallery-upload-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin: 0 1.15rem 1rem;
+  padding: 16px 18px;
+  border-width: 1px;
+  border-left-width: 4px;
+  border-color: color-mix(in oklab, var(--danger) 34%, var(--border));
+  border-left-color: color-mix(in oklab, var(--danger) 78%, var(--border));
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at top right, color-mix(in oklab, var(--danger) 16%, transparent), transparent 44%),
+    linear-gradient(180deg, color-mix(in oklab, var(--panel) 96%, transparent), color-mix(in oklab, var(--panel-2) 92%, transparent));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.04),
+    0 10px 24px rgba(0,0,0,.12);
+}
+
+.media-gallery-upload-error-icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: 0 0 1.15rem;
+  margin-top: 2px;
+  background-color: color-mix(in oklab, var(--danger) 82%, #ffd7d7 18%);
+}
+
+.media-gallery-upload-error-copy {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.media-gallery-upload-error-copy p {
+  margin: 0;
+  line-height: 1.55;
+}
+
+[data-theme="light"] .media-gallery-upload-error {
+  color: #8f1212;
+  background:
+    radial-gradient(circle at top right, color-mix(in oklab, var(--danger) 10%, transparent), transparent 44%),
+    linear-gradient(180deg, color-mix(in oklab, white 96%, transparent), color-mix(in oklab, #fff3f3 92%, transparent));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.7),
+    0 10px 24px rgba(118, 24, 24, .08);
+}
+
+@media (max-width: 768px) {
+  .media-gallery-upload-error {
+    margin-inline: 1rem;
+    padding: 14px 16px;
+    border-radius: 16px;
+  }
+}

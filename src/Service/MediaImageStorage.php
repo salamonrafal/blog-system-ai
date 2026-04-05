@@ -36,10 +36,11 @@ class MediaImageStorage
         );
 
         $absolutePath = $this->projectDir.'/'.$storedFile['relative_path'];
+        $detectedMimeType = is_file($absolutePath) ? MediaImageSupport::detectMimeType(new \Symfony\Component\HttpFoundation\File\File($absolutePath)) : '';
 
         return $storedFile + [
             'file_size' => is_file($absolutePath) ? (filesize($absolutePath) ?: 0) : 0,
-            'mime_type' => strtolower((string) $uploadedFile->getClientMimeType()),
+            'mime_type' => '' !== $detectedMimeType ? $detectedMimeType : MediaImageSupport::detectMimeType($uploadedFile),
         ];
     }
 }

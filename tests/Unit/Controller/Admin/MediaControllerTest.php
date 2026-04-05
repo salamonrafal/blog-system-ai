@@ -10,6 +10,7 @@ use App\Form\MediaImageUploadType;
 use App\Repository\MediaImageRepository;
 use App\Service\MediaImageStorage;
 use App\Service\UserLanguageResolver;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Form\Extension\HttpFoundation\HttpFoundationExtension;
@@ -79,6 +80,54 @@ final class MediaControllerTest extends TestCase
         $this->assertInstanceOf(FormInterface::class, $controller->capturedParameters['upload_form']);
     }
 
+    public function testGalleryShowsFeedbackWhenUploadFormIsInvalid(): void
+    {
+        $galleryImages = [
+            (new MediaImage())
+                ->setOriginalFilename('hero.webp')
+                ->setFilePath('public/uploads/media/2026/04/05/media-image-1.webp')
+                ->setFileSize(1234)
+                ->setMimeType('image/webp'),
+        ];
+
+        $repository = $this->createMock(MediaImageRepository::class);
+        $repository
+            ->expects($this->once())
+            ->method('findAllForAdminIndex')
+            ->willReturn($galleryImages);
+
+        $storage = $this->createMock(MediaImageStorage::class);
+        $storage->expects($this->never())->method('store');
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+        $entityManager->expects($this->never())->method('flush');
+
+        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
+        $userLanguageResolver
+            ->expects($this->once())
+            ->method('translate')
+            ->with('Nie udało się dodać obrazka. Sprawdź błędy formularza.', 'The image could not be added. Check the form errors.')
+            ->willReturn('Nie udało się dodać obrazka. Sprawdź błędy formularza.');
+
+        $controller = new TestMediaController();
+        $request = new Request([], ['media_image_upload' => []], [], [], [], ['REQUEST_METHOD' => 'POST']);
+
+        $response = $controller->gallery($request, $repository, $storage, $entityManager, $userLanguageResolver);
+
+        $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
+        $this->assertSame('admin/media/gallery.html.twig', $controller->capturedView);
+        $this->assertInstanceOf(FormInterface::class, $controller->capturedParameters['upload_form']);
+        $this->assertTrue($controller->capturedParameters['upload_form']->isSubmitted());
+        $this->assertFalse($controller->capturedParameters['upload_form']->isValid());
+        $this->assertSame([
+            [
+                'type' => 'error',
+                'message' => 'Nie udało się dodać obrazka. Sprawdź błędy formularza.',
+            ],
+        ], $controller->capturedFlashes);
+    }
+
     public function testRenameRejectsDuplicateCustomName(): void
     {
         $mediaImage = (new MediaImage())
@@ -115,6 +164,57 @@ final class MediaControllerTest extends TestCase
 
         $this->assertSame(Response::HTTP_FOUND, $response->getStatusCode());
         $this->assertSame('Current', $mediaImage->getCustomName());
+    }
+
+    public function testRenameHandlesUniqueConstraintViolationDuringFlush(): void
+    {
+        $mediaImage = (new MediaImage())
+            ->setOriginalFilename('hero.webp')
+            ->setCustomName('Current')
+            ->setFilePath('public/uploads/media/2026/04/05/media-image-1.webp')
+            ->setFileSize(1234)
+            ->setMimeType('image/webp');
+
+        $repository = $this->createMock(MediaImageRepository::class);
+        $repository
+            ->expects($this->once())
+            ->method('customNameExists')
+            ->with('Taken name', null)
+            ->willReturn(false);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager
+            ->expects($this->once())
+            ->method('flush')
+            ->willThrowException(new class() extends UniqueConstraintViolationException {
+                public function __construct()
+                {
+                }
+            });
+
+        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
+        $userLanguageResolver
+            ->expects($this->once())
+            ->method('translate')
+            ->with('Taka niestandardowa nazwa obrazka już istnieje.', 'This custom image name already exists.')
+            ->willReturn('Taka niestandardowa nazwa obrazka już istnieje.');
+
+        $controller = new TestMediaController();
+        $request = new Request([], [
+            '_token' => 'valid',
+            'custom_name' => 'Taken name',
+        ]);
+        $controller->setCsrfValidity(true);
+
+        $response = $controller->rename($mediaImage, $request, $repository, $entityManager, $userLanguageResolver);
+
+        $this->assertSame(Response::HTTP_FOUND, $response->getStatusCode());
+        $this->assertSame([
+            [
+                'type' => 'error',
+                'message' => 'Taka niestandardowa nazwa obrazka już istnieje.',
+            ],
+        ], $controller->capturedFlashes);
     }
 }
 

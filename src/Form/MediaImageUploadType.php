@@ -39,10 +39,9 @@ class MediaImageUploadType extends AbstractType
                             return;
                         }
 
-                        $extension = strtolower(pathinfo($value->getClientOriginalName(), PATHINFO_EXTENSION));
-                        $mimeType = strtolower((string) $value->getClientMimeType());
+                        $mimeType = MediaImageSupport::detectMimeType($value);
 
-                        if (!\in_array($extension, MediaImageSupport::ALLOWED_EXTENSIONS, true) || !\in_array($mimeType, MediaImageSupport::ALLOWED_MIME_TYPES, true)) {
+                        if (!MediaImageSupport::supportsFilename($value->getClientOriginalName()) || !MediaImageSupport::supportsMimeType($mimeType)) {
                             $context->buildViolation('validation_media_file_invalid')
                                 ->addViolation();
                         }

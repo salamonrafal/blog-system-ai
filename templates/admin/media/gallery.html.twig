@@ -60,6 +60,22 @@
             </div>
 
             {% if gallery_images is not empty %}
+                {% set upload_form_has_errors = upload_form.vars.errors|length > 0 or upload_form.imageFile.vars.errors|length > 0 %}
+
+                {% if upload_form_has_errors %}
+                    <div class="form-errors article-editor-errors media-gallery-upload-error" role="alert">
+                        <span class="article-action-icon is-warning media-gallery-upload-error-icon" aria-hidden="true"></span>
+                        <div class="media-gallery-upload-error-copy">
+                            {% for error in upload_form.vars.errors %}
+                                <p data-i18n="{{ error.message }}">{{ i18n_fallback(error.message) }}</p>
+                            {% endfor %}
+                            {% for error in upload_form.imageFile.vars.errors %}
+                                <p data-i18n="{{ error.message }}">{{ i18n_fallback(error.message) }}</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+
                 {{ form_start(upload_form, {
                     action: path('admin_media_gallery'),
                     attr: {
