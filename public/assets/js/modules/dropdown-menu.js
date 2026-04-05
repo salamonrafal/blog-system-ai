@@ -53,15 +53,6 @@ export function createDropdownMenu(root){
 
   const hideTooltip = ()=>{
     document.dispatchEvent(new Event('app:hide-tooltip'));
-    const activeTooltip = qs('.app-tooltip');
-    if(activeTooltip){
-      activeTooltip.setAttribute('hidden', '');
-      activeTooltip.setAttribute('aria-hidden', 'true');
-      activeTooltip.classList.remove('is-wide');
-      activeTooltip.classList.remove('is-wrap');
-      activeTooltip.classList.remove('is-multiline');
-      activeTooltip.textContent = '';
-    }
   };
 
   const suspendTooltip = ()=>{

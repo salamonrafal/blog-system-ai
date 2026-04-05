@@ -67,15 +67,6 @@ export function createArticleTableBuilder({ field, textarea, insertText, t }){
 
   const hideTooltip = (trigger = null)=>{
     document.dispatchEvent(new Event('app:hide-tooltip'));
-    const activeTooltip = qs('.app-tooltip');
-    if(activeTooltip){
-      activeTooltip.setAttribute('hidden', '');
-      activeTooltip.setAttribute('aria-hidden', 'true');
-      activeTooltip.classList.remove('is-wide');
-      activeTooltip.classList.remove('is-wrap');
-      activeTooltip.classList.remove('is-multiline');
-      activeTooltip.textContent = '';
-    }
     if(trigger instanceof HTMLElement){
       trigger.blur();
     }
@@ -363,10 +354,6 @@ export function createArticleTableBuilder({ field, textarea, insertText, t }){
     if(event.target === tableModal){
       closeTableModal();
     }
-  });
-
-  tableDialog.addEventListener('click', (event)=>{
-    event.stopPropagation();
   });
 
   tableHeaderToggle.addEventListener('change', ()=>{
