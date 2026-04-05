@@ -334,7 +334,10 @@ export function createArticleTableBuilder({ field, textarea, insertText, t }){
   });
 
   tableGrid.addEventListener('mouseover', (event)=>{
-    if(event.target.closest('[data-markup-table-add-row-zone]')){
+    const target = event.target instanceof Element ? event.target : null;
+    if(!target) return;
+
+    if(target.closest('[data-markup-table-add-row-zone]')){
       const columnIndex = getColumnIndexFromPointer(event.clientX);
       if(columnIndex !== null){
         syncHoveredColumn(columnIndex);
@@ -344,7 +347,7 @@ export function createArticleTableBuilder({ field, textarea, insertText, t }){
       return;
     }
 
-    const cell = event.target.closest('.article-editor-table-cell[data-column-index]');
+    const cell = target.closest('.article-editor-table-cell[data-column-index]');
     syncHoveredColumn(cell ? Number(cell.getAttribute('data-column-index')) : null);
   });
 
@@ -366,12 +369,15 @@ export function createArticleTableBuilder({ field, textarea, insertText, t }){
   });
 
   tableGrid.addEventListener('focusin', (event)=>{
-    if(event.target.closest('[data-markup-table-add-row-zone]')){
+    const target = event.target instanceof Element ? event.target : null;
+    if(!target) return;
+
+    if(target.closest('[data-markup-table-add-row-zone]')){
       updateAddRowButtonPosition();
       return;
     }
 
-    const cell = event.target.closest('.article-editor-table-cell[data-column-index]');
+    const cell = target.closest('.article-editor-table-cell[data-column-index]');
     if(!cell) return;
     syncHoveredColumn(Number(cell.getAttribute('data-column-index')));
   });
@@ -383,7 +389,8 @@ export function createArticleTableBuilder({ field, textarea, insertText, t }){
   });
 
   tableGrid.addEventListener('input', (event)=>{
-    const input = event.target.closest('[data-markup-table-input]');
+    const target = event.target instanceof Element ? event.target : null;
+    const input = target ? target.closest('[data-markup-table-input]') : null;
     if(!input) return;
 
     const rowType = input.getAttribute('data-row-type');
@@ -404,7 +411,10 @@ export function createArticleTableBuilder({ field, textarea, insertText, t }){
   });
 
   tableGrid.addEventListener('click', (event)=>{
-    const addColumnButton = event.target.closest('[data-markup-table-add-column]');
+    const target = event.target instanceof Element ? event.target : null;
+    if(!target) return;
+
+    const addColumnButton = target.closest('[data-markup-table-add-column]');
     if(addColumnButton){
       const nextIndex = getColumnCount(tableState);
       tableState.header.push(getTableHeaderValue(nextIndex));
@@ -420,7 +430,7 @@ export function createArticleTableBuilder({ field, textarea, insertText, t }){
       return;
     }
 
-    const removeColumnButton = event.target.closest('[data-markup-table-remove-column]');
+    const removeColumnButton = target.closest('[data-markup-table-remove-column]');
     if(removeColumnButton){
       if(getColumnCount(tableState) <= 1) return;
       const columnIndex = Number(removeColumnButton.getAttribute('data-column-index') || -1);
@@ -431,7 +441,7 @@ export function createArticleTableBuilder({ field, textarea, insertText, t }){
       return;
     }
 
-    const addRowButton = event.target.closest('[data-markup-table-add-row]');
+    const addRowButton = target.closest('[data-markup-table-add-row]');
     if(addRowButton){
       const nextRowIndex = tableState.rows.length;
       const targetColumnIndex = hoveredColumnIndex ?? 0;
@@ -446,7 +456,7 @@ export function createArticleTableBuilder({ field, textarea, insertText, t }){
       return;
     }
 
-    const removeRowButton = event.target.closest('[data-markup-table-remove-row]');
+    const removeRowButton = target.closest('[data-markup-table-remove-row]');
     if(removeRowButton){
       if(tableState.rows.length <= 1) return;
       const rowIndex = Number(removeRowButton.getAttribute('data-row-index') || -1);

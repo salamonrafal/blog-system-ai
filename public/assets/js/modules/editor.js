@@ -148,7 +148,8 @@ export function setupArticleMarkupEditor(){
     };
 
     toolbar.addEventListener('mousedown', (event)=>{
-      const button = event.target.closest('[data-markup-action]');
+      const target = event.target instanceof Element ? event.target : null;
+      const button = target ? target.closest('[data-markup-action]') : null;
       if(!button) return;
 
       const action = button.getAttribute('data-markup-action');
@@ -164,7 +165,8 @@ export function setupArticleMarkupEditor(){
     });
 
     toolbar.addEventListener('click', (event)=>{
-      const button = event.target.closest('[data-markup-action]');
+      const target = event.target instanceof Element ? event.target : null;
+      const button = target ? target.closest('[data-markup-action]') : null;
       if(!button) return;
 
       const action = button.getAttribute('data-markup-action');
