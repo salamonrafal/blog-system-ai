@@ -485,6 +485,11 @@
   background:color-mix(in oklab, var(--panel-2) 84%, var(--accent) 16%);
 }
 
+.article-editor-toolbar-select-headings .app-select-option{
+  justify-content:center;
+  text-align:center;
+}
+
 .article-editor-toolbar-divider{
   align-self:stretch;
   width:1px;
@@ -517,6 +522,19 @@
   transition: background-color .16s ease, border-color .16s ease, color .16s ease, transform .16s ease;
 }
 
+.article-editor-toolbar-button[data-dropdown-menu-trigger]{
+  gap:4px;
+  padding-right:6px;
+}
+
+.app-dropdown-menu-item:hover,
+.app-dropdown-menu-item:focus-visible,
+.app-dropdown-menu.is-open > .article-editor-toolbar-button{
+  border-color:color-mix(in oklab, var(--accent) 20%, var(--border));
+  background:color-mix(in oklab, var(--panel-2) 80%, var(--accent) 8%);
+  color:var(--accent);
+}
+
 .article-editor-toolbar-button:hover,
 .article-editor-toolbar-button:focus-visible{
   border-color: color-mix(in oklab, var(--accent) 42%, var(--border));
@@ -539,6 +557,21 @@
 }
 
 .article-editor-toolbar-icon svg{
+  width:100%;
+  height:100%;
+}
+
+.article-editor-toolbar-caret{
+  width:10px;
+  height:10px;
+  flex:0 0 auto;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  opacity:.84;
+}
+
+.article-editor-toolbar-caret svg{
   width:100%;
   height:100%;
 }
@@ -632,6 +665,7 @@
   gap:14px;
   min-height:0;
   overflow-y:auto;
+  overflow-x:visible;
   padding-right:4px;
   color:var(--muted);
 }

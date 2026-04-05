@@ -1,6 +1,6 @@
 import { getLang } from './preferences.js';
 import { i18n, registerI18nListener } from './i18n.js';
-import { qs, qsa } from './shared.js';
+import { lockDocumentScroll, qs, qsa, unlockDocumentScroll } from './shared.js';
 
 export function setupImagePreview(){
   const triggers = qsa('[data-action="open-image-preview"]');
@@ -142,7 +142,7 @@ export function setupImagePreview(){
   const closePreview = ()=>{
     modal.setAttribute('hidden', '');
     modal.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = '';
+    unlockDocumentScroll();
     dialog.classList.remove('is-fullscreen');
     syncFullscreenToggle();
     if(lastTrigger){
@@ -166,7 +166,7 @@ export function setupImagePreview(){
     syncFullscreenToggle();
     modal.removeAttribute('hidden');
     modal.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
+    lockDocumentScroll();
     closeButton.focus();
   };
 

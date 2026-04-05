@@ -1,5 +1,7 @@
+import { createDropdownMenu } from './dropdown-menu.js';
+import { createArticleTableBuilder } from './editor-table-builder.js';
 import { getTranslation } from './i18n.js';
-import { qs, qsa } from './shared.js';
+import { hideAppTooltip, lockDocumentScroll, qs, qsa, restoreElementTooltip, suspendElementTooltip, unlockDocumentScroll } from './shared.js';
 
 export function setupArticleMarkupEditor(){
   const editors = qsa('[data-markup-editor]');
@@ -64,6 +66,7 @@ export function setupArticleMarkupEditor(){
     const field = textarea.closest('.article-editor-field');
     const toolbar = qs('[data-markup-toolbar]', field);
     const headingSelect = qs('[data-markup-heading-select]', field);
+    const blocksMenu = qs('[data-markup-blocks-menu]', field);
     const helpModal = qs('[data-markup-help-modal]', field);
     const helpDialog = qs('.article-editor-help-dialog', helpModal);
     const helpClose = qs('[data-markup-help-close]', helpModal);
@@ -72,6 +75,14 @@ export function setupArticleMarkupEditor(){
     let lastHelpTrigger = null;
 
     if(!toolbar) return;
+
+    const tableBuilder = createArticleTableBuilder({
+      field,
+      textarea,
+      insertText,
+      t,
+    });
+    const blocksDropdown = createDropdownMenu(blocksMenu);
 
     const activateHelpTab = (name)=>{
       if(!helpTabs.length || !helpPanels.length) return;
@@ -90,85 +101,141 @@ export function setupArticleMarkupEditor(){
       });
     };
 
+    const closeBlocksMenu = (options = {})=> blocksDropdown?.close(options);
+    const closeBlocksMenuForAction = ()=> closeBlocksMenu();
+
+    let restoreHelpTooltipFrame = 0;
+
     const closeHelpModal = ()=>{
       if(!helpModal) return;
+      if(restoreHelpTooltipFrame){
+        cancelAnimationFrame(restoreHelpTooltipFrame);
+        restoreHelpTooltipFrame = 0;
+      }
+
       helpModal.setAttribute('hidden', '');
       helpModal.setAttribute('aria-hidden', 'true');
-      document.body.style.overflow = '';
+      unlockDocumentScroll();
       if(lastHelpTrigger){
+        hideAppTooltip();
         lastHelpTrigger.focus({ preventScroll: true });
+        restoreHelpTooltipFrame = requestAnimationFrame(()=>{
+          restoreHelpTooltipFrame = 0;
+          if(!helpModal.hasAttribute('hidden')) return;
+          restoreElementTooltip(lastHelpTrigger);
+        });
       }
       lastHelpTrigger = null;
     };
 
     const openHelpModal = (trigger)=>{
       if(!helpModal) return;
+      if(restoreHelpTooltipFrame){
+        cancelAnimationFrame(restoreHelpTooltipFrame);
+        restoreHelpTooltipFrame = 0;
+      }
       lastHelpTrigger = trigger;
+      suspendElementTooltip(trigger);
       activateHelpTab('basic');
       helpModal.removeAttribute('hidden');
       helpModal.setAttribute('aria-hidden', 'false');
-      document.body.style.overflow = 'hidden';
-      if(helpClose){
-        helpClose.focus({ preventScroll: true });
+      lockDocumentScroll();
+      hideAppTooltip();
+      if(helpDialog){
+        helpDialog.setAttribute('tabindex', '-1');
+        helpDialog.focus({ preventScroll: true });
       }
     };
 
     toolbar.addEventListener('mousedown', (event)=>{
-      const button = event.target.closest('[data-markup-action]');
+      const target = event.target instanceof Element ? event.target : null;
+      const button = target ? target.closest('[data-markup-action]') : null;
       if(!button) return;
 
       const action = button.getAttribute('data-markup-action');
+      if(action === 'table-builder'){
+        tableBuilder.handleToolbarMouseDown(button);
+      }
+      if(action === 'help'){
+        hideAppTooltip();
+      }
       if(action && action !== 'help'){
         event.preventDefault();
       }
     });
 
     toolbar.addEventListener('click', (event)=>{
-      const button = event.target.closest('[data-markup-action]');
+      const target = event.target instanceof Element ? event.target : null;
+      const button = target ? target.closest('[data-markup-action]') : null;
       if(!button) return;
 
       const action = button.getAttribute('data-markup-action');
       if(!action) return;
 
       if(action === 'help'){
+        closeBlocksMenu();
         openHelpModal(button);
         return;
       }
 
-      if(['bold', 'italic', 'underline', 'inline-code'].includes(action)) return applyInlineFormat(textarea, action);
-      if(action === 'line-break') return insertText(textarea, "\\\n");
-      if(action === 'separator') return insertText(textarea, "\n---\n");
+      if(action === 'table-builder'){
+        closeBlocksMenu();
+        tableBuilder.handleToolbarAction(button);
+        return;
+      }
+
+      if(['bold', 'italic', 'underline', 'inline-code'].includes(action)){
+        closeBlocksMenuForAction();
+        return applyInlineFormat(textarea, action);
+      }
+      if(action === 'line-break'){
+        closeBlocksMenuForAction();
+        return insertText(textarea, "\\\n");
+      }
+      if(action === 'separator'){
+        closeBlocksMenuForAction();
+        return insertText(textarea, "\n---\n");
+      }
       if(action === 'table'){
+        closeBlocksMenuForAction();
         return insertText(
           textarea,
           `| ${t('editor_table_column_a')} | ${t('editor_table_column_b')} |\n| --- | --- |\n| ${t('editor_table_value_1')} | ${t('editor_table_value_2')} |`
         );
       }
       if(action === 'preformatted'){
+        closeBlocksMenuForAction();
         return transformSelectedLines(textarea, (value)=> `:::pre\n${value || t('editor_placeholder_preformatted')}\n:::`);
       }
       if(action === 'quote'){
+        closeBlocksMenuForAction();
         return transformSelectedLines(textarea, (value)=> value.split('\n').map((line)=> `> ${line.replace(/^\s*>\s?/, '')}`).join('\n'));
       }
       if(action === 'bullet-list'){
+        closeBlocksMenuForAction();
         return transformSelectedLines(textarea, (value)=> value.split('\n').map((line)=> `- ${line.replace(/^\s*[-*]\s+/, '').trim() || t('editor_placeholder_list_item')}`).join('\n'));
       }
       if(action === 'numbered-list'){
+        closeBlocksMenuForAction();
         return transformSelectedLines(textarea, (value)=> value.split('\n').map((line, index)=> `${index + 1}. ${line.replace(/^\s*\d+\.\s+/, '').trim() || t('editor_placeholder_list_item')}`).join('\n'));
       }
       if(action === 'align'){
+        closeBlocksMenuForAction();
         const align = button.getAttribute('data-markup-align') || 'left';
         return transformSelectedLines(textarea, (value)=> `:::${align}\n${value.trim() || t('editor_placeholder_aligned_text')}\n:::`);
       }
       if(action === 'code-block'){
+        closeBlocksMenuForAction();
         return wrapSelection(textarea, "```\n", "\n```", t('editor_placeholder_code_block'));
       }
       if(action === 'link'){
+        closeBlocksMenuForAction();
         const url = window.prompt(t('editor_prompt_link_url'), 'https://');
         if(!url) return;
         return wrapSelection(textarea, '[', `](${url})`, t('editor_placeholder_link_text'));
       }
       if(action === 'image'){
+        closeBlocksMenuForAction();
         const url = window.prompt(t('editor_prompt_image_url'), 'https://');
         if(!url) return;
         return wrapSelection(textarea, '![', `](${url})`, t('editor_placeholder_image_alt'));
@@ -222,6 +289,14 @@ export function setupArticleMarkupEditor(){
         if(event.target === helpModal){
           closeHelpModal();
         }
+      });
+
+      helpModal.addEventListener('focusin', ()=>{
+        hideAppTooltip();
+      });
+
+      helpModal.addEventListener('pointerenter', ()=>{
+        hideAppTooltip();
       });
     }
 

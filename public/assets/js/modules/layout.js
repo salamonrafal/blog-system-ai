@@ -104,6 +104,10 @@ export function setupTooltips(){
     hideTooltip();
   });
 
+  document.addEventListener('app:hide-tooltip', ()=>{
+    hideTooltip();
+  });
+
   window.addEventListener('scroll', ()=>{
     if(activeTrigger) positionTooltip(activeTrigger);
   }, { passive: true });

@@ -6,6 +6,76 @@ export function qsa(sel, root = document){
   return [...root.querySelectorAll(sel)];
 }
 
+function getScrollLockCount(doc){
+  const parsedCount = Number(doc.dataset.scrollLockCount);
+  return Number.isFinite(parsedCount) && parsedCount > 0 ? parsedCount : 0;
+}
+
+export function lockDocumentScroll(){
+  const doc = document.documentElement;
+  const body = document.body;
+  if(!body) return;
+
+  const currentLocks = getScrollLockCount(doc);
+  if(currentLocks === 0){
+    doc.dataset.scrollLockHtmlOverflow = doc.style.overflow || '';
+    doc.dataset.scrollLockBodyOverflow = body.style.overflow || '';
+    doc.style.overflow = 'hidden';
+    body.style.overflow = 'hidden';
+  }
+
+  doc.dataset.scrollLockCount = String(currentLocks + 1);
+}
+
+export function unlockDocumentScroll(){
+  const doc = document.documentElement;
+  const body = document.body;
+  if(!body) return;
+
+  const currentLocks = getScrollLockCount(doc);
+  if(currentLocks === 0) return;
+
+  if(currentLocks <= 1){
+    doc.style.overflow = doc.dataset.scrollLockHtmlOverflow || '';
+    body.style.overflow = doc.dataset.scrollLockBodyOverflow || '';
+    delete doc.dataset.scrollLockCount;
+    delete doc.dataset.scrollLockHtmlOverflow;
+    delete doc.dataset.scrollLockBodyOverflow;
+    return;
+  }
+
+  doc.dataset.scrollLockCount = String(currentLocks - 1);
+}
+
+export function hideAppTooltip({ blurTarget = null } = {}){
+  document.dispatchEvent(new Event('app:hide-tooltip'));
+  if(blurTarget instanceof HTMLElement){
+    blurTarget.blur();
+  }
+}
+
+export function suspendElementTooltip(element){
+  if(!(element instanceof HTMLElement)) return;
+
+  const tooltip = element.getAttribute('data-tooltip');
+  if(tooltip !== null){
+    element.setAttribute('data-suspended-tooltip', tooltip);
+    element.removeAttribute('data-tooltip');
+  }
+}
+
+export function restoreElementTooltip(element){
+  if(!(element instanceof HTMLElement)) return;
+
+  const tooltip = element.getAttribute('data-suspended-tooltip');
+  if(tooltip === null) return;
+
+  if(element.getAttribute('data-tooltip') === null){
+    element.setAttribute('data-tooltip', tooltip);
+  }
+  element.removeAttribute('data-suspended-tooltip');
+}
+
 export function sleep(ms){
   return new Promise((resolve)=> setTimeout(resolve, ms));
 }

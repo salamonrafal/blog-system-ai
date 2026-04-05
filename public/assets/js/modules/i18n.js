@@ -93,7 +93,11 @@ export function applyI18n(lang){
   qsa('[data-i18n-tooltip]').forEach((element)=>{
     const key = element.getAttribute('data-i18n-tooltip');
     if(translations[key] !== undefined){
-      element.setAttribute('data-tooltip', translations[key]);
+      if(element.hasAttribute('data-suspended-tooltip')){
+        element.setAttribute('data-suspended-tooltip', translations[key]);
+      }else{
+        element.setAttribute('data-tooltip', translations[key]);
+      }
       element.removeAttribute('title');
     }
   });
