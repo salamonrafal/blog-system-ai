@@ -168,8 +168,7 @@ export function createArticleTableBuilder({ field, textarea, insertText, t }){
           : `${t('editor_table_row_label')} ${displayRowIndex}, ${t('editor_table_column_label')} ${columnIndex + 1}`;
 
         return `
-          <label class="article-editor-table-cell${row.type === 'header' ? ' is-header' : ''}${isColumnControlRow ? ' is-column-control-row' : ''}" data-column-index="${columnIndex}">
-            <span class="sr-only">${label}</span>
+          <div class="article-editor-table-cell${row.type === 'header' ? ' is-header' : ''}${isColumnControlRow ? ' is-column-control-row' : ''}" data-column-index="${columnIndex}">
             <input
               type="text"
               class="article-editor-input article-editor-table-input"
@@ -177,6 +176,7 @@ export function createArticleTableBuilder({ field, textarea, insertText, t }){
               data-row-type="${row.type}"
               data-row-index="${row.type === 'header' ? 0 : tableState.hasHeader ? rowIndex - 1 : rowIndex}"
               data-column-index="${columnIndex}"
+              aria-label="${escapeHtmlAttribute(label)}"
               value="${escapeHtmlAttribute(value)}"
             >
             ${isColumnControlRow ? `
@@ -202,7 +202,7 @@ export function createArticleTableBuilder({ field, textarea, insertText, t }){
                 ` : ''}
               </span>
             ` : ''}
-          </label>
+          </div>
         `;
       }).join('');
 
@@ -498,12 +498,10 @@ export function createArticleTableBuilder({ field, textarea, insertText, t }){
     renderTableGrid();
   });
 
-  document.addEventListener('keydown', (event)=>{
-    if(tableModal.hasAttribute('hidden')) return;
-    if(event.key === 'Escape'){
-      event.preventDefault();
-      closeTableModal();
-    }
+  tableModal.addEventListener('keydown', (event)=>{
+    if(event.key !== 'Escape') return;
+    event.preventDefault();
+    closeTableModal();
   });
 
   return {

@@ -3,10 +3,18 @@ import { qs } from './shared.js';
 const dropdownMenuInstances = new Set();
 let dropdownMenuGlobalsBound = false;
 
+function pruneDisconnectedDropdownMenus(){
+  dropdownMenuInstances.forEach((instance)=>{
+    if(instance.root.isConnected) return;
+    dropdownMenuInstances.delete(instance);
+  });
+}
+
 function bindDropdownMenuGlobals(){
   if(dropdownMenuGlobalsBound) return;
 
   document.addEventListener('click', (event)=>{
+    pruneDisconnectedDropdownMenus();
     dropdownMenuInstances.forEach((instance)=>{
       if(!instance.isOpen()) return;
       if(instance.root.contains(event.target)) return;
@@ -17,6 +25,7 @@ function bindDropdownMenuGlobals(){
   document.addEventListener('keydown', (event)=>{
     if(event.key !== 'Escape') return;
 
+    pruneDisconnectedDropdownMenus();
     let handled = false;
     dropdownMenuInstances.forEach((instance)=>{
       if(!instance.isOpen()) return;
@@ -112,8 +121,14 @@ export function createDropdownMenu(root){
     toggle();
   });
 
+  const destroy = ()=>{
+    close();
+    dropdownMenuInstances.delete(instance);
+  };
+
   const instance = {
     close,
+    destroy,
     isOpen,
     open,
     panel,

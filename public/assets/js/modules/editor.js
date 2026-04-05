@@ -103,13 +103,38 @@ export function setupArticleMarkupEditor(){
 
     const closeBlocksMenu = (options = {})=> blocksDropdown?.close(options);
 
+    const hideTooltip = ()=>{
+      document.dispatchEvent(new Event('app:hide-tooltip'));
+    };
+
+    const suspendTooltip = (trigger)=>{
+      if(!(trigger instanceof HTMLElement)) return;
+      const tooltip = trigger.getAttribute('data-tooltip');
+      if(tooltip !== null){
+        trigger.setAttribute('data-suspended-tooltip', tooltip);
+        trigger.removeAttribute('data-tooltip');
+      }
+    };
+
+    const restoreTooltip = (trigger)=>{
+      if(!(trigger instanceof HTMLElement)) return;
+      const tooltip = trigger.getAttribute('data-suspended-tooltip');
+      if(tooltip === null) return;
+      trigger.setAttribute('data-tooltip', tooltip);
+      trigger.removeAttribute('data-suspended-tooltip');
+    };
+
     const closeHelpModal = ()=>{
       if(!helpModal) return;
       helpModal.setAttribute('hidden', '');
       helpModal.setAttribute('aria-hidden', 'true');
       unlockDocumentScroll();
       if(lastHelpTrigger){
+        hideTooltip();
         lastHelpTrigger.focus({ preventScroll: true });
+        requestAnimationFrame(()=>{
+          restoreTooltip(lastHelpTrigger);
+        });
       }
       lastHelpTrigger = null;
     };
@@ -117,12 +142,15 @@ export function setupArticleMarkupEditor(){
     const openHelpModal = (trigger)=>{
       if(!helpModal) return;
       lastHelpTrigger = trigger;
+      suspendTooltip(trigger);
       activateHelpTab('basic');
       helpModal.removeAttribute('hidden');
       helpModal.setAttribute('aria-hidden', 'false');
       lockDocumentScroll();
-      if(helpClose){
-        helpClose.focus({ preventScroll: true });
+      hideTooltip();
+      if(helpDialog){
+        helpDialog.setAttribute('tabindex', '-1');
+        helpDialog.focus({ preventScroll: true });
       }
     };
 
@@ -133,6 +161,9 @@ export function setupArticleMarkupEditor(){
       const action = button.getAttribute('data-markup-action');
       if(action === 'table-builder'){
         tableBuilder.handleToolbarMouseDown(button);
+      }
+      if(action === 'help'){
+        hideTooltip();
       }
       if(action && action !== 'help'){
         event.preventDefault();
@@ -262,6 +293,14 @@ export function setupArticleMarkupEditor(){
         if(event.target === helpModal){
           closeHelpModal();
         }
+      });
+
+      helpModal.addEventListener('focusin', ()=>{
+        document.dispatchEvent(new Event('app:hide-tooltip'));
+      });
+
+      helpModal.addEventListener('pointerenter', ()=>{
+        document.dispatchEvent(new Event('app:hide-tooltip'));
       });
     }
 
