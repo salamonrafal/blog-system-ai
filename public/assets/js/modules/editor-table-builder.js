@@ -157,6 +157,7 @@ export function createArticleTableBuilder({ field, textarea, insertText, t }){
           <div class="article-editor-table-matrix" style="--article-table-columns:${columnCount};">
             ${rows.map((row, rowIndex)=>{
       const displayRowIndex = tableState.hasHeader ? rowIndex : rowIndex + 1;
+      const bodyRowIndex = tableState.hasHeader ? rowIndex - 1 : rowIndex;
       const isColumnControlRow = rowIndex === 0;
       const showRowActions = row.type === 'body';
       const cells = Array.from({ length: columnCount }, (_, columnIndex)=>{
@@ -214,9 +215,9 @@ export function createArticleTableBuilder({ field, textarea, insertText, t }){
                 type="button"
                 class="article-editor-table-icon-button article-editor-table-remove-row${tableState.rows.length <= 1 ? ' is-disabled' : ''}"
                 data-markup-table-remove-row
-                data-row-index="${tableState.hasHeader ? rowIndex - 1 : rowIndex}"
-                aria-label="${escapeHtmlAttribute(getRowRemoveLabel(displayRowIndex))}"
-                data-tooltip="${escapeHtmlAttribute(getRowRemoveLabel(displayRowIndex))}"
+                data-row-index="${bodyRowIndex}"
+                aria-label="${escapeHtmlAttribute(getRowRemoveLabel(bodyRowIndex))}"
+                data-tooltip="${escapeHtmlAttribute(getRowRemoveLabel(bodyRowIndex))}"
                 ${tableState.rows.length <= 1 ? 'disabled' : ''}
               ><span class="article-editor-table-icon article-editor-table-icon-minus" aria-hidden="true"></span></button>
             </div>
