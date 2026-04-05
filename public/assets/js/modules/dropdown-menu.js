@@ -110,6 +110,15 @@ export function createDropdownMenu(root){
     toggle();
   });
 
+  root.addEventListener('focusout', (event)=>{
+    if(!isOpen()) return;
+
+    const nextFocusedElement = event.relatedTarget;
+    if(nextFocusedElement instanceof Node && root.contains(nextFocusedElement)) return;
+
+    close({ restoreTooltipAsync: false });
+  });
+
   const destroy = ()=>{
     if(restoreTooltipFrame){
       cancelAnimationFrame(restoreTooltipFrame);
