@@ -40,26 +40,37 @@ class MediaOrphanArchiveService
         }
 
         $stagingDirectory = $this->createStagingDirectory();
+        $movedFiles = [];
 
-        foreach ($orphanedFiles as $relativePath) {
-            $targetPath = $stagingDirectory.'/'.$relativePath;
-            $this->ensureDirectoryExists(dirname($targetPath));
+        try {
+            foreach ($orphanedFiles as $relativePath) {
+                $targetPath = $stagingDirectory.'/'.$relativePath;
+                $this->ensureDirectoryExists(dirname($targetPath));
 
-            $sourcePath = $this->projectDir.'/'.$relativePath;
-            if (!@rename($sourcePath, $targetPath)) {
-                throw new \RuntimeException(sprintf('Failed to move orphaned media file "%s" to the staging directory.', $relativePath));
+                $sourcePath = $this->projectDir.'/'.$relativePath;
+                if (!@rename($sourcePath, $targetPath)) {
+                    throw new \RuntimeException(sprintf('Failed to move orphaned media file "%s" to the staging directory.', $relativePath));
+                }
+
+                $movedFiles[$relativePath] = $targetPath;
             }
+
+            $archivePath = $this->createArchiveFromStagingDirectory($stagingDirectory);
+            $this->removeDirectory($stagingDirectory);
+            $this->removeIfEmpty($this->getArchiveDirectory().'/tmp');
+            $this->removeEmptyDirectories($this->projectDir.'/'.trim($this->mediaDirectory, '/'));
+
+            return [
+                'archive_path' => $this->toProjectRelativePath($archivePath),
+                'moved_files' => $orphanedFiles,
+            ];
+        } catch (\Throwable $exception) {
+            $this->rollbackMovedFiles($movedFiles);
+            $this->cleanupStagingDirectory($stagingDirectory);
+            $this->removeIfEmpty($this->getArchiveDirectory().'/tmp');
+
+            throw $exception;
         }
-
-        $archivePath = $this->createArchiveFromStagingDirectory($stagingDirectory);
-        $this->removeDirectory($stagingDirectory);
-        $this->removeIfEmpty($this->getArchiveDirectory().'/tmp');
-        $this->removeEmptyDirectories($this->projectDir.'/'.trim($this->mediaDirectory, '/'));
-
-        return [
-            'archive_path' => $this->toProjectRelativePath($archivePath),
-            'moved_files' => $orphanedFiles,
-        ];
     }
 
     /**
@@ -120,7 +131,7 @@ class MediaOrphanArchiveService
         return $files;
     }
 
-    private function createStagingDirectory(): string
+    protected function createStagingDirectory(): string
     {
         $stagingDirectory = $this->getArchiveDirectory().'/tmp/'.gmdate('Ymd-His').'-'.bin2hex(random_bytes(4));
         $this->ensureDirectoryExists($stagingDirectory);
@@ -128,7 +139,7 @@ class MediaOrphanArchiveService
         return $stagingDirectory;
     }
 
-    private function createArchiveFromStagingDirectory(string $stagingDirectory): string
+    protected function createArchiveFromStagingDirectory(string $stagingDirectory): string
     {
         if (!class_exists(\ZipArchive::class)) {
             throw new \RuntimeException('ZipArchive extension is required to archive orphaned media files.');
@@ -267,6 +278,37 @@ class MediaOrphanArchiveService
 
         if (['.', '..'] === array_values($entries)) {
             @rmdir($directory);
+        }
+    }
+
+    /**
+     * @param array<string, string> $movedFiles
+     */
+    private function rollbackMovedFiles(array $movedFiles): void
+    {
+        foreach (array_reverse($movedFiles, true) as $relativePath => $stagedPath) {
+            if (!is_file($stagedPath)) {
+                continue;
+            }
+
+            $originalPath = $this->projectDir.'/'.$relativePath;
+            $this->ensureDirectoryExists(dirname($originalPath));
+
+            if (!@rename($stagedPath, $originalPath)) {
+                throw new \RuntimeException(sprintf('Failed to restore orphaned media file "%s" after archive failure.', $relativePath));
+            }
+        }
+    }
+
+    private function cleanupStagingDirectory(string $stagingDirectory): void
+    {
+        if (!is_dir($stagingDirectory)) {
+            return;
+        }
+
+        try {
+            $this->removeDirectory($stagingDirectory);
+        } catch (\Throwable) {
         }
     }
 

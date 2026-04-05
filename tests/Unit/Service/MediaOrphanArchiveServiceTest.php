@@ -80,6 +80,35 @@ final class MediaOrphanArchiveServiceTest extends TestCase
         $this->assertFileExists($this->projectDir.'/'.$gitkeepPath);
     }
 
+    public function testArchiveOrphansRestoresMovedFilesWhenArchiveCreationFails(): void
+    {
+        $orphanPath = 'public/uploads/media/2026/04/05/orphan-one.webp';
+        $this->createFile($orphanPath, 'orphan-one');
+
+        /** @var MediaImageRepository&MockObject $repository */
+        $repository = $this->createMock(MediaImageRepository::class);
+        $repository
+            ->method('findAllStoredFilePaths')
+            ->willReturn([]);
+
+        $service = new class($repository, $this->projectDir, 'public/uploads/media') extends MediaOrphanArchiveService {
+            protected function createArchiveFromStagingDirectory(string $stagingDirectory): string
+            {
+                throw new \RuntimeException('Archive creation failed.');
+            }
+        };
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Archive creation failed.');
+
+        try {
+            $service->archiveOrphans();
+        } finally {
+            $this->assertFileExists($this->projectDir.'/'.$orphanPath);
+            $this->assertDirectoryDoesNotExist($this->projectDir.'/var/media-orphans/tmp');
+        }
+    }
+
     private function createService(array $storedFilePaths, array $ignoredFilenames = ['.gitkeep']): MediaOrphanArchiveService
     {
         /** @var MediaImageRepository&MockObject $repository */

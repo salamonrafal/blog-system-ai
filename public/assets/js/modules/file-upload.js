@@ -40,6 +40,7 @@ function bindFileUpload(root){
   }
 
   const dropEnabled = isDropEnabled(root);
+  let dragDepth = 0;
   root.classList.toggle('is-drop-disabled', !dropEnabled);
   updateFileUploadState(root);
 
@@ -59,22 +60,36 @@ function bindFileUpload(root){
   ['dragenter', 'dragover'].forEach((eventName)=>{
     surface.addEventListener(eventName, (event)=>{
       event.preventDefault();
+
+      if(eventName === 'dragenter'){
+        dragDepth += 1;
+      }
+
       root.classList.add('is-drag-over');
       updateFileUploadState(root);
     });
   });
 
-  ['dragleave', 'dragend'].forEach((eventName)=>{
-    surface.addEventListener(eventName, (event)=>{
-      event.preventDefault();
-      if(event.target !== surface) return;
+  surface.addEventListener('dragleave', (event)=>{
+    event.preventDefault();
+    dragDepth = Math.max(0, dragDepth - 1);
+
+    if(dragDepth === 0){
       setIdleState(root);
       updateFileUploadState(root);
-    });
+    }
+  });
+
+  surface.addEventListener('dragend', (event)=>{
+    event.preventDefault();
+    dragDepth = 0;
+    setIdleState(root);
+    updateFileUploadState(root);
   });
 
   surface.addEventListener('drop', (event)=>{
     event.preventDefault();
+    dragDepth = 0;
     setIdleState(root);
 
     const files = event.dataTransfer?.files;
