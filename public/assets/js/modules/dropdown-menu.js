@@ -80,13 +80,21 @@ export function createDropdownMenu(root){
   };
 
   const isOpen = ()=> root.classList.contains('is-open');
+  let restoreTooltipFrame = 0;
 
   const close = ({ restoreFocus = false } = {})=>{
+    if(restoreTooltipFrame){
+      cancelAnimationFrame(restoreTooltipFrame);
+      restoreTooltipFrame = 0;
+    }
+
     root.classList.remove('is-open');
     panel.hidden = true;
     trigger.setAttribute('aria-expanded', 'false');
     hideTooltip();
-    requestAnimationFrame(()=>{
+    restoreTooltipFrame = requestAnimationFrame(()=>{
+      restoreTooltipFrame = 0;
+      if(isOpen()) return;
       restoreTooltip();
     });
 
@@ -96,6 +104,11 @@ export function createDropdownMenu(root){
   };
 
   const open = ()=>{
+    if(restoreTooltipFrame){
+      cancelAnimationFrame(restoreTooltipFrame);
+      restoreTooltipFrame = 0;
+    }
+
     hideTooltip();
     suspendTooltip();
     root.classList.add('is-open');
@@ -122,6 +135,10 @@ export function createDropdownMenu(root){
   });
 
   const destroy = ()=>{
+    if(restoreTooltipFrame){
+      cancelAnimationFrame(restoreTooltipFrame);
+      restoreTooltipFrame = 0;
+    }
     close();
     dropdownMenuInstances.delete(instance);
   };

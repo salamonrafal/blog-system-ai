@@ -100,6 +100,7 @@ export function createArticleTableBuilder({ field, textarea, insertText, t }){
 
   let lastTableTrigger = null;
   let hoveredColumnIndex = null;
+  let restoreTooltipFrame = 0;
   const tableState = createTableState();
 
   const updateAddRowButtonPosition = ()=>{
@@ -279,14 +280,24 @@ export function createArticleTableBuilder({ field, textarea, insertText, t }){
   };
 
   const closeTableModal = ()=>{
+    if(restoreTooltipFrame){
+      cancelAnimationFrame(restoreTooltipFrame);
+      restoreTooltipFrame = 0;
+    }
+
     tableModal.setAttribute('hidden', '');
     tableModal.setAttribute('aria-hidden', 'true');
     unlockDocumentScroll();
     const trigger = lastTableTrigger;
     hideTooltip();
+    tableCloseButtons.forEach((button)=>{
+      restoreTooltip(button);
+    });
     if(trigger){
       trigger.focus({ preventScroll: true });
-      requestAnimationFrame(()=>{
+      restoreTooltipFrame = requestAnimationFrame(()=>{
+        restoreTooltipFrame = 0;
+        if(!tableModal.hasAttribute('hidden')) return;
         restoreTooltip(trigger);
       });
     }
@@ -294,9 +305,17 @@ export function createArticleTableBuilder({ field, textarea, insertText, t }){
   };
 
   const openTableModal = (trigger)=>{
+    if(restoreTooltipFrame){
+      cancelAnimationFrame(restoreTooltipFrame);
+      restoreTooltipFrame = 0;
+    }
+
     lastTableTrigger = trigger;
     suspendTooltip(trigger);
     hideTooltip(trigger);
+    tableCloseButtons.forEach((button)=>{
+      suspendTooltip(button);
+    });
     renderTableGrid();
     tableModal.removeAttribute('hidden');
     tableModal.setAttribute('aria-hidden', 'false');

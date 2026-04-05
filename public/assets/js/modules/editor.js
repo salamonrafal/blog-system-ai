@@ -123,16 +123,24 @@ export function setupArticleMarkupEditor(){
       trigger.setAttribute('data-tooltip', tooltip);
       trigger.removeAttribute('data-suspended-tooltip');
     };
+    let restoreHelpTooltipFrame = 0;
 
     const closeHelpModal = ()=>{
       if(!helpModal) return;
+      if(restoreHelpTooltipFrame){
+        cancelAnimationFrame(restoreHelpTooltipFrame);
+        restoreHelpTooltipFrame = 0;
+      }
+
       helpModal.setAttribute('hidden', '');
       helpModal.setAttribute('aria-hidden', 'true');
       unlockDocumentScroll();
       if(lastHelpTrigger){
         hideTooltip();
         lastHelpTrigger.focus({ preventScroll: true });
-        requestAnimationFrame(()=>{
+        restoreHelpTooltipFrame = requestAnimationFrame(()=>{
+          restoreHelpTooltipFrame = 0;
+          if(!helpModal.hasAttribute('hidden')) return;
           restoreTooltip(lastHelpTrigger);
         });
       }
@@ -141,6 +149,10 @@ export function setupArticleMarkupEditor(){
 
     const openHelpModal = (trigger)=>{
       if(!helpModal) return;
+      if(restoreHelpTooltipFrame){
+        cancelAnimationFrame(restoreHelpTooltipFrame);
+        restoreHelpTooltipFrame = 0;
+      }
       lastHelpTrigger = trigger;
       suspendTooltip(trigger);
       activateHelpTab('basic');
