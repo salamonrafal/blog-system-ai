@@ -481,6 +481,7 @@ export function createArticleTableBuilder({ field, textarea, insertText, t }){
   });
 
   window.addEventListener('resize', ()=>{
+    if(tableModal.hasAttribute('hidden')) return;
     syncTableOverflow();
     updateAddRowButtonPosition();
   });
