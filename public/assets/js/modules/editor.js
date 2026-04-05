@@ -102,9 +102,7 @@ export function setupArticleMarkupEditor(){
     };
 
     const closeBlocksMenu = (options = {})=> blocksDropdown?.close(options);
-    const closeBlocksMenuForAction = (button)=> closeBlocksMenu({
-      restoreFocus: Boolean(button?.closest('[data-dropdown-menu-panel]')),
-    });
+    const closeBlocksMenuForAction = ()=> closeBlocksMenu();
 
     let restoreHelpTooltipFrame = 0;
 
@@ -185,57 +183,57 @@ export function setupArticleMarkupEditor(){
       }
 
       if(['bold', 'italic', 'underline', 'inline-code'].includes(action)){
-        closeBlocksMenuForAction(button);
+        closeBlocksMenuForAction();
         return applyInlineFormat(textarea, action);
       }
       if(action === 'line-break'){
-        closeBlocksMenuForAction(button);
+        closeBlocksMenuForAction();
         return insertText(textarea, "\\\n");
       }
       if(action === 'separator'){
-        closeBlocksMenuForAction(button);
+        closeBlocksMenuForAction();
         return insertText(textarea, "\n---\n");
       }
       if(action === 'table'){
-        closeBlocksMenuForAction(button);
+        closeBlocksMenuForAction();
         return insertText(
           textarea,
           `| ${t('editor_table_column_a')} | ${t('editor_table_column_b')} |\n| --- | --- |\n| ${t('editor_table_value_1')} | ${t('editor_table_value_2')} |`
         );
       }
       if(action === 'preformatted'){
-        closeBlocksMenuForAction(button);
+        closeBlocksMenuForAction();
         return transformSelectedLines(textarea, (value)=> `:::pre\n${value || t('editor_placeholder_preformatted')}\n:::`);
       }
       if(action === 'quote'){
-        closeBlocksMenuForAction(button);
+        closeBlocksMenuForAction();
         return transformSelectedLines(textarea, (value)=> value.split('\n').map((line)=> `> ${line.replace(/^\s*>\s?/, '')}`).join('\n'));
       }
       if(action === 'bullet-list'){
-        closeBlocksMenuForAction(button);
+        closeBlocksMenuForAction();
         return transformSelectedLines(textarea, (value)=> value.split('\n').map((line)=> `- ${line.replace(/^\s*[-*]\s+/, '').trim() || t('editor_placeholder_list_item')}`).join('\n'));
       }
       if(action === 'numbered-list'){
-        closeBlocksMenuForAction(button);
+        closeBlocksMenuForAction();
         return transformSelectedLines(textarea, (value)=> value.split('\n').map((line, index)=> `${index + 1}. ${line.replace(/^\s*\d+\.\s+/, '').trim() || t('editor_placeholder_list_item')}`).join('\n'));
       }
       if(action === 'align'){
-        closeBlocksMenuForAction(button);
+        closeBlocksMenuForAction();
         const align = button.getAttribute('data-markup-align') || 'left';
         return transformSelectedLines(textarea, (value)=> `:::${align}\n${value.trim() || t('editor_placeholder_aligned_text')}\n:::`);
       }
       if(action === 'code-block'){
-        closeBlocksMenuForAction(button);
+        closeBlocksMenuForAction();
         return wrapSelection(textarea, "```\n", "\n```", t('editor_placeholder_code_block'));
       }
       if(action === 'link'){
-        closeBlocksMenuForAction(button);
+        closeBlocksMenuForAction();
         const url = window.prompt(t('editor_prompt_link_url'), 'https://');
         if(!url) return;
         return wrapSelection(textarea, '[', `](${url})`, t('editor_placeholder_link_text'));
       }
       if(action === 'image'){
-        closeBlocksMenuForAction(button);
+        closeBlocksMenuForAction();
         const url = window.prompt(t('editor_prompt_image_url'), 'https://');
         if(!url) return;
         return wrapSelection(textarea, '![', `](${url})`, t('editor_placeholder_image_alt'));
