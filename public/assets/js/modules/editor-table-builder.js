@@ -276,14 +276,12 @@ export function createArticleTableBuilder({ field, textarea, insertText, t }){
       restoreTooltipFrame = 0;
     }
 
+    syncHoveredColumn(null);
     tableModal.setAttribute('hidden', '');
     tableModal.setAttribute('aria-hidden', 'true');
     unlockDocumentScroll();
     const trigger = lastTableTrigger;
     hideTooltip();
-    tableCloseButtons.forEach((button)=>{
-      restoreTooltip(button);
-    });
     if(trigger){
       trigger.focus({ preventScroll: true });
       restoreTooltipFrame = requestAnimationFrame(()=>{
@@ -301,19 +299,17 @@ export function createArticleTableBuilder({ field, textarea, insertText, t }){
       restoreTooltipFrame = 0;
     }
 
+    syncHoveredColumn(null);
     lastTableTrigger = trigger;
     suspendTooltip(trigger);
     hideTooltip(trigger);
-    tableCloseButtons.forEach((button)=>{
-      suspendTooltip(button);
-    });
     renderTableGrid();
     tableModal.removeAttribute('hidden');
     tableModal.setAttribute('aria-hidden', 'false');
     lockDocumentScroll();
-    const closeButton = tableCloseButtons[0];
-    if(closeButton){
-      closeButton.focus({ preventScroll: true });
+    if(tableDialog){
+      tableDialog.setAttribute('tabindex', '-1');
+      tableDialog.focus({ preventScroll: true });
     }
   };
 
