@@ -170,6 +170,7 @@ export function setupArticleMarkupEditor(){
       if(!action) return;
 
       if(action === 'help'){
+        closeBlocksMenu();
         openHelpModal(button);
         return;
       }

@@ -19,10 +19,10 @@ export function createArticleTableBuilder({ field, textarea, insertText, t }){
   const getTableHeaderValue = (index)=> `${t('editor_table_header_label')} ${index + 1}`;
   const getTableCellValue = (rowIndex, columnIndex)=> `${t('editor_table_cell_label')} ${rowIndex + 1}.${columnIndex + 1}`;
   const escapeHtmlAttribute = (value)=> String(value)
-    .replaceAll('&', '&amp;')
-    .replaceAll('"', '&quot;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;');
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
   const getColumnRemoveLabel = (index)=> `${t('editor_table_remove_column')} ${index + 1}`;
   const getRowRemoveLabel = (index)=> `${t('editor_table_remove_row')} ${index + 1}`;
   const escapeTableCell = (value)=> String(value ?? '')

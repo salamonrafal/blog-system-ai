@@ -70,7 +70,9 @@ export function restoreElementTooltip(element){
   const tooltip = element.getAttribute('data-suspended-tooltip');
   if(tooltip === null) return;
 
-  element.setAttribute('data-tooltip', tooltip);
+  if(element.getAttribute('data-tooltip') === null){
+    element.setAttribute('data-tooltip', tooltip);
+  }
   element.removeAttribute('data-suspended-tooltip');
 }
 
