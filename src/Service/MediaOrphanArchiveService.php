@@ -176,7 +176,18 @@ class MediaOrphanArchiveService
                 continue;
             }
 
-            $archive->addFile($item->getPathname(), $relativePath);
+            if (!$archive->addFile($item->getPathname(), $relativePath)) {
+                $archive->close();
+                if (is_file($archivePath)) {
+                    @unlink($archivePath);
+                }
+
+                throw new \RuntimeException(sprintf(
+                    'Failed to add orphaned media file "%s" to archive "%s".',
+                    $relativePath,
+                    $this->toProjectRelativePath($archivePath),
+                ));
+            }
         }
 
         $archive->close();

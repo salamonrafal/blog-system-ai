@@ -8,6 +8,15 @@ use Symfony\Component\HttpFoundation\File\File;
 
 final class MediaImageSupport
 {
+    /** @var array<string, list<string>> */
+    private const MIME_TYPE_EXTENSIONS = [
+        'image/jpeg' => ['jpg', 'jpeg'],
+        'image/png' => ['png'],
+        'image/webp' => ['webp'],
+        'image/gif' => ['gif'],
+        'image/avif' => ['avif'],
+    ];
+
     public const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
     /** @var list<string> */
@@ -18,7 +27,7 @@ final class MediaImageSupport
 
     public static function supportsFilename(string $filename): bool
     {
-        $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        $extension = self::normalizeExtension(pathinfo($filename, PATHINFO_EXTENSION));
 
         return \in_array($extension, self::ALLOWED_EXTENSIONS, true);
     }
@@ -41,6 +50,21 @@ final class MediaImageSupport
         return self::normalizeMimeType($file->getMimeType());
     }
 
+    public static function filenameMatchesMimeType(string $filename, ?string $mimeType): bool
+    {
+        $extension = self::normalizeExtension(pathinfo($filename, PATHINFO_EXTENSION));
+        $supportedExtensions = self::extensionsForMimeType($mimeType);
+
+        return '' !== $extension && [] !== $supportedExtensions && \in_array($extension, $supportedExtensions, true);
+    }
+
+    public static function preferredExtensionForMimeType(?string $mimeType): ?string
+    {
+        $supportedExtensions = self::extensionsForMimeType($mimeType);
+
+        return [] !== $supportedExtensions ? $supportedExtensions[0] : null;
+    }
+
     public static function acceptAttribute(): string
     {
         return '.jpg,.jpeg,.png,.webp,.gif,.avif,image/jpeg,image/png,image/webp,image/gif,image/avif';
@@ -49,5 +73,18 @@ final class MediaImageSupport
     private static function normalizeMimeType(?string $mimeType): string
     {
         return strtolower(trim((string) $mimeType));
+    }
+
+    private static function normalizeExtension(string $extension): string
+    {
+        return strtolower(trim($extension, ". \t\n\r\0\x0B"));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function extensionsForMimeType(?string $mimeType): array
+    {
+        return self::MIME_TYPE_EXTENSIONS[self::normalizeMimeType($mimeType)] ?? [];
     }
 }

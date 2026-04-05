@@ -27,20 +27,22 @@ class MediaImageStorage
     public function store(UploadedFile $uploadedFile, string $filenamePrefix = 'media-image'): array
     {
         $subdirectory = (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format('Y/m/d');
+        $detectedMimeType = MediaImageSupport::detectMimeType($uploadedFile);
         $storedFile = $this->managedUploadedFileStorage->store(
             $uploadedFile,
             trim($this->mediaDirectory, '/').'/'.$subdirectory,
             $filenamePrefix,
             'image',
             'jpg',
+            MediaImageSupport::preferredExtensionForMimeType($detectedMimeType),
         );
 
         $absolutePath = $this->projectDir.'/'.$storedFile['relative_path'];
-        $detectedMimeType = is_file($absolutePath) ? MediaImageSupport::detectMimeType(new \Symfony\Component\HttpFoundation\File\File($absolutePath)) : '';
+        $storedMimeType = is_file($absolutePath) ? MediaImageSupport::detectMimeType(new \Symfony\Component\HttpFoundation\File\File($absolutePath)) : '';
 
         return $storedFile + [
             'file_size' => is_file($absolutePath) ? (filesize($absolutePath) ?: 0) : 0,
-            'mime_type' => '' !== $detectedMimeType ? $detectedMimeType : MediaImageSupport::detectMimeType($uploadedFile),
+            'mime_type' => '' !== $storedMimeType ? $storedMimeType : $detectedMimeType,
         ];
     }
 }

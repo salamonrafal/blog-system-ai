@@ -74,6 +74,25 @@ final class MediaImageUploadTypeTest extends TestCase
         $this->assertSame('validation_media_file_invalid', $violations[0]->getMessage());
     }
 
+    public function testValidationRejectsMismatchedFilenameExtensionForDetectedMimeType(): void
+    {
+        $validator = Validation::createValidator();
+        $factory = Forms::createFormFactoryBuilder()
+            ->addExtension(new ValidatorExtension($validator))
+            ->getFormFactory();
+        $form = $factory->create(MediaImageUploadType::class);
+
+        $sourcePath = $this->projectDir.'/fake-jpg.webp';
+        file_put_contents($sourcePath, base64_decode('UklGRiQAAABXRUJQVlA4IBgAAAAwAQCdASoBAAEAAUAmJaACdLoB+AADsAD+8ut//NgVzXPv9//S4P0uD9Lg/9KQAAA='));
+
+        $uploadedFile = new UploadedFile($sourcePath, 'fake-jpg.jpg', 'image/jpeg', null, true);
+        $constraints = $form->get('imageFile')->getConfig()->getOption('constraints');
+        $violations = $validator->validate($uploadedFile, $constraints);
+
+        $this->assertCount(1, $violations);
+        $this->assertSame('validation_media_file_invalid', $violations[0]->getMessage());
+    }
+
     private function removeDirectory(string $path): void
     {
         if (!is_dir($path)) {

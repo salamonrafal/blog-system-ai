@@ -42,6 +42,20 @@ final class MediaImageStorageTest extends TestCase
         $this->assertFileExists($this->projectDir.'/'.$storedFile['relative_path']);
     }
 
+    public function testStoreUsesDetectedMimeTypeToChooseStoredExtension(): void
+    {
+        $sourcePath = $this->projectDir.'/upload-mismatch.webp';
+        file_put_contents($sourcePath, base64_decode('UklGRiQAAABXRUJQVlA4IBgAAAAwAQCdASoBAAEAAUAmJaACdLoB+AADsAD+8ut//NgVzXPv9//S4P0uD9Lg/9KQAAA='));
+
+        $uploadedFile = new UploadedFile($sourcePath, 'hero.jpg', 'image/jpeg', null, true);
+        $storage = new MediaImageStorage('public/uploads/media', $this->projectDir);
+
+        $storedFile = $storage->store($uploadedFile);
+
+        $this->assertStringEndsWith('.webp', $storedFile['relative_path']);
+        $this->assertSame('image/webp', $storedFile['mime_type']);
+    }
+
     private function removeDirectory(string $path): void
     {
         if (!is_dir($path)) {

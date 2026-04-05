@@ -41,7 +41,10 @@ class MediaImageUploadType extends AbstractType
 
                         $mimeType = MediaImageSupport::detectMimeType($value);
 
-                        if (!MediaImageSupport::supportsFilename($value->getClientOriginalName()) || !MediaImageSupport::supportsMimeType($mimeType)) {
+                        if (!MediaImageSupport::supportsFilename($value->getClientOriginalName())
+                            || !MediaImageSupport::supportsMimeType($mimeType)
+                            || !MediaImageSupport::filenameMatchesMimeType($value->getClientOriginalName(), $mimeType)
+                        ) {
                             $context->buildViolation('validation_media_file_invalid')
                                 ->addViolation();
                         }

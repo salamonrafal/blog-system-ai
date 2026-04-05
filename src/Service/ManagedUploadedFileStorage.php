@@ -24,6 +24,7 @@ class ManagedUploadedFileStorage
         string $filenamePrefix,
         string $defaultFilename,
         string $defaultExtension,
+        ?string $preferredExtension = null,
     ): array {
         $normalizedTargetDirectory = trim($targetDirectory, '/');
         $absoluteTargetDirectory = $this->projectDir.'/'.$normalizedTargetDirectory;
@@ -34,7 +35,9 @@ class ManagedUploadedFileStorage
 
         $originalFilename = $this->normalizeOriginalFilename($uploadedFile->getClientOriginalName());
         $safeOriginalFilename = '' !== $originalFilename ? $originalFilename : $defaultFilename;
-        $extension = strtolower(pathinfo($safeOriginalFilename, PATHINFO_EXTENSION));
+        $extension = '' !== trim((string) $preferredExtension)
+            ? strtolower(trim((string) $preferredExtension))
+            : strtolower(pathinfo($safeOriginalFilename, PATHINFO_EXTENSION));
 
         if ('' === $extension) {
             $extension = $defaultExtension;
