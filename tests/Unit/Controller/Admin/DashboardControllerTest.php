@@ -20,6 +20,7 @@ use App\Repository\ArticleImportQueueRepository;
 use App\Repository\CategoryImportQueueRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\BlogSettingsRepository;
+use App\Repository\MediaImageRepository;
 use App\Repository\TopMenuImportQueueRepository;
 use App\Repository\TopMenuItemRepository;
 use App\Repository\TopMenuExportQueueRepository;
@@ -115,6 +116,12 @@ final class DashboardControllerTest extends TestCase
             'inactive' => 1,
             'admins' => 2,
         ]);
+        $mediaImageRepository = $this->createMock(MediaImageRepository::class);
+        $mediaImageRepository
+            ->expects($this->once())
+            ->method('count')
+            ->with([])
+            ->willReturn(2);
 
         $controller = new TestDashboardController();
         $response = $controller->index(
@@ -130,6 +137,7 @@ final class DashboardControllerTest extends TestCase
             $blogSettingsRepository,
             $topMenuItemRepository,
             $userRepository,
+            $mediaImageRepository,
         );
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
@@ -137,7 +145,7 @@ final class DashboardControllerTest extends TestCase
 
         $panels = $controller->capturedParameters['dashboard_panels'] ?? null;
         $this->assertIsArray($panels);
-        $this->assertCount(8, $panels);
+        $this->assertCount(9, $panels);
 
         $this->assertSame('Artykuły', $panels[0]['title']);
         $this->assertSame('admin_dashboard_panel_articles_title', $panels[0]['title_key']);
@@ -211,13 +219,19 @@ final class DashboardControllerTest extends TestCase
             ['value' => 1, 'label_key' => 'admin_dashboard_stat_inactive', 'label' => 'Nieaktywne'],
         ], $panels[6]['stats']);
 
-        $this->assertSame('Ustawienia bloga', $panels[7]['title']);
-        $this->assertSame('admin_dashboard_panel_settings_title', $panels[7]['title_key']);
+        $this->assertSame('Media', $panels[7]['title']);
+        $this->assertSame('admin_dashboard_panel_media_title', $panels[7]['title_key']);
+        $this->assertSame([
+            ['value' => 2, 'label_key' => 'admin_dashboard_stat_all', 'label' => 'Wszystkie'],
+        ], $panels[7]['stats']);
+
+        $this->assertSame('Ustawienia bloga', $panels[8]['title']);
+        $this->assertSame('admin_dashboard_panel_settings_title', $panels[8]['title_key']);
         $this->assertSame([
             ['label_key' => 'admin_dashboard_meta_blog_title', 'label' => 'Tytuł bloga', 'value' => 'AI Ops Blog', 'value_key' => null],
             ['label_key' => 'admin_dashboard_meta_articles_per_page', 'label' => 'Artykułów na stronę', 'value' => '9', 'value_key' => null],
             ['label_key' => 'admin_dashboard_meta_last_update', 'label' => 'Ostatnia aktualizacja', 'value' => $settings->getUpdatedAt()->format('Y-m-d H:i'), 'value_key' => null],
-        ], $panels[7]['meta_cards']);
+        ], $panels[8]['meta_cards']);
     }
 
     public function testIndexUsesDefaultFallbackValuesWhenBlogSettingsAreMissing(): void
@@ -301,6 +315,12 @@ final class DashboardControllerTest extends TestCase
             'inactive' => 0,
             'admins' => 0,
         ]);
+        $mediaImageRepository = $this->createMock(MediaImageRepository::class);
+        $mediaImageRepository
+            ->expects($this->once())
+            ->method('count')
+            ->with([])
+            ->willReturn(0);
 
         $controller = new TestDashboardController();
         $controller->index(
@@ -316,10 +336,11 @@ final class DashboardControllerTest extends TestCase
             $blogSettingsRepository,
             $topMenuItemRepository,
             $userRepository,
+            $mediaImageRepository,
         );
 
         $panels = $controller->capturedParameters['dashboard_panels'];
-        $settingsPanel = $panels[7];
+        $settingsPanel = $panels[8];
 
         $this->assertSame([
             ['label_key' => 'admin_dashboard_meta_blog_title', 'label' => 'Tytuł bloga', 'value' => BlogSettings::DEFAULT_BLOG_TITLE, 'value_key' => null],

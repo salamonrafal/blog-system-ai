@@ -11,42 +11,27 @@ class ArticleImportStorage
 {
     public function __construct(
         #[Autowire('%kernel.project_dir%')]
-        private readonly string $projectDir,
+        string $projectDir,
         #[Autowire('%app.article_import_directory%')]
         private readonly string $importDirectory,
+        ?ManagedUploadedFileStorage $managedUploadedFileStorage = null,
     ) {
+        $this->managedUploadedFileStorage = $managedUploadedFileStorage ?? new ManagedUploadedFileStorage($projectDir);
     }
+
+    private readonly ManagedUploadedFileStorage $managedUploadedFileStorage;
 
     /**
      * @return array{relative_path: string, original_filename: string}
      */
     public function store(UploadedFile $uploadedFile, string $filenamePrefix = 'article-import'): array
     {
-        $targetDirectory = $this->projectDir.'/'.trim($this->importDirectory, '/');
-        if (!is_dir($targetDirectory) && !mkdir($targetDirectory, 0775, true) && !is_dir($targetDirectory)) {
-            throw new \RuntimeException(sprintf('Import directory "%s" could not be created.', $targetDirectory));
-        }
-
-        $originalFilename = trim((string) $uploadedFile->getClientOriginalName());
-        $safeOriginalFilename = '' !== $originalFilename ? $originalFilename : 'import.json';
-        $extension = strtolower(pathinfo($safeOriginalFilename, PATHINFO_EXTENSION));
-        if ('' === $extension) {
-            $extension = 'json';
-        }
-
-        $storedFilename = sprintf(
-            '%s-%s-%s.%s',
-            trim($filenamePrefix),
-            (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format('YmdHis'),
-            bin2hex(random_bytes(6)),
-            $extension
+        return $this->managedUploadedFileStorage->store(
+            $uploadedFile,
+            $this->importDirectory,
+            $filenamePrefix,
+            'import.json',
+            'json',
         );
-
-        $uploadedFile->move($targetDirectory, $storedFilename);
-
-        return [
-            'relative_path' => trim($this->importDirectory, '/').'/'.$storedFilename,
-            'original_filename' => $safeOriginalFilename,
-        ];
     }
 }

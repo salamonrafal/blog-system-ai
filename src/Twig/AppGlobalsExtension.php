@@ -54,6 +54,7 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
             new TwigFunction('i18n_fallback', $this->getI18nFallback(...)),
             new TwigFunction('ui_translate', $this->translateUi(...)),
             new TwigFunction('ui_language_label', $this->getLanguageLabel(...)),
+            new TwigFunction('format_file_size', $this->formatFileSize(...)),
         ];
     }
 
@@ -141,6 +142,26 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
             'en' => $this->translateUi('Angielski (EN)', 'English (EN)'),
             default => strtoupper(trim($language)),
         };
+    }
+
+    public function formatFileSize(int $bytes): string
+    {
+        if ($bytes < 1024) {
+            return sprintf('%d B', $bytes);
+        }
+
+        $units = ['KB', 'MB', 'GB', 'TB'];
+        $value = $bytes / 1024;
+
+        foreach ($units as $unit) {
+            if ($value < 1024 || 'TB' === $unit) {
+                break;
+            }
+
+            $value /= 1024;
+        }
+
+        return sprintf('%.1f %s', $value, $unit);
     }
 
     private function getValidationMessageFallbacks(): array

@@ -233,6 +233,65 @@ Main security files:
 - [src/Controller/SecurityController.php](./src/Controller/SecurityController.php)
 - [templates/security/login.html.twig](./templates/security/login.html.twig)
 
+## Media library
+
+The admin panel includes a media module for uploading and browsing blog images.
+
+Main views:
+- upload form: `/admin/media`
+- gallery: `/admin/media/gallery`
+
+How media storage works:
+- uploaded image metadata is stored in the `media_image` database table
+- files are written to dated subdirectories inside [`public/uploads/media/`](./public/uploads/media/)
+- the stored `file_path` in the database is treated as the source of truth for files managed by the gallery
+
+Example storage layout:
+- `public/uploads/media/2026/04/05/...`
+
+### Orphaned media files
+
+An orphaned media file is a file that still exists on disk in `public/uploads/media/`, but no longer has a matching row in the `media_image` table.
+
+This can happen for example when:
+- files were copied manually to the media directory
+- database content was restored or changed without restoring matching files
+- old development data left files on disk after database resets
+
+To help clean this up, the project includes a console command:
+
+```bash
+php bin/console app:media:archive-orphans
+```
+
+What the command does:
+- scans [`public/uploads/media/`](./public/uploads/media/) recursively
+- compares discovered files with `media_image.file_path`
+- moves orphaned files to a temporary staging directory inside `var/`
+- creates a ZIP archive with the moved files
+- prints the moved file list and generated archive path in the console output
+
+Folders used by the command:
+- media source directory: [`public/uploads/media/`](./public/uploads/media/)
+- temporary staging directory: [`var/media-orphans/tmp/`](./var/media-orphans/tmp/)
+- final archive directory: [`var/media-orphans/`](./var/media-orphans/)
+
+Ignored filenames:
+- by default the command ignores `.gitkeep`
+- the ignore list is configurable in [config/services.yaml](./config/services.yaml) under `app.media_orphan_ignored_filenames`
+- add more filenames there if your media directory contains placeholder or maintenance files that should never be archived
+
+Archive naming:
+- `var/media-orphans/media-orphans-YYYYMMDD-HHMMSS-<random>.zip`
+
+Notes:
+- tracked files that have a matching `media_image.file_path` entry are left untouched
+- files whose basename is present in `app.media_orphan_ignored_filenames` are skipped even if they are not present in the database
+- if no orphaned files are found, the command exits successfully and reports that nothing had to be archived
+- empty temporary directories created during the process are cleaned up automatically
+- the command does not modify database rows; it only moves untracked files from disk and archives them
+- because the archive is written under `var/`, it is treated as runtime/generated data rather than user-facing media
+
 ## Export queues
 
 The project includes background export queues for:

@@ -1,6 +1,9 @@
 parameters:
     app.article_export_directory: 'var/exports'
     app.article_import_directory: 'var/imports'
+    app.media_directory: 'public/uploads/media'
+    app.media_orphan_ignored_filenames:
+        - '.gitkeep'
 
 services:
     _defaults:
