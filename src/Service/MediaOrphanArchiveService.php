@@ -56,21 +56,34 @@ class MediaOrphanArchiveService
             }
 
             $archivePath = $this->createArchiveFromStagingDirectory($stagingDirectory);
-            $this->removeDirectory($stagingDirectory);
-            $this->removeIfEmpty($this->getArchiveDirectory().'/tmp');
-            $this->removeEmptyDirectories($this->projectDir.'/'.trim($this->mediaDirectory, '/'));
-
-            return [
-                'archive_path' => $this->toProjectRelativePath($archivePath),
-                'moved_files' => $orphanedFiles,
-            ];
         } catch (\Throwable $exception) {
-            $this->rollbackMovedFiles($movedFiles);
-            $this->cleanupStagingDirectory($stagingDirectory);
-            $this->removeIfEmpty($this->getArchiveDirectory().'/tmp');
+            try {
+                $this->rollbackMovedFiles($movedFiles);
+            } catch (\Throwable) {
+            }
+
+            try {
+                $this->cleanupStagingDirectory($stagingDirectory);
+            } catch (\Throwable) {
+            }
+
+            try {
+                $this->removeIfEmpty($this->getArchiveDirectory().'/tmp');
+            } catch (\Throwable) {
+            }
 
             throw $exception;
         }
+
+        try {
+            $this->finalizeArchivedOrphans($stagingDirectory);
+        } catch (\Throwable) {
+        }
+
+        return [
+            'archive_path' => $this->toProjectRelativePath($archivePath),
+            'moved_files' => $orphanedFiles,
+        ];
     }
 
     public function getMediaDirectory(): string
@@ -300,7 +313,7 @@ class MediaOrphanArchiveService
     /**
      * @param array<string, string> $movedFiles
      */
-    private function rollbackMovedFiles(array $movedFiles): void
+    protected function rollbackMovedFiles(array $movedFiles): void
     {
         foreach (array_reverse($movedFiles, true) as $relativePath => $stagedPath) {
             if (!is_file($stagedPath)) {
@@ -316,16 +329,20 @@ class MediaOrphanArchiveService
         }
     }
 
-    private function cleanupStagingDirectory(string $stagingDirectory): void
+    protected function cleanupStagingDirectory(string $stagingDirectory): void
     {
         if (!is_dir($stagingDirectory)) {
             return;
         }
 
-        try {
-            $this->removeDirectory($stagingDirectory);
-        } catch (\Throwable) {
-        }
+        $this->removeDirectory($stagingDirectory);
+    }
+
+    protected function finalizeArchivedOrphans(string $stagingDirectory): void
+    {
+        $this->removeDirectory($stagingDirectory);
+        $this->removeIfEmpty($this->getArchiveDirectory().'/tmp');
+        $this->removeEmptyDirectories($this->projectDir.'/'.trim($this->mediaDirectory, '/'));
     }
 
     private function normalizeRelativePath(string $path): string

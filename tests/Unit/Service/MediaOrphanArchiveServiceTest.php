@@ -109,6 +109,87 @@ final class MediaOrphanArchiveServiceTest extends TestCase
         }
     }
 
+    public function testArchiveOrphansRethrowsOriginalExceptionWhenRollbackFails(): void
+    {
+        $orphanPath = 'public/uploads/media/2026/04/05/orphan-one.webp';
+        $this->createFile($orphanPath, 'orphan-one');
+
+        /** @var MediaImageRepository&MockObject $repository */
+        $repository = $this->createMock(MediaImageRepository::class);
+        $repository
+            ->method('findAllStoredFilePaths')
+            ->willReturn([]);
+
+        $service = new class($repository, $this->projectDir, 'public/uploads/media') extends MediaOrphanArchiveService {
+            protected function createArchiveFromStagingDirectory(string $stagingDirectory): string
+            {
+                throw new \RuntimeException('Archive creation failed.');
+            }
+
+            protected function rollbackMovedFiles(array $movedFiles): void
+            {
+                throw new \RuntimeException('Rollback failed.');
+            }
+        };
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Archive creation failed.');
+
+        try {
+            $service->archiveOrphans();
+        } finally {
+            $this->assertDirectoryDoesNotExist($this->projectDir.'/var/media-orphans/tmp');
+        }
+    }
+
+    public function testArchiveOrphansDoesNotRollbackFilesWhenPostArchiveCleanupFails(): void
+    {
+        $orphanPath = 'public/uploads/media/2026/04/05/orphan-one.webp';
+        $this->createFile($orphanPath, 'orphan-one');
+
+        /** @var MediaImageRepository&MockObject $repository */
+        $repository = $this->createMock(MediaImageRepository::class);
+        $repository
+            ->method('findAllStoredFilePaths')
+            ->willReturn([]);
+
+        $archivePath = $this->projectDir.'/var/media-orphans/media-orphans-test.zip';
+        $service = new class($repository, $this->projectDir, 'public/uploads/media', ['.gitkeep'], $archivePath) extends MediaOrphanArchiveService {
+            public function __construct(
+                MediaImageRepository $mediaImageRepository,
+                string $projectDir,
+                string $mediaDirectory,
+                array $ignoredFilenames,
+                private readonly string $archivePath,
+            ) {
+                parent::__construct($mediaImageRepository, $projectDir, $mediaDirectory, $ignoredFilenames);
+            }
+
+            protected function createArchiveFromStagingDirectory(string $stagingDirectory): string
+            {
+                if (!is_dir(dirname($this->archivePath))) {
+                    mkdir(dirname($this->archivePath), 0775, true);
+                }
+
+                file_put_contents($this->archivePath, 'zip-bytes');
+
+                return $this->archivePath;
+            }
+
+            protected function finalizeArchivedOrphans(string $stagingDirectory): void
+            {
+                throw new \RuntimeException('cleanup failed');
+            }
+        };
+
+        $result = $service->archiveOrphans();
+
+        $this->assertSame([$orphanPath], $result['moved_files']);
+        $this->assertSame('var/media-orphans/media-orphans-test.zip', $result['archive_path']);
+        $this->assertFileExists($archivePath);
+        $this->assertFileDoesNotExist($this->projectDir.'/'.$orphanPath);
+    }
+
     private function createService(array $storedFilePaths, array $ignoredFilenames = ['.gitkeep']): MediaOrphanArchiveService
     {
         /** @var MediaImageRepository&MockObject $repository */

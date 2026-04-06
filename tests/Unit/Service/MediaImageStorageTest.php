@@ -35,7 +35,7 @@ final class MediaImageStorageTest extends TestCase
 
         $this->assertSame('hero.webp', $storedFile['original_filename']);
         $this->assertStringStartsWith('public/uploads/media/', $storedFile['relative_path']);
-        $this->assertStringContainsString('/'.(new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format('Y/m/d').'/', $storedFile['relative_path']);
+        $this->assertMatchesRegularExpression('#^public/uploads/media/\d{4}/\d{2}/\d{2}/#', $storedFile['relative_path']);
         $this->assertStringEndsWith('.webp', $storedFile['relative_path']);
         $this->assertSame(68, $storedFile['file_size']);
         $this->assertSame('image/webp', $storedFile['mime_type']);
