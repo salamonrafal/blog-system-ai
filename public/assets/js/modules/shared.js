@@ -153,12 +153,15 @@ export function assignFilesToInput(input, files){
   }
 
   if(typeof DataTransfer === 'function'){
-    const dataTransfer = new DataTransfer();
-    [...files].forEach((file)=>{
-      dataTransfer.items.add(file);
-    });
-    input.files = dataTransfer.files;
-    return input.files instanceof FileList && input.files.length > 0;
+    try{
+      const dataTransfer = new DataTransfer();
+      [...files].forEach((file)=>{
+        dataTransfer.items.add(file);
+      });
+      input.files = dataTransfer.files;
+      return input.files instanceof FileList && input.files.length > 0;
+    }catch(err){
+    }
   }
 
   try{

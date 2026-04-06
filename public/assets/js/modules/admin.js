@@ -1588,7 +1588,12 @@ export function setupMediaGalleryDropSlot(){
       }
 
       slot.classList.add('is-uploading');
-      uploadForm.requestSubmit();
+      if(typeof uploadForm.requestSubmit === 'function'){
+        uploadForm.requestSubmit();
+        return;
+      }
+
+      uploadForm.submit();
     });
   });
 }
