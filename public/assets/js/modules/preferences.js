@@ -10,6 +10,10 @@ function normalizeLanguage(lang){
   return lang === 'en' ? 'en' : 'pl';
 }
 
+function normalizeTheme(theme){
+  return theme === 'light' ? 'light' : 'dark';
+}
+
 export function getLang(){
   const storedLang = localStorage.getItem('lang');
   if(storedLang){
@@ -38,7 +42,14 @@ export function setLangPreference(lang){
 }
 
 export function getTheme(){
-  return localStorage.getItem('theme') || 'dark';
+  const storedTheme = localStorage.getItem('theme');
+  const normalizedStoredTheme = normalizeTheme(storedTheme);
+
+  if(normalizedStoredTheme !== storedTheme){
+    localStorage.setItem('theme', normalizedStoredTheme);
+  }
+
+  return normalizedStoredTheme;
 }
 
 export function getAccent(){
@@ -46,11 +57,13 @@ export function getAccent(){
 }
 
 export function setTheme(theme){
-  localStorage.setItem('theme', theme);
-  document.documentElement.setAttribute('data-theme', theme);
+  const normalizedTheme = normalizeTheme(theme);
+
+  localStorage.setItem('theme', normalizedTheme);
+  document.documentElement.setAttribute('data-theme', normalizedTheme);
 
   qsa('[data-action="toggle-theme"]').forEach((button)=>{
-    button.textContent = theme === 'dark' ? '🌙' : '☀️';
+    button.textContent = normalizedTheme === 'dark' ? '🌙' : '☀️';
   });
 }
 

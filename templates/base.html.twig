@@ -13,6 +13,9 @@
             try {
                 var storedTheme = window.localStorage.getItem('theme');
                 var theme = storedTheme === 'light' ? 'light' : 'dark';
+                if (storedTheme !== theme) {
+                    window.localStorage.setItem('theme', theme);
+                }
                 document.documentElement.setAttribute('data-theme', theme);
             } catch (error) {
                 document.documentElement.setAttribute('data-theme', 'dark');

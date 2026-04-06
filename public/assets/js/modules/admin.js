@@ -453,6 +453,16 @@ export function setupAdminShortcuts(){
     }
 
     qsa('[data-admin-shortcuts-submenu].is-open').forEach((submenu)=>{
+      const shortcuts = submenu.closest('.admin-shortcuts');
+      if(
+        shortcuts instanceof HTMLElement
+        && shortcuts.classList.contains('is-docked')
+        && !shortcuts.classList.contains('is-collapsed')
+        && isDesktopAdminShortcutsViewport()
+      ){
+        return;
+      }
+
       if(!submenu.contains(event.target)){
         closeAdminSubmenu(submenu);
       }
