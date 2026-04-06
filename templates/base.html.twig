@@ -271,7 +271,7 @@ Fullstack Developer</span>
                         </span>
                         <span data-i18n="admin_shortcut_dashboard">Panel główny</span>
                     </a>
-                    <div class="admin-shortcuts-submenu{{ is_content_shortcut_active ? ' is-route-active' : '' }}" data-admin-shortcuts-submenu data-route-active="{{ is_content_shortcut_active ? 'true' : 'false' }}">
+                    <div class="admin-shortcuts-submenu" data-admin-shortcuts-submenu data-route-active="{{ is_content_shortcut_active ? 'true' : 'false' }}">
                         <button type="button" class="admin-shortcuts-link admin-shortcuts-button admin-shortcuts-submenu-trigger{{ is_content_shortcut_active ? ' is-active' : '' }}" data-action="toggle-admin-submenu" aria-haspopup="true" aria-expanded="false" aria-controls="admin-shortcuts-content-management-panel">
                             <span class="admin-shortcuts-link-icon" aria-hidden="true">
                                 <svg viewBox="0 0 32 32">
@@ -289,7 +289,7 @@ Fullstack Developer</span>
                             </span>
                         </button>
                         <div class="admin-shortcuts-submenu-panel" id="admin-shortcuts-content-management-panel" data-i18n-aria="admin_shortcut_content_management_title" aria-label="Zarządzanie treścią">
-                            <a class="admin-shortcuts-link admin-shortcuts-sublink{{ route_name starts with 'admin_article_' ? ' is-active' : '' }}" href="{{ path('admin_article_index') }}"{% if route_name == 'admin_article_index' %} aria-current="page"{% endif %}>
+                            <a class="admin-shortcuts-link admin-shortcuts-sublink{{ route_name == 'admin_article_index' ? ' is-active' : '' }}" href="{{ path('admin_article_index') }}"{% if route_name == 'admin_article_index' %} aria-current="page"{% endif %}>
                                 <span class="admin-shortcuts-link-icon" aria-hidden="true">
                                     <svg viewBox="0 0 32 32">
                                         <path d="M10 9h14"></path>
@@ -335,7 +335,7 @@ Fullstack Developer</span>
                             </a>
                         </div>
                     </div>
-                    <div class="admin-shortcuts-submenu{{ is_media_shortcut_active ? ' is-route-active' : '' }}" data-admin-shortcuts-submenu data-route-active="{{ is_media_shortcut_active ? 'true' : 'false' }}">
+                    <div class="admin-shortcuts-submenu" data-admin-shortcuts-submenu data-route-active="{{ is_media_shortcut_active ? 'true' : 'false' }}">
                         <button type="button" class="admin-shortcuts-link admin-shortcuts-button admin-shortcuts-submenu-trigger{{ is_media_shortcut_active ? ' is-active' : '' }}" data-action="toggle-admin-submenu" aria-haspopup="true" aria-expanded="false" aria-controls="admin-shortcuts-media-panel">
                             <span class="admin-shortcuts-link-icon" aria-hidden="true">
                                 <svg viewBox="0 0 32 32">
@@ -376,7 +376,7 @@ Fullstack Developer</span>
                             </a>
                         </div>
                     </div>
-                    <div class="admin-shortcuts-submenu{{ is_users_shortcut_active ? ' is-route-active' : '' }}" data-admin-shortcuts-submenu data-route-active="{{ is_users_shortcut_active ? 'true' : 'false' }}">
+                    <div class="admin-shortcuts-submenu" data-admin-shortcuts-submenu data-route-active="{{ is_users_shortcut_active ? 'true' : 'false' }}">
                         <button type="button" class="admin-shortcuts-link admin-shortcuts-button admin-shortcuts-submenu-trigger{{ is_users_shortcut_active ? ' is-active' : '' }}" data-action="toggle-admin-submenu" aria-haspopup="true" aria-expanded="false" aria-controls="admin-shortcuts-users-panel">
                             <span class="admin-shortcuts-link-icon" aria-hidden="true">
                                 <svg viewBox="0 0 32 32">
@@ -418,7 +418,7 @@ Fullstack Developer</span>
                             </a>
                         </div>
                     </div>
-                    <div class="admin-shortcuts-submenu{{ is_import_export_shortcut_active ? ' is-route-active' : '' }}" data-admin-shortcuts-submenu data-route-active="{{ is_import_export_shortcut_active ? 'true' : 'false' }}">
+                    <div class="admin-shortcuts-submenu" data-admin-shortcuts-submenu data-route-active="{{ is_import_export_shortcut_active ? 'true' : 'false' }}">
                         <button type="button" class="admin-shortcuts-link admin-shortcuts-button admin-shortcuts-submenu-trigger{{ is_import_export_shortcut_active ? ' is-active' : '' }}" data-action="toggle-admin-submenu" aria-haspopup="true" aria-expanded="false" aria-controls="admin-shortcuts-import-export-panel">
                             <span class="admin-shortcuts-link-icon" aria-hidden="true">
                                 <svg viewBox="0 0 32 32">
