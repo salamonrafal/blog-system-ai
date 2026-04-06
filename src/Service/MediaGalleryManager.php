@@ -22,11 +22,21 @@ class MediaGalleryManager
 
     /**
      * @param iterable<MediaImage> $mediaImages
+     *
+     * @return list<string>
      */
-    public function clear(iterable $mediaImages): void
+    public function clear(iterable $mediaImages): array
     {
+        $failedFilePaths = [];
+
         foreach ($mediaImages as $mediaImage) {
-            $this->delete($mediaImage);
+            try {
+                $this->delete($mediaImage);
+            } catch (\Throwable) {
+                $failedFilePaths[] = $mediaImage->getFilePath();
+            }
         }
+
+        return $failedFilePaths;
     }
 }

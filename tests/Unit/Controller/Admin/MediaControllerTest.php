@@ -369,8 +369,9 @@ final class MediaControllerTest extends TestCase
             ->expects($this->once())
             ->method('clear')
             ->with($mediaImages)
-            ->willReturnCallback(function () use (&$flushCompleted): void {
+            ->willReturnCallback(function () use (&$flushCompleted): array {
                 self::assertTrue($flushCompleted, 'File deletion should happen after flush succeeds.');
+                return [];
             });
 
         $entityManager = $this->createMock(EntityManagerInterface::class);
@@ -402,6 +403,107 @@ final class MediaControllerTest extends TestCase
             [
                 'type' => 'success',
                 'message' => 'Galeria została wyczyszczona.',
+            ],
+        ], $controller->capturedFlashes);
+    }
+
+    public function testDeleteDoesNotFailWhenFileDeletionFailsAfterFlush(): void
+    {
+        $mediaImage = (new MediaImage())
+            ->setOriginalFilename('hero.webp')
+            ->setFilePath('public/uploads/media/2026/04/05/media-image-1.webp')
+            ->setFileSize(1234)
+            ->setMimeType('image/webp');
+
+        $galleryManager = $this->createMock(MediaGalleryManager::class);
+        $galleryManager
+            ->expects($this->once())
+            ->method('delete')
+            ->with($mediaImage)
+            ->willThrowException(new \RuntimeException('unlink failed'));
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->once())->method('remove')->with($mediaImage);
+        $entityManager->expects($this->once())->method('flush');
+
+        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
+        $userLanguageResolver
+            ->expects($this->exactly(2))
+            ->method('translate')
+            ->willReturnMap([
+                ['Obrazek został usunięty z galerii.', 'The image has been removed from the gallery.', 'Obrazek został usunięty z galerii.'],
+                ['Obrazek został usunięty z galerii, ale nie udało się usunąć pliku z dysku.', 'The image was removed from the gallery, but the file could not be deleted from disk.', 'Obrazek został usunięty z galerii, ale nie udało się usunąć pliku z dysku.'],
+            ]);
+
+        $controller = new TestMediaController();
+        $controller->setCsrfValidity(true);
+
+        $response = $controller->delete($mediaImage, new Request([], ['_token' => 'valid']), $galleryManager, $entityManager, $userLanguageResolver);
+
+        $this->assertSame(Response::HTTP_FOUND, $response->getStatusCode());
+        $this->assertSame([
+            [
+                'type' => 'success',
+                'message' => 'Obrazek został usunięty z galerii.',
+            ],
+            [
+                'type' => 'error',
+                'message' => 'Obrazek został usunięty z galerii, ale nie udało się usunąć pliku z dysku.',
+            ],
+        ], $controller->capturedFlashes);
+    }
+
+    public function testClearDoesNotFailWhenFileDeletionFailsAfterFlush(): void
+    {
+        $mediaImages = [
+            (new MediaImage())
+                ->setOriginalFilename('hero.webp')
+                ->setFilePath('public/uploads/media/2026/04/05/media-image-1.webp')
+                ->setFileSize(1234)
+                ->setMimeType('image/webp'),
+        ];
+
+        $repository = $this->createMock(MediaImageRepository::class);
+        $repository
+            ->expects($this->once())
+            ->method('findBy')
+            ->with([])
+            ->willReturn($mediaImages);
+
+        $galleryManager = $this->createMock(MediaGalleryManager::class);
+        $galleryManager
+            ->expects($this->once())
+            ->method('clear')
+            ->with($mediaImages)
+            ->willReturn(['public/uploads/media/2026/04/05/media-image-1.webp']);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->once())->method('remove')->with($mediaImages[0]);
+        $entityManager->expects($this->once())->method('flush');
+
+        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
+        $userLanguageResolver
+            ->expects($this->exactly(2))
+            ->method('translate')
+            ->willReturnMap([
+                ['Galeria została wyczyszczona.', 'The gallery has been cleared.', 'Galeria została wyczyszczona.'],
+                ['Galeria została wyczyszczona, ale nie udało się usunąć wszystkich plików z dysku.', 'The gallery was cleared, but not all files could be deleted from disk.', 'Galeria została wyczyszczona, ale nie udało się usunąć wszystkich plików z dysku.'],
+            ]);
+
+        $controller = new TestMediaController();
+        $controller->setCsrfValidity(true);
+
+        $response = $controller->clear(new Request([], ['_token' => 'valid']), $repository, $galleryManager, $entityManager, $userLanguageResolver);
+
+        $this->assertSame(Response::HTTP_FOUND, $response->getStatusCode());
+        $this->assertSame([
+            [
+                'type' => 'success',
+                'message' => 'Galeria została wyczyszczona.',
+            ],
+            [
+                'type' => 'error',
+                'message' => 'Galeria została wyczyszczona, ale nie udało się usunąć wszystkich plików z dysku.',
             ],
         ], $controller->capturedFlashes);
     }

@@ -38,6 +38,38 @@ final class MediaGalleryManagerTest extends TestCase
         $this->assertFileDoesNotExist($path);
     }
 
+    public function testClearCollectsFailuresAndContinuesDeletingRemainingFiles(): void
+    {
+        $firstPath = 'public/uploads/media/2026/04/05/delete-me.webp';
+        $secondPath = 'public/uploads/media/2026/04/05/delete-me-too.webp';
+        $deleteInvocation = 0;
+
+        $managedFileDeleter = $this->createMock(ManagedFileDeleter::class);
+        $managedFileDeleter
+            ->expects($this->exactly(2))
+            ->method('delete')
+            ->willReturnCallback(function () use (&$deleteInvocation): void {
+                if (0 === $deleteInvocation) {
+                    ++$deleteInvocation;
+                    throw new \RuntimeException('unlink failed');
+                }
+
+                ++$deleteInvocation;
+            });
+
+        $manager = new MediaGalleryManager(
+            $managedFileDeleter,
+            new ManagedFilePathResolver($this->projectDir, 'var/exports', 'var/imports', 'public/uploads/media')
+        );
+
+        $failedFilePaths = $manager->clear([
+            (new MediaImage())->setFilePath($firstPath),
+            (new MediaImage())->setFilePath($secondPath),
+        ]);
+
+        $this->assertSame([$firstPath], $failedFilePaths);
+    }
+
     private function createManager(): MediaGalleryManager
     {
         return new MediaGalleryManager(

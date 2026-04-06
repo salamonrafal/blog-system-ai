@@ -118,10 +118,9 @@
                                     <input type="hidden" name="_token" value="{{ csrf_token('rename_media_' ~ image.id) }}">
                                     <input
                                         class="media-gallery-rename-input"
-                                        type="text"
+                                        type="hidden"
                                         name="custom_name"
                                         value="{{ image.customName ?? '' }}"
-                                        hidden
                                     >
                                 </form>
                                 <div class="actions">

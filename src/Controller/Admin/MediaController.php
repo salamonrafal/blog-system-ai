@@ -78,9 +78,13 @@ class MediaController extends AbstractController
 
         $entityManager->remove($mediaImage);
         $entityManager->flush();
-        $mediaGalleryManager->delete($mediaImage);
 
         $this->addFlash('success', $userLanguageResolver->translate('Obrazek został usunięty z galerii.', 'The image has been removed from the gallery.'));
+        try {
+            $mediaGalleryManager->delete($mediaImage);
+        } catch (\Throwable) {
+            $this->addFlash('error', $userLanguageResolver->translate('Obrazek został usunięty z galerii, ale nie udało się usunąć pliku z dysku.', 'The image was removed from the gallery, but the file could not be deleted from disk.'));
+        }
 
         return $this->redirectToRoute('admin_media_gallery');
     }
@@ -102,9 +106,12 @@ class MediaController extends AbstractController
             $entityManager->remove($mediaImage);
         }
         $entityManager->flush();
-        $mediaGalleryManager->clear($mediaImages);
+        $failedFilePaths = $mediaGalleryManager->clear($mediaImages);
 
         $this->addFlash('success', $userLanguageResolver->translate('Galeria została wyczyszczona.', 'The gallery has been cleared.'));
+        if ([] !== $failedFilePaths) {
+            $this->addFlash('error', $userLanguageResolver->translate('Galeria została wyczyszczona, ale nie udało się usunąć wszystkich plików z dysku.', 'The gallery was cleared, but not all files could be deleted from disk.'));
+        }
 
         return $this->redirectToRoute('admin_media_gallery');
     }
