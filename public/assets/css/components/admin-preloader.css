@@ -2,6 +2,39 @@
   overflow:hidden;
 }
 
+:root{
+  --admin-preloader-backdrop-base: color-mix(in oklab, var(--bg) 54%, transparent);
+  --admin-preloader-surface-start: color-mix(in oklab, var(--panel) 96%, transparent);
+  --admin-preloader-surface-end: color-mix(in oklab, var(--panel-2) 93%, transparent);
+  --admin-preloader-line: color-mix(in oklab, var(--text) 22%, transparent);
+  --admin-preloader-trace: color-mix(in oklab, var(--accent) 72%, white 28%);
+  --admin-preloader-trace-glow: color-mix(in oklab, var(--accent) 18%, transparent);
+  --admin-preloader-heart: color-mix(in oklab, #ff6b7a 82%, white 18%);
+  --admin-preloader-heart-glow: rgba(255, 107, 122, .24);
+}
+
+[data-theme="light"]{
+  --admin-preloader-backdrop-base: color-mix(in oklab, var(--bg) 82%, white 18%);
+  --admin-preloader-surface-start: color-mix(in oklab, white 96%, var(--panel) 4%);
+  --admin-preloader-surface-end: color-mix(in oklab, var(--panel-2) 88%, white 12%);
+  --admin-preloader-line: color-mix(in oklab, var(--text) 14%, transparent);
+  --admin-preloader-trace: color-mix(in oklab, var(--accent-2) 68%, var(--accent) 32%);
+  --admin-preloader-trace-glow: color-mix(in oklab, var(--accent-2) 22%, transparent);
+  --admin-preloader-heart: color-mix(in oklab, #ff6b7a 76%, #ffffff 24%);
+  --admin-preloader-heart-glow: rgba(255, 107, 122, .18);
+}
+
+[data-theme="dark"]{
+  --admin-preloader-backdrop-base: color-mix(in oklab, var(--bg) 54%, transparent);
+  --admin-preloader-surface-start: color-mix(in oklab, var(--panel) 96%, transparent);
+  --admin-preloader-surface-end: color-mix(in oklab, var(--panel-2) 93%, transparent);
+  --admin-preloader-line: color-mix(in oklab, var(--text) 22%, transparent);
+  --admin-preloader-trace: color-mix(in oklab, var(--accent) 72%, white 28%);
+  --admin-preloader-trace-glow: color-mix(in oklab, var(--accent) 18%, transparent);
+  --admin-preloader-heart: color-mix(in oklab, #ff6b7a 82%, white 18%);
+  --admin-preloader-heart-glow: rgba(255, 107, 122, .24);
+}
+
 .admin-preload-pending > :not(.admin-preloader){
   visibility:hidden;
 }
@@ -30,7 +63,7 @@
   background:
     radial-gradient(circle at top left, color-mix(in oklab, var(--accent) 10%, transparent), transparent 34%),
     radial-gradient(circle at top right, color-mix(in oklab, var(--accent-2) 10%, transparent), transparent 32%),
-    color-mix(in oklab, var(--bg) 54%, transparent);
+    var(--admin-preloader-backdrop-base);
   backdrop-filter:blur(14px) saturate(88%);
   -webkit-backdrop-filter:blur(14px) saturate(88%);
 }
@@ -46,7 +79,7 @@
   border-radius:20px;
   background:
     radial-gradient(circle at top right, color-mix(in oklab, var(--accent) 5%, transparent), transparent 36%),
-    linear-gradient(180deg, color-mix(in oklab, var(--panel) 96%, transparent), color-mix(in oklab, var(--panel-2) 93%, transparent));
+    linear-gradient(180deg, var(--admin-preloader-surface-start), var(--admin-preloader-surface-end));
   box-shadow:var(--shadow);
 }
 
@@ -74,7 +107,7 @@
   right:0;
   left:0;
   height:2px;
-  background:color-mix(in oklab, var(--text) 22%, transparent);
+  background:var(--admin-preloader-line);
 }
 
 .admin-preloader-ekg-trace{
@@ -88,13 +121,13 @@
 
 .admin-preloader-ekg-trace path{
   fill:none;
-  stroke:color-mix(in oklab, var(--accent) 72%, white 28%);
+  stroke:var(--admin-preloader-trace);
   stroke-width:3;
   stroke-linecap:round;
   stroke-linejoin:round;
   stroke-dasharray:220;
   stroke-dashoffset:220;
-  filter:drop-shadow(0 0 8px color-mix(in oklab, var(--accent) 18%, transparent));
+  filter:drop-shadow(0 0 8px var(--admin-preloader-trace-glow));
 }
 
 .admin-preloader-heart{
@@ -102,7 +135,7 @@
   right:12px;
   width:22px;
   height:22px;
-  color:color-mix(in oklab, #ff6b7a 82%, white 18%);
+  color:var(--admin-preloader-heart);
   transform-origin:center;
 }
 
@@ -121,7 +154,7 @@
 
 .admin-preloader-heart path{
   fill:currentColor;
-  filter:drop-shadow(0 0 8px rgba(255, 107, 122, .24));
+  filter:drop-shadow(0 0 8px var(--admin-preloader-heart-glow));
 }
 
 @keyframes admin-preloader-ekg-trace{

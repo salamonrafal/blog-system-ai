@@ -362,3 +362,11 @@
 - Wydzielono wspólne serwisy `ManagedUploadedFileStorage`, `ManagedFilePathResolver`, `MediaImageStorage`, `MediaGalleryManager` i `MediaImageSupport`, porządkując zapis uploadów, bezpieczne rozwiązywanie ścieżek, filtrowanie obsługiwanych typów plików oraz współdzieloną logikę zarządzania plikami mediów.
 - Dodano komendę `app:media:archive-orphans`, która wyszukuje porzucone pliki w `public/uploads/media/` bez odpowiadającego wpisu w bazie, przenosi je do katalogu tymczasowego, pakuje do archiwum ZIP w `var/media-orphans/` i raportuje listę plików oraz ścieżkę archiwum, a konfigurację rozszerzono o listę ignorowanych nazw `app.media_orphan_ignored_filenames` z domyślnym pomijaniem `.gitkeep`.
 - Uzupełniono `README.md` o dokumentację modułu mediów, opis struktury katalogów uploadu, wyjaśnienie pojęcia porzuconych plików oraz instrukcję uruchamiania komendy `app:media:archive-orphans` wraz z katalogami roboczymi i zachowaniem procesu archiwizacji.
+
+## 2026-04-06
+
+- Naprawiono rozwijane sekcje w zadokowanym menu skrótów administratora po przejściu do stanu zwiniętego, tak aby kliknięcie ponownie poprawnie otwierało submenu z dziećmi zamiast zamykać odziedziczony stan `is-open`.
+- Uszczelniono przełączanie między zwiniętym i rozwiniętym wariantem zadokowanego menu skrótów administratora, zamykając otwarte popovery i submenu przy zmianie stanu panelu, aby nie pozostawały widoczne po kliknięciu przycisku rozwinięcia.
+- Rozszerzono skróty administratora o oznaczanie aktywnej trasy i automatyczne otwieranie odpowiedniej sekcji po wejściu na stronę, gdy panel jest zadokowany i rozwinięty, wraz z wyróżnieniem aktywnych pozycji i bieżącej strony.
+- Przebudowano fullscreen podglądu obrazów używanego m.in. w galerii mediów, tak aby sam modal wykorzystywał całą dostępną przestrzeń, a obrazy były wyśrodkowane w obu osiach bez sztucznego powiększania ponad naturalny rozmiar.
+- Dopasowano preloader panelu administracyjnego do jasnego i ciemnego motywu, wprowadzając osobne warianty kolorystyczne overlayu, panelu statusu i animacji oraz ustawianie `data-theme` już w `<head>`, aby właściwy motyw był widoczny od pierwszego renderu.

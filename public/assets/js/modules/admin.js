@@ -95,6 +95,32 @@ function syncCollapsedShortcutTooltips(shortcuts){
   });
 }
 
+function syncActiveAdminShortcutSubmenus(shortcuts){
+  if(!(shortcuts instanceof HTMLElement)) return;
+
+  const isDockedExpanded = shortcuts.classList.contains('is-docked')
+    && !shortcuts.classList.contains('is-collapsed')
+    && isDesktopAdminShortcutsViewport();
+
+  if(!isDockedExpanded) return;
+
+  const activeSubmenu = qsa('[data-admin-shortcuts-submenu][data-route-active="true"]', shortcuts)
+    .find((submenu)=> submenu instanceof HTMLElement);
+  if(!(activeSubmenu instanceof HTMLElement)) return;
+
+  const hasOpenSubmenu = qsa('[data-admin-shortcuts-submenu].is-open', shortcuts).length > 0;
+  if(hasOpenSubmenu) return;
+
+  activeSubmenu.classList.add('is-open');
+  const trigger = qs('[data-action="toggle-admin-submenu"]', activeSubmenu);
+  if(trigger instanceof HTMLElement){
+    trigger.setAttribute('aria-expanded', 'true');
+    if(trigger.dataset.originalAriaControls){
+      trigger.setAttribute('aria-controls', trigger.dataset.originalAriaControls);
+    }
+  }
+}
+
 export function syncAdminShortcuts(){
   qsa('[data-admin-shortcuts]').forEach((menu)=>{
     const shortcuts = menu.closest('.admin-shortcuts');
@@ -162,6 +188,7 @@ export function syncAdminShortcuts(){
 
     syncCollapsedSubmenuAccessibility(shortcuts);
     syncCollapsedShortcutTooltips(shortcuts);
+    syncActiveAdminShortcutSubmenus(shortcuts);
   });
 }
 
@@ -170,6 +197,17 @@ export function setupAdminShortcuts(){
   syncAdminShortcuts();
   let collapsedSubmenuPopover = null;
   let collapsedSubmenuOwner = null;
+
+  const resetCollapsedDesktopSubmenus = ()=>{
+    qsa('.admin-shortcuts.is-docked.is-collapsed').forEach((shortcuts)=>{
+      if(!isDesktopAdminShortcutsViewport()) return;
+
+      closeCollapsedSubmenuPopover();
+      qsa('[data-admin-shortcuts-submenu].is-open', shortcuts).forEach((submenu)=>{
+        closeAdminSubmenu(submenu);
+      });
+    });
+  };
 
   const ensureCollapsedSubmenuPopover = ()=>{
     if(collapsedSubmenuPopover) return collapsedSubmenuPopover;
@@ -284,6 +322,13 @@ export function setupAdminShortcuts(){
     }
   };
 
+  const resetOpenAdminSubmenus = ()=>{
+    closeCollapsedSubmenuPopover();
+    qsa('[data-admin-shortcuts-submenu].is-open').forEach((submenu)=>{
+      closeAdminSubmenu(submenu);
+    });
+  };
+
   const openAdminSubmenu = (submenu)=>{
     if(!submenu) return;
     if(shouldUseCollapsedAdminSubmenuPopover(submenu)){
@@ -308,7 +353,9 @@ export function setupAdminShortcuts(){
     trigger.addEventListener('click', (event)=>{
       event.preventDefault();
       event.stopPropagation();
-      const isOpen = submenu.classList.contains('is-open');
+      const isOpen = shouldUseCollapsedAdminSubmenuPopover(submenu)
+        ? collapsedSubmenuOwner === submenu && !!collapsedSubmenuPopover && !collapsedSubmenuPopover.hidden
+        : submenu.classList.contains('is-open');
 
       qsa('[data-admin-shortcuts-submenu].is-open').forEach((openSubmenu)=>{
         if(openSubmenu !== submenu){
@@ -371,8 +418,10 @@ export function setupAdminShortcuts(){
         event.stopPropagation();
 
         if(!shortcuts.classList.contains('is-docked')) return;
+        resetOpenAdminSubmenus();
         setAdminShortcutsCollapsed(!shortcuts.classList.contains('is-collapsed'));
         syncAdminShortcuts();
+        resetCollapsedDesktopSubmenus();
       });
     }
 
@@ -427,6 +476,7 @@ export function setupAdminShortcuts(){
   const syncAdminShortcutsOnViewportChange = ()=>{
     syncAdminShortcuts();
     closeCollapsedSubmenuPopover();
+    resetCollapsedDesktopSubmenus();
   };
 
   window.addEventListener('resize', syncAdminShortcutsOnViewportChange, { passive: true });
