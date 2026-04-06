@@ -264,7 +264,7 @@ Fullstack Developer</span>
                         <span data-i18n="admin_shortcut_dashboard">Panel główny</span>
                     </a>
                     <div class="admin-shortcuts-submenu{{ is_content_shortcut_active ? ' is-route-active' : '' }}" data-admin-shortcuts-submenu data-route-active="{{ is_content_shortcut_active ? 'true' : 'false' }}">
-                        <button type="button" class="admin-shortcuts-link admin-shortcuts-button admin-shortcuts-submenu-trigger{{ is_content_shortcut_active ? ' is-active' : '' }}" data-action="toggle-admin-submenu" aria-haspopup="true" aria-expanded="{{ is_content_shortcut_active ? 'true' : 'false' }}" aria-controls="admin-shortcuts-content-management-panel">
+                        <button type="button" class="admin-shortcuts-link admin-shortcuts-button admin-shortcuts-submenu-trigger{{ is_content_shortcut_active ? ' is-active' : '' }}" data-action="toggle-admin-submenu" aria-haspopup="true" aria-expanded="false" aria-controls="admin-shortcuts-content-management-panel">
                             <span class="admin-shortcuts-link-icon" aria-hidden="true">
                                 <svg viewBox="0 0 32 32">
                                     <path d="M8 9h16"></path>
@@ -281,7 +281,7 @@ Fullstack Developer</span>
                             </span>
                         </button>
                         <div class="admin-shortcuts-submenu-panel" id="admin-shortcuts-content-management-panel" data-i18n-aria="admin_shortcut_content_management_title" aria-label="Zarządzanie treścią">
-                            <a class="admin-shortcuts-link admin-shortcuts-sublink{{ route_name starts with 'admin_article_' ? ' is-active' : '' }}" href="{{ path('admin_article_index') }}"{{ route_name starts with 'admin_article_' ? ' aria-current="page"' : '' }}>
+                            <a class="admin-shortcuts-link admin-shortcuts-sublink{{ route_name starts with 'admin_article_' ? ' is-active' : '' }}" href="{{ path('admin_article_index') }}"{{ route_name == 'admin_article_index' ? ' aria-current="page"' : '' }}>
                                 <span class="admin-shortcuts-link-icon" aria-hidden="true">
                                     <svg viewBox="0 0 32 32">
                                         <path d="M10 9h14"></path>
@@ -294,7 +294,7 @@ Fullstack Developer</span>
                                 </span>
                                 <span data-i18n="admin_shortcut_articles">Lista artykułów</span>
                             </a>
-                            <a class="admin-shortcuts-link admin-shortcuts-sublink{{ route_name starts with 'admin_article_category_' ? ' is-active' : '' }}" href="{{ path('admin_article_category_index') }}"{{ route_name starts with 'admin_article_category_' ? ' aria-current="page"' : '' }}>
+                            <a class="admin-shortcuts-link admin-shortcuts-sublink{{ route_name starts with 'admin_article_category_' ? ' is-active' : '' }}" href="{{ path('admin_article_category_index') }}"{{ route_name == 'admin_article_category_index' ? ' aria-current="page"' : '' }}>
                                 <span class="admin-shortcuts-link-icon" aria-hidden="true">
                                     <svg viewBox="0 0 32 32">
                                         <path d="M8 10h10l6 6-8 8-8-8Z"></path>
@@ -303,7 +303,7 @@ Fullstack Developer</span>
                                 </span>
                                 <span data-i18n="admin_shortcut_categories">Kategorie artykułów</span>
                             </a>
-                            <a class="admin-shortcuts-link admin-shortcuts-sublink{{ route_name starts with 'admin_article_keyword_' ? ' is-active' : '' }}" href="{{ path('admin_article_keyword_index') }}"{{ route_name starts with 'admin_article_keyword_' ? ' aria-current="page"' : '' }}>
+                            <a class="admin-shortcuts-link admin-shortcuts-sublink{{ route_name starts with 'admin_article_keyword_' ? ' is-active' : '' }}" href="{{ path('admin_article_keyword_index') }}"{{ route_name == 'admin_article_keyword_index' ? ' aria-current="page"' : '' }}>
                                 <span class="admin-shortcuts-link-icon" aria-hidden="true">
                                     <svg viewBox="0 0 32 32">
                                         <path d="M7 16h9"></path>
@@ -314,7 +314,7 @@ Fullstack Developer</span>
                                 </span>
                                 <span data-i18n="admin_shortcut_keywords">Słowa kluczowe</span>
                             </a>
-                            <a class="admin-shortcuts-link admin-shortcuts-sublink{{ route_name starts with 'admin_top_menu_' ? ' is-active' : '' }}" href="{{ path('admin_top_menu_index') }}"{{ route_name starts with 'admin_top_menu_' ? ' aria-current="page"' : '' }}>
+                            <a class="admin-shortcuts-link admin-shortcuts-sublink{{ route_name starts with 'admin_top_menu_' ? ' is-active' : '' }}" href="{{ path('admin_top_menu_index') }}"{{ route_name == 'admin_top_menu_index' ? ' aria-current="page"' : '' }}>
                                 <span class="admin-shortcuts-link-icon" aria-hidden="true">
                                     <svg viewBox="0 0 32 32">
                                         <path d="M7 10h18"></path>
@@ -328,7 +328,7 @@ Fullstack Developer</span>
                         </div>
                     </div>
                     <div class="admin-shortcuts-submenu{{ is_media_shortcut_active ? ' is-route-active' : '' }}" data-admin-shortcuts-submenu data-route-active="{{ is_media_shortcut_active ? 'true' : 'false' }}">
-                        <button type="button" class="admin-shortcuts-link admin-shortcuts-button admin-shortcuts-submenu-trigger{{ is_media_shortcut_active ? ' is-active' : '' }}" data-action="toggle-admin-submenu" aria-haspopup="true" aria-expanded="{{ is_media_shortcut_active ? 'true' : 'false' }}" aria-controls="admin-shortcuts-media-panel">
+                        <button type="button" class="admin-shortcuts-link admin-shortcuts-button admin-shortcuts-submenu-trigger{{ is_media_shortcut_active ? ' is-active' : '' }}" data-action="toggle-admin-submenu" aria-haspopup="true" aria-expanded="false" aria-controls="admin-shortcuts-media-panel">
                             <span class="admin-shortcuts-link-icon" aria-hidden="true">
                                 <svg viewBox="0 0 32 32">
                                     <rect x="5" y="7" width="22" height="18" rx="3"></rect>
@@ -369,7 +369,7 @@ Fullstack Developer</span>
                         </div>
                     </div>
                     <div class="admin-shortcuts-submenu{{ is_users_shortcut_active ? ' is-route-active' : '' }}" data-admin-shortcuts-submenu data-route-active="{{ is_users_shortcut_active ? 'true' : 'false' }}">
-                        <button type="button" class="admin-shortcuts-link admin-shortcuts-button admin-shortcuts-submenu-trigger{{ is_users_shortcut_active ? ' is-active' : '' }}" data-action="toggle-admin-submenu" aria-haspopup="true" aria-expanded="{{ is_users_shortcut_active ? 'true' : 'false' }}" aria-controls="admin-shortcuts-users-panel">
+                        <button type="button" class="admin-shortcuts-link admin-shortcuts-button admin-shortcuts-submenu-trigger{{ is_users_shortcut_active ? ' is-active' : '' }}" data-action="toggle-admin-submenu" aria-haspopup="true" aria-expanded="false" aria-controls="admin-shortcuts-users-panel">
                             <span class="admin-shortcuts-link-icon" aria-hidden="true">
                                 <svg viewBox="0 0 32 32">
                                     <circle cx="12" cy="11" r="4"></circle>
@@ -397,7 +397,7 @@ Fullstack Developer</span>
                                 </span>
                                 <span data-i18n="admin_shortcut_user_new">Dodaj użytkownika</span>
                             </a>
-                            <a class="admin-shortcuts-link admin-shortcuts-sublink{{ route_name starts with 'admin_user_' and route_name != 'admin_user_new' ? ' is-active' : '' }}" href="{{ path('admin_user_index') }}"{{ route_name starts with 'admin_user_' and route_name != 'admin_user_new' ? ' aria-current="page"' : '' }}>
+                            <a class="admin-shortcuts-link admin-shortcuts-sublink{{ route_name starts with 'admin_user_' and route_name != 'admin_user_new' ? ' is-active' : '' }}" href="{{ path('admin_user_index') }}"{{ route_name == 'admin_user_index' ? ' aria-current="page"' : '' }}>
                                 <span class="admin-shortcuts-link-icon" aria-hidden="true">
                                     <svg viewBox="0 0 32 32">
                                         <circle cx="12" cy="11" r="4"></circle>
@@ -411,7 +411,7 @@ Fullstack Developer</span>
                         </div>
                     </div>
                     <div class="admin-shortcuts-submenu{{ is_import_export_shortcut_active ? ' is-route-active' : '' }}" data-admin-shortcuts-submenu data-route-active="{{ is_import_export_shortcut_active ? 'true' : 'false' }}">
-                        <button type="button" class="admin-shortcuts-link admin-shortcuts-button admin-shortcuts-submenu-trigger{{ is_import_export_shortcut_active ? ' is-active' : '' }}" data-action="toggle-admin-submenu" aria-haspopup="true" aria-expanded="{{ is_import_export_shortcut_active ? 'true' : 'false' }}" aria-controls="admin-shortcuts-import-export-panel">
+                        <button type="button" class="admin-shortcuts-link admin-shortcuts-button admin-shortcuts-submenu-trigger{{ is_import_export_shortcut_active ? ' is-active' : '' }}" data-action="toggle-admin-submenu" aria-haspopup="true" aria-expanded="false" aria-controls="admin-shortcuts-import-export-panel">
                             <span class="admin-shortcuts-link-icon" aria-hidden="true">
                                 <svg viewBox="0 0 32 32">
                                     <path d="M10 11h12"></path>
@@ -446,7 +446,7 @@ Fullstack Developer</span>
                                     <span class="admin-shortcuts-badge" aria-label="{{ admin_shortcut_badges.queue_status }} oczekujących elementów">{{ admin_shortcut_badges.queue_status }}</span>
                                 {% endif %}
                             </a>
-                            <a class="admin-shortcuts-link admin-shortcuts-sublink{{ route_name starts with 'admin_article_import_' ? ' is-active' : '' }}" href="{{ path('admin_article_import_index') }}"{{ route_name starts with 'admin_article_import_' ? ' aria-current="page"' : '' }}>
+                            <a class="admin-shortcuts-link admin-shortcuts-sublink{{ route_name starts with 'admin_article_import_' ? ' is-active' : '' }}" href="{{ path('admin_article_import_index') }}"{{ route_name == 'admin_article_import_index' ? ' aria-current="page"' : '' }}>
                                 <span class="admin-shortcuts-link-icon" aria-hidden="true">
                                     <svg viewBox="0 0 32 32">
                                         <path d="M16 7v13"></path>
@@ -460,7 +460,7 @@ Fullstack Developer</span>
                                     <span class="admin-shortcuts-badge" aria-label="{{ admin_shortcut_badges.imports }} oczekujących importów">{{ admin_shortcut_badges.imports }}</span>
                                 {% endif %}
                             </a>
-                            <a class="admin-shortcuts-link admin-shortcuts-sublink{{ route_name starts with 'admin_category_import_' ? ' is-active' : '' }}" href="{{ path('admin_category_import_index') }}"{{ route_name starts with 'admin_category_import_' ? ' aria-current="page"' : '' }}>
+                            <a class="admin-shortcuts-link admin-shortcuts-sublink{{ route_name starts with 'admin_category_import_' ? ' is-active' : '' }}" href="{{ path('admin_category_import_index') }}"{{ route_name == 'admin_category_import_index' ? ' aria-current="page"' : '' }}>
                                 <span class="admin-shortcuts-link-icon" aria-hidden="true">
                                     <svg viewBox="0 0 32 32">
                                         <path d="M16 7v13"></path>
@@ -481,7 +481,7 @@ Fullstack Developer</span>
                                     >{{ admin_shortcut_badges.category_imports }}</span>
                                 {% endif %}
                             </a>
-                            <a class="admin-shortcuts-link admin-shortcuts-sublink{{ route_name starts with 'admin_top_menu_import_' ? ' is-active' : '' }}" href="{{ path('admin_top_menu_import_index') }}"{{ route_name starts with 'admin_top_menu_import_' ? ' aria-current="page"' : '' }}>
+                            <a class="admin-shortcuts-link admin-shortcuts-sublink{{ route_name starts with 'admin_top_menu_import_' ? ' is-active' : '' }}" href="{{ path('admin_top_menu_import_index') }}"{{ route_name == 'admin_top_menu_import_index' ? ' aria-current="page"' : '' }}>
                                 <span class="admin-shortcuts-link-icon" aria-hidden="true">
                                     <svg viewBox="0 0 32 32">
                                         <path d="M16 7v13"></path>
@@ -497,7 +497,7 @@ Fullstack Developer</span>
                                     <span class="admin-shortcuts-badge" aria-label="{{ admin_shortcut_badges.top_menu_imports }} oczekujących importów menu">{{ admin_shortcut_badges.top_menu_imports }}</span>
                                 {% endif %}
                             </a>
-                            <a class="admin-shortcuts-link admin-shortcuts-sublink{{ route_name starts with 'admin_article_export_' ? ' is-active' : '' }}" href="{{ path('admin_article_export_index') }}"{{ route_name starts with 'admin_article_export_' ? ' aria-current="page"' : '' }}>
+                            <a class="admin-shortcuts-link admin-shortcuts-sublink{{ route_name starts with 'admin_article_export_' ? ' is-active' : '' }}" href="{{ path('admin_article_export_index') }}"{{ route_name == 'admin_article_export_index' ? ' aria-current="page"' : '' }}>
                                 <span class="admin-shortcuts-link-icon" aria-hidden="true">
                                     <svg viewBox="0 0 32 32">
                                         <path d="M16 6v13"></path>
