@@ -40,14 +40,19 @@ final class MediaImageSupport
     public static function detectMimeType(File $file): string
     {
         $pathname = $file->getPathname();
-        if ('' !== $pathname && is_file($pathname)) {
-            $detectedMimeType = mime_content_type($pathname);
+        if ('' !== $pathname && is_file($pathname) && class_exists(\finfo::class)) {
+            $finfo = new \finfo(\FILEINFO_MIME_TYPE);
+            $detectedMimeType = $finfo->file($pathname);
             if (is_string($detectedMimeType) && '' !== trim($detectedMimeType)) {
                 return self::normalizeMimeType($detectedMimeType);
             }
         }
 
-        return self::normalizeMimeType($file->getMimeType());
+        try {
+            return self::normalizeMimeType($file->getMimeType());
+        } catch (\LogicException) {
+            return '';
+        }
     }
 
     public static function filenameMatchesMimeType(string $filename, ?string $mimeType): bool

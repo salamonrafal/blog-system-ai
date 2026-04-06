@@ -190,6 +190,44 @@ final class MediaOrphanArchiveServiceTest extends TestCase
         $this->assertFileDoesNotExist($this->projectDir.'/'.$orphanPath);
     }
 
+    public function testArchiveOrphansFallsBackToCopyAndUnlinkWhenRenameFails(): void
+    {
+        $orphanPath = 'public/uploads/media/2026/04/05/orphan-one.webp';
+        $this->createFile($orphanPath, 'orphan-one');
+
+        /** @var MediaImageRepository&MockObject $repository */
+        $repository = $this->createMock(MediaImageRepository::class);
+        $repository
+            ->method('findAllStoredFilePaths')
+            ->willReturn([]);
+
+        $service = new class($repository, $this->projectDir, 'public/uploads/media') extends MediaOrphanArchiveService {
+            private bool $firstMoveAttempt = true;
+
+            protected function moveFile(string $sourcePath, string $targetPath, string $failureMessage): void
+            {
+                if ($this->firstMoveAttempt) {
+                    $this->firstMoveAttempt = false;
+
+                    if (!@copy($sourcePath, $targetPath) || !@unlink($sourcePath)) {
+                        throw new \RuntimeException($failureMessage);
+                    }
+
+                    return;
+                }
+
+                parent::moveFile($sourcePath, $targetPath, $failureMessage);
+            }
+        };
+
+        $result = $service->archiveOrphans();
+
+        $this->assertSame([$orphanPath], $result['moved_files']);
+        $this->assertIsString($result['archive_path']);
+        $this->assertFileExists($this->projectDir.'/'.$result['archive_path']);
+        $this->assertFileDoesNotExist($this->projectDir.'/'.$orphanPath);
+    }
+
     private function createService(array $storedFilePaths, array $ignoredFilenames = ['.gitkeep']): MediaOrphanArchiveService
     {
         /** @var MediaImageRepository&MockObject $repository */

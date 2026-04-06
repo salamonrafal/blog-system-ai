@@ -5,10 +5,14 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Repository\MediaImageRepository;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 class MediaOrphanArchiveService
 {
+    private readonly LoggerInterface $logger;
+
     public function __construct(
         private readonly MediaImageRepository $mediaImageRepository,
         #[Autowire('%kernel.project_dir%')]
@@ -17,7 +21,9 @@ class MediaOrphanArchiveService
         private readonly string $mediaDirectory = 'public/uploads/media',
         #[Autowire('%app.media_orphan_ignored_filenames%')]
         private readonly array $ignoredFilenames = ['.gitkeep'],
+        ?LoggerInterface $logger = null,
     ) {
+        $this->logger = $logger ?? new NullLogger();
     }
 
     /**
@@ -48,9 +54,11 @@ class MediaOrphanArchiveService
                 $this->ensureDirectoryExists(dirname($targetPath));
 
                 $sourcePath = $this->projectDir.'/'.$relativePath;
-                if (!@rename($sourcePath, $targetPath)) {
-                    throw new \RuntimeException(sprintf('Failed to move orphaned media file "%s" to the staging directory.', $relativePath));
-                }
+                $this->moveFile(
+                    $sourcePath,
+                    $targetPath,
+                    sprintf('Failed to move orphaned media file "%s" to the staging directory.', $relativePath),
+                );
 
                 $movedFiles[$relativePath] = $targetPath;
             }
@@ -59,17 +67,29 @@ class MediaOrphanArchiveService
         } catch (\Throwable $exception) {
             try {
                 $this->rollbackMovedFiles($movedFiles);
-            } catch (\Throwable) {
+            } catch (\Throwable $rollbackException) {
+                $this->logger->warning('Failed to roll back orphaned media files after archive failure.', [
+                    'exception' => $rollbackException,
+                    'moved_files' => array_keys($movedFiles),
+                ]);
             }
 
             try {
                 $this->cleanupStagingDirectory($stagingDirectory);
-            } catch (\Throwable) {
+            } catch (\Throwable $cleanupException) {
+                $this->logger->warning('Failed to clean up orphaned media staging directory after archive failure.', [
+                    'exception' => $cleanupException,
+                    'staging_directory' => $this->toProjectRelativePath($stagingDirectory),
+                ]);
             }
 
             try {
                 $this->removeIfEmpty($this->getArchiveDirectory().'/tmp');
-            } catch (\Throwable) {
+            } catch (\Throwable $tmpCleanupException) {
+                $this->logger->warning('Failed to remove empty orphaned media tmp directory after archive failure.', [
+                    'exception' => $tmpCleanupException,
+                    'tmp_directory' => $this->toProjectRelativePath($this->getArchiveDirectory().'/tmp'),
+                ]);
             }
 
             throw $exception;
@@ -77,7 +97,11 @@ class MediaOrphanArchiveService
 
         try {
             $this->finalizeArchivedOrphans($stagingDirectory);
-        } catch (\Throwable) {
+        } catch (\Throwable $finalizeException) {
+            $this->logger->warning('Failed to finalize orphaned media archive cleanup after archive creation.', [
+                'exception' => $finalizeException,
+                'staging_directory' => $this->toProjectRelativePath($stagingDirectory),
+            ]);
         }
 
         return [
@@ -323,9 +347,11 @@ class MediaOrphanArchiveService
             $originalPath = $this->projectDir.'/'.$relativePath;
             $this->ensureDirectoryExists(dirname($originalPath));
 
-            if (!@rename($stagedPath, $originalPath)) {
-                throw new \RuntimeException(sprintf('Failed to restore orphaned media file "%s" after archive failure.', $relativePath));
-            }
+            $this->moveFile(
+                $stagedPath,
+                $originalPath,
+                sprintf('Failed to restore orphaned media file "%s" after archive failure.', $relativePath),
+            );
         }
     }
 
@@ -343,6 +369,27 @@ class MediaOrphanArchiveService
         $this->removeDirectory($stagingDirectory);
         $this->removeIfEmpty($this->getArchiveDirectory().'/tmp');
         $this->removeEmptyDirectories($this->projectDir.'/'.trim($this->mediaDirectory, '/'));
+    }
+
+    protected function moveFile(string $sourcePath, string $targetPath, string $failureMessage): void
+    {
+        if (@rename($sourcePath, $targetPath)) {
+            return;
+        }
+
+        if (@copy($sourcePath, $targetPath) && @unlink($sourcePath)) {
+            return;
+        }
+
+        if (is_file($targetPath) && !is_file($sourcePath)) {
+            return;
+        }
+
+        if (is_file($targetPath)) {
+            @unlink($targetPath);
+        }
+
+        throw new \RuntimeException($failureMessage);
     }
 
     private function normalizeRelativePath(string $path): string
