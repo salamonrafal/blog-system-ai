@@ -155,13 +155,13 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
 
         foreach ($units as $unit) {
             if ($value < 1024 || 'TB' === $unit) {
-                return sprintf('%.1f %s', $value, $unit);
+                break;
             }
 
             $value /= 1024;
         }
 
-        return sprintf('%d B', $bytes);
+        return sprintf('%.1f %s', $value, $unit);
     }
 
     private function getValidationMessageFallbacks(): array

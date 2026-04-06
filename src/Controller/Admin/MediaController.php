@@ -64,7 +64,7 @@ class MediaController extends AbstractController
         ]);
     }
 
-    #[Route('/delete/{id}', name: 'admin_media_delete', methods: ['POST'])]
+    #[Route('/{id}/delete', name: 'admin_media_delete', methods: ['POST'])]
     public function delete(
         MediaImage $mediaImage,
         Request $request,
