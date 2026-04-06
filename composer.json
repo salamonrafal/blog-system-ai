@@ -9,8 +9,6 @@
         "ext-iconv": "*",
         "ext-fileinfo": "*",
         "ext-sqlite3": "*",
-        "ext-gd": "*",
-        "ext-curl": "*",
         "ext-zip": "*",
         "ext-mbstring": "*",
         "doctrine/dbal": "^4.0",
