@@ -322,7 +322,7 @@ Fullstack Developer</span>
                                 </span>
                                 <span data-i18n="admin_shortcut_keywords">Słowa kluczowe</span>
                             </a>
-                            <a class="admin-shortcuts-link admin-shortcuts-sublink{{ route_name starts with 'admin_top_menu_' ? ' is-active' : '' }}" href="{{ path('admin_top_menu_index') }}"{% if route_name == 'admin_top_menu_index' %} aria-current="page"{% endif %}>
+                            <a class="admin-shortcuts-link admin-shortcuts-sublink{{ route_name starts with 'admin_top_menu_' and not (route_name starts with 'admin_top_menu_import_') ? ' is-active' : '' }}" href="{{ path('admin_top_menu_index') }}"{% if route_name == 'admin_top_menu_index' %} aria-current="page"{% endif %}>
                                 <span class="admin-shortcuts-link-icon" aria-hidden="true">
                                     <svg viewBox="0 0 32 32">
                                         <path d="M7 10h18"></path>
