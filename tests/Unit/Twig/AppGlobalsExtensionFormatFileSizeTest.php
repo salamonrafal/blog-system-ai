@@ -15,6 +15,7 @@ use App\Repository\TopMenuItemRepository;
 use App\Service\BlogSettingsProvider;
 use App\Service\FileSizeFormatter;
 use App\Service\TopMenuBuilder;
+use App\Service\UploadLimitResolver;
 use App\Service\UserLanguageResolver;
 use App\Service\UserTimeZoneResolver;
 use App\Twig\AppGlobalsExtension;
@@ -39,6 +40,7 @@ final class AppGlobalsExtensionFormatFileSizeTest extends TestCase
             $this->createStub(TopMenuItemRepository::class),
             $this->createStub(TopMenuBuilder::class),
             new FileSizeFormatter(),
+            new UploadLimitResolver(static fn (string $key): string|false => false),
             $this->createStub(CacheInterface::class),
             'test',
         );

@@ -1741,3 +1741,26 @@ export function setupMediaGalleryDropSlot(){
     });
   });
 }
+
+export function setupMediaGallerySorting(){
+  const form = qs('[data-media-gallery-search-form]');
+
+  if(!(form instanceof HTMLFormElement)){
+    return;
+  }
+
+  const sortSelect = qs('[data-media-gallery-sort-select]', form);
+
+  if(!(sortSelect instanceof HTMLSelectElement)){
+    return;
+  }
+
+  sortSelect.addEventListener('change', ()=>{
+    if(typeof form.requestSubmit === 'function'){
+      form.requestSubmit();
+      return;
+    }
+
+    form.submit();
+  });
+}

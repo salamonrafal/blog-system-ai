@@ -31,7 +31,7 @@
                         </a>
                         <a
                             class="button secondary media-gallery-toolbar-button"
-                            href="{{ path('admin_media_gallery') }}"
+                            href="{{ path('admin_media_gallery', pagination_route_params|merge({ page: current_page })) }}"
                             data-i18n-tooltip="admin_refresh"
                             data-tooltip="{{ i18n_fallback('admin_refresh') }}"
                             data-i18n-aria="admin_refresh"
@@ -88,6 +88,48 @@
                     }
                 }) }}
             {{ form_end(upload_form) }}
+
+            <form method="get" action="{{ path('admin_media_gallery') }}" class="article-filters media-gallery-search-form" role="search" data-media-gallery-search-form>
+                <div class="article-filter-group media-gallery-search-controls">
+                    <label class="sr-only" for="media-gallery-search" data-i18n="admin_media_search_label">{{ i18n_fallback('admin_media_search_label') }}</label>
+                    <div class="media-gallery-search-group">
+                        <input
+                            id="media-gallery-search"
+                            type="search"
+                            name="q"
+                            value="{{ search_query }}"
+                            class="article-editor-input media-gallery-search-input"
+                            data-i18n-placeholder="admin_media_search_placeholder"
+                            placeholder="{{ i18n_fallback('admin_media_search_placeholder') }}"
+                        >
+                        <button
+                            class="button secondary media-gallery-search-submit"
+                            type="submit"
+                            data-i18n-aria="admin_media_search_submit"
+                            aria-label="{{ i18n_fallback('admin_media_search_submit') }}"
+                        >
+                            <span class="article-action-icon is-search" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                </div>
+                <div class="media-gallery-sort-controls">
+                    <label class="sr-only" for="media-gallery-sort" data-i18n="admin_media_sort_label">{{ i18n_fallback('admin_media_sort_label') }}</label>
+                    <select
+                        id="media-gallery-sort"
+                        name="sort"
+                        class="article-editor-input article-editor-select media-gallery-sort-select"
+                        data-media-gallery-sort-select
+                        data-i18n-aria="admin_media_sort_label"
+                        aria-label="{{ i18n_fallback('admin_media_sort_label') }}"
+                    >
+                        <option value="desc" {% if sort_order != 'asc' %}selected{% endif %} data-i18n="admin_media_sort_desc">{{ i18n_fallback('admin_media_sort_desc') }}</option>
+                        <option value="asc" {% if sort_order == 'asc' %}selected{% endif %} data-i18n="admin_media_sort_asc">{{ i18n_fallback('admin_media_sort_asc') }}</option>
+                    </select>
+                </div>
+                {% if search_query is not empty %}
+                    <a class="button secondary media-gallery-search-reset" href="{{ path('admin_media_gallery') }}" data-i18n="admin_media_search_reset">{{ i18n_fallback('admin_media_search_reset') }}</a>
+                {% endif %}
+            </form>
 
             {% if gallery_images is not empty %}
                 <div class="media-gallery-grid" data-i18n-aria="admin_media_gallery_aria" aria-label="{{ i18n_fallback('admin_media_gallery_aria') }}">
@@ -193,9 +235,49 @@
                         </div>
                     </article>
                 </div>
+
+                {% if total_pages > 1 %}
+                    <nav class="blog-pagination article-index-pagination" data-i18n-aria="admin_listing_pagination_aria" aria-label="{{ i18n_fallback('admin_listing_pagination_aria') }}">
+                        {% if current_page > 1 %}
+                            <a class="btn blog-pagination-link blog-pagination-link-icon" href="{{ path('admin_media_gallery', pagination_route_params|merge({ page: current_page - 1 })) }}" data-i18n-aria="admin_pagination_previous_page" aria-label="{{ i18n_fallback('admin_pagination_previous_page') }}">
+                                <span aria-hidden="true">&lsaquo;</span>
+                            </a>
+                        {% else %}
+                            <span class="btn blog-pagination-link blog-pagination-link-icon is-disabled" aria-disabled="true" data-i18n-aria="admin_pagination_previous_page" aria-label="{{ i18n_fallback('admin_pagination_previous_page') }}">
+                                <span aria-hidden="true">&lsaquo;</span>
+                            </span>
+                        {% endif %}
+
+                        <div class="blog-pagination-pages">
+                            {% for item in pagination_items %}
+                                {% if item == '...' %}
+                                    <span class="blog-pagination-ellipsis" aria-hidden="true">...</span>
+                                {% elseif item == current_page %}
+                                    <span class="btn blog-pagination-link is-current" aria-current="page">{{ item }}</span>
+                                {% else %}
+                                    <a class="btn blog-pagination-link" href="{{ path('admin_media_gallery', pagination_route_params|merge({ page: item })) }}">{{ item }}</a>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        {% if current_page < total_pages %}
+                            <a class="btn blog-pagination-link blog-pagination-link-icon" href="{{ path('admin_media_gallery', pagination_route_params|merge({ page: current_page + 1 })) }}" data-i18n-aria="admin_pagination_next_page" aria-label="{{ i18n_fallback('admin_pagination_next_page') }}">
+                                <span aria-hidden="true">&rsaquo;</span>
+                            </a>
+                        {% else %}
+                            <span class="btn blog-pagination-link blog-pagination-link-icon is-disabled" aria-disabled="true" data-i18n-aria="admin_pagination_next_page" aria-label="{{ i18n_fallback('admin_pagination_next_page') }}">
+                                <span aria-hidden="true">&rsaquo;</span>
+                            </span>
+                        {% endif %}
+                    </nav>
+                {% endif %}
             {% else %}
                 <div class="blog-empty-state">
-                    <p class="meta blog-empty-state-message" role="status" data-i18n="admin_media_empty">{{ i18n_fallback('admin_media_empty') }}</p>
+                    {% if search_query is not empty %}
+                        <p class="meta blog-empty-state-message" role="status" data-i18n="admin_media_search_empty">{{ i18n_fallback('admin_media_search_empty') }}</p>
+                    {% else %}
+                        <p class="meta blog-empty-state-message" role="status" data-i18n="admin_media_empty">{{ i18n_fallback('admin_media_empty') }}</p>
+                    {% endif %}
                 </div>
             {% endif %}
         </div>

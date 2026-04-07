@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Controller\Admin;
 
 use App\Controller\Admin\MediaController;
+use App\Entity\BlogSettings;
 use App\Entity\MediaImage;
 use App\Form\MediaImageUploadType;
 use App\Repository\MediaImageRepository;
+use App\Service\BlogSettingsProvider;
 use App\Service\FileSizeFormatter;
 use App\Service\MediaGalleryManager;
 use App\Service\MediaImageStorage;
+use App\Service\PaginationBuilder;
 use App\Service\UserLanguageResolver;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -65,8 +68,20 @@ final class MediaControllerTest extends TestCase
         $repository = $this->createMock(MediaImageRepository::class);
         $repository
             ->expects($this->once())
-            ->method('findAllForAdminIndex')
+            ->method('countForAdminIndex')
+            ->with('', 'desc')
+            ->willReturn(3);
+        $repository
+            ->expects($this->once())
+            ->method('findPaginatedForAdminIndex')
+            ->with(2, 2, '', 'desc')
             ->willReturn($galleryImages);
+
+        $blogSettingsProvider = $this->createMock(BlogSettingsProvider::class);
+        $blogSettingsProvider
+            ->expects($this->once())
+            ->method('getSettings')
+            ->willReturn((new BlogSettings())->setAdminListingItemsPerPage(2));
 
         $controller = new TestMediaController();
         $storage = $this->createMock(MediaImageStorage::class);
@@ -82,12 +97,70 @@ final class MediaControllerTest extends TestCase
         $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
         $userLanguageResolver->expects($this->never())->method('translate');
 
-        $response = $controller->gallery(new Request(), $repository, $storage, $galleryManager, $entityManager, $userLanguageResolver);
+        $response = $controller->gallery(new Request(['page' => '2']), $repository, $blogSettingsProvider, new PaginationBuilder(), $storage, $galleryManager, $entityManager, $userLanguageResolver);
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
         $this->assertSame('admin/media/gallery.html.twig', $controller->capturedView);
         $this->assertSame($galleryImages, $controller->capturedParameters['gallery_images']);
         $this->assertInstanceOf(FormInterface::class, $controller->capturedParameters['upload_form']);
+        $this->assertSame(2, $controller->capturedParameters['current_page']);
+        $this->assertSame(2, $controller->capturedParameters['total_pages']);
+        $this->assertSame([1, 2], $controller->capturedParameters['pagination_items']);
+        $this->assertSame('', $controller->capturedParameters['search_query']);
+        $this->assertSame('desc', $controller->capturedParameters['sort_order']);
+        $this->assertSame([], $controller->capturedParameters['pagination_route_params']);
+    }
+
+    public function testGalleryAppliesSearchToDisplayedAndPaginatedResults(): void
+    {
+        $galleryImages = [
+            (new MediaImage())
+                ->setOriginalFilename('hero.webp')
+                ->setCustomName('Landing Hero')
+                ->setFilePath('public/uploads/media/2026/04/05/media-image-1.webp')
+                ->setFileSize(1234)
+                ->setMimeType('image/webp'),
+        ];
+
+        $repository = $this->createMock(MediaImageRepository::class);
+        $repository
+            ->expects($this->once())
+            ->method('countForAdminIndex')
+            ->with('hero', 'asc')
+            ->willReturn(4);
+        $repository
+            ->expects($this->once())
+            ->method('findPaginatedForAdminIndex')
+            ->with(2, 2, 'hero', 'asc')
+            ->willReturn($galleryImages);
+
+        $blogSettingsProvider = $this->createMock(BlogSettingsProvider::class);
+        $blogSettingsProvider
+            ->expects($this->once())
+            ->method('getSettings')
+            ->willReturn((new BlogSettings())->setAdminListingItemsPerPage(2));
+
+        $controller = new TestMediaController();
+        $storage = $this->createMock(MediaImageStorage::class);
+        $storage->expects($this->never())->method('store');
+
+        $galleryManager = $this->createMock(MediaGalleryManager::class);
+        $galleryManager->expects($this->never())->method('delete');
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+        $entityManager->expects($this->never())->method('flush');
+
+        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
+        $userLanguageResolver->expects($this->never())->method('translate');
+
+        $response = $controller->gallery(new Request(['page' => '2', 'q' => ' hero ', 'sort' => 'asc']), $repository, $blogSettingsProvider, new PaginationBuilder(), $storage, $galleryManager, $entityManager, $userLanguageResolver);
+
+        $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
+        $this->assertSame('hero', $controller->capturedParameters['search_query']);
+        $this->assertSame('asc', $controller->capturedParameters['sort_order']);
+        $this->assertSame(['q' => 'hero', 'sort' => 'asc'], $controller->capturedParameters['pagination_route_params']);
+        $this->assertSame([1, 2], $controller->capturedParameters['pagination_items']);
     }
 
     public function testGalleryShowsFeedbackWhenUploadFormIsInvalid(): void
@@ -103,8 +176,20 @@ final class MediaControllerTest extends TestCase
         $repository = $this->createMock(MediaImageRepository::class);
         $repository
             ->expects($this->once())
-            ->method('findAllForAdminIndex')
+            ->method('countForAdminIndex')
+            ->with('', 'desc')
+            ->willReturn(1);
+        $repository
+            ->expects($this->once())
+            ->method('findPaginatedForAdminIndex')
+            ->with(1, 25, '', 'desc')
             ->willReturn($galleryImages);
+
+        $blogSettingsProvider = $this->createMock(BlogSettingsProvider::class);
+        $blogSettingsProvider
+            ->expects($this->once())
+            ->method('getSettings')
+            ->willReturn(new BlogSettings());
 
         $storage = $this->createMock(MediaImageStorage::class);
         $storage->expects($this->never())->method('store');
@@ -126,7 +211,7 @@ final class MediaControllerTest extends TestCase
         $controller = new TestMediaController();
         $request = new Request([], ['media_image_upload' => []], [], [], [], ['REQUEST_METHOD' => 'POST']);
 
-        $response = $controller->gallery($request, $repository, $storage, $galleryManager, $entityManager, $userLanguageResolver);
+        $response = $controller->gallery($request, $repository, $blogSettingsProvider, new PaginationBuilder(), $storage, $galleryManager, $entityManager, $userLanguageResolver);
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
         $this->assertSame('admin/media/gallery.html.twig', $controller->capturedView);
@@ -293,7 +378,11 @@ final class MediaControllerTest extends TestCase
     public function testGalleryRemovesStoredFileWhenFlushFails(): void
     {
         $repository = $this->createMock(MediaImageRepository::class);
-        $repository->expects($this->never())->method('findAllForAdminIndex');
+        $repository->expects($this->never())->method('countForAdminIndex');
+        $repository->expects($this->never())->method('findPaginatedForAdminIndex');
+
+        $blogSettingsProvider = $this->createMock(BlogSettingsProvider::class);
+        $blogSettingsProvider->expects($this->never())->method('getSettings');
 
         $storage = $this->createMock(MediaImageStorage::class);
         $storage
@@ -347,7 +436,7 @@ final class MediaControllerTest extends TestCase
         $this->expectExceptionMessage('flush failed');
 
         try {
-            $controller->gallery($request, $repository, $storage, $galleryManager, $entityManager, $userLanguageResolver);
+            $controller->gallery($request, $repository, $blogSettingsProvider, new PaginationBuilder(), $storage, $galleryManager, $entityManager, $userLanguageResolver);
         } finally {
             @unlink($sourcePath);
         }

@@ -67,8 +67,9 @@
                                         type="button"
                                         class="article-keyword-help-trigger"
                                         data-i18n-tooltip="admin_media_form_file_hint"
+                                        data-i18n-param-limit="{{ media_upload_limit_formatted }}"
                                         data-i18n-aria="admin_media_form_file_help_aria"
-                                        data-tooltip="{{ i18n_fallback('admin_media_form_file_hint') }}"
+                                        data-tooltip="{{ ui_translate('Dozwolone formaty: JPG, PNG, WEBP, GIF, AVIF. Maksymalny rozmiar pliku: ' ~ media_upload_limit_formatted ~ '.', 'Allowed formats: JPG, PNG, WEBP, GIF, AVIF. Maximum file size: ' ~ media_upload_limit_formatted ~ '.') }}"
                                         data-tooltip-wide="true"
                                         data-tooltip-wrap="true"
                                         aria-label="{{ i18n_fallback('admin_media_form_file_help_aria') }}"
@@ -76,7 +77,7 @@
                                 </div>
                             </div>
                         </div>
-                        <span id="{{ image_file_hint_id }}" class="sr-only" data-i18n="admin_media_form_file_hint">{{ i18n_fallback('admin_media_form_file_hint') }}</span>
+                        <span id="{{ image_file_hint_id }}" class="sr-only" data-i18n="admin_media_form_file_hint" data-i18n-param-limit="{{ media_upload_limit_formatted }}">{{ ui_translate('Dozwolone formaty: JPG, PNG, WEBP, GIF, AVIF. Maksymalny rozmiar pliku: ' ~ media_upload_limit_formatted ~ '.', 'Allowed formats: JPG, PNG, WEBP, GIF, AVIF. Maximum file size: ' ~ media_upload_limit_formatted ~ '.') }}</span>
                         {% if image_file_has_errors %}
                             <div id="{{ image_file_error_id }}" class="article-editor-error-message" role="alert">
                                 {% for error in form.imageFile.vars.errors %}

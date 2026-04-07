@@ -16,6 +16,7 @@ import {
   setupImportDeleteConfirmation,
   setupImportMessageDialog,
   setupMediaGalleryDropSlot,
+  setupMediaGallerySorting,
   setupMediaRenameDialog,
   setupOptionalColorFields,
   setupQueueClearConfirmation,
@@ -76,6 +77,7 @@ function init(){
   setupImportClearConfirmation();
   setupImportMessageDialog();
   setupMediaGalleryDropSlot();
+  setupMediaGallerySorting();
   setupMediaRenameDialog();
   setupQueueClearConfirmation();
   syncTopbarHeight();

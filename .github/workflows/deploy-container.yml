@@ -65,6 +65,7 @@ jobs:
             docker image rm "$IMAGE_ID:$TAG_NAME" 2>/dev/null || true;
             docker container run -d -p 8888:8888 -p 8080:80 \
                 -v /var/data/blog-system-ai/:/var/www/app/var/data/ \
+                -v /var/files/blog-system-ai/uploads/media/:/var/www/app/public/uploads/media/ \
                 -e APP_ENV=$ENV_NAME \
                 -e APP_DEBUG=$DEBUG_ENABLED \
                 -e APP_SECRET="${{ secrets.APPLICATION_SECRET_WORD }}" \

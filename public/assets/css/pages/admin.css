@@ -271,6 +271,24 @@
     min-width:0;
   }
 
+  .media-gallery-search-form,
+  .media-gallery-search-controls {
+    width:100%;
+  }
+
+  .media-gallery-search-input {
+    min-width:0;
+    flex:1 1 auto;
+  }
+
+  .media-gallery-sort-controls {
+    margin-left:0;
+  }
+
+  .media-gallery-sort-select {
+    width:100%;
+  }
+
   .article-index-title-column,
   .article-index-title-cell {
     width:240px;
@@ -618,6 +636,84 @@
   stroke-width:2.2;
   stroke-linecap:round;
   stroke-linejoin:round;
+}
+
+.media-gallery-search-form {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:.65rem;
+  flex-wrap:wrap;
+  margin:0 20px 16px;
+  padding:10px 12px;
+  border:1px solid color-mix(in oklab, var(--accent-2) 18%, var(--border));
+  border-radius:14px;
+  backdrop-filter:blur(12px);
+  background:
+    radial-gradient(circle at top right, color-mix(in oklab, var(--accent) 8%, transparent), transparent 38%),
+    linear-gradient(180deg, color-mix(in oklab, var(--panel-2) 95%, rgba(0,0,0,.2)), color-mix(in oklab, var(--panel) 94%, rgba(0,0,0,.18)));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.02),
+    0 10px 30px rgba(0,0,0,.18);
+}
+
+.media-gallery-search-controls {
+  display:flex;
+  align-items:center;
+  gap:.65rem;
+  flex:0 1 auto;
+}
+
+.media-gallery-search-group {
+  display:flex;
+  align-items:stretch;
+  overflow:hidden;
+  border:1px solid color-mix(in oklab, var(--accent-2) 18%, var(--border));
+  border-radius:16px;
+  background:linear-gradient(180deg, color-mix(in oklab, var(--panel-2) 96%, transparent), color-mix(in oklab, var(--panel) 94%, transparent));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+.media-gallery-search-input {
+  width:min(100%, 360px);
+  min-width:260px;
+  border:none;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  border-top-right-radius:0;
+  border-bottom-right-radius:0;
+}
+
+.media-gallery-search-submit,
+.media-gallery-search-reset {
+  flex:0 0 auto;
+}
+
+.media-gallery-search-submit {
+  border:none;
+  border-top-left-radius:0;
+  border-bottom-left-radius:0;
+  background:color-mix(in oklab, var(--panel-2) 92%, transparent);
+}
+
+.media-gallery-search-group:focus-within {
+  border-color:color-mix(in oklab, var(--accent-2) 56%, var(--border));
+  box-shadow:0 0 0 3px color-mix(in oklab, var(--accent-2) 16%, transparent);
+}
+
+.media-gallery-search-group .media-gallery-search-input:focus {
+  box-shadow:none;
+}
+
+.media-gallery-sort-controls {
+  margin-left:auto;
+  flex:0 0 auto;
+}
+
+.media-gallery-sort-select {
+  width:auto;
+  min-width:180px;
 }
 
 .media-gallery-grid {
