@@ -858,6 +858,7 @@
   width:min(1100px, calc(100vw - 32px));
   --headline-image-picker-card-height: 220px;
   --headline-image-picker-grid-gap: 1rem;
+  --headline-image-picker-grid-height: min(calc((var(--headline-image-picker-card-height) * 2) + var(--headline-image-picker-grid-gap)), min(70vh, 760px));
 }
 
 .headline-image-picker-toolbar{
@@ -889,9 +890,7 @@
 }
 
 .headline-image-picker-grid{
-  height:calc((var(--headline-image-picker-card-height) * 2) + var(--headline-image-picker-grid-gap));
-  min-height:calc((var(--headline-image-picker-card-height) * 2) + var(--headline-image-picker-grid-gap));
-  max-height:min(70vh, 760px);
+  height:var(--headline-image-picker-grid-height);
   margin-top:1rem;
   overflow:auto;
   padding-right:.25rem;
