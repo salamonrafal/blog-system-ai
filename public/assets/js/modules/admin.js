@@ -552,11 +552,7 @@ export function setupHeadlineImagePicker(){
     let pickerAbortController = null;
     let searchDebounceId = 0;
 
-    const normalizeSearchTerm = (value)=> String(value || '')
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLocaleLowerCase()
-      .trim();
+    const normalizeSearchTerm = (value)=> String(value || '').trim();
 
     const getCloseButtons = ()=> modal ? qsa('[data-action="close-headline-image-picker"]', modal) : [];
     const getSelectButtons = ()=> modal ? qsa('[data-action="select-headline-image"]', modal) : [];
@@ -720,6 +716,10 @@ export function setupHeadlineImagePicker(){
       modal.setAttribute('aria-hidden', 'true');
       unlockDocumentScroll();
       window.clearTimeout(searchDebounceId);
+      if(pickerAbortController instanceof AbortController){
+        pickerAbortController.abort();
+        pickerAbortController = null;
+      }
       if(lastTrigger instanceof HTMLElement){
         lastTrigger.focus({ preventScroll: true });
       }
@@ -802,8 +802,8 @@ export function setupHeadlineImagePicker(){
       }
     });
 
-    document.addEventListener('keydown', (event)=>{
-      if(!(modal instanceof HTMLElement) || modal.hasAttribute('hidden')) return;
+    modal?.addEventListener('keydown', (event)=>{
+      if(modal.hasAttribute('hidden')) return;
       if(event.key === 'Escape'){
         event.preventDefault();
         closeModal();

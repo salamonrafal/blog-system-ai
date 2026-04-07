@@ -14,6 +14,7 @@ use App\Repository\TopMenuImportQueueRepository;
 use App\Repository\TopMenuItemRepository;
 use App\Repository\TopMenuExportQueueRepository;
 use App\Service\BlogSettingsProvider;
+use App\Service\FileSizeFormatter;
 use App\Service\TopMenuBuilder;
 use App\Service\UserLanguageResolver;
 use App\Service\UserTimeZoneResolver;
@@ -57,6 +58,7 @@ final class AppGlobalsExtensionTest extends TestCase
             $exportRepository,
             $topMenuRepository,
             $topMenuBuilder,
+            new FileSizeFormatter(),
             $appCache,
             'test',
         );
@@ -172,6 +174,7 @@ final class AppGlobalsExtensionTest extends TestCase
             $exportRepository,
             $topMenuRepository,
             $topMenuBuilder,
+            new FileSizeFormatter(),
             $appCache,
             'test',
         );

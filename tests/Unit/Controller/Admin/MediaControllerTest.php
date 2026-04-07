@@ -8,6 +8,7 @@ use App\Controller\Admin\MediaController;
 use App\Entity\MediaImage;
 use App\Form\MediaImageUploadType;
 use App\Repository\MediaImageRepository;
+use App\Service\FileSizeFormatter;
 use App\Service\MediaGalleryManager;
 use App\Service\MediaImageStorage;
 use App\Service\UserLanguageResolver;
@@ -581,6 +582,11 @@ final class TestMediaController extends MediaController
 
     /** @var list<array{type: string, message: string}> */
     public array $capturedFlashes = [];
+
+    public function __construct()
+    {
+        parent::__construct(new FileSizeFormatter());
+    }
 
     protected function render(string $view, array $parameters = [], ?Response $response = null): Response
     {

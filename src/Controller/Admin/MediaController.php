@@ -9,6 +9,7 @@ use App\Form\MediaImageUploadType;
 use App\Repository\MediaImageRepository;
 use App\Service\MediaGalleryManager;
 use App\Service\MediaImageStorage;
+use App\Service\FileSizeFormatter;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Service\UserLanguageResolver;
@@ -24,6 +25,11 @@ use Symfony\Component\Form\FormInterface;
 class MediaController extends AbstractController
 {
     use AuthenticatedAdminUserTrait;
+
+    public function __construct(
+        private readonly FileSizeFormatter $fileSizeFormatter,
+    ) {
+    }
 
     #[Route('', name: 'admin_media_index', methods: ['GET', 'POST'])]
     public function index(
@@ -78,7 +84,7 @@ class MediaController extends AbstractController
         return new JsonResponse([
             'images' => array_map(fn (array $image): array => [
                 ...$image,
-                'formattedFileSize' => $this->formatFileSize((int) ($image['fileSize'] ?? 0)),
+                'formattedFileSize' => $this->fileSizeFormatter->format((int) ($image['fileSize'] ?? 0)),
             ], $images),
         ]);
     }
@@ -226,18 +232,5 @@ class MediaController extends AbstractController
         $this->addFlash('success', $userLanguageResolver->translate('Obrazek został dodany do galerii.', 'The image has been added to the gallery.'));
 
         return $this->redirectToRoute('admin_media_gallery');
-    }
-
-    private function formatFileSize(int $bytes): string
-    {
-        if ($bytes < 1024) {
-            return sprintf('%d B', $bytes);
-        }
-
-        if ($bytes < 1024 * 1024) {
-            return sprintf('%.1f KB', $bytes / 1024);
-        }
-
-        return sprintf('%.1f MB', $bytes / (1024 * 1024));
     }
 }
