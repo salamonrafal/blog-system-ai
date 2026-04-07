@@ -22,7 +22,7 @@ final class UploadLimitResolverTest extends TestCase
 
     public function testResolveEffectiveLimitFallsBackToApplicationLimitWhenPhpLimitsAreUnavailable(): void
     {
-        $resolver = new UploadLimitResolver(static fn (): string|false => false);
+        $resolver = new UploadLimitResolver(static fn (string $key): string|false => false);
 
         $this->assertSame(5 * 1024 * 1024, $resolver->resolveEffectiveLimit(5 * 1024 * 1024));
     }

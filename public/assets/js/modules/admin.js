@@ -1744,9 +1744,14 @@ export function setupMediaGalleryDropSlot(){
 
 export function setupMediaGallerySorting(){
   const form = qs('[data-media-gallery-search-form]');
+
+  if(!(form instanceof HTMLFormElement)){
+    return;
+  }
+
   const sortSelect = qs('[data-media-gallery-sort-select]', form);
 
-  if(!(form instanceof HTMLFormElement) || !(sortSelect instanceof HTMLSelectElement)){
+  if(!(sortSelect instanceof HTMLSelectElement)){
     return;
   }
 

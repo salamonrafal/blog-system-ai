@@ -40,7 +40,7 @@ final class AppGlobalsExtensionFormatFileSizeTest extends TestCase
             $this->createStub(TopMenuItemRepository::class),
             $this->createStub(TopMenuBuilder::class),
             new FileSizeFormatter(),
-            new UploadLimitResolver(static fn (): string|false => false),
+            new UploadLimitResolver(static fn (string $key): string|false => false),
             $this->createStub(CacheInterface::class),
             'test',
         );

@@ -237,13 +237,13 @@
                 </div>
 
                 {% if total_pages > 1 %}
-                    <nav class="blog-pagination article-index-pagination" data-i18n-aria="admin_listing_pagination_aria" aria-label="Paginacja galerii mediów w panelu administracyjnym">
+                    <nav class="blog-pagination article-index-pagination" data-i18n-aria="admin_listing_pagination_aria" aria-label="{{ i18n_fallback('admin_listing_pagination_aria') }}">
                         {% if current_page > 1 %}
-                            <a class="btn blog-pagination-link blog-pagination-link-icon" href="{{ path('admin_media_gallery', pagination_route_params|merge({ page: current_page - 1 })) }}" data-i18n-aria="admin_pagination_previous_page" aria-label="Poprzednia strona">
+                            <a class="btn blog-pagination-link blog-pagination-link-icon" href="{{ path('admin_media_gallery', pagination_route_params|merge({ page: current_page - 1 })) }}" data-i18n-aria="admin_pagination_previous_page" aria-label="{{ i18n_fallback('admin_pagination_previous_page') }}">
                                 <span aria-hidden="true">&lsaquo;</span>
                             </a>
                         {% else %}
-                            <span class="btn blog-pagination-link blog-pagination-link-icon is-disabled" aria-disabled="true" data-i18n-aria="admin_pagination_previous_page" aria-label="Poprzednia strona">
+                            <span class="btn blog-pagination-link blog-pagination-link-icon is-disabled" aria-disabled="true" data-i18n-aria="admin_pagination_previous_page" aria-label="{{ i18n_fallback('admin_pagination_previous_page') }}">
                                 <span aria-hidden="true">&lsaquo;</span>
                             </span>
                         {% endif %}
@@ -261,11 +261,11 @@
                         </div>
 
                         {% if current_page < total_pages %}
-                            <a class="btn blog-pagination-link blog-pagination-link-icon" href="{{ path('admin_media_gallery', pagination_route_params|merge({ page: current_page + 1 })) }}" data-i18n-aria="admin_pagination_next_page" aria-label="Następna strona">
+                            <a class="btn blog-pagination-link blog-pagination-link-icon" href="{{ path('admin_media_gallery', pagination_route_params|merge({ page: current_page + 1 })) }}" data-i18n-aria="admin_pagination_next_page" aria-label="{{ i18n_fallback('admin_pagination_next_page') }}">
                                 <span aria-hidden="true">&rsaquo;</span>
                             </a>
                         {% else %}
-                            <span class="btn blog-pagination-link blog-pagination-link-icon is-disabled" aria-disabled="true" data-i18n-aria="admin_pagination_next_page" aria-label="Następna strona">
+                            <span class="btn blog-pagination-link blog-pagination-link-icon is-disabled" aria-disabled="true" data-i18n-aria="admin_pagination_next_page" aria-label="{{ i18n_fallback('admin_pagination_next_page') }}">
                                 <span aria-hidden="true">&rsaquo;</span>
                             </span>
                         {% endif %}

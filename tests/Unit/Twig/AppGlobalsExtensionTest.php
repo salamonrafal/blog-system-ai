@@ -60,7 +60,7 @@ final class AppGlobalsExtensionTest extends TestCase
             $topMenuRepository,
             $topMenuBuilder,
             new FileSizeFormatter(),
-            new UploadLimitResolver(static fn (): string|false => false),
+            new UploadLimitResolver(static fn (string $key): string|false => false),
             $appCache,
             'test',
         );
