@@ -102,6 +102,16 @@ TEXT);
         $this->assertStringContainsString('![Obrazek](/uploads/%2e%2e/admin/secret/test-image.webp)', $html);
     }
 
+    public function testDoesNotRenderImageForUploadPathWithEncodedBackslashTraversal(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+
+        $html = $renderer->render('![Obrazek](/uploads/%5c..%5cadmin%5csecret/test-image.webp)');
+
+        $this->assertStringNotContainsString('<img ', $html);
+        $this->assertStringContainsString('![Obrazek](/uploads/%5c..%5cadmin%5csecret/test-image.webp)', $html);
+    }
+
     public function testRendersAlignmentAndHeadingLevelSeven(): void
     {
         $renderer = new ArticleMarkupRenderer();

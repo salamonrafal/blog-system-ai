@@ -416,7 +416,7 @@ final class ArticleMarkupRenderer
             return false;
         }
 
-        $decodedPath = rawurldecode($path);
+        $decodedPath = str_replace('\\', '/', rawurldecode($path));
         $segments = explode('/', trim($decodedPath, '/'));
 
         foreach ($segments as $segment) {
