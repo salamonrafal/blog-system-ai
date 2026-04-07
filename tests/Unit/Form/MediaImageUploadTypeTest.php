@@ -52,6 +52,7 @@ final class MediaImageUploadTypeTest extends TestCase
         $this->assertInstanceOf(FileType::class, $field->getConfig()->getType()->getInnerType());
         $this->assertFalse($field->getConfig()->getOption('mapped'));
         $this->assertSame(MediaImageSupport::acceptAttribute(), $field->getConfig()->getOption('attr')['accept']);
+        $this->assertSame('validation_media_file_too_large', $field->getConfig()->getOption('upload_max_size_message')());
         $this->assertCount(2, $field->getConfig()->getOption('constraints'));
     }
 

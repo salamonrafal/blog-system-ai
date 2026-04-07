@@ -22,6 +22,7 @@ class MediaImageUploadType extends AbstractType
             'label' => 'Obrazek',
             'label_attr' => ['data-i18n' => 'admin_media_form_file'],
             'mapped' => false,
+            'upload_max_size_message' => static fn (): string => 'validation_media_file_too_large',
             'constraints' => [
                 new NotNull([
                     'message' => 'validation_media_file_required',

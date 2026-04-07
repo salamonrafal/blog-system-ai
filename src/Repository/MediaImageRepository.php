@@ -6,6 +6,7 @@ namespace App\Repository;
 
 use App\Entity\MediaImage;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -21,14 +22,34 @@ class MediaImageRepository extends ServiceEntityRepository
     /**
      * @return list<MediaImage>
      */
-    public function findAllForAdminIndex(): array
+    public function findAllForAdminIndex(string $query = '', string $sort = 'desc'): array
     {
-        return $this->createQueryBuilder('media_image')
-            ->leftJoin('media_image.requestedBy', 'requested_by')
-            ->addSelect('requested_by')
-            ->orderBy('media_image.createdAt', 'DESC')
+        return $this->createAdminIndexQueryBuilder($query, $sort)
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * @return list<MediaImage>
+     */
+    public function findPaginatedForAdminIndex(int $page, int $limit, string $query = '', string $sort = 'desc'): array
+    {
+        $page = max(1, $page);
+        $limit = max(1, $limit);
+
+        return $this->createAdminIndexQueryBuilder($query, $sort)
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countForAdminIndex(string $query = '', string $sort = 'desc'): int
+    {
+        return (int) $this->createAdminIndexQueryBuilder($query, $sort)
+            ->select('COUNT(media_image.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     public function customNameExists(string $customName, ?int $excludedId = null): bool
@@ -109,5 +130,33 @@ class MediaImageRepository extends ServiceEntityRepository
             static fn (array $row): string => trim((string) ($row['filePath'] ?? '')),
             $rows,
         ), static fn (string $path): bool => '' !== $path));
+    }
+
+    private function createAdminIndexQueryBuilder(string $query = '', string $sort = 'desc'): QueryBuilder
+    {
+        $normalizedSort = 'asc' === strtolower($sort) ? 'ASC' : 'DESC';
+        $queryBuilder = $this->createQueryBuilder('media_image')
+            ->leftJoin('media_image.requestedBy', 'requested_by')
+            ->addSelect('requested_by')
+            ->orderBy('media_image.createdAt', $normalizedSort);
+
+        $normalizedQuery = trim($query);
+        if ('' === $normalizedQuery) {
+            return $queryBuilder;
+        }
+
+        return $queryBuilder
+            ->andWhere('
+                (
+                    media_image.customName IS NOT NULL
+                    AND LOWER(media_image.customName) LIKE LOWER(:query)
+                )
+                OR
+                (
+                    media_image.customName IS NULL
+                    AND LOWER(media_image.originalFilename) LIKE LOWER(:query)
+                )
+            ')
+            ->setParameter('query', '%'.$normalizedQuery.'%');
     }
 }

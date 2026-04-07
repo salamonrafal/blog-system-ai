@@ -7,9 +7,11 @@ namespace App\Controller\Admin;
 use App\Entity\MediaImage;
 use App\Form\MediaImageUploadType;
 use App\Repository\MediaImageRepository;
+use App\Service\BlogSettingsProvider;
 use App\Service\MediaGalleryManager;
 use App\Service\MediaImageStorage;
 use App\Service\FileSizeFormatter;
+use App\Service\PaginationBuilder;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Service\UserLanguageResolver;
@@ -54,6 +56,8 @@ class MediaController extends AbstractController
     public function gallery(
         Request $request,
         MediaImageRepository $mediaImageRepository,
+        BlogSettingsProvider $blogSettingsProvider,
+        PaginationBuilder $paginationBuilder,
         MediaImageStorage $mediaImageStorage,
         MediaGalleryManager $mediaGalleryManager,
         EntityManagerInterface $entityManager,
@@ -65,9 +69,26 @@ class MediaController extends AbstractController
             return $response;
         }
 
+        $query = trim((string) $request->query->get('q', ''));
+        $sort = 'asc' === strtolower((string) $request->query->get('sort', 'desc')) ? 'asc' : 'desc';
+        $itemsPerPage = max(1, $blogSettingsProvider->getSettings()->getAdminListingItemsPerPage());
+        $requestedPage = max(1, $request->query->getInt('page', 1));
+        $totalImages = $mediaImageRepository->countForAdminIndex($query, $sort);
+        $totalPages = max(1, (int) ceil($totalImages / $itemsPerPage));
+        $currentPage = min($requestedPage, $totalPages);
+
         return $this->render('admin/media/gallery.html.twig', [
-            'gallery_images' => $mediaImageRepository->findAllForAdminIndex(),
+            'gallery_images' => $mediaImageRepository->findPaginatedForAdminIndex($currentPage, $itemsPerPage, $query, $sort),
             'upload_form' => $form,
+            'current_page' => $currentPage,
+            'total_pages' => $totalPages,
+            'pagination_items' => $paginationBuilder->buildPaginationItems($currentPage, $totalPages),
+            'search_query' => $query,
+            'sort_order' => $sort,
+            'pagination_route_params' => array_filter([
+                'q' => $query,
+                'sort' => 'desc' !== $sort ? $sort : null,
+            ], static fn (mixed $value): bool => null !== $value && '' !== $value),
         ]);
     }
 
