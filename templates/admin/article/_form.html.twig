@@ -1,5 +1,4 @@
 {{ form_start(form, { attr: { class: 'article-editor-form' } }) }}
-    {% set media_gallery_images = gallery_images|default([]) %}
     {% if form.vars.errors|length > 0 %}
         <div class="form-errors article-editor-errors" role="alert">
             {% for error in form.vars.errors %}
@@ -207,7 +206,6 @@
                             data-action="open-headline-image-picker"
                             aria-haspopup="dialog"
                             aria-controls="{{ headline_image_picker_modal_id }}"
-                            {% if media_gallery_images is empty %}disabled{% endif %}
                         >
                             <span data-i18n="form_headline_image_pick_from_media">{{ i18n_fallback('form_headline_image_pick_from_media') }}</span>
                         </button>
@@ -257,6 +255,7 @@
                 id="{{ headline_image_picker_modal_id }}"
                 class="confirm-delete-modal headline-image-picker-modal"
                 data-headline-image-modal
+                data-headline-image-endpoint="{{ path('admin_media_picker') }}"
                 hidden
                 aria-hidden="true"
             >
@@ -281,71 +280,36 @@
                     </div>
                     <h2 id="{{ headline_image_picker_title_id }}" class="confirm-delete-title" data-i18n="form_headline_image_picker_title">{{ i18n_fallback('form_headline_image_picker_title') }}</h2>
                     <p id="{{ headline_image_picker_text_id }}" class="confirm-delete-text" data-i18n="form_headline_image_picker_text">{{ i18n_fallback('form_headline_image_picker_text') }}</p>
-                    {% if media_gallery_images is not empty %}
-                        <div class="headline-image-picker-toolbar">
-                            <div class="headline-image-picker-search">
-                                <label for="{{ form.headlineImage.vars.id }}-picker-search" class="sr-only" data-i18n="form_headline_image_picker_search_label">{{ i18n_fallback('form_headline_image_picker_search_label') }}</label>
-                                <input
-                                    id="{{ form.headlineImage.vars.id }}-picker-search"
-                                    type="search"
-                                    class="article-editor-input headline-image-picker-search-input"
-                                    data-headline-image-search-input
-                                    data-i18n-placeholder="form_headline_image_picker_search_placeholder"
-                                    placeholder="{{ i18n_fallback('form_headline_image_picker_search_placeholder') }}"
-                                    autocomplete="off"
-                                    spellcheck="false"
-                                >
-                            </div>
-                            <div class="headline-image-picker-sort">
-                                <label for="{{ form.headlineImage.vars.id }}-picker-sort" class="sr-only" data-i18n="form_headline_image_picker_sort_label">{{ i18n_fallback('form_headline_image_picker_sort_label') }}</label>
-                                <select
-                                    id="{{ form.headlineImage.vars.id }}-picker-sort"
-                                    class="article-editor-input article-editor-select headline-image-picker-sort-select"
-                                    data-headline-image-sort-select
-                                    data-i18n-aria="form_headline_image_picker_sort_label"
-                                    aria-label="{{ i18n_fallback('form_headline_image_picker_sort_label') }}"
-                                >
-                                    <option value="desc" data-i18n="form_headline_image_picker_sort_desc">{{ i18n_fallback('form_headline_image_picker_sort_desc') }}</option>
-                                    <option value="asc" data-i18n="form_headline_image_picker_sort_asc">{{ i18n_fallback('form_headline_image_picker_sort_asc') }}</option>
-                                </select>
-                            </div>
+                    <div class="headline-image-picker-toolbar">
+                        <div class="headline-image-picker-search">
+                            <label for="{{ form.headlineImage.vars.id }}-picker-search" class="sr-only" data-i18n="form_headline_image_picker_search_label">{{ i18n_fallback('form_headline_image_picker_search_label') }}</label>
+                            <input
+                                id="{{ form.headlineImage.vars.id }}-picker-search"
+                                type="search"
+                                class="article-editor-input headline-image-picker-search-input"
+                                data-headline-image-search-input
+                                data-i18n-placeholder="form_headline_image_picker_search_placeholder"
+                                placeholder="{{ i18n_fallback('form_headline_image_picker_search_placeholder') }}"
+                                autocomplete="off"
+                                spellcheck="false"
+                            >
                         </div>
-                        <div class="media-gallery-grid headline-image-picker-grid" data-headline-image-grid data-i18n-aria="form_headline_image_picker_grid_aria" aria-label="{{ i18n_fallback('form_headline_image_picker_grid_aria') }}">
-                            {% for image in media_gallery_images %}
-                                <article
-                                    class="media-gallery-card headline-image-picker-card"
-                                    data-headline-image-card
-                                    data-search-text="{{ [image.displayName, image.originalDisplayName, image.customName ?? '']|join(' ') }}"
-                                    data-sort-index="{{ loop.index0 }}"
-                                >
-                                    <button
-                                        type="button"
-                                        class="media-gallery-preview headline-image-picker-preview"
-                                        data-action="select-headline-image"
-                                        data-image-path="{{ image.publicPath }}"
-                                        data-image-name="{{ image.displayName }}"
-                                    >
-                                        <img src="{{ image.publicPath }}" alt="{{ image.displayName }}" loading="lazy">
-                                        <span class="headline-image-picker-overlay">
-                                            <span class="media-gallery-meta headline-image-picker-meta">
-                                                <strong class="media-gallery-name">{{ image.displayName }}</strong>
-                                                <span class="meta">{{ image.mimeType|replace({'image/': ''})|upper }}</span>
-                                                <span class="meta">{{ format_file_size(image.fileSize) }}</span>
-                                            </span>
-                                            <span class="headline-image-picker-actions">
-                                                <span class="button headline-image-picker-select-button" data-i18n="form_headline_image_picker_select">{{ i18n_fallback('form_headline_image_picker_select') }}</span>
-                                            </span>
-                                        </span>
-                                    </button>
-                                </article>
-                            {% endfor %}
+                        <div class="headline-image-picker-sort">
+                            <label for="{{ form.headlineImage.vars.id }}-picker-sort" class="sr-only" data-i18n="form_headline_image_picker_sort_label">{{ i18n_fallback('form_headline_image_picker_sort_label') }}</label>
+                            <select
+                                id="{{ form.headlineImage.vars.id }}-picker-sort"
+                                class="article-editor-input article-editor-select headline-image-picker-sort-select"
+                                data-headline-image-sort-select
+                                data-i18n-aria="form_headline_image_picker_sort_label"
+                                aria-label="{{ i18n_fallback('form_headline_image_picker_sort_label') }}"
+                            >
+                                <option value="desc" data-i18n="form_headline_image_picker_sort_desc">{{ i18n_fallback('form_headline_image_picker_sort_desc') }}</option>
+                                <option value="asc" data-i18n="form_headline_image_picker_sort_asc">{{ i18n_fallback('form_headline_image_picker_sort_asc') }}</option>
+                            </select>
                         </div>
-                        <p class="meta headline-image-picker-empty-results" data-headline-image-empty-results data-i18n="form_headline_image_picker_no_results" hidden>{{ i18n_fallback('form_headline_image_picker_no_results') }}</p>
-                    {% else %}
-                        <div class="blog-empty-state">
-                            <p class="meta blog-empty-state-message" role="status" data-i18n="form_headline_image_picker_empty">{{ i18n_fallback('form_headline_image_picker_empty') }}</p>
-                        </div>
-                    {% endif %}
+                    </div>
+                    <div class="media-gallery-grid headline-image-picker-grid" data-headline-image-grid data-i18n-aria="form_headline_image_picker_grid_aria" aria-label="{{ i18n_fallback('form_headline_image_picker_grid_aria') }}"></div>
+                    <p class="meta headline-image-picker-empty-results" data-headline-image-empty-results hidden>{{ i18n_fallback('form_headline_image_picker_empty') }}</p>
                     <div class="confirm-delete-actions">
                         <button type="button" class="button secondary" data-action="close-headline-image-picker" data-i18n="form_headline_image_picker_close">{{ i18n_fallback('form_headline_image_picker_close') }}</button>
                     </div>

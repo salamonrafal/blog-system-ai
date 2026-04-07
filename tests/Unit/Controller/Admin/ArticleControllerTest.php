@@ -13,7 +13,6 @@ use App\Repository\ArticleCategoryRepository;
 use App\Repository\ArticleExportQueueRepository;
 use App\Repository\ArticleKeywordRepository;
 use App\Repository\ArticleRepository;
-use App\Repository\MediaImageRepository;
 use App\Service\ArticlePublisher;
 use App\Service\BlogSettingsProvider;
 use App\Service\PaginationBuilder;
@@ -268,8 +267,6 @@ final class ArticleControllerTest extends TestCase
         $controller->authenticatedUser = (new User())
             ->setEmail('author@example.com')
             ->setPassword('hashed-password');
-        $mediaImageRepository = $this->createMock(MediaImageRepository::class);
-
         $request = new Request([], [
             'article' => [
                 'title' => 'Nowy artykul',
@@ -291,7 +288,6 @@ final class ArticleControllerTest extends TestCase
             $articlePublisher,
             $categoryRepository,
             $keywordRepository,
-            $mediaImageRepository,
             $this->createUserLanguageResolverMock('pl'),
         );
 
@@ -334,8 +330,6 @@ final class ArticleControllerTest extends TestCase
         $controller->authenticatedUser = (new User())
             ->setEmail('editor@example.com')
             ->setPassword('hashed-password');
-        $mediaImageRepository = $this->createMock(MediaImageRepository::class);
-
         $request = new Request([], [
             'article' => [
                 'title' => 'Zmieniony tytul',
@@ -358,7 +352,6 @@ final class ArticleControllerTest extends TestCase
             $articlePublisher,
             $categoryRepository,
             $keywordRepository,
-            $mediaImageRepository,
             $this->createUserLanguageResolverMock('pl'),
         );
 

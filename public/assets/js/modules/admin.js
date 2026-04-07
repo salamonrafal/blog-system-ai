@@ -537,21 +537,20 @@ export function setupHeadlineImagePicker(){
     const clearButton = qs('[data-action="clear-headline-image"]', section);
     const modal = qs('[data-headline-image-modal]', section);
     const dialog = modal ? qs('.headline-image-picker-dialog', modal) : null;
-    const closeButtons = modal ? qsa('[data-action="close-headline-image-picker"]', modal) : [];
-    const selectButtons = modal ? qsa('[data-action="select-headline-image"]', modal) : [];
     const searchInput = modal ? qs('[data-headline-image-search-input]', modal) : null;
     const sortSelect = modal ? qs('[data-headline-image-sort-select]', modal) : null;
     const grid = modal ? qs('[data-headline-image-grid]', modal) : null;
-    const cards = modal ? qsa('[data-headline-image-card]', modal) : [];
     const emptyResults = modal ? qs('[data-headline-image-empty-results]', modal) : null;
     const previewShell = qs('[data-headline-image-preview-shell]', section);
     const previewImage = qs('[data-headline-image-preview]', section);
     const previewPath = qs('[data-headline-image-preview-path]', section);
+    const endpoint = modal?.getAttribute('data-headline-image-endpoint') || '';
 
     if(!(input instanceof HTMLInputElement)) return;
 
     let lastTrigger = null;
-    const baseCards = [...cards];
+    let pickerAbortController = null;
+    let searchDebounceId = 0;
 
     const normalizeSearchTerm = (value)=> String(value || '')
       .normalize('NFD')
@@ -559,11 +558,73 @@ export function setupHeadlineImagePicker(){
       .toLocaleLowerCase()
       .trim();
 
+    const getCloseButtons = ()=> modal ? qsa('[data-action="close-headline-image-picker"]', modal) : [];
+    const getSelectButtons = ()=> modal ? qsa('[data-action="select-headline-image"]', modal) : [];
+    const getCards = ()=> modal ? qsa('[data-headline-image-card]', modal) : [];
+
+    const renderCards = (images)=>{
+      if(!(grid instanceof HTMLElement)) return;
+
+      grid.replaceChildren();
+
+      images.forEach((image)=>{
+        const card = document.createElement('article');
+        card.className = 'media-gallery-card headline-image-picker-card';
+        card.dataset.headlineImageCard = 'true';
+
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'media-gallery-preview headline-image-picker-preview';
+        button.dataset.action = 'select-headline-image';
+        button.dataset.imagePath = image.publicPath || '';
+        button.dataset.imageName = image.displayName || '';
+
+        const img = document.createElement('img');
+        img.src = image.publicPath || '';
+        img.alt = image.displayName || '';
+        img.loading = 'lazy';
+
+        const overlay = document.createElement('span');
+        overlay.className = 'headline-image-picker-overlay';
+
+        const meta = document.createElement('span');
+        meta.className = 'media-gallery-meta headline-image-picker-meta';
+
+        const name = document.createElement('strong');
+        name.className = 'media-gallery-name';
+        name.textContent = image.displayName || '';
+
+        const mime = document.createElement('span');
+        mime.className = 'meta';
+        mime.textContent = String(image.mimeType || '').replace(/^image\//, '').toUpperCase();
+
+        const fileSize = document.createElement('span');
+        fileSize.className = 'meta';
+        fileSize.textContent = image.formattedFileSize || '';
+
+        const actions = document.createElement('span');
+        actions.className = 'headline-image-picker-actions';
+
+        const selectLabel = document.createElement('span');
+        selectLabel.className = 'button headline-image-picker-select-button';
+        selectLabel.textContent = getTranslation('form_headline_image_picker_select');
+
+        meta.append(name, mime, fileSize);
+        actions.append(selectLabel);
+        overlay.append(meta, actions);
+        button.append(img, overlay);
+        card.append(button);
+        grid.append(card);
+      });
+
+      syncSelectedState();
+    };
+
     const syncSelectedState = ()=>{
       if(!modal) return;
 
       const currentValue = input.value.trim();
-      selectButtons.forEach((button)=>{
+      getSelectButtons().forEach((button)=>{
         if(!(button instanceof HTMLElement)) return;
         const isSelected = (button.getAttribute('data-image-path') || '') === currentValue;
         button.classList.toggle('is-selected', isSelected);
@@ -603,44 +664,54 @@ export function setupHeadlineImagePicker(){
       syncSelectedState();
     };
 
-    const syncSearchResults = ()=>{
-      if(!(searchInput instanceof HTMLInputElement)) return;
+    const syncEmptyState = ()=>{
+      if(!(emptyResults instanceof HTMLElement)) return;
 
-      const query = normalizeSearchTerm(searchInput.value);
-      const sortDirection = sortSelect instanceof HTMLSelectElement ? sortSelect.value : 'desc';
-      const sortedCards = [...baseCards].sort((leftCard, rightCard)=>{
-        const leftIndex = Number(leftCard.getAttribute('data-sort-index') || '0');
-        const rightIndex = Number(rightCard.getAttribute('data-sort-index') || '0');
-        return sortDirection === 'asc' ? rightIndex - leftIndex : leftIndex - rightIndex;
+      emptyResults.hidden = getCards().length > 0;
+      emptyResults.textContent = searchInput instanceof HTMLInputElement && searchInput.value.trim() !== ''
+        ? getTranslation('form_headline_image_picker_no_results')
+        : getTranslation('form_headline_image_picker_empty');
+    };
+
+    const loadPickerImages = async ()=>{
+      if(!(searchInput instanceof HTMLInputElement) || '' === endpoint) return;
+
+      if(pickerAbortController instanceof AbortController){
+        pickerAbortController.abort();
+      }
+
+      const params = new URLSearchParams({
+        q: normalizeSearchTerm(searchInput.value),
+        sort: sortSelect instanceof HTMLSelectElement ? sortSelect.value : 'desc',
       });
 
-      if(grid instanceof HTMLElement){
-        sortedCards.forEach((card)=>{
-          grid.appendChild(card);
+      pickerAbortController = new AbortController();
+
+      try{
+        const response = await fetch(`${endpoint}?${params.toString()}`, {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+          },
+          signal: pickerAbortController.signal,
         });
-      }
 
-      let visibleCount = 0;
-
-      sortedCards.forEach((card, index)=>{
-        if(!(card instanceof HTMLElement)) return;
-
-        const haystack = normalizeSearchTerm(card.getAttribute('data-search-text') || '');
-        const isVisible = '' === query ? index < 10 : haystack.includes(query);
-        card.hidden = !isVisible;
-        card.classList.toggle('is-hidden', !isVisible);
-        if(isVisible){
-          visibleCount += 1;
+        if(!response.ok){
+          throw new Error(`Unexpected picker response: ${response.status}`);
         }
-      });
 
-      if(grid instanceof HTMLElement){
-        grid.hidden = visibleCount === 0;
+        const payload = await response.json();
+        const images = Array.isArray(payload?.images) ? payload.images : [];
+        renderCards(images);
+      }catch(error){
+        if(error instanceof DOMException && error.name === 'AbortError'){
+          return;
+        }
+
+        renderCards([]);
       }
 
-      if(emptyResults instanceof HTMLElement){
-        emptyResults.hidden = visibleCount > 0;
-      }
+      syncEmptyState();
     };
 
     const closeModal = ()=>{
@@ -648,6 +719,7 @@ export function setupHeadlineImagePicker(){
       modal.setAttribute('hidden', '');
       modal.setAttribute('aria-hidden', 'true');
       unlockDocumentScroll();
+      window.clearTimeout(searchDebounceId);
       if(lastTrigger instanceof HTMLElement){
         lastTrigger.focus({ preventScroll: true });
       }
@@ -657,17 +729,16 @@ export function setupHeadlineImagePicker(){
       if(!(modal instanceof HTMLElement)) return;
       lastTrigger = trigger instanceof HTMLElement ? trigger : openButton;
       syncSelectedState();
-      syncSearchResults();
       modal.removeAttribute('hidden');
       modal.setAttribute('aria-hidden', 'false');
       lockDocumentScroll();
-      const visibleSelectButtons = selectButtons.filter((button)=> button instanceof HTMLElement && !button.closest('[hidden]'));
       const focusTarget = searchInput instanceof HTMLElement
         ? searchInput
-        : visibleSelectButtons.find((button)=> button instanceof HTMLElement && button.classList.contains('is-selected'))
-        || visibleSelectButtons.find((button)=> button instanceof HTMLElement)
-        || closeButtons.find((button)=> button instanceof HTMLElement);
+        : getSelectButtons().find((button)=> button instanceof HTMLElement && button.classList.contains('is-selected'))
+        || getSelectButtons().find((button)=> button instanceof HTMLElement)
+        || getCloseButtons().find((button)=> button instanceof HTMLElement);
       focusTarget?.focus({ preventScroll: true });
+      void loadPickerImages();
     };
 
     const updateInputValue = (value)=>{
@@ -687,25 +758,36 @@ export function setupHeadlineImagePicker(){
 
     toggle?.addEventListener('change', syncPreview);
 
-    closeButtons.forEach((button)=>{
+    getCloseButtons().forEach((button)=>{
       button.addEventListener('click', closeModal);
     });
 
-    searchInput?.addEventListener('input', syncSearchResults);
-    searchInput?.addEventListener('search', syncSearchResults);
+    const requestPickerImages = ()=>{
+      window.clearTimeout(searchDebounceId);
+      searchDebounceId = window.setTimeout(()=>{
+        void loadPickerImages();
+      }, 160);
+    };
+
+    searchInput?.addEventListener('input', requestPickerImages);
+    searchInput?.addEventListener('search', requestPickerImages);
     searchInput?.addEventListener('keydown', (event)=>{
       if(event.key === 'Enter'){
         event.preventDefault();
-        syncSearchResults();
+        void loadPickerImages();
       }
     });
-    sortSelect?.addEventListener('change', syncSearchResults);
+    sortSelect?.addEventListener('change', ()=>{
+      void loadPickerImages();
+    });
 
-    selectButtons.forEach((button)=>{
-      button.addEventListener('click', ()=>{
-        updateInputValue(button.getAttribute('data-image-path') || '');
-        closeModal();
-      });
+    grid?.addEventListener('click', (event)=>{
+      const target = event.target instanceof Element ? event.target : null;
+      const button = target ? target.closest('[data-action="select-headline-image"]') : null;
+      if(!(button instanceof HTMLElement)) return;
+
+      updateInputValue(button.getAttribute('data-image-path') || '');
+      closeModal();
     });
 
     if(dialog instanceof HTMLElement){
@@ -729,8 +811,17 @@ export function setupHeadlineImagePicker(){
     });
 
     syncPreview();
-    syncSearchResults();
-    registerI18nListener(syncPreview);
+    syncEmptyState();
+    registerI18nListener(()=>{
+      syncPreview();
+      syncEmptyState();
+      getSelectButtons().forEach((button)=>{
+        const label = qs('.headline-image-picker-select-button', button);
+        if(label instanceof HTMLElement){
+          label.textContent = getTranslation('form_headline_image_picker_select');
+        }
+      });
+    });
   });
 }
 

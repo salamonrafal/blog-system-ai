@@ -50,6 +50,52 @@ class MediaImageRepository extends ServiceEntityRepository
     }
 
     /**
+     * @return list<array{
+     *     id: int|null,
+     *     displayName: string,
+     *     originalDisplayName: string,
+     *     customName: string|null,
+     *     publicPath: string,
+     *     fileSize: int,
+     *     mimeType: string
+     * }>
+     */
+    public function findForHeadlineImagePicker(string $query = '', string $sort = 'desc', int $limit = 10): array
+    {
+        $normalizedQuery = trim($query);
+        $normalizedSort = 'asc' === strtolower($sort) ? 'ASC' : 'DESC';
+        $normalizedLimit = max(1, $limit);
+
+        $queryBuilder = $this->createQueryBuilder('media_image')
+            ->orderBy('media_image.createdAt', $normalizedSort)
+            ->setMaxResults($normalizedLimit);
+
+        if ('' !== $normalizedQuery) {
+            $queryBuilder
+                ->andWhere('LOWER(media_image.originalFilename) LIKE LOWER(:query) OR LOWER(COALESCE(media_image.customName, \'\')) LIKE LOWER(:query)')
+                ->setParameter('query', '%'.$normalizedQuery.'%');
+        }
+
+        /** @var list<MediaImage> $mediaImages */
+        $mediaImages = $queryBuilder
+            ->getQuery()
+            ->getResult();
+
+        return array_map(
+            static fn (MediaImage $mediaImage): array => [
+                'id' => $mediaImage->getId(),
+                'displayName' => $mediaImage->getDisplayName(),
+                'originalDisplayName' => $mediaImage->getOriginalDisplayName(),
+                'customName' => $mediaImage->getCustomName(),
+                'publicPath' => $mediaImage->getPublicPath(),
+                'fileSize' => $mediaImage->getFileSize(),
+                'mimeType' => $mediaImage->getMimeType(),
+            ],
+            $mediaImages,
+        );
+    }
+
+    /**
      * @return list<string>
      */
     public function findAllStoredFilePaths(): array

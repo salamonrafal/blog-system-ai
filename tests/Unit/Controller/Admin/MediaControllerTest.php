@@ -18,6 +18,7 @@ use Symfony\Component\Form\Extension\HttpFoundation\HttpFoundationExtension;
 use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\Forms;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -137,6 +138,66 @@ final class MediaControllerTest extends TestCase
                 'message' => 'Nie udało się dodać obrazka. Sprawdź błędy formularza.',
             ],
         ], $controller->capturedFlashes);
+    }
+
+    public function testPickerReturnsLatestImagesForHeadlinePicker(): void
+    {
+        $repository = $this->createMock(MediaImageRepository::class);
+        $repository
+            ->expects($this->once())
+            ->method('findForHeadlineImagePicker')
+            ->with('', 'desc', 10)
+            ->willReturn([
+                [
+                    'id' => 7,
+                    'displayName' => 'Hero banner',
+                    'originalDisplayName' => 'hero-banner',
+                    'customName' => 'Hero banner',
+                    'publicPath' => '/uploads/media/2026/04/07/hero-banner.webp',
+                    'fileSize' => 1536,
+                    'mimeType' => 'image/webp',
+                ],
+            ]);
+
+        $controller = new TestMediaController();
+
+        $response = $controller->picker(new Request(), $repository);
+
+        $this->assertInstanceOf(JsonResponse::class, $response);
+        $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
+        $payload = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        $this->assertSame([
+            'images' => [
+                [
+                    'id' => 7,
+                    'displayName' => 'Hero banner',
+                    'originalDisplayName' => 'hero-banner',
+                    'customName' => 'Hero banner',
+                    'publicPath' => '/uploads/media/2026/04/07/hero-banner.webp',
+                    'fileSize' => 1536,
+                    'mimeType' => 'image/webp',
+                    'formattedFileSize' => '1.5 KB',
+                ],
+            ],
+        ], $payload);
+    }
+
+    public function testPickerExpandsLimitForSearchRequests(): void
+    {
+        $repository = $this->createMock(MediaImageRepository::class);
+        $repository
+            ->expects($this->once())
+            ->method('findForHeadlineImagePicker')
+            ->with('hero', 'asc', 50)
+            ->willReturn([]);
+
+        $controller = new TestMediaController();
+
+        $response = $controller->picker(new Request(['q' => 'hero', 'sort' => 'asc']), $repository);
+
+        $this->assertInstanceOf(JsonResponse::class, $response);
+        $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
+        $this->assertSame(['images' => []], json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 
     public function testRenameRejectsDuplicateCustomName(): void

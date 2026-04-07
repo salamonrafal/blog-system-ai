@@ -14,6 +14,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use App\Service\UserLanguageResolver;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -61,6 +62,24 @@ class MediaController extends AbstractController
         return $this->render('admin/media/gallery.html.twig', [
             'gallery_images' => $mediaImageRepository->findAllForAdminIndex(),
             'upload_form' => $form,
+        ]);
+    }
+
+    #[Route('/picker', name: 'admin_media_picker', methods: ['GET'])]
+    public function picker(
+        Request $request,
+        MediaImageRepository $mediaImageRepository,
+    ): JsonResponse {
+        $query = trim((string) $request->query->get('q', ''));
+        $sort = 'asc' === $request->query->get('sort') ? 'asc' : 'desc';
+        $limit = '' === $query ? 10 : 50;
+        $images = $mediaImageRepository->findForHeadlineImagePicker($query, $sort, $limit);
+
+        return new JsonResponse([
+            'images' => array_map(fn (array $image): array => [
+                ...$image,
+                'formattedFileSize' => $this->formatFileSize((int) ($image['fileSize'] ?? 0)),
+            ], $images),
         ]);
     }
 
@@ -207,5 +226,18 @@ class MediaController extends AbstractController
         $this->addFlash('success', $userLanguageResolver->translate('Obrazek został dodany do galerii.', 'The image has been added to the gallery.'));
 
         return $this->redirectToRoute('admin_media_gallery');
+    }
+
+    private function formatFileSize(int $bytes): string
+    {
+        if ($bytes < 1024) {
+            return sprintf('%d B', $bytes);
+        }
+
+        if ($bytes < 1024 * 1024) {
+            return sprintf('%.1f KB', $bytes / 1024);
+        }
+
+        return sprintf('%.1f MB', $bytes / (1024 * 1024));
     }
 }
