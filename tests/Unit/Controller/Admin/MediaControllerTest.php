@@ -69,7 +69,7 @@ final class MediaControllerTest extends TestCase
         $repository
             ->expects($this->once())
             ->method('countForAdminIndex')
-            ->with('', 'desc')
+            ->with('')
             ->willReturn(3);
         $repository
             ->expects($this->once())
@@ -126,7 +126,7 @@ final class MediaControllerTest extends TestCase
         $repository
             ->expects($this->once())
             ->method('countForAdminIndex')
-            ->with('hero', 'asc')
+            ->with('hero')
             ->willReturn(4);
         $repository
             ->expects($this->once())
@@ -177,7 +177,7 @@ final class MediaControllerTest extends TestCase
         $repository
             ->expects($this->once())
             ->method('countForAdminIndex')
-            ->with('', 'desc')
+            ->with('')
             ->willReturn(1);
         $repository
             ->expects($this->once())

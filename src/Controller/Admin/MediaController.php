@@ -73,7 +73,7 @@ class MediaController extends AbstractController
         $sort = 'asc' === strtolower((string) $request->query->get('sort', 'desc')) ? 'asc' : 'desc';
         $itemsPerPage = max(1, $blogSettingsProvider->getSettings()->getAdminListingItemsPerPage());
         $requestedPage = max(1, $request->query->getInt('page', 1));
-        $totalImages = $mediaImageRepository->countForAdminIndex($query, $sort);
+        $totalImages = $mediaImageRepository->countForAdminIndex($query);
         $totalPages = max(1, (int) ceil($totalImages / $itemsPerPage));
         $currentPage = min($requestedPage, $totalPages);
 

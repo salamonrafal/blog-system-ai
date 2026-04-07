@@ -44,7 +44,7 @@ class MediaImageRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    public function countForAdminIndex(string $query = '', string $sort = 'desc'): int
+    public function countForAdminIndex(string $query = ''): int
     {
         return (int) $this->createAdminIndexFilterQueryBuilder($query)
             ->select('COUNT(media_image.id)')
