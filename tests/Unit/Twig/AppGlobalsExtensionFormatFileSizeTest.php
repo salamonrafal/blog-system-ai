@@ -13,6 +13,7 @@ use App\Repository\TopMenuExportQueueRepository;
 use App\Repository\TopMenuImportQueueRepository;
 use App\Repository\TopMenuItemRepository;
 use App\Service\BlogSettingsProvider;
+use App\Service\FileSizeFormatter;
 use App\Service\TopMenuBuilder;
 use App\Service\UserLanguageResolver;
 use App\Service\UserTimeZoneResolver;
@@ -37,6 +38,7 @@ final class AppGlobalsExtensionFormatFileSizeTest extends TestCase
             $this->createStub(ArticleExportRepository::class),
             $this->createStub(TopMenuItemRepository::class),
             $this->createStub(TopMenuBuilder::class),
+            new FileSizeFormatter(),
             $this->createStub(CacheInterface::class),
             'test',
         );

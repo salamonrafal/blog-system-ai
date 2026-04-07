@@ -9,11 +9,13 @@ use App\Form\MediaImageUploadType;
 use App\Repository\MediaImageRepository;
 use App\Service\MediaGalleryManager;
 use App\Service\MediaImageStorage;
+use App\Service\FileSizeFormatter;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Service\UserLanguageResolver;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -23,6 +25,11 @@ use Symfony\Component\Form\FormInterface;
 class MediaController extends AbstractController
 {
     use AuthenticatedAdminUserTrait;
+
+    public function __construct(
+        private readonly FileSizeFormatter $fileSizeFormatter,
+    ) {
+    }
 
     #[Route('', name: 'admin_media_index', methods: ['GET', 'POST'])]
     public function index(
@@ -61,6 +68,24 @@ class MediaController extends AbstractController
         return $this->render('admin/media/gallery.html.twig', [
             'gallery_images' => $mediaImageRepository->findAllForAdminIndex(),
             'upload_form' => $form,
+        ]);
+    }
+
+    #[Route('/picker', name: 'admin_media_picker', methods: ['GET'])]
+    public function picker(
+        Request $request,
+        MediaImageRepository $mediaImageRepository,
+    ): JsonResponse {
+        $query = trim((string) $request->query->get('q', ''));
+        $sort = 'asc' === strtolower((string) $request->query->get('sort', 'desc')) ? 'asc' : 'desc';
+        $limit = '' === $query ? 10 : 50;
+        $images = $mediaImageRepository->findForHeadlineImagePicker($query, $sort, $limit);
+
+        return new JsonResponse([
+            'images' => array_map(fn (array $image): array => [
+                ...$image,
+                'formattedFileSize' => $this->fileSizeFormatter->format((int) ($image['fileSize'] ?? 0)),
+            ], $images),
         ]);
     }
 

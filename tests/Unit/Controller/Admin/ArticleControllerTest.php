@@ -267,7 +267,6 @@ final class ArticleControllerTest extends TestCase
         $controller->authenticatedUser = (new User())
             ->setEmail('author@example.com')
             ->setPassword('hashed-password');
-
         $request = new Request([], [
             'article' => [
                 'title' => 'Nowy artykul',
@@ -331,7 +330,6 @@ final class ArticleControllerTest extends TestCase
         $controller->authenticatedUser = (new User())
             ->setEmail('editor@example.com')
             ->setPassword('hashed-password');
-
         $request = new Request([], [
             'article' => [
                 'title' => 'Zmieniony tytul',

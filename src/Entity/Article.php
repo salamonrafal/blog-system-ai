@@ -183,6 +183,11 @@ class Article
         return $this->headlineImage ?? self::DEFAULT_HEADLINE_IMAGE;
     }
 
+    public function getDefaultHeadlineImage(): string
+    {
+        return self::DEFAULT_HEADLINE_IMAGE;
+    }
+
     public function getContent(): string
     {
         return $this->content;

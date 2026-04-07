@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Twig;
 
 use App\Service\BlogSettingsProvider;
+use App\Service\FileSizeFormatter;
 use App\Service\TopMenuBuilder;
 use App\Service\UserLanguageResolver;
 use App\Service\UserTimeZoneResolver;
@@ -42,6 +43,7 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
         private readonly ArticleExportRepository $articleExportRepository,
         private readonly TopMenuItemRepository $topMenuItemRepository,
         private readonly TopMenuBuilder $topMenuBuilder,
+        private readonly FileSizeFormatter $fileSizeFormatter,
         private readonly CacheInterface $appCache,
         private readonly string $appEnv,
     )
@@ -146,22 +148,7 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
 
     public function formatFileSize(int $bytes): string
     {
-        if ($bytes < 1024) {
-            return sprintf('%d B', $bytes);
-        }
-
-        $units = ['KB', 'MB', 'GB', 'TB'];
-        $value = $bytes / 1024;
-
-        foreach ($units as $unit) {
-            if ($value < 1024 || 'TB' === $unit) {
-                break;
-            }
-
-            $value /= 1024;
-        }
-
-        return sprintf('%.1f %s', $value, $unit);
+        return $this->fileSizeFormatter->format($bytes);
     }
 
     private function getValidationMessageFallbacks(): array
