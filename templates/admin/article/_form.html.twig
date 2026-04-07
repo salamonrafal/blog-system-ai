@@ -221,6 +221,7 @@
                             <img
                                 src="{{ headline_image_preview_value }}"
                                 alt="{{ i18n_fallback('form_headline_image_preview_alt') }}"
+                                referrerpolicy="no-referrer"
                                 data-headline-image-preview
                             >
                         </div>
@@ -308,8 +309,8 @@
                             </select>
                         </div>
                     </div>
-                    <div class="media-gallery-grid headline-image-picker-grid" data-headline-image-grid data-i18n-aria="form_headline_image_picker_grid_aria" aria-label="{{ i18n_fallback('form_headline_image_picker_grid_aria') }}"></div>
-                    <p class="meta headline-image-picker-empty-results" data-headline-image-empty-results hidden>{{ i18n_fallback('form_headline_image_picker_empty') }}</p>
+                    <div class="media-gallery-grid headline-image-picker-grid" data-headline-image-grid role="listbox" data-i18n-aria="form_headline_image_picker_grid_aria" aria-label="{{ i18n_fallback('form_headline_image_picker_grid_aria') }}"></div>
+                    <p class="meta headline-image-picker-empty-results" data-headline-image-empty-results role="status" aria-live="polite" aria-atomic="true" hidden>{{ i18n_fallback('form_headline_image_picker_empty') }}</p>
                     <div class="confirm-delete-actions">
                         <button type="button" class="button secondary" data-action="close-headline-image-picker" data-i18n="form_headline_image_picker_close">{{ i18n_fallback('form_headline_image_picker_close') }}</button>
                     </div>

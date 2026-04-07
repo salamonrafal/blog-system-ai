@@ -574,6 +574,8 @@ export function setupHeadlineImagePicker(){
         button.dataset.action = 'select-headline-image';
         button.dataset.imagePath = image.publicPath || '';
         button.dataset.imageName = image.displayName || '';
+        button.setAttribute('role', 'option');
+        button.setAttribute('aria-selected', 'false');
 
         const img = document.createElement('img');
         img.src = image.publicPath || '';
@@ -624,7 +626,7 @@ export function setupHeadlineImagePicker(){
         if(!(button instanceof HTMLElement)) return;
         const isSelected = (button.getAttribute('data-image-path') || '') === currentValue;
         button.classList.toggle('is-selected', isSelected);
-        button.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+        button.setAttribute('aria-selected', isSelected ? 'true' : 'false');
 
         const card = button.closest('.media-gallery-card');
         if(card instanceof HTMLElement){

@@ -77,7 +77,7 @@ class MediaController extends AbstractController
         MediaImageRepository $mediaImageRepository,
     ): JsonResponse {
         $query = trim((string) $request->query->get('q', ''));
-        $sort = 'asc' === $request->query->get('sort') ? 'asc' : 'desc';
+        $sort = 'asc' === strtolower((string) $request->query->get('sort', 'desc')) ? 'asc' : 'desc';
         $limit = '' === $query ? 10 : 50;
         $images = $mediaImageRepository->findForHeadlineImagePicker($query, $sort, $limit);
 
