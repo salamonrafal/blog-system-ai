@@ -85,6 +85,7 @@ class ArticleType extends AbstractType
             ->add('content', TextareaType::class, [
                 'label' => 'Content',
                 'label_attr' => ['data-i18n' => 'form_content'],
+                'empty_data' => '',
                 'attr' => ['rows' => 16],
             ])
             ->add('status', EnumType::class, [

@@ -11,6 +11,7 @@ import {
   setupExportClearConfirmation,
   setupExportDeleteConfirmation,
   setupHeadlineImageToggle,
+  setupHeadlineImagePicker,
   setupImportClearConfirmation,
   setupImportDeleteConfirmation,
   setupImportMessageDialog,
@@ -54,6 +55,7 @@ function init(){
   setupActions({ applyI18n });
   setupCharacterCounters();
   setupHeadlineImageToggle();
+  setupHeadlineImagePicker();
   setupOptionalColorFields();
   setupTranslationTabs();
   setupTopMenuTargetTabs();

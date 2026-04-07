@@ -12,6 +12,7 @@ use App\Form\ArticleType;
 use App\Repository\ArticleCategoryRepository;
 use App\Repository\ArticleExportQueueRepository;
 use App\Repository\ArticleKeywordRepository;
+use App\Repository\MediaImageRepository;
 use App\Repository\ArticleRepository;
 use App\Service\ArticlePublisher;
 use App\Service\BlogSettingsProvider;
@@ -66,6 +67,7 @@ class ArticleController extends AbstractController
         ArticlePublisher $articlePublisher,
         ArticleCategoryRepository $articleCategoryRepository,
         ArticleKeywordRepository $articleKeywordRepository,
+        MediaImageRepository $mediaImageRepository,
         UserLanguageResolver $userLanguageResolver,
     ): Response {
         $article = new Article();
@@ -94,6 +96,7 @@ class ArticleController extends AbstractController
 
         return $this->render('admin/article/new.html.twig', [
             'form' => $form,
+            'gallery_images' => $mediaImageRepository->findAllForAdminIndex(),
         ]);
     }
 
@@ -105,6 +108,7 @@ class ArticleController extends AbstractController
         ArticlePublisher $articlePublisher,
         ArticleCategoryRepository $articleCategoryRepository,
         ArticleKeywordRepository $articleKeywordRepository,
+        MediaImageRepository $mediaImageRepository,
         UserLanguageResolver $userLanguageResolver,
     ): Response {
         $currentUser = $this->resolveAuthenticatedUser();
@@ -127,6 +131,7 @@ class ArticleController extends AbstractController
         return $this->render('admin/article/edit.html.twig', [
             'article' => $article,
             'form' => $form,
+            'gallery_images' => $mediaImageRepository->findAllForAdminIndex(),
         ]);
     }
 

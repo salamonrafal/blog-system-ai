@@ -1,6 +1,6 @@
 import { applyI18n, getTranslation, registerI18nListener } from './i18n.js';
 import { getLang, isAdminDeviceRemembered, isAdminShortcutsCollapsed, isAdminShortcutsDocked, setAdminDeviceRemembered, setAdminShortcutsCollapsed, setAdminShortcutsDocked } from './preferences.js';
-import { assignFilesToInput, normalizeHexColor, qs, qsa } from './shared.js';
+import { assignFilesToInput, lockDocumentScroll, normalizeHexColor, qs, qsa, unlockDocumentScroll } from './shared.js';
 
 function isDesktopAdminShortcutsViewport(){
   return window.matchMedia('(min-width: 769px)').matches;
@@ -526,6 +526,211 @@ export function setupHeadlineImageToggle(){
 
     syncVisibility();
     toggle.addEventListener('change', syncVisibility);
+  });
+}
+
+export function setupHeadlineImagePicker(){
+  qsa('[data-headline-image-section]').forEach((section)=>{
+    const input = qs('[data-headline-image-input]', section);
+    const toggle = qs('[data-headline-image-toggle]', section);
+    const openButton = qs('[data-action="open-headline-image-picker"]', section);
+    const clearButton = qs('[data-action="clear-headline-image"]', section);
+    const modal = qs('[data-headline-image-modal]', section);
+    const dialog = modal ? qs('.headline-image-picker-dialog', modal) : null;
+    const closeButtons = modal ? qsa('[data-action="close-headline-image-picker"]', modal) : [];
+    const selectButtons = modal ? qsa('[data-action="select-headline-image"]', modal) : [];
+    const searchInput = modal ? qs('[data-headline-image-search-input]', modal) : null;
+    const sortSelect = modal ? qs('[data-headline-image-sort-select]', modal) : null;
+    const grid = modal ? qs('[data-headline-image-grid]', modal) : null;
+    const cards = modal ? qsa('[data-headline-image-card]', modal) : [];
+    const emptyResults = modal ? qs('[data-headline-image-empty-results]', modal) : null;
+    const previewShell = qs('[data-headline-image-preview-shell]', section);
+    const previewImage = qs('[data-headline-image-preview]', section);
+    const previewPath = qs('[data-headline-image-preview-path]', section);
+
+    if(!(input instanceof HTMLInputElement)) return;
+
+    let lastTrigger = null;
+    const baseCards = [...cards];
+
+    const normalizeSearchTerm = (value)=> String(value || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLocaleLowerCase()
+      .trim();
+
+    const syncSelectedState = ()=>{
+      if(!modal) return;
+
+      const currentValue = input.value.trim();
+      selectButtons.forEach((button)=>{
+        if(!(button instanceof HTMLElement)) return;
+        const isSelected = (button.getAttribute('data-image-path') || '') === currentValue;
+        button.classList.toggle('is-selected', isSelected);
+        button.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+
+        const card = button.closest('.media-gallery-card');
+        if(card instanceof HTMLElement){
+          card.classList.toggle('is-selected', isSelected);
+        }
+      });
+    };
+
+    const syncPreview = ()=>{
+      const value = input.value.trim();
+      const defaultValue = input.getAttribute('data-default-headline-image') || '';
+      const isEnabled = !(toggle instanceof HTMLInputElement) || toggle.checked;
+      const previewValue = isEnabled ? (value || defaultValue) : '';
+      const hasValue = previewValue.length > 0;
+
+      if(previewShell instanceof HTMLElement){
+        previewShell.hidden = !hasValue;
+      }
+
+      if(previewImage instanceof HTMLImageElement){
+        if(hasValue){
+          previewImage.src = previewValue;
+          previewImage.alt = getTranslation('form_headline_image_preview_alt');
+        }else{
+          previewImage.removeAttribute('src');
+        }
+      }
+
+      if(previewPath instanceof HTMLElement){
+        previewPath.textContent = previewValue;
+      }
+
+      syncSelectedState();
+    };
+
+    const syncSearchResults = ()=>{
+      if(!(searchInput instanceof HTMLInputElement)) return;
+
+      const query = normalizeSearchTerm(searchInput.value);
+      const sortDirection = sortSelect instanceof HTMLSelectElement ? sortSelect.value : 'desc';
+      const sortedCards = [...baseCards].sort((leftCard, rightCard)=>{
+        const leftIndex = Number(leftCard.getAttribute('data-sort-index') || '0');
+        const rightIndex = Number(rightCard.getAttribute('data-sort-index') || '0');
+        return sortDirection === 'asc' ? rightIndex - leftIndex : leftIndex - rightIndex;
+      });
+
+      if(grid instanceof HTMLElement){
+        sortedCards.forEach((card)=>{
+          grid.appendChild(card);
+        });
+      }
+
+      let visibleCount = 0;
+
+      sortedCards.forEach((card, index)=>{
+        if(!(card instanceof HTMLElement)) return;
+
+        const haystack = normalizeSearchTerm(card.getAttribute('data-search-text') || '');
+        const isVisible = '' === query ? index < 10 : haystack.includes(query);
+        card.hidden = !isVisible;
+        card.classList.toggle('is-hidden', !isVisible);
+        if(isVisible){
+          visibleCount += 1;
+        }
+      });
+
+      if(grid instanceof HTMLElement){
+        grid.hidden = visibleCount === 0;
+      }
+
+      if(emptyResults instanceof HTMLElement){
+        emptyResults.hidden = visibleCount > 0;
+      }
+    };
+
+    const closeModal = ()=>{
+      if(!(modal instanceof HTMLElement)) return;
+      modal.setAttribute('hidden', '');
+      modal.setAttribute('aria-hidden', 'true');
+      unlockDocumentScroll();
+      if(lastTrigger instanceof HTMLElement){
+        lastTrigger.focus({ preventScroll: true });
+      }
+    };
+
+    const openModal = (trigger)=>{
+      if(!(modal instanceof HTMLElement)) return;
+      lastTrigger = trigger instanceof HTMLElement ? trigger : openButton;
+      syncSelectedState();
+      syncSearchResults();
+      modal.removeAttribute('hidden');
+      modal.setAttribute('aria-hidden', 'false');
+      lockDocumentScroll();
+      const visibleSelectButtons = selectButtons.filter((button)=> button instanceof HTMLElement && !button.closest('[hidden]'));
+      const focusTarget = searchInput instanceof HTMLElement
+        ? searchInput
+        : visibleSelectButtons.find((button)=> button instanceof HTMLElement && button.classList.contains('is-selected'))
+        || visibleSelectButtons.find((button)=> button instanceof HTMLElement)
+        || closeButtons.find((button)=> button instanceof HTMLElement);
+      focusTarget?.focus({ preventScroll: true });
+    };
+
+    const updateInputValue = (value)=>{
+      input.value = value;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      syncPreview();
+    };
+
+    openButton?.addEventListener('click', ()=>{
+      openModal(openButton);
+    });
+
+    clearButton?.addEventListener('click', ()=>{
+      updateInputValue('');
+    });
+
+    toggle?.addEventListener('change', syncPreview);
+
+    closeButtons.forEach((button)=>{
+      button.addEventListener('click', closeModal);
+    });
+
+    searchInput?.addEventListener('input', syncSearchResults);
+    searchInput?.addEventListener('search', syncSearchResults);
+    searchInput?.addEventListener('keydown', (event)=>{
+      if(event.key === 'Enter'){
+        event.preventDefault();
+        syncSearchResults();
+      }
+    });
+    sortSelect?.addEventListener('change', syncSearchResults);
+
+    selectButtons.forEach((button)=>{
+      button.addEventListener('click', ()=>{
+        updateInputValue(button.getAttribute('data-image-path') || '');
+        closeModal();
+      });
+    });
+
+    if(dialog instanceof HTMLElement){
+      dialog.addEventListener('click', (event)=>{
+        event.stopPropagation();
+      });
+    }
+
+    modal?.addEventListener('click', (event)=>{
+      if(event.target === modal){
+        closeModal();
+      }
+    });
+
+    document.addEventListener('keydown', (event)=>{
+      if(!(modal instanceof HTMLElement) || modal.hasAttribute('hidden')) return;
+      if(event.key === 'Escape'){
+        event.preventDefault();
+        closeModal();
+      }
+    });
+
+    syncPreview();
+    syncSearchResults();
+    registerI18nListener(syncPreview);
   });
 }
 

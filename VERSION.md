@@ -370,3 +370,11 @@
 - Rozszerzono skróty administratora o oznaczanie aktywnej trasy i automatyczne otwieranie odpowiedniej sekcji po wejściu na stronę, gdy panel jest zadokowany i rozwinięty, wraz z wyróżnieniem aktywnych pozycji i bieżącej strony.
 - Przebudowano fullscreen podglądu obrazów używanego m.in. w galerii mediów, tak aby sam modal wykorzystywał całą dostępną przestrzeń, a obrazy były wyśrodkowane w obu osiach bez sztucznego powiększania ponad naturalny rozmiar.
 - Dopasowano preloader panelu administracyjnego do jasnego i ciemnego motywu, wprowadzając osobne warianty kolorystyczne overlayu, panelu statusu i animacji oraz ustawianie `data-theme` już w `<head>`, aby właściwy motyw był widoczny od pierwszego renderu.
+
+## 2026-04-07
+
+- Rozszerzono formularze dodawania i edycji artykułu o wybór `Grafiki nagłówkowej` bezpośrednio z biblioteki mediów, przekazując do widoków listę obrazków galerii i dodając w polu grafiki szybkie akcje otwarcia pickera, czyszczenia wartości oraz podgląd aktualnie używanego obrazu.
+- Dodano w popupie wyboru grafiki nagłówkowej kompaktowy picker oparty o kafelki obrazów z nakładką na podglądzie, przenosząc tytuł, metadane i przycisk `Wybierz` na sam obrazek, upraszczając układ listy oraz dopracowując minimalistyczny scrollbar i blokadę przewijania strony na czas otwartego modala.
+- Rozszerzono picker grafiki nagłówkowej o wyszukiwanie po nazwie oryginalnej i niestandardowej, domyślne ograniczenie widoku do 10 najnowszych obrazków, sortowanie po dacie `od najnowszych` lub `od najstarszych`, poprawne filtrowanie bez przypadkowego submitu formularza artykułu po wciśnięciu `Enter` oraz komunikat pustych wyników.
+- Uspójniono obsługę domyślnej grafiki nagłówkowej i internacjonalizacji nowego pickera, tak aby podgląd poprawnie korzystał z systemowego obrazka fallbackowego, modal używał kluczy `i18n` zamiast tekstów hardcoded, a zamknięcie korzystało z etykiety `Zamknij`.
+- Uszczelniono backend formularza artykułu pod kątem brakującego pola `Treść`, ustawiając dla `content` bezpieczne `empty_data`, dzięki czemu nie dochodzi już do wyjątku `InvalidTypeException`, a brak wartości przechodzi przez standardową walidację formularza.
