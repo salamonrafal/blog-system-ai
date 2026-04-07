@@ -53,6 +53,15 @@ TEXT);
         $this->assertStringContainsString('<pre><code class="language-php">echo &#039;hi&#039;;</code></pre>', $html);
     }
 
+    public function testRendersImageWithRootRelativePath(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+
+        $html = $renderer->render('![Obrazek](/uploads/media/2026/04/test-image.webp)');
+
+        $this->assertStringContainsString('<img src="/uploads/media/2026/04/test-image.webp" alt="Obrazek" loading="lazy">', $html);
+    }
+
     public function testRendersAlignmentAndHeadingLevelSeven(): void
     {
         $renderer = new ArticleMarkupRenderer();

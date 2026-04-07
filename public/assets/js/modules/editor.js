@@ -1,6 +1,7 @@
 import { createDropdownMenu } from './dropdown-menu.js';
 import { createArticleTableBuilder } from './editor-table-builder.js';
 import { getTranslation } from './i18n.js';
+import { createMediaImagePicker } from './media-image-picker.js';
 import { hideAppTooltip, lockDocumentScroll, qs, qsa, restoreElementTooltip, suspendElementTooltip, unlockDocumentScroll } from './shared.js';
 
 export function setupArticleMarkupEditor(){
@@ -72,7 +73,15 @@ export function setupArticleMarkupEditor(){
     const helpClose = qs('[data-markup-help-close]', helpModal);
     const helpTabs = qsa('[data-markup-help-tab]', helpModal);
     const helpPanels = qsa('[data-markup-help-panel]', helpModal);
+    const imageModal = qs('[data-markup-image-modal]', field);
+    const imageDialog = imageModal ? qs('.headline-image-picker-dialog', imageModal) : null;
+    const imageSearchInput = imageModal ? qs('[data-markup-image-search-input]', imageModal) : null;
+    const imageSortSelect = imageModal ? qs('[data-markup-image-sort-select]', imageModal) : null;
+    const imageGrid = imageModal ? qs('[data-markup-image-grid]', imageModal) : null;
+    const imageEmptyResults = imageModal ? qs('[data-markup-image-empty-results]', imageModal) : null;
+    const imageEndpoint = textarea.getAttribute('data-markup-image-picker-endpoint') || '';
     let lastHelpTrigger = null;
+    let lastImageSelection = null;
 
     if(!toolbar) return;
 
@@ -83,6 +92,31 @@ export function setupArticleMarkupEditor(){
       t,
     });
     const blocksDropdown = createDropdownMenu(blocksMenu);
+    const imagePicker = createMediaImagePicker({
+      modal: imageModal,
+      dialog: imageDialog,
+      searchInput: imageSearchInput,
+      sortSelect: imageSortSelect,
+      grid: imageGrid,
+      emptyResults: imageEmptyResults,
+      endpoint: imageEndpoint,
+      getCurrentValue: ()=> '',
+      onSelect: ({ path, name })=>{
+        if(!path) return;
+
+        const start = lastImageSelection?.start ?? textarea.selectionStart ?? 0;
+        const end = lastImageSelection?.end ?? textarea.selectionEnd ?? start;
+        const selectedAlt = textarea.value.slice(start, end).trim() || String(name || '').trim() || t('editor_placeholder_image_alt');
+        preserveEditorView(textarea, start, end);
+        wrapSelection(textarea, '![', `](${path})`, selectedAlt);
+        requestAnimationFrame(()=>{
+          textarea.focus({ preventScroll: true });
+        });
+      },
+      selectLabelKey: 'editor_image_picker_select',
+      emptyKey: 'editor_image_picker_empty',
+      noResultsKey: 'editor_image_picker_no_results',
+    });
 
     const activateHelpTab = (name)=>{
       if(!helpTabs.length || !helpPanels.length) return;
@@ -236,6 +270,13 @@ export function setupArticleMarkupEditor(){
       }
       if(action === 'image'){
         closeBlocksMenuForAction();
+        lastImageSelection = {
+          start: textarea.selectionStart ?? 0,
+          end: textarea.selectionEnd ?? 0,
+        };
+        if(imagePicker){
+          return imagePicker.open(button);
+        }
         const url = window.prompt(t('editor_prompt_image_url'), 'https://');
         if(!url) return;
         return wrapSelection(textarea, '![', `](${url})`, t('editor_placeholder_image_alt'));

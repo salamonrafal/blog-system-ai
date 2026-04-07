@@ -361,7 +361,7 @@ final class ArticleMarkupRenderer
         $escaped = htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
         $escaped = preg_replace_callback(
-            '/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/i',
+            '/!\[([^\]]*)\]\(((?:https?:\/\/|\/)[^\s)]+)\)/i',
             static fn (array $matches): string => sprintf(
                 '<img src="%s" alt="%s" loading="lazy">',
                 htmlspecialchars(htmlspecialchars_decode($matches[2], ENT_QUOTES), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
