@@ -107,8 +107,10 @@ export function setupArticleMarkupEditor(){
         const start = lastImageSelection?.start ?? textarea.selectionStart ?? 0;
         const end = lastImageSelection?.end ?? textarea.selectionEnd ?? start;
         const selectedAlt = textarea.value.slice(start, end).trim() || String(name || '').trim() || t('editor_placeholder_image_alt');
-        preserveEditorView(textarea, start, end);
-        wrapSelection(textarea, '![', `](${path})`, selectedAlt);
+        const imageMarkup = `![${selectedAlt}](${path})`;
+        textarea.value = `${textarea.value.slice(0, start)}${imageMarkup}${textarea.value.slice(end)}`;
+        const caret = start + imageMarkup.length;
+        preserveEditorView(textarea, caret, caret);
         requestAnimationFrame(()=>{
           textarea.focus({ preventScroll: true });
         });
