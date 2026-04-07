@@ -62,6 +62,26 @@ TEXT);
         $this->assertStringContainsString('<img src="/uploads/media/2026/04/test-image.webp" alt="Obrazek" loading="lazy">', $html);
     }
 
+    public function testDoesNotRenderImageForSchemeRelativeUrl(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+
+        $html = $renderer->render('![Obrazek](//example.com/test-image.webp)');
+
+        $this->assertStringNotContainsString('<img ', $html);
+        $this->assertStringContainsString('![Obrazek](//example.com/test-image.webp)', $html);
+    }
+
+    public function testDoesNotRenderImageForNonUploadRootRelativePath(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+
+        $html = $renderer->render('![Obrazek](/admin/secret/test-image.webp)');
+
+        $this->assertStringNotContainsString('<img ', $html);
+        $this->assertStringContainsString('![Obrazek](/admin/secret/test-image.webp)', $html);
+    }
+
     public function testRendersAlignmentAndHeadingLevelSeven(): void
     {
         $renderer = new ArticleMarkupRenderer();
