@@ -82,6 +82,26 @@ TEXT);
         $this->assertStringContainsString('![Obrazek](/admin/secret/test-image.webp)', $html);
     }
 
+    public function testDoesNotRenderImageForUploadPathWithDotSegments(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+
+        $html = $renderer->render('![Obrazek](/uploads/../admin/secret/test-image.webp)');
+
+        $this->assertStringNotContainsString('<img ', $html);
+        $this->assertStringContainsString('![Obrazek](/uploads/../admin/secret/test-image.webp)', $html);
+    }
+
+    public function testDoesNotRenderImageForUploadPathWithEncodedDotSegments(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+
+        $html = $renderer->render('![Obrazek](/uploads/%2e%2e/admin/secret/test-image.webp)');
+
+        $this->assertStringNotContainsString('<img ', $html);
+        $this->assertStringContainsString('![Obrazek](/uploads/%2e%2e/admin/secret/test-image.webp)', $html);
+    }
+
     public function testRendersAlignmentAndHeadingLevelSeven(): void
     {
         $renderer = new ArticleMarkupRenderer();

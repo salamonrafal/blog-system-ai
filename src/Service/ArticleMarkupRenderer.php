@@ -362,11 +362,18 @@ final class ArticleMarkupRenderer
 
         $escaped = preg_replace_callback(
             '/!\[([^\]]*)\]\(((?:https?:\/\/|\/uploads\/)[^\s)]+)\)/i',
-            static fn (array $matches): string => sprintf(
-                '<img src="%s" alt="%s" loading="lazy">',
-                htmlspecialchars(htmlspecialchars_decode($matches[2], ENT_QUOTES), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
-                htmlspecialchars(htmlspecialchars_decode($matches[1], ENT_QUOTES), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
-            ),
+            static function (array $matches): string {
+                $source = htmlspecialchars_decode($matches[2], ENT_QUOTES);
+                if (!self::isAllowedImageSource($source)) {
+                    return $matches[0];
+                }
+
+                return sprintf(
+                    '<img src="%s" alt="%s" loading="lazy">',
+                    htmlspecialchars($source, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
+                    htmlspecialchars(htmlspecialchars_decode($matches[1], ENT_QUOTES), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
+                );
+            },
             $escaped,
         ) ?? $escaped;
 
@@ -392,6 +399,33 @@ final class ArticleMarkupRenderer
         }
 
         return str_replace(self::LINE_BREAK_TOKEN, '<br>', $escaped);
+    }
+
+    private static function isAllowedImageSource(string $source): bool
+    {
+        if (preg_match('/^https?:\/\//i', $source) === 1) {
+            return true;
+        }
+
+        if (!str_starts_with($source, '/uploads/')) {
+            return false;
+        }
+
+        $path = parse_url($source, PHP_URL_PATH);
+        if (!is_string($path) || !str_starts_with($path, '/uploads/')) {
+            return false;
+        }
+
+        $decodedPath = rawurldecode($path);
+        $segments = explode('/', trim($decodedPath, '/'));
+
+        foreach ($segments as $segment) {
+            if ('.' === $segment || '..' === $segment) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private static function isTableStart(array $lines, int $index): bool

@@ -63,6 +63,15 @@ export function setupArticleMarkupEditor(){
     if(action === 'inline-code') return wrapSelection(textarea, '`', '`', t('editor_placeholder_inline_code'));
   };
 
+  const normalizeImageAlt = (value)=>{
+    const normalizedValue = String(value || '')
+      .replace(/[\r\n]+/g, ' ')
+      .replace(/\]/g, '')
+      .trim();
+
+    return normalizedValue;
+  };
+
   editors.forEach((textarea)=>{
     const field = textarea.closest('.article-editor-field');
     const toolbar = qs('[data-markup-toolbar]', field);
@@ -106,7 +115,9 @@ export function setupArticleMarkupEditor(){
 
         const start = lastImageSelection?.start ?? textarea.selectionStart ?? 0;
         const end = lastImageSelection?.end ?? textarea.selectionEnd ?? start;
-        const selectedAlt = textarea.value.slice(start, end).trim() || String(name || '').trim() || t('editor_placeholder_image_alt');
+        const selectedAlt = normalizeImageAlt(textarea.value.slice(start, end))
+          || normalizeImageAlt(name)
+          || t('editor_placeholder_image_alt');
         const imageMarkup = `![${selectedAlt}](${path})`;
         textarea.value = `${textarea.value.slice(0, start)}${imageMarkup}${textarea.value.slice(end)}`;
         const caret = start + imageMarkup.length;
