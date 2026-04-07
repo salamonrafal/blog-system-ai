@@ -361,7 +361,7 @@ final class ArticleMarkupRenderer
         $escaped = htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
         $escaped = preg_replace_callback(
-            '/!\[([^\]]*)\]\(((?:https?:\/\/|\/uploads\/)[^\s)]+)\)/i',
+            '/!\[([^\]]*)\]\((((?i:https?):\/\/|\/uploads\/)[^\s)]+)\)/',
             static function (array $matches): string {
                 $source = htmlspecialchars_decode($matches[2], ENT_QUOTES);
                 if (!self::isAllowedImageSource($source)) {
