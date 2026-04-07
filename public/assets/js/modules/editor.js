@@ -2,7 +2,7 @@ import { createDropdownMenu } from './dropdown-menu.js';
 import { createArticleTableBuilder } from './editor-table-builder.js';
 import { getTranslation } from './i18n.js';
 import { createMediaImagePicker } from './media-image-picker.js';
-import { hideAppTooltip, lockDocumentScroll, qs, qsa, restoreElementTooltip, suspendElementTooltip, unlockDocumentScroll } from './shared.js';
+import { hideAppTooltip, qs, qsa, restoreElementTooltip, suspendElementTooltip } from './shared.js';
 
 export function setupArticleMarkupEditor(){
   const editors = qsa('[data-markup-editor]');
