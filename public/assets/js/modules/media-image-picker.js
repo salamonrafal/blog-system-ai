@@ -172,6 +172,12 @@ export function createMediaImagePicker({
   };
 
   const open = (trigger)=>{
+    if(!modal.hasAttribute('hidden')){
+      lastTrigger = trigger instanceof HTMLElement ? trigger : lastTrigger;
+      syncSelectedState();
+      return;
+    }
+
     lastTrigger = trigger instanceof HTMLElement ? trigger : null;
     syncSelectedState();
     modal.removeAttribute('hidden');
