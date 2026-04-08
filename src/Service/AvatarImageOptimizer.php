@@ -14,7 +14,7 @@ final class AvatarImageOptimizer
 
     public function optimize(string $absolutePath, string $mimeType): void
     {
-        if (!is_file($absolutePath) || !function_exists('getimagesize')) {
+        if (!is_file($absolutePath) || !function_exists('getimagesize') || !$this->isGdAvailable()) {
             return;
         }
 
@@ -67,6 +67,17 @@ final class AvatarImageOptimizer
         if (!@rename($temporaryPath, $absolutePath)) {
             @unlink($temporaryPath);
         }
+    }
+
+    private function isGdAvailable(): bool
+    {
+        return extension_loaded('gd')
+            && function_exists('imagecreatetruecolor')
+            && function_exists('imagecopyresampled')
+            && function_exists('imagealphablending')
+            && function_exists('imagesavealpha')
+            && function_exists('imagefilledrectangle')
+            && function_exists('imagecolorallocatealpha');
     }
 
     private function createSourceImage(string $absolutePath, string $mimeType): ?\GdImage

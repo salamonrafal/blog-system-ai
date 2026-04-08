@@ -93,6 +93,8 @@
                             class="user-avatar-upload-preview{{ current_avatar ? ' has-image' : '' }}"
                             data-avatar-preview
                             data-avatar-preview-default-src="{{ current_avatar }}"
+                            data-i18n-aria="user_form_avatar_preview_label"
+                            aria-label="{{ i18n_fallback('user_form_avatar_preview_label') }}"
                         >
                             <div class="user-avatar-upload-preview-frame">
                                 <img
@@ -110,6 +112,7 @@
                                     {{ current_avatar ? 'hidden' : '' }}
                                 >
                                     <span class="user-avatar-upload-preview-empty-icon" aria-hidden="true"></span>
+                                    <span class="sr-only" data-i18n="user_form_avatar_preview_empty">{{ i18n_fallback('user_form_avatar_preview_empty') }}</span>
                                 </div>
                             </div>
                         </div>
