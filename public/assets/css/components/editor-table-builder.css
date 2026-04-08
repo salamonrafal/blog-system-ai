@@ -1,0 +1,434 @@
+.article-editor-table-dialog{
+  width:min(920px, 100%);
+  height:min(85vh, 760px);
+}
+
+.article-editor-table-content{
+  flex:1 1 auto;
+  grid-template-rows:auto auto minmax(0, 1fr);
+  gap:14px;
+  align-content:start;
+  overflow:visible;
+}
+
+.article-editor-table-switch{
+  padding:16px 18px;
+  border:1px solid color-mix(in oklab, var(--accent-2) 16%, var(--border));
+  border-radius:16px;
+  background:color-mix(in oklab, var(--panel) 82%, transparent);
+}
+
+.article-editor-table-grid-wrap{
+  position:relative;
+  flex:1 1 auto;
+  min-height:0;
+  min-width:0;
+  padding-right:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  overflow:auto;
+  scrollbar-width:thin;
+  scrollbar-color:color-mix(in oklab, var(--accent-2) 34%, var(--border)) transparent;
+}
+
+.article-editor-table-grid{
+  width:100%;
+  min-width:0;
+  padding:0;
+}
+
+.article-editor-table-shell{
+  width:100%;
+  min-width:0;
+}
+
+.article-editor-table-scroll{
+  min-width:0;
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+  overflow-y:hidden;
+  scrollbar-width:thin;
+  scrollbar-color:color-mix(in oklab, var(--accent-2) 34%, var(--border)) transparent;
+}
+
+.article-editor-table-scroll.has-horizontal-overflow{
+  overflow-x:auto;
+}
+
+.article-editor-table-grid-wrap::-webkit-scrollbar,
+.article-editor-table-scroll::-webkit-scrollbar{
+  width:8px;
+  height:8px;
+}
+
+.article-editor-table-grid-wrap::-webkit-scrollbar-track,
+.article-editor-table-scroll::-webkit-scrollbar-track{
+  background:transparent;
+}
+
+.article-editor-table-grid-wrap::-webkit-scrollbar-thumb,
+.article-editor-table-scroll::-webkit-scrollbar-thumb{
+  border-radius:999px;
+  border:2px solid transparent;
+  background-clip:padding-box;
+  background:color-mix(in oklab, var(--accent-2) 28%, var(--border));
+}
+
+.article-editor-table-grid-wrap::-webkit-scrollbar-thumb:hover,
+.article-editor-table-scroll::-webkit-scrollbar-thumb:hover{
+  background:color-mix(in oklab, var(--accent) 24%, var(--border));
+}
+
+.article-editor-table-matrix{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  width:max-content;
+  min-width:100%;
+  padding-bottom:32px;
+}
+
+.article-editor-table-grid-row{
+  position:relative;
+  display:block;
+  margin:0;
+  padding:0;
+  flex:0 0 auto;
+  width:100%;
+  height:51px;
+}
+
+.article-editor-table-grid-cells{
+  display:grid;
+  grid-template-columns:repeat(var(--article-table-columns), minmax(max-content, 1fr));
+  gap:0;
+  margin:0;
+  padding:0;
+  align-items:stretch;
+  width:100%;
+}
+
+.article-editor-table-cell{
+  position:relative;
+  display:flex;
+  align-items:stretch;
+  margin:0;
+  padding:0;
+  font-size:0;
+  line-height:0;
+}
+
+.article-editor-table-column-actions{
+  position:absolute;
+  top:8px;
+  right:8px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.article-editor-table-input{
+  display:block;
+  flex:1 1 auto;
+  width:100%;
+  margin:0;
+  height:51px;
+  min-height:51px;
+  min-width:140px;
+  padding-right:44px;
+  font-family:inherit;
+  font-size:15px;
+  font-weight:500;
+  line-height:1.45;
+  border:1px solid color-mix(in oklab, var(--accent-2) 12%, var(--border));
+  border-radius:0;
+  background: color-mix(in oklab, var(--panel) 92%, transparent);
+  box-shadow:none;
+}
+
+.article-editor-table-cell.is-header .article-editor-table-input{
+  font-weight:700;
+  color:var(--text);
+  background: color-mix(in oklab, var(--panel-2) 94%, transparent);
+}
+
+.article-editor-table-cell + .article-editor-table-cell .article-editor-table-input{
+  border-left-width:0;
+}
+
+.article-editor-table-grid-row + .article-editor-table-grid-row .article-editor-table-input{
+  border-top-width:0;
+}
+
+.article-editor-table-grid-row:first-child .article-editor-table-cell:first-child .article-editor-table-input{
+  border-top-left-radius:16px;
+}
+
+.article-editor-table-grid-row:first-child .article-editor-table-cell:last-child .article-editor-table-input{
+  border-top-right-radius:16px;
+}
+
+.article-editor-table-grid-row:nth-last-child(2) .article-editor-table-cell:first-child .article-editor-table-input{
+  border-bottom-left-radius:16px;
+}
+
+.article-editor-table-grid-row:nth-last-child(2) .article-editor-table-cell:last-child .article-editor-table-input{
+  border-bottom-right-radius:16px;
+}
+
+.article-editor-table-icon-button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  width:42px;
+  min-width:42px;
+  height:42px;
+  border:1px solid color-mix(in oklab, var(--accent-2) 20%, var(--border));
+  border-radius:14px;
+  background:color-mix(in oklab, var(--panel-2) 92%, transparent);
+  color:var(--text);
+  font:inherit;
+  font-size:24px;
+  line-height:1;
+  cursor:pointer;
+  transition:border-color .16s ease, background-color .16s ease, transform .16s ease, opacity .16s ease;
+}
+
+.article-editor-table-icon{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  height:100%;
+  position:relative;
+}
+
+.article-editor-table-icon::before,
+.article-editor-table-icon::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:10px;
+  height:2px;
+  border-radius:999px;
+  background:currentColor;
+  transform:translate(-50%, -50%);
+}
+
+.article-editor-table-icon-plus::after{
+  width:2px;
+  height:10px;
+}
+
+.article-editor-table-icon-minus::after{
+  display:none;
+}
+
+.article-editor-table-icon-button:hover,
+.article-editor-table-icon-button:focus-visible{
+  border-color:color-mix(in oklab, var(--accent) 42%, var(--border));
+  background:color-mix(in oklab, var(--panel) 88%, var(--accent) 12%);
+  outline:none;
+}
+
+.article-editor-table-icon-button:active{
+  transform:scale(.97);
+}
+
+.article-editor-table-remove-column{
+  padding:0;
+  width:24px;
+  min-width:24px;
+  max-width:24px;
+  height:24px;
+  min-height:24px;
+  max-height:24px;
+  border-radius:999px;
+  font-size:15px;
+  opacity:0;
+  pointer-events:none;
+}
+
+.article-editor-table-cell.is-hover-column.is-column-control-row .article-editor-table-remove-column,
+.article-editor-table-cell.is-column-control-row:focus-within .article-editor-table-remove-column{
+  opacity:1;
+  pointer-events:auto;
+}
+
+.article-editor-table-add-column-button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:24px;
+  min-width:24px;
+  max-width:24px;
+  height:24px;
+  min-height:24px;
+  max-height:24px;
+  margin:0;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  color:var(--text);
+  font:inherit;
+  cursor:pointer;
+}
+
+.article-editor-table-add-column-button span{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:24px;
+  height:24px;
+  border-radius:999px;
+  border:1px solid color-mix(in oklab, var(--accent-2) 20%, var(--border));
+  background:color-mix(in oklab, var(--panel) 92%, transparent);
+  font-size:15px;
+  line-height:1;
+}
+
+.article-editor-table-add-column-button:hover,
+.article-editor-table-add-column-button:focus-visible{
+  background:transparent;
+  outline:none;
+}
+
+.article-editor-table-add-column-button:hover span,
+.article-editor-table-add-column-button:focus-visible span{
+  border-color:color-mix(in oklab, var(--accent) 42%, var(--border));
+}
+
+.article-editor-table-remove-row{
+  position:relative;
+  padding:0;
+  width:24px;
+  min-width:24px;
+  max-width:24px;
+  height:24px;
+  min-height:24px;
+  max-height:24px;
+  border-radius:999px;
+  font-size:15px;
+  opacity:0;
+  pointer-events:none;
+  transform:scale(.92);
+}
+
+.article-editor-table-grid-row:hover .article-editor-table-remove-row,
+.article-editor-table-grid-row:focus-within .article-editor-table-remove-row{
+  opacity:1;
+  pointer-events:auto;
+  transform:scale(1);
+}
+
+.article-editor-table-remove-row.is-disabled{
+  opacity:0;
+  pointer-events:none;
+}
+
+.article-editor-table-row-actions{
+  position:absolute;
+  top:50%;
+  right:8px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  transform:translateY(-50%);
+}
+
+.article-editor-table-add-row-zone{
+  position:absolute;
+  left:0;
+  top:calc(100% - 32px);
+  display:block;
+  width:100%;
+  height:36px;
+  pointer-events:auto;
+}
+
+.article-editor-table-add-row-bar{
+  position:absolute;
+  left:var(--article-table-add-row-button-left, 0);
+  top:4px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:24px;
+  min-width:24px;
+  max-width:24px;
+  height:24px;
+  min-height:24px;
+  max-height:24px;
+  margin:0;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  color:var(--text);
+  font:inherit;
+  cursor:pointer;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity .16s ease, border-color .16s ease;
+}
+
+.article-editor-table-add-row-zone.is-visible .article-editor-table-add-row-bar{
+  opacity:1;
+  pointer-events:auto;
+}
+
+.article-editor-table-add-row-bar span{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:24px;
+  height:24px;
+  border-radius:999px;
+  border:1px solid color-mix(in oklab, var(--accent-2) 20%, var(--border));
+  background:color-mix(in oklab, var(--panel) 92%, transparent);
+  font-size:15px;
+  line-height:1;
+}
+
+.article-editor-table-add-row-bar:hover,
+.article-editor-table-add-row-bar:focus-visible{
+  background:transparent;
+  outline:none;
+}
+
+.article-editor-table-add-row-bar:hover span,
+.article-editor-table-add-row-bar:focus-visible span{
+  border-color:color-mix(in oklab, var(--accent) 42%, var(--border));
+}
+
+.article-editor-table-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+  flex-wrap:wrap;
+  flex:0 0 auto;
+  margin-top:auto;
+  padding-top:0;
+  border-top:0;
+  background:transparent;
+}
+
+@media (max-width: 900px){
+  .article-editor-table-actions{
+    align-items:stretch;
+  }
+
+  .article-editor-table-actions > *{
+    flex:1 1 100%;
+  }
+
+  .article-editor-table-grid-cells{
+    grid-template-columns:repeat(var(--article-table-columns), minmax(120px, 1fr));
+  }
+}

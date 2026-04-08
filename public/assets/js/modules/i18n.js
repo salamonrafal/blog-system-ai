@@ -17,6 +17,16 @@ export function getTranslation(key, lang = getLang()){
   return (i18n[lang] && i18n[lang][key]) || i18n.pl[key] || '';
 }
 
+function interpolateTranslation(template, element){
+  if(typeof template !== 'string' || !(element instanceof Element)){
+    return template;
+  }
+
+  return template.replace(/\{\{\s*([a-zA-Z0-9_-]+)\s*\}\}/g, (_match, parameterName)=>{
+    return element.getAttribute(`data-i18n-param-${parameterName}`) || '';
+  });
+}
+
 function applyLangVisibility(lang){
   qsa('[data-lang]').forEach((element)=>{
     const elementLang = element.getAttribute('data-lang');
@@ -71,29 +81,35 @@ export function applyI18n(lang){
   qsa('[data-i18n]').forEach((element)=>{
     const key = element.getAttribute('data-i18n');
     if(translations[key] !== undefined){
-      element.textContent = translations[key];
+      element.textContent = interpolateTranslation(translations[key], element);
     }
   });
 
   qsa('[data-i18n-title]').forEach((element)=>{
     const key = element.getAttribute('data-i18n-title');
     if(translations[key] !== undefined){
-      element.setAttribute('title', translations[key]);
-      element.setAttribute('aria-label', translations[key]);
+      const translation = interpolateTranslation(translations[key], element);
+      element.setAttribute('title', translation);
+      element.setAttribute('aria-label', translation);
     }
   });
 
   qsa('[data-i18n-aria]').forEach((element)=>{
     const key = element.getAttribute('data-i18n-aria');
     if(translations[key] !== undefined){
-      element.setAttribute('aria-label', translations[key]);
+      element.setAttribute('aria-label', interpolateTranslation(translations[key], element));
     }
   });
 
   qsa('[data-i18n-tooltip]').forEach((element)=>{
     const key = element.getAttribute('data-i18n-tooltip');
     if(translations[key] !== undefined){
-      element.setAttribute('data-tooltip', translations[key]);
+      const translation = interpolateTranslation(translations[key], element);
+      if(element.hasAttribute('data-suspended-tooltip')){
+        element.setAttribute('data-suspended-tooltip', translation);
+      }else{
+        element.setAttribute('data-tooltip', translation);
+      }
       element.removeAttribute('title');
     }
   });
@@ -101,7 +117,7 @@ export function applyI18n(lang){
   qsa('[data-i18n-placeholder]').forEach((element)=>{
     const key = element.getAttribute('data-i18n-placeholder');
     if(translations[key] !== undefined){
-      element.setAttribute('placeholder', translations[key]);
+      element.setAttribute('placeholder', interpolateTranslation(translations[key], element));
     }
   });
 

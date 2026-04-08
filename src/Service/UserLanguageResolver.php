@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 class UserLanguageResolver
@@ -18,7 +19,11 @@ class UserLanguageResolver
 
     public function getLanguage(): string
     {
-        $request = $this->requestStack->getCurrentRequest();
+        return $this->resolveLanguage($this->requestStack->getCurrentRequest());
+    }
+
+    public function resolveLanguage(?Request $request): string
+    {
         $language = $request?->cookies->get(self::COOKIE_NAME);
 
         if (!is_string($language) || '' === trim($language)) {

@@ -1,6 +1,6 @@
 import { getLang } from './preferences.js';
 import { i18n, registerI18nListener } from './i18n.js';
-import { qs, qsa } from './shared.js';
+import { lockDocumentScroll, qs, qsa, unlockDocumentScroll } from './shared.js';
 
 export function setupImagePreview(){
   const triggers = qsa('[data-action="open-image-preview"]');
@@ -93,7 +93,14 @@ export function setupImagePreview(){
     if(!trigger || !meta || !captionStep || !captionTitle || !captionText || !previewTitle) return;
 
     const entry = trigger.closest('.timeline-entry');
-    if(!entry) return;
+    if(!entry){
+      metaLabel.textContent = trigger.getAttribute('data-image-meta') || '';
+      captionStep.textContent = '';
+      previewTitle.textContent = trigger.getAttribute('data-image-title') || trigger.getAttribute('data-image-alt') || '';
+      captionTitle.textContent = '';
+      captionText.textContent = trigger.getAttribute('data-image-caption') || '';
+      return;
+    }
 
     const lang = getLang();
     const fallbackLang = lang === 'pl' ? 'en' : 'pl';
@@ -140,9 +147,11 @@ export function setupImagePreview(){
   registerI18nListener(syncPreviewI18n);
 
   const closePreview = ()=>{
+    if(modal.hasAttribute('hidden')) return;
+
     modal.setAttribute('hidden', '');
     modal.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = '';
+    unlockDocumentScroll();
     dialog.classList.remove('is-fullscreen');
     syncFullscreenToggle();
     if(lastTrigger){
@@ -154,6 +163,7 @@ export function setupImagePreview(){
     const src = trigger.getAttribute('data-image-src');
     const alt = trigger.getAttribute('data-image-alt') || '';
     if(!src) return;
+    const wasHidden = modal.hasAttribute('hidden');
 
     lastTrigger = trigger;
     currentIndex = triggers.indexOf(trigger);
@@ -166,7 +176,9 @@ export function setupImagePreview(){
     syncFullscreenToggle();
     modal.removeAttribute('hidden');
     modal.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
+    if(wasHidden){
+      lockDocumentScroll();
+    }
     closeButton.focus();
   };
 
@@ -180,8 +192,9 @@ export function setupImagePreview(){
 
   triggers.forEach((trigger)=>{
     trigger.addEventListener('click', (event)=>{
+      event.preventDefault();
+
       if(mobilePreviewQuery.matches){
-        event.preventDefault();
         return;
       }
 

@@ -11,9 +11,13 @@ import {
   setupExportClearConfirmation,
   setupExportDeleteConfirmation,
   setupHeadlineImageToggle,
+  setupHeadlineImagePicker,
   setupImportClearConfirmation,
   setupImportDeleteConfirmation,
   setupImportMessageDialog,
+  setupMediaGalleryDropSlot,
+  setupMediaGallerySorting,
+  setupMediaRenameDialog,
   setupOptionalColorFields,
   setupQueueClearConfirmation,
   setupTopMenuDeleteConfirmation,
@@ -22,6 +26,7 @@ import {
   setupUserDeleteConfirmation,
 } from './modules/admin.js';
 import { setupCustomSelects } from './modules/custom-select.js';
+import { setupFileUploads } from './modules/file-upload.js';
 import { setupOptionLists } from './modules/option-list.js';
 import { setupArticleMarkupEditor } from './modules/editor.js';
 import { applyI18n } from './modules/i18n.js';
@@ -46,10 +51,12 @@ function init(){
   setupFlashNotices();
   setupAdminShortcuts();
   setupCustomSelects();
+  setupFileUploads();
   setupOptionLists();
   setupActions({ applyI18n });
   setupCharacterCounters();
   setupHeadlineImageToggle();
+  setupHeadlineImagePicker();
   setupOptionalColorFields();
   setupTranslationTabs();
   setupTopMenuTargetTabs();
@@ -69,6 +76,9 @@ function init(){
   setupImportDeleteConfirmation();
   setupImportClearConfirmation();
   setupImportMessageDialog();
+  setupMediaGalleryDropSlot();
+  setupMediaGallerySorting();
+  setupMediaRenameDialog();
   setupQueueClearConfirmation();
   syncTopbarHeight();
 

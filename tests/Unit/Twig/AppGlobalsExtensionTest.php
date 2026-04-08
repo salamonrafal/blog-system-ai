@@ -14,7 +14,9 @@ use App\Repository\TopMenuImportQueueRepository;
 use App\Repository\TopMenuItemRepository;
 use App\Repository\TopMenuExportQueueRepository;
 use App\Service\BlogSettingsProvider;
+use App\Service\FileSizeFormatter;
 use App\Service\TopMenuBuilder;
+use App\Service\UploadLimitResolver;
 use App\Service\UserLanguageResolver;
 use App\Service\UserTimeZoneResolver;
 use App\Twig\AppGlobalsExtension;
@@ -57,11 +59,15 @@ final class AppGlobalsExtensionTest extends TestCase
             $exportRepository,
             $topMenuRepository,
             $topMenuBuilder,
+            new FileSizeFormatter(),
+            new UploadLimitResolver(static fn (string $key): string|false => false),
             $appCache,
             'test',
         );
 
         $this->assertSame('Select an import file.', $extension->getI18nFallback('validation_import_file_required'));
+        $this->assertSame('The import file cannot be larger than 10 MB.', $extension->getI18nFallback('validation_import_file_too_large'));
+        $this->assertSame('The image cannot be larger than 5 MB.', $extension->getI18nFallback('validation_media_file_too_large'));
         $this->assertSame('unknown_key', $extension->getI18nFallback('unknown_key'));
         $this->assertSame('Category import', $extension->translateUi('Import kategorii', 'Category import'));
         $this->assertSame('English (EN)', $extension->getLanguageLabel('en'));
@@ -172,6 +178,12 @@ final class AppGlobalsExtensionTest extends TestCase
             $exportRepository,
             $topMenuRepository,
             $topMenuBuilder,
+            new FileSizeFormatter(),
+            new UploadLimitResolver(static fn (string $key): string|false => match ($key) {
+                'upload_max_filesize' => '2M',
+                'post_max_size' => '8M',
+                default => false,
+            }),
             $appCache,
             'test',
         );
@@ -183,6 +195,8 @@ final class AppGlobalsExtensionTest extends TestCase
         $this->assertSame('test', $globals['app_env']);
         $this->assertSame('en', $globals['user_language']);
         $this->assertSame('Europe/Warsaw', $globals['user_timezone']);
+        $this->assertSame(2 * 1024 * 1024, $globals['media_upload_limit_bytes']);
+        $this->assertSame('2.0 MB', $globals['media_upload_limit_formatted']);
         $this->assertJson($globals['validation_i18n_json']);
         $this->assertSame([
             'queue_status' => 12,

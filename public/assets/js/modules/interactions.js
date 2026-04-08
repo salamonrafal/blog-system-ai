@@ -2,6 +2,45 @@ import { getTranslation } from './i18n.js';
 import { getLang, getTheme, setAccent, setLangPreference, setTheme } from './preferences.js';
 import { copyTextToClipboard, qs, qsa } from './shared.js';
 
+function bindCopyAction(selector, defaultTooltipKey, copiedTooltipKey){
+  qsa(selector).forEach((button)=>{
+    button.addEventListener('click', async ()=>{
+      const link = button.getAttribute('data-link');
+      const defaultHint = getTranslation(defaultTooltipKey);
+      const icon = button.querySelector('.article-action-icon');
+
+      if(!link){
+        button.setAttribute('data-tooltip', defaultHint);
+        return;
+      }
+
+      const copied = await copyTextToClipboard(link);
+      button.setAttribute('data-tooltip', copied ? getTranslation(copiedTooltipKey) : defaultHint);
+
+      if(!copied || !icon) return;
+
+      button.classList.add('is-icon-transitioning');
+      setTimeout(()=>{
+        icon.classList.remove('is-copy');
+        icon.classList.add('is-check');
+        button.classList.remove('is-icon-transitioning');
+      }, 110);
+
+      button.classList.add('is-confirmed');
+      setTimeout(()=>{
+        button.setAttribute('data-tooltip', getTranslation(defaultTooltipKey));
+        button.classList.add('is-icon-transitioning');
+        setTimeout(()=>{
+          icon.classList.remove('is-check');
+          icon.classList.add('is-copy');
+          button.classList.remove('is-icon-transitioning');
+        }, 110);
+        button.classList.remove('is-confirmed');
+      }, 1200);
+    });
+  });
+}
+
 export function setupActions({ applyI18n }){
   qsa('[data-action="toggle-lang"]').forEach((button)=>{
     button.addEventListener('click', ()=>{
@@ -50,42 +89,8 @@ export function setupActions({ applyI18n }){
     });
   }
 
-  qsa('[data-action="copy-article-link"]').forEach((button)=>{
-    button.addEventListener('click', async ()=>{
-      const link = button.getAttribute('data-link');
-      const defaultHint = getTranslation('blog_copy_link');
-      const icon = button.querySelector('.article-action-icon');
-
-      if(!link){
-        button.setAttribute('data-tooltip', defaultHint);
-        return;
-      }
-
-      const copied = await copyTextToClipboard(link);
-      button.setAttribute('data-tooltip', copied ? getTranslation('blog_link_copied') : defaultHint);
-
-      if(!copied || !icon) return;
-
-      button.classList.add('is-icon-transitioning');
-      setTimeout(()=>{
-        icon.classList.remove('is-copy');
-        icon.classList.add('is-check');
-        button.classList.remove('is-icon-transitioning');
-      }, 110);
-
-      button.classList.add('is-confirmed');
-      setTimeout(()=>{
-        button.setAttribute('data-tooltip', getTranslation('blog_copy_link'));
-        button.classList.add('is-icon-transitioning');
-        setTimeout(()=>{
-          icon.classList.remove('is-check');
-          icon.classList.add('is-copy');
-          button.classList.remove('is-icon-transitioning');
-        }, 110);
-        button.classList.remove('is-confirmed');
-      }, 1200);
-    });
-  });
+  bindCopyAction('[data-action="copy-article-link"]', 'blog_copy_link', 'blog_link_copied');
+  bindCopyAction('[data-action="copy-media-public-url"]', 'admin_media_copy_public_url', 'admin_media_public_url_copied');
 
   qsa('[data-action="accent-color"]').forEach((input)=>{
     input.addEventListener('input', (event)=>{

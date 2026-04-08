@@ -157,6 +157,14 @@
         {% set headline_image_counter_id = form.headlineImage.vars.id ~ '-char-count' %}
         {% set headline_image_described_by = headline_image_counter_id ~ (headline_image_has_errors ? ' ' ~ form.headlineImage.vars.id ~ '-error' : '') %}
         {% set headline_image_enabled_has_errors = form.headlineImageEnabled.vars.errors|length > 0 %}
+        {% set headline_image_value = form.headlineImage.vars.value|default('') %}
+        {% set default_headline_image = form.vars.data.defaultHeadlineImage %}
+        {% set headline_image_preview_value = form.headlineImageEnabled.vars.checked
+            ? (headline_image_value is not empty ? headline_image_value : default_headline_image)
+            : '' %}
+        {% set headline_image_picker_modal_id = form.headlineImage.vars.id ~ '-picker-modal' %}
+        {% set headline_image_picker_title_id = form.headlineImage.vars.id ~ '-picker-title' %}
+        {% set headline_image_picker_text_id = form.headlineImage.vars.id ~ '-picker-text' %}
         <div class="field article-editor-field article-editor-field-headline-group{{ headline_image_enabled_has_errors or headline_image_has_errors ? ' has-error' : '' }}" data-headline-image-section>
             <div class="article-editor-switch-row">
                 <div class="article-editor-switch-copy">
@@ -187,8 +195,41 @@
                         class: 'article-editor-input',
                         'data-i18n-placeholder': 'form_placeholder_headline_image',
                         placeholder: 'https://... lub /assets/img/...',
-                        'data-character-count-input': 'true'
+                        'data-character-count-input': 'true',
+                        'data-headline-image-input': 'true',
+                        'data-default-headline-image': default_headline_image
                     }|merge({'aria-describedby': headline_image_described_by})|merge(headline_image_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
+                    <div class="article-editor-headline-image-actions">
+                        <button
+                            type="button"
+                            class="button secondary"
+                            data-action="open-headline-image-picker"
+                            aria-haspopup="dialog"
+                            aria-controls="{{ headline_image_picker_modal_id }}"
+                        >
+                            <span data-i18n="form_headline_image_pick_from_media">{{ i18n_fallback('form_headline_image_pick_from_media') }}</span>
+                        </button>
+                        <button type="button" class="button secondary" data-action="clear-headline-image">
+                            <span data-i18n="form_headline_image_clear">{{ i18n_fallback('form_headline_image_clear') }}</span>
+                        </button>
+                        <a class="button secondary" href="{{ path('admin_media_gallery') }}">
+                            <span data-i18n="admin_media_open_gallery">{{ i18n_fallback('admin_media_open_gallery') }}</span>
+                        </a>
+                    </div>
+                    <div class="article-editor-headline-image-preview" data-headline-image-preview-shell {% if headline_image_preview_value is empty %}hidden{% endif %}>
+                        <div class="article-editor-headline-image-preview-frame">
+                            <img
+                                src="{{ headline_image_preview_value }}"
+                                alt="{{ i18n_fallback('form_headline_image_preview_alt') }}"
+                                referrerpolicy="no-referrer"
+                                data-headline-image-preview
+                            >
+                        </div>
+                        <div class="article-editor-headline-image-preview-copy">
+                            <strong data-i18n="form_headline_image_preview_label">{{ i18n_fallback('form_headline_image_preview_label') }}</strong>
+                            <span class="article-editor-headline-image-preview-path" data-headline-image-preview-path>{{ headline_image_preview_value }}</span>
+                        </div>
+                    </div>
                     <div class="article-editor-field-meta">
                         <span id="{{ headline_image_counter_id }}" class="article-editor-character-count" data-character-count-target>{{ form.headlineImage.vars.value|default('')|length }} / {{ form.headlineImage.vars.attr.maxlength }}</span>
                         <span class="article-editor-field-hint article-editor-field-hint-help">
@@ -211,9 +252,76 @@
                     {% endif %}
                 </div>
             </div>
+            <div
+                id="{{ headline_image_picker_modal_id }}"
+                class="confirm-delete-modal headline-image-picker-modal"
+                data-headline-image-modal
+                data-headline-image-endpoint="{{ path('admin_media_picker') }}"
+                hidden
+                aria-hidden="true"
+            >
+                <div
+                    class="confirm-delete-dialog headline-image-picker-dialog"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="{{ headline_image_picker_title_id }}"
+                    aria-describedby="{{ headline_image_picker_text_id }}"
+                >
+                    <div class="confirm-delete-topbar">
+                        <div class="confirm-delete-eyebrow" data-i18n="form_headline_image_picker_eyebrow">{{ i18n_fallback('form_headline_image_picker_eyebrow') }}</div>
+                        <button
+                            type="button"
+                            class="confirm-delete-close"
+                            data-action="close-media-image-picker"
+                            data-i18n-aria="form_headline_image_picker_close"
+                            aria-label="{{ i18n_fallback('form_headline_image_picker_close') }}"
+                        >
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <h2 id="{{ headline_image_picker_title_id }}" class="confirm-delete-title" data-i18n="form_headline_image_picker_title">{{ i18n_fallback('form_headline_image_picker_title') }}</h2>
+                    <p id="{{ headline_image_picker_text_id }}" class="confirm-delete-text" data-i18n="form_headline_image_picker_text">{{ i18n_fallback('form_headline_image_picker_text') }}</p>
+                    <div class="headline-image-picker-toolbar">
+                        <div class="headline-image-picker-search">
+                            <label for="{{ form.headlineImage.vars.id }}-picker-search" class="sr-only" data-i18n="form_headline_image_picker_search_label">{{ i18n_fallback('form_headline_image_picker_search_label') }}</label>
+                            <input
+                                id="{{ form.headlineImage.vars.id }}-picker-search"
+                                type="search"
+                                class="article-editor-input headline-image-picker-search-input"
+                                data-headline-image-search-input
+                                data-i18n-placeholder="form_headline_image_picker_search_placeholder"
+                                placeholder="{{ i18n_fallback('form_headline_image_picker_search_placeholder') }}"
+                                autocomplete="off"
+                                spellcheck="false"
+                            >
+                        </div>
+                        <div class="headline-image-picker-sort">
+                            <label for="{{ form.headlineImage.vars.id }}-picker-sort" class="sr-only" data-i18n="form_headline_image_picker_sort_label">{{ i18n_fallback('form_headline_image_picker_sort_label') }}</label>
+                            <select
+                                id="{{ form.headlineImage.vars.id }}-picker-sort"
+                                class="article-editor-input article-editor-select headline-image-picker-sort-select"
+                                data-headline-image-sort-select
+                                data-i18n-aria="form_headline_image_picker_sort_label"
+                                aria-label="{{ i18n_fallback('form_headline_image_picker_sort_label') }}"
+                            >
+                                <option value="desc" data-i18n="form_headline_image_picker_sort_desc">{{ i18n_fallback('form_headline_image_picker_sort_desc') }}</option>
+                                <option value="asc" data-i18n="form_headline_image_picker_sort_asc">{{ i18n_fallback('form_headline_image_picker_sort_asc') }}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="media-gallery-grid headline-image-picker-grid" data-headline-image-grid role="listbox" data-i18n-aria="form_headline_image_picker_grid_aria" aria-label="{{ i18n_fallback('form_headline_image_picker_grid_aria') }}"></div>
+                    <p class="meta headline-image-picker-empty-results" data-headline-image-empty-results role="status" aria-live="polite" aria-atomic="true" hidden>{{ i18n_fallback('form_headline_image_picker_empty') }}</p>
+                    <div class="confirm-delete-actions">
+                        <button type="button" class="button secondary" data-action="close-media-image-picker" data-i18n="form_headline_image_picker_close">{{ i18n_fallback('form_headline_image_picker_close') }}</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         {% set content_has_errors = form.content.vars.errors|length > 0 %}
+        {% set content_image_picker_modal_id = form.content.vars.id ~ '-image-picker-modal' %}
+        {% set content_image_picker_title_id = form.content.vars.id ~ '-image-picker-title' %}
+        {% set content_image_picker_text_id = form.content.vars.id ~ '-image-picker-text' %}
         {% set format_hint_markup %}
             Formatowanie: `**pogrubienie**`, `*kursywa*`, `++podkreślenie++`, `` `inline code` ``, `#` do `#######`, `> cytat`, `- lista`, `1. lista`, `[tekst](https://...)`, `![alt](https://...)`, `\` na końcu linii, `---`, tabela `| kolumna |`, blok `:::pre ... :::`, blok wyrównania `:::center ... :::`, blok kodu ` ``` `.
         {% endset %}
@@ -221,43 +329,160 @@
             {{ form_label(form.content) }}
             <div class="article-editor-surface{{ content_has_errors ? ' has-error' : '' }}">
                 <div class="article-editor-toolbar" data-markup-toolbar>
-                    <button type="button" class="article-editor-toolbar-button" data-markup-action="bold" aria-label="Pogrubienie" title="Pogrubienie"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5h5.5a3.5 3.5 0 0 1 0 7H8zm0 7h6.5a3.5 3.5 0 0 1 0 7H8z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
-                    <button type="button" class="article-editor-toolbar-button" data-markup-action="italic" aria-label="Kursywa" title="Kursywa"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 5h5M5 19h5M14 5l-4 14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
-                    <button type="button" class="article-editor-toolbar-button" data-markup-action="underline" aria-label="Podkreślenie" title="Podkreślenie"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v5a4 4 0 0 0 8 0V5M6 19h12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
-                    <button type="button" class="article-editor-toolbar-button" data-markup-action="inline-code" aria-label="Kod inline" title="Kod inline"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 8-4 4 4 4M15 8l4 4-4 4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><path d="M13 6l-2 12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg></span></button>
-                    <button type="button" class="article-editor-toolbar-button" data-markup-action="line-break" aria-label="Nowa linia" title="Nowa linia"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 7v4a3 3 0 0 0 3 3h8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><path d="m13 11 4 4-4 4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
-                    <button type="button" class="article-editor-toolbar-button" data-markup-action="separator" aria-label="Separator" title="Separator"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12h16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/><path d="M8 8h1M12 8h1M16 8h1M8 16h1M12 16h1M16 16h1" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg></span></button>
-                    <button type="button" class="article-editor-toolbar-button" data-markup-action="table" aria-label="Tabela" title="Tabela"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 10h16M10 6v12M16 6v12" fill="none" stroke="currentColor" stroke-width="2"/></svg></span></button>
-                    <button type="button" class="article-editor-toolbar-button" data-markup-action="preformatted" aria-label="Blok preformatowany" title="Blok preformatowany"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 6v12M17 6v12M10 9h4M10 12h4M10 15h4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
-                    <button type="button" class="article-editor-toolbar-button" data-markup-action="heading" data-markup-level="1" aria-label="Nagłówek 1" title="Nagłówek 1"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6v12M10 6v12M4 12h6M16 8l2-2v12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
-                    <button type="button" class="article-editor-toolbar-button" data-markup-action="heading" data-markup-level="2" aria-label="Nagłówek 2" title="Nagłówek 2"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 6v12M9 6v12M3 12h6M15 9a3 3 0 0 1 6 0c0 4-6 4-6 8h6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
-                    <button type="button" class="article-editor-toolbar-button" data-markup-action="heading" data-markup-level="3" aria-label="Nagłówek 3" title="Nagłówek 3"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 6v12M9 6v12M3 12h6M16 8h2.5a2.5 2.5 0 1 1 0 5H16m0 0h2.5a2.5 2.5 0 1 1 0 5H16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
-                    <button type="button" class="article-editor-toolbar-button" data-markup-action="heading" data-markup-level="4" aria-label="Nagłówek 4" title="Nagłówek 4"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 6v12M9 6v12M3 12h6M19 18V6l-5 8h7" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
-                    <button type="button" class="article-editor-toolbar-button" data-markup-action="heading" data-markup-level="5" aria-label="Nagłówek 5" title="Nagłówek 5"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 6v12M9 6v12M3 12h6M20 6h-5v5h3a3 3 0 1 1 0 6h-3" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
-                    <button type="button" class="article-editor-toolbar-button" data-markup-action="heading" data-markup-level="6" aria-label="Nagłówek 6" title="Nagłówek 6"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 6v12M9 6v12M3 12h6M20 8h-3a3 3 0 1 0 0 8h1a3 3 0 1 0 0-6h-4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
-                    <button type="button" class="article-editor-toolbar-button" data-markup-action="heading" data-markup-level="7" aria-label="Nagłówek 7" title="Nagłówek 7"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 6v12M9 6v12M3 12h6M15 7h6l-4 10" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
-                    <button type="button" class="article-editor-toolbar-button" data-markup-action="align" data-markup-align="left" aria-label="Wyrównaj do lewej" title="Wyrównaj do lewej"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 7h14M5 11h10M5 15h14M5 19h10" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg></span></button>
-                    <button type="button" class="article-editor-toolbar-button" data-markup-action="align" data-markup-align="center" aria-label="Wyśrodkuj" title="Wyśrodkuj"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 7h14M7 11h10M5 15h14M7 19h10" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg></span></button>
-                    <button type="button" class="article-editor-toolbar-button" data-markup-action="align" data-markup-align="right" aria-label="Wyrównaj do prawej" title="Wyrównaj do prawej"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 7h14M9 11h10M5 15h14M9 19h10" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg></span></button>
-                    <button type="button" class="article-editor-toolbar-button" data-markup-action="align" data-markup-align="justify" aria-label="Wyjustuj" title="Wyjustuj"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 7h14M5 11h14M5 15h14M5 19h14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg></span></button>
-                    <button type="button" class="article-editor-toolbar-button" data-markup-action="quote" aria-label="Cytat" title="Cytat"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 8H6a1 1 0 0 0-1 1v4a3 3 0 0 0 3 3h1V8Zm10 0h-3a1 1 0 0 0-1 1v4a3 3 0 0 0 3 3h1V8Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
-                    <button type="button" class="article-editor-toolbar-button" data-markup-action="code-block" aria-label="Blok kodu" title="Blok kodu"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 8-4 4 4 4M15 8l4 4-4 4M13 6l-2 12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
-                    <button type="button" class="article-editor-toolbar-button" data-markup-action="link" aria-label="Link" title="Link"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 14l4-4M8.5 16.5l-2 2a3 3 0 1 1-4-4l2-2M15.5 7.5l2-2a3 3 0 1 1 4 4l-2 2M9 15a3 3 0 0 1 0-4l2-2m4 6-2 2a3 3 0 0 1-4 0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
-                    <button type="button" class="article-editor-toolbar-button" data-markup-action="image" aria-label="Obraz" title="Obraz"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="10" r="1.5" fill="currentColor"/><path d="m20 16-4.5-4.5L8 19" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
-                    <button type="button" class="article-editor-toolbar-button" data-markup-action="bullet-list" aria-label="Lista punktowana" title="Lista punktowana"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 7h10M9 12h10M9 17h10" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/><circle cx="5" cy="7" r="1.3" fill="currentColor"/><circle cx="5" cy="12" r="1.3" fill="currentColor"/><circle cx="5" cy="17" r="1.3" fill="currentColor"/></svg></span></button>
-                    <button type="button" class="article-editor-toolbar-button" data-markup-action="numbered-list" aria-label="Lista numerowana" title="Lista numerowana"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 7h9M10 12h9M10 17h9" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/><path d="M4 7h1v3M4 12h2a1 1 0 0 1 0 2H4l2 2M4 17h2l-2 2h2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
-                    <button type="button" class="article-editor-toolbar-button" data-markup-action="help" aria-label="Pomoc formatowania" title="Pomoc formatowania" aria-haspopup="dialog" aria-controls="{{ form.content.vars.id }}-format-help-modal"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9.1 9a3 3 0 1 1 5.8 1c-.5 1.3-1.9 1.8-2.9 2.6-.7.6-1 1.1-1 2M12 17h.01" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="bold" data-i18n-tooltip="editor_tooltip_bold" data-tooltip="Pogrubienie" data-i18n-aria="editor_tooltip_bold" aria-label="Pogrubienie"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5h5.5a3.5 3.5 0 0 1 0 7H8zm0 7h6.5a3.5 3.5 0 0 1 0 7H8z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="italic" data-i18n-tooltip="editor_tooltip_italic" data-tooltip="Kursywa" data-i18n-aria="editor_tooltip_italic" aria-label="Kursywa"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 5h5M5 19h5M14 5l-4 14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="underline" data-i18n-tooltip="editor_tooltip_underline" data-tooltip="Podkreślenie" data-i18n-aria="editor_tooltip_underline" aria-label="Podkreślenie"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v5a4 4 0 0 0 8 0V5M6 19h12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
+                    <div class="article-editor-toolbar-select article-editor-toolbar-select-headings">
+                        <label for="{{ form.content.vars.id }}-heading-select" class="sr-only" data-i18n="editor_headings_label">Nagłówki</label>
+                        <select
+                            id="{{ form.content.vars.id }}-heading-select"
+                            class="article-editor-input article-editor-select"
+                            data-markup-heading-select
+                            data-i18n-aria="editor_headings_label"
+                            aria-label="Nagłówki"
+                        >
+                            <option value="" data-i18n="editor_headings_placeholder" selected disabled hidden>Nagłówki</option>
+                            <option value="1">H1</option>
+                            <option value="2">H2</option>
+                            <option value="3">H3</option>
+                            <option value="4">H4</option>
+                            <option value="5">H5</option>
+                            <option value="6">H6</option>
+                            <option value="7">H7</option>
+                        </select>
+                    </div>
+                    <span class="article-editor-toolbar-divider" aria-hidden="true"></span>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="align" data-markup-align="left" data-i18n-tooltip="editor_tooltip_align_left" data-tooltip="Wyrównaj do lewej" data-i18n-aria="editor_tooltip_align_left" aria-label="Wyrównaj do lewej"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 7h14M5 11h10M5 15h14M5 19h10" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="align" data-markup-align="center" data-i18n-tooltip="editor_tooltip_align_center" data-tooltip="Wyśrodkuj" data-i18n-aria="editor_tooltip_align_center" aria-label="Wyśrodkuj"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 7h14M7 11h10M5 15h14M7 19h10" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="align" data-markup-align="right" data-i18n-tooltip="editor_tooltip_align_right" data-tooltip="Wyrównaj do prawej" data-i18n-aria="editor_tooltip_align_right" aria-label="Wyrównaj do prawej"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 7h14M9 11h10M5 15h14M9 19h10" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="align" data-markup-align="justify" data-i18n-tooltip="editor_tooltip_align_justify" data-tooltip="Wyjustuj" data-i18n-aria="editor_tooltip_align_justify" aria-label="Wyjustuj"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 7h14M5 11h14M5 15h14M5 19h14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg></span></button>
+                    <span class="article-editor-toolbar-divider" aria-hidden="true"></span>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="bullet-list" data-i18n-tooltip="editor_tooltip_bullet_list" data-tooltip="Lista punktowana" data-i18n-aria="editor_tooltip_bullet_list" aria-label="Lista punktowana"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 7h9M10 12h9M10 17h9" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.2"/><circle cx="6" cy="7" r="1.8" fill="currentColor"/><circle cx="6" cy="12" r="1.8" fill="currentColor"/><circle cx="6" cy="17" r="1.8" fill="currentColor"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="numbered-list" data-i18n-tooltip="editor_tooltip_numbered_list" data-tooltip="Lista numerowana" data-i18n-aria="editor_tooltip_numbered_list" aria-label="Lista numerowana"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M11 7h8M11 12h8M11 17h8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.2"/><path d="M4.5 8V6.5h1.3V10" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9"/><path d="M4.2 12.2c.2-.8.8-1.2 1.7-1.2.9 0 1.5.5 1.5 1.2 0 .5-.2.8-.9 1.4l-1.8 1.5h2.8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9"/><path d="M4.4 16.2h2.3c.5 0 .9.4.9.9s-.4.9-.9.9H4.4m1.2-1.8V19" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9"/></svg></span></button>
+                    <span class="article-editor-toolbar-divider" aria-hidden="true"></span>
+                    <div class="app-dropdown-menu article-editor-toolbar-menu" data-dropdown-menu data-markup-blocks-menu>
+                        <button
+                            type="button"
+                            class="article-editor-toolbar-button"
+                            data-dropdown-menu-trigger
+                            data-i18n-tooltip="editor_blocks_label"
+                            data-tooltip="Dodatkowe bloki tekstu"
+                            data-i18n-aria="editor_blocks_label"
+                            aria-label="Dodatkowe bloki tekstu"
+                            aria-haspopup="true"
+                            aria-expanded="false"
+                            aria-controls="{{ form.content.vars.id }}-blocks-menu"
+                        >
+                            <span class="article-editor-toolbar-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24">
+                                    <rect x="4" y="5" width="7" height="6" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/>
+                                    <rect x="13" y="5" width="7" height="6" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/>
+                                    <rect x="4" y="13" width="7" height="6" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M14 15h6M14 18h6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/>
+                                </svg>
+                            </span>
+                            <span class="article-editor-toolbar-caret" aria-hidden="true">
+                                <svg viewBox="0 0 12 12">
+                                    <path d="m3 4 3 3 3-3" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/>
+                                </svg>
+                            </span>
+                        </button>
+                        <div id="{{ form.content.vars.id }}-blocks-menu" class="app-dropdown-menu-panel article-editor-toolbar-menu-panel" data-dropdown-menu-panel hidden>
+                            <button type="button" class="app-dropdown-menu-item article-editor-toolbar-menu-item" data-markup-action="inline-code" data-i18n-tooltip="editor_tooltip_inline_code" data-tooltip="Kod inline" data-i18n-aria="editor_tooltip_inline_code" aria-label="Kod inline">
+                                <span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 8-4 4 4 4M15 8l4 4-4 4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span>
+                            </button>
+                            <button type="button" class="app-dropdown-menu-item article-editor-toolbar-menu-item" data-markup-action="preformatted" data-i18n-tooltip="editor_tooltip_preformatted" data-tooltip="Blok preformatowany" data-i18n-aria="editor_tooltip_preformatted" aria-label="Blok preformatowany">
+                                <span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 7H6.5A1.5 1.5 0 0 0 5 8.5v7A1.5 1.5 0 0 0 6.5 17H8M16 7h1.5A1.5 1.5 0 0 1 19 8.5v7A1.5 1.5 0 0 1 17.5 17H16M11 6v12M13 6v12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="code-block" data-i18n-tooltip="editor_tooltip_code_block" data-tooltip="Blok kodu" data-i18n-aria="editor_tooltip_code_block" aria-label="Blok kodu"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 8-4 4 4 4M15 8l4 4-4 4M13 6l-2 12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="quote" data-i18n-tooltip="editor_tooltip_quote" data-tooltip="Cytat" data-i18n-aria="editor_tooltip_quote" aria-label="Cytat"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 8H6a1 1 0 0 0-1 1v4a3 3 0 0 0 3 3h1V8Zm10 0h-3a1 1 0 0 0-1 1v4a3 3 0 0 0 3 3h1V8Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
+                    <span class="article-editor-toolbar-divider" aria-hidden="true"></span>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="line-break" data-i18n-tooltip="editor_tooltip_line_break" data-tooltip="Nowa linia" data-i18n-aria="editor_tooltip_line_break" aria-label="Nowa linia"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 7v4a3 3 0 0 0 3 3h8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><path d="m13 11 4 4-4 4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="separator" data-i18n-tooltip="editor_tooltip_separator" data-tooltip="Separator" data-i18n-aria="editor_tooltip_separator" aria-label="Separator"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12h16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/><path d="M8 8h1M12 8h1M16 8h1M8 16h1M12 16h1M16 16h1" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg></span></button>
+                    <span class="article-editor-toolbar-divider" aria-hidden="true"></span>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="link" data-i18n-tooltip="editor_tooltip_link" data-tooltip="Link" data-i18n-aria="editor_tooltip_link" aria-label="Link"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 14l4-4M8.5 16.5l-2 2a3 3 0 1 1-4-4l2-2M15.5 7.5l2-2a3 3 0 1 1 4 4l-2 2M9 15a3 3 0 0 1 0-4l2-2m4 6-2 2a3 3 0 0 1-4 0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="image" data-i18n-tooltip="editor_tooltip_image" data-tooltip="Obraz" data-i18n-aria="editor_tooltip_image" aria-label="Obraz" aria-haspopup="dialog" aria-controls="{{ content_image_picker_modal_id }}"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="10" r="1.5" fill="currentColor"/><path d="m20 16-4.5-4.5L8 19" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="table" data-i18n-tooltip="editor_tooltip_table" data-tooltip="Tabela" data-i18n-aria="editor_tooltip_table" aria-label="Tabela"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 10h16M10 6v12M16 6v12" fill="none" stroke="currentColor" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="table-builder" data-i18n-tooltip="editor_tooltip_table_builder" data-tooltip="Edytor tabeli" data-i18n-aria="editor_tooltip_table_builder" aria-label="Edytor tabeli" aria-haspopup="dialog" aria-controls="{{ form.content.vars.id }}-table-builder-modal"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 10h17M9 5v14M15 5v14" fill="none" stroke="currentColor" stroke-width="2"/><path d="M18 3v4M16 5h4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg></span></button>
+                    <span class="article-editor-toolbar-divider" aria-hidden="true"></span>
+                    <button type="button" class="article-editor-toolbar-button" data-markup-action="help" data-i18n-tooltip="editor_tooltip_help" data-tooltip="Pomoc formatowania" data-i18n-aria="editor_tooltip_help" aria-label="Pomoc formatowania" aria-haspopup="dialog" aria-controls="{{ form.content.vars.id }}-format-help-modal"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9.1 9a3 3 0 1 1 5.8 1c-.5 1.3-1.9 1.8-2.9 2.6-.7.6-1 1.1-1 2M12 17h.01" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/></svg></span></button>
                 </div>
                 {{ form_widget(form.content, { attr: {
                     class: 'article-editor-input article-editor-textarea article-editor-textarea-lg',
                     'data-i18n-placeholder': 'form_placeholder_content',
                     placeholder: 'Wpisz pełną treść artykułu',
-                    'data-markup-editor': 'true'
+                    'data-markup-editor': 'true',
+                    'data-markup-image-picker-endpoint': path('admin_media_picker')
                 }|merge(content_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.content.vars.id ~ '-error'} : {}) }) }}
+            </div>
+            <div
+                id="{{ content_image_picker_modal_id }}"
+                class="confirm-delete-modal headline-image-picker-modal"
+                data-markup-image-modal
+                hidden
+                aria-hidden="true"
+            >
+                <div
+                    class="confirm-delete-dialog headline-image-picker-dialog"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="{{ content_image_picker_title_id }}"
+                    aria-describedby="{{ content_image_picker_text_id }}"
+                >
+                    <div class="confirm-delete-topbar">
+                        <div class="confirm-delete-eyebrow" data-i18n="editor_image_picker_eyebrow">{{ i18n_fallback('editor_image_picker_eyebrow') }}</div>
+                        <button
+                            type="button"
+                            class="confirm-delete-close"
+                            data-action="close-media-image-picker"
+                            data-i18n-aria="editor_image_picker_close"
+                            aria-label="{{ i18n_fallback('editor_image_picker_close') }}"
+                        >
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <h2 id="{{ content_image_picker_title_id }}" class="confirm-delete-title" data-i18n="editor_image_picker_title">{{ i18n_fallback('editor_image_picker_title') }}</h2>
+                    <p id="{{ content_image_picker_text_id }}" class="confirm-delete-text" data-i18n="editor_image_picker_text">{{ i18n_fallback('editor_image_picker_text') }}</p>
+                    <div class="headline-image-picker-toolbar">
+                        <div class="headline-image-picker-search">
+                            <label for="{{ form.content.vars.id }}-image-picker-search" class="sr-only" data-i18n="editor_image_picker_search_label">{{ i18n_fallback('editor_image_picker_search_label') }}</label>
+                            <input
+                                id="{{ form.content.vars.id }}-image-picker-search"
+                                type="search"
+                                class="article-editor-input headline-image-picker-search-input"
+                                data-markup-image-search-input
+                                data-i18n-placeholder="editor_image_picker_search_placeholder"
+                                placeholder="{{ i18n_fallback('editor_image_picker_search_placeholder') }}"
+                                autocomplete="off"
+                                spellcheck="false"
+                            >
+                        </div>
+                        <div class="headline-image-picker-sort">
+                            <label for="{{ form.content.vars.id }}-image-picker-sort" class="sr-only" data-i18n="editor_image_picker_sort_label">{{ i18n_fallback('editor_image_picker_sort_label') }}</label>
+                            <select
+                                id="{{ form.content.vars.id }}-image-picker-sort"
+                                class="article-editor-input article-editor-select headline-image-picker-sort-select"
+                                data-markup-image-sort-select
+                                data-i18n-aria="editor_image_picker_sort_label"
+                                aria-label="{{ i18n_fallback('editor_image_picker_sort_label') }}"
+                            >
+                                <option value="desc" data-i18n="editor_image_picker_sort_desc">{{ i18n_fallback('editor_image_picker_sort_desc') }}</option>
+                                <option value="asc" data-i18n="editor_image_picker_sort_asc">{{ i18n_fallback('editor_image_picker_sort_asc') }}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="media-gallery-grid headline-image-picker-grid" data-markup-image-grid role="listbox" data-i18n-aria="editor_image_picker_grid_aria" aria-label="{{ i18n_fallback('editor_image_picker_grid_aria') }}"></div>
+                    <p class="meta headline-image-picker-empty-results" data-markup-image-empty-results role="status" aria-live="polite" aria-atomic="true" hidden>{{ i18n_fallback('editor_image_picker_empty') }}</p>
+                    <div class="confirm-delete-actions">
+                        <button type="button" class="button secondary" data-action="close-media-image-picker" data-i18n="editor_image_picker_close">{{ i18n_fallback('editor_image_picker_close') }}</button>
+                    </div>
+                </div>
             </div>
             <div class="article-editor-help-modal" data-markup-help-modal hidden aria-hidden="true">
                 <div id="{{ form.content.vars.id }}-format-help-modal" class="article-editor-help-dialog" role="dialog" aria-modal="true" aria-labelledby="{{ form.content.vars.id }}-format-help-title" aria-describedby="{{ form.content.vars.id }}-format-help-text">
-                    <button type="button" class="article-editor-help-close" data-markup-help-close aria-label="Zamknij pomoc formatowania" title="Zamknij"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg></span></button>
+                    <button type="button" class="article-editor-help-close" data-markup-help-close data-i18n-tooltip="editor_modal_close" data-i18n-aria="editor_modal_close" data-tooltip="Zamknij" aria-label="Zamknij"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg></span></button>
                     <div class="article-editor-help-eyebrow">admin://format-help</div>
                     <h2 id="{{ form.content.vars.id }}-format-help-title" class="article-editor-help-title">Zasady formatowania</h2>
                     <div id="{{ form.content.vars.id }}-format-help-text" class="article-editor-help-content">
@@ -305,6 +530,33 @@ const message = 'Hello';
                                 </div>
                             </section>
                         </div>
+                    </div>
+                </div>
+            </div>
+            <div class="article-editor-help-modal" data-markup-table-modal hidden aria-hidden="true">
+                <div id="{{ form.content.vars.id }}-table-builder-modal" class="article-editor-help-dialog article-editor-table-dialog" role="dialog" aria-modal="true" aria-labelledby="{{ form.content.vars.id }}-table-builder-title" aria-describedby="{{ form.content.vars.id }}-table-builder-text">
+                    <button type="button" class="article-editor-help-close" data-markup-table-close data-i18n-tooltip="editor_modal_close" data-i18n-aria="editor_modal_close" data-tooltip="Zamknij" aria-label="Zamknij"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg></span></button>
+                    <div class="article-editor-help-eyebrow">admin://table-builder</div>
+                    <h2 id="{{ form.content.vars.id }}-table-builder-title" class="article-editor-help-title" data-i18n="editor_table_builder_title">Generator tabeli</h2>
+                    <div id="{{ form.content.vars.id }}-table-builder-text" class="article-editor-help-content article-editor-table-content">
+                        <p class="article-editor-help-intro" data-i18n="editor_table_builder_intro">Skonfiguruj układ tabeli, uzupełnij komórki i wstaw gotowy markdown do treści artykułu.</p>
+                        <label class="article-editor-switch-row article-editor-table-switch">
+                            <span class="article-editor-switch-copy">
+                                <span class="article-editor-switch-label" data-i18n="editor_table_header_toggle">Wiersz nagłówków</span>
+                                <span class="article-editor-switch-hint" data-i18n="editor_table_header_toggle_hint">Po wyłączeniu generator wstawi pusty nagłówek wymagany przez markdown.</span>
+                            </span>
+                            <span class="article-editor-switch">
+                                <input type="checkbox" class="article-editor-switch-input" data-markup-table-header-toggle checked>
+                                <span class="article-editor-switch-slider" aria-hidden="true"></span>
+                            </span>
+                        </label>
+                        <div class="article-editor-table-grid-wrap">
+                            <div class="article-editor-table-grid" data-markup-table-grid></div>
+                        </div>
+                    </div>
+                    <div class="article-editor-table-actions">
+                        <button type="button" class="button secondary" data-markup-table-close data-i18n="form_cancel">Anuluj</button>
+                        <button type="button" class="button" data-markup-table-insert data-i18n="editor_table_insert">Wstaw tabelę</button>
                     </div>
                 </div>
             </div>

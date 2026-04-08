@@ -16,6 +16,7 @@ final class ManagedFilePathResolverTest extends TestCase
         $this->projectDir = sys_get_temp_dir().'/managed-file-path-resolver-'.bin2hex(random_bytes(4));
         mkdir($this->projectDir.'/var/exports', 0775, true);
         mkdir($this->projectDir.'/var/imports', 0775, true);
+        mkdir($this->projectDir.'/public/uploads/media', 0775, true);
     }
 
     protected function tearDown(): void
@@ -41,9 +42,18 @@ final class ManagedFilePathResolverTest extends TestCase
         $this->assertNull($resolver->resolveImportPath('outside.json'));
     }
 
+    public function testResolveMediaPathReturnsAbsolutePathInsideManagedDirectory(): void
+    {
+        $resolver = $this->createResolver();
+        $path = $this->projectDir.'/public/uploads/media/hero.webp';
+        file_put_contents($path, 'image');
+
+        $this->assertSame($path, $resolver->resolveMediaPath('public/uploads/media/hero.webp'));
+    }
+
     private function createResolver(): ManagedFilePathResolver
     {
-        return new ManagedFilePathResolver($this->projectDir, 'var/exports', 'var/imports');
+        return new ManagedFilePathResolver($this->projectDir, 'var/exports', 'var/imports', 'public/uploads/media');
     }
 
     private function removeDirectory(string $directory): void

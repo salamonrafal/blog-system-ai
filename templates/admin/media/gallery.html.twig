@@ -1,0 +1,285 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Galeria Mediów | {{ app_name }}{% endblock %}
+
+{% block body %}
+    <section class="section">
+        <div class="card">
+            <div class="card-header">
+                <div class="window-dots" aria-hidden="true">
+                    <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                </div>
+                <span class="pill">admin://media-gallery</span>
+            </div>
+
+            <div class="dashboard-feed-intro">
+                <div class="queue-status-intro-header">
+                    <div class="queue-status-intro-copy">
+                        <h1 data-i18n="admin_media_gallery_title">{{ i18n_fallback('admin_media_gallery_title') }}</h1>
+                        <p class="lede" data-i18n="admin_media_gallery_lede">{{ i18n_fallback('admin_media_gallery_lede') }}</p>
+                    </div>
+                    <div class="actions media-gallery-toolbar-actions">
+                        <a
+                            class="button secondary media-gallery-toolbar-button"
+                            href="{{ path('admin_media_index') }}"
+                            data-i18n-tooltip="admin_media_add_new"
+                            data-tooltip="{{ i18n_fallback('admin_media_add_new') }}"
+                            data-i18n-aria="admin_media_add_new"
+                            aria-label="{{ i18n_fallback('admin_media_add_new') }}"
+                        >
+                            <span class="article-action-icon is-add" aria-hidden="true"></span>
+                        </a>
+                        <a
+                            class="button secondary media-gallery-toolbar-button"
+                            href="{{ path('admin_media_gallery', pagination_route_params|merge({ page: current_page })) }}"
+                            data-i18n-tooltip="admin_refresh"
+                            data-tooltip="{{ i18n_fallback('admin_refresh') }}"
+                            data-i18n-aria="admin_refresh"
+                            aria-label="{{ i18n_fallback('admin_refresh') }}"
+                        >
+                            <span class="article-action-icon is-refresh" aria-hidden="true"></span>
+                        </a>
+                        {% if gallery_images is not empty %}
+                            <form method="post" action="{{ path('admin_media_clear') }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('clear_media_gallery') }}">
+                                <button
+                                    class="button secondary button-danger media-gallery-toolbar-button"
+                                    type="button"
+                                    data-action="confirm-clear-media-gallery"
+                                    data-i18n-tooltip="admin_media_clear"
+                                    data-tooltip="{{ i18n_fallback('admin_media_clear') }}"
+                                    data-i18n-aria="admin_media_clear"
+                                    aria-label="{{ i18n_fallback('admin_media_clear') }}"
+                                >
+                                    <span class="article-action-icon is-delete" aria-hidden="true"></span>
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {% set upload_form_has_errors = upload_form.vars.errors|length > 0 or upload_form.imageFile.vars.errors|length > 0 %}
+
+            {% if upload_form_has_errors %}
+                <div class="form-errors article-editor-errors media-gallery-upload-error" role="alert">
+                    <span class="article-action-icon is-warning media-gallery-upload-error-icon" aria-hidden="true"></span>
+                    <div class="media-gallery-upload-error-copy">
+                        {% for error in upload_form.vars.errors %}
+                            <p data-i18n="{{ error.message }}">{{ i18n_fallback(error.message) }}</p>
+                        {% endfor %}
+                        {% for error in upload_form.imageFile.vars.errors %}
+                            <p data-i18n="{{ error.message }}">{{ i18n_fallback(error.message) }}</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            {{ form_start(upload_form, {
+                action: path('admin_media_gallery'),
+                attr: {
+                    class: 'sr-only',
+                    'data-gallery-upload-form': ''
+                }
+            }) }}
+                {{ form_widget(upload_form.imageFile, {
+                    attr: {
+                        'data-gallery-upload-input': ''
+                    }
+                }) }}
+            {{ form_end(upload_form) }}
+
+            <form method="get" action="{{ path('admin_media_gallery') }}" class="article-filters media-gallery-search-form" role="search" data-media-gallery-search-form>
+                <div class="article-filter-group media-gallery-search-controls">
+                    <label class="sr-only" for="media-gallery-search" data-i18n="admin_media_search_label">{{ i18n_fallback('admin_media_search_label') }}</label>
+                    <div class="media-gallery-search-group">
+                        <input
+                            id="media-gallery-search"
+                            type="search"
+                            name="q"
+                            value="{{ search_query }}"
+                            class="article-editor-input media-gallery-search-input"
+                            data-i18n-placeholder="admin_media_search_placeholder"
+                            placeholder="{{ i18n_fallback('admin_media_search_placeholder') }}"
+                        >
+                        <button
+                            class="button secondary media-gallery-search-submit"
+                            type="submit"
+                            data-i18n-aria="admin_media_search_submit"
+                            aria-label="{{ i18n_fallback('admin_media_search_submit') }}"
+                        >
+                            <span class="article-action-icon is-search" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                </div>
+                <div class="media-gallery-sort-controls">
+                    <label class="sr-only" for="media-gallery-sort" data-i18n="admin_media_sort_label">{{ i18n_fallback('admin_media_sort_label') }}</label>
+                    <select
+                        id="media-gallery-sort"
+                        name="sort"
+                        class="article-editor-input article-editor-select media-gallery-sort-select"
+                        data-media-gallery-sort-select
+                        data-i18n-aria="admin_media_sort_label"
+                        aria-label="{{ i18n_fallback('admin_media_sort_label') }}"
+                    >
+                        <option value="desc" {% if sort_order != 'asc' %}selected{% endif %} data-i18n="admin_media_sort_desc">{{ i18n_fallback('admin_media_sort_desc') }}</option>
+                        <option value="asc" {% if sort_order == 'asc' %}selected{% endif %} data-i18n="admin_media_sort_asc">{{ i18n_fallback('admin_media_sort_asc') }}</option>
+                    </select>
+                </div>
+                {% if search_query is not empty %}
+                    <a class="button secondary media-gallery-search-reset" href="{{ path('admin_media_gallery') }}" data-i18n="admin_media_search_reset">{{ i18n_fallback('admin_media_search_reset') }}</a>
+                {% endif %}
+            </form>
+
+            {% if gallery_images is not empty %}
+                <div class="media-gallery-grid" data-i18n-aria="admin_media_gallery_aria" aria-label="{{ i18n_fallback('admin_media_gallery_aria') }}">
+                    {% for image in gallery_images %}
+                        <article class="media-gallery-card">
+                            <a
+                                class="media-gallery-preview"
+                                href="{{ image.publicPath }}"
+                                target="_blank"
+                                rel="noreferrer"
+                                data-action="open-image-preview"
+                                data-image-src="{{ image.publicPath }}"
+                                data-image-alt="{{ image.displayName }}"
+                                data-image-title="{{ image.displayName }}"
+                                data-image-meta="{{ format_file_size(image.fileSize) }}"
+                                data-image-caption="{{ image.createdAt|user_date }}"
+                            >
+                                <img src="{{ image.publicPath }}" alt="{{ image.displayName }}" loading="lazy">
+                            </a>
+                            <div class="media-gallery-body">
+                                <div class="media-gallery-meta">
+                                    <strong class="media-gallery-name">{{ image.displayName }}</strong>
+                                    <span class="meta">{{ image.mimeType|replace({'image/': ''})|upper }}</span>
+                                    <span class="meta">{{ format_file_size(image.fileSize) }}</span>
+                                    <span class="meta">{{ image.createdAt|user_date }}</span>
+                                </div>
+                                <form method="post" action="{{ path('admin_media_rename', { id: image.id }) }}" class="media-gallery-rename-form" data-media-rename-form>
+                                    <input type="hidden" name="_token" value="{{ csrf_token('rename_media_' ~ image.id) }}">
+                                    <input
+                                        class="media-gallery-rename-input"
+                                        type="hidden"
+                                        name="custom_name"
+                                        value="{{ image.customName ?? '' }}"
+                                    >
+                                </form>
+                                <div class="actions">
+                                    <button
+                                        class="button secondary article-action-button"
+                                        type="button"
+                                        data-action="edit-media-name"
+                                        data-media-display-name="{{ image.displayName }}"
+                                        data-media-original-name="{{ image.originalDisplayName }}"
+                                        data-media-custom-name="{{ image.customName ?? '' }}"
+                                        data-i18n-tooltip="admin_table_edit"
+                                        data-i18n-aria="admin_table_edit"
+                                        data-tooltip="{{ i18n_fallback('admin_table_edit') }}"
+                                        aria-label="{{ i18n_fallback('admin_table_edit') }}"
+                                    >
+                                        <span class="article-action-icon is-edit" aria-hidden="true"></span>
+                                    </button>
+                                    <a
+                                        class="button secondary article-action-button"
+                                        href="{{ image.publicPath }}"
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        data-i18n-tooltip="admin_media_open_image"
+                                        data-i18n-aria="admin_media_open_image"
+                                        data-tooltip="{{ i18n_fallback('admin_media_open_image') }}"
+                                        aria-label="{{ i18n_fallback('admin_media_open_image') }}"
+                                    >
+                                        <span class="article-action-icon is-export" aria-hidden="true"></span>
+                                    </a>
+                                    <button
+                                        class="button secondary article-action-button"
+                                        type="button"
+                                        data-action="copy-media-public-url"
+                                        data-link="{{ app_url ~ image.publicPath }}"
+                                        data-i18n-tooltip="admin_media_copy_public_url"
+                                        data-i18n-aria="admin_media_copy_public_url"
+                                        data-tooltip="{{ i18n_fallback('admin_media_copy_public_url') }}"
+                                        aria-label="{{ i18n_fallback('admin_media_copy_public_url') }}"
+                                    >
+                                        <span class="article-action-icon is-copy" aria-hidden="true"></span>
+                                    </button>
+                                    <form method="post" action="{{ path('admin_media_delete', { id: image.id }) }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete_media_' ~ image.id) }}">
+                                        <button
+                                            class="button secondary button-danger article-action-button"
+                                            type="button"
+                                            data-action="confirm-delete-media-image"
+                                            data-media-file="{{ image.displayName }}"
+                                            data-i18n-tooltip="admin_media_delete_image"
+                                            data-i18n-aria="admin_media_delete_image"
+                                            data-tooltip="{{ i18n_fallback('admin_media_delete_image') }}"
+                                            aria-label="{{ i18n_fallback('admin_media_delete_image') }}"
+                                        >
+                                            <span class="article-action-icon is-delete" aria-hidden="true"></span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </article>
+                    {% endfor %}
+                    <article class="media-gallery-card media-gallery-card-empty" data-media-gallery-drop-slot>
+                        <div class="media-gallery-preview"></div>
+                        <div class="media-gallery-body">
+                            <p class="media-gallery-empty-label" data-i18n="admin_media_empty_drop_hint">{{ i18n_fallback('admin_media_empty_drop_hint') }}</p>
+                        </div>
+                        <div class="media-gallery-upload-loader" aria-hidden="true">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </article>
+                </div>
+
+                {% if total_pages > 1 %}
+                    <nav class="blog-pagination article-index-pagination" data-i18n-aria="admin_listing_pagination_aria" aria-label="{{ i18n_fallback('admin_listing_pagination_aria') }}">
+                        {% if current_page > 1 %}
+                            <a class="btn blog-pagination-link blog-pagination-link-icon" href="{{ path('admin_media_gallery', pagination_route_params|merge({ page: current_page - 1 })) }}" data-i18n-aria="admin_pagination_previous_page" aria-label="{{ i18n_fallback('admin_pagination_previous_page') }}">
+                                <span aria-hidden="true">&lsaquo;</span>
+                            </a>
+                        {% else %}
+                            <span class="btn blog-pagination-link blog-pagination-link-icon is-disabled" aria-disabled="true" data-i18n-aria="admin_pagination_previous_page" aria-label="{{ i18n_fallback('admin_pagination_previous_page') }}">
+                                <span aria-hidden="true">&lsaquo;</span>
+                            </span>
+                        {% endif %}
+
+                        <div class="blog-pagination-pages">
+                            {% for item in pagination_items %}
+                                {% if item == '...' %}
+                                    <span class="blog-pagination-ellipsis" aria-hidden="true">...</span>
+                                {% elseif item == current_page %}
+                                    <span class="btn blog-pagination-link is-current" aria-current="page">{{ item }}</span>
+                                {% else %}
+                                    <a class="btn blog-pagination-link" href="{{ path('admin_media_gallery', pagination_route_params|merge({ page: item })) }}">{{ item }}</a>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        {% if current_page < total_pages %}
+                            <a class="btn blog-pagination-link blog-pagination-link-icon" href="{{ path('admin_media_gallery', pagination_route_params|merge({ page: current_page + 1 })) }}" data-i18n-aria="admin_pagination_next_page" aria-label="{{ i18n_fallback('admin_pagination_next_page') }}">
+                                <span aria-hidden="true">&rsaquo;</span>
+                            </a>
+                        {% else %}
+                            <span class="btn blog-pagination-link blog-pagination-link-icon is-disabled" aria-disabled="true" data-i18n-aria="admin_pagination_next_page" aria-label="{{ i18n_fallback('admin_pagination_next_page') }}">
+                                <span aria-hidden="true">&rsaquo;</span>
+                            </span>
+                        {% endif %}
+                    </nav>
+                {% endif %}
+            {% else %}
+                <div class="blog-empty-state">
+                    {% if search_query is not empty %}
+                        <p class="meta blog-empty-state-message" role="status" data-i18n="admin_media_search_empty">{{ i18n_fallback('admin_media_search_empty') }}</p>
+                    {% else %}
+                        <p class="meta blog-empty-state-message" role="status" data-i18n="admin_media_empty">{{ i18n_fallback('admin_media_empty') }}</p>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </section>
+{% endblock %}

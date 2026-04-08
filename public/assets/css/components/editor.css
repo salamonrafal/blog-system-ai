@@ -405,7 +405,7 @@
 .article-editor-surface{
   border:1px solid color-mix(in oklab, var(--accent-2) 18%, var(--border));
   border-radius:16px;
-  overflow:hidden;
+  overflow:visible;
   background: linear-gradient(180deg, color-mix(in oklab, var(--panel-2) 96%, transparent), color-mix(in oklab, var(--panel) 94%, transparent));
   box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
 }
@@ -435,6 +435,75 @@
   background:transparent;
 }
 
+.article-editor-toolbar-select{
+  position:relative;
+  min-width:96px;
+}
+
+.article-editor-toolbar-select .app-select-trigger{
+  min-height:32px;
+  gap:8px;
+  padding:5px 10px;
+  border-radius:9px;
+  background:color-mix(in oklab, var(--panel) 88%, transparent);
+  font-size:.88rem;
+  box-shadow:none;
+}
+
+.article-editor-toolbar-select .app-select-panel{
+  min-width:100%;
+  gap:4px;
+  padding:6px;
+  border-radius:12px;
+}
+
+.article-editor-toolbar-select .app-select-trigger-label{
+  font-weight:600;
+}
+
+.article-editor-toolbar-select .app-select-trigger-caret{
+  width:14px;
+  height:14px;
+}
+
+.article-editor-toolbar-select .app-select-option{
+  min-height:32px;
+  padding:7px 10px;
+  border-radius:9px;
+  background:transparent;
+  font-size:.84rem;
+  font-weight:500;
+}
+
+.article-editor-toolbar-select .app-select-option:hover,
+.article-editor-toolbar-select .app-select-option:focus-visible,
+.article-editor-toolbar-select .app-select-option.is-active{
+  background:color-mix(in oklab, var(--panel-2) 88%, var(--accent) 12%);
+}
+
+.article-editor-toolbar-select .app-select-option.is-selected{
+  background:color-mix(in oklab, var(--panel-2) 84%, var(--accent) 16%);
+}
+
+.article-editor-toolbar-select-headings .app-select-option{
+  justify-content:center;
+  text-align:center;
+}
+
+.article-editor-toolbar-divider{
+  align-self:stretch;
+  width:1px;
+  min-height:32px;
+  margin:0 2px;
+  background:linear-gradient(
+    180deg,
+    transparent 0%,
+    color-mix(in oklab, var(--accent-2) 18%, var(--border)) 18%,
+    color-mix(in oklab, var(--accent-2) 18%, var(--border)) 82%,
+    transparent 100%
+  );
+}
+
 .article-editor-toolbar-button{
   min-width:36px;
   min-height:36px;
@@ -451,6 +520,19 @@
   line-height:1;
   cursor:pointer;
   transition: background-color .16s ease, border-color .16s ease, color .16s ease, transform .16s ease;
+}
+
+.article-editor-toolbar-button[data-dropdown-menu-trigger]{
+  gap:4px;
+  padding-right:6px;
+}
+
+.app-dropdown-menu-item:hover,
+.app-dropdown-menu-item:focus-visible,
+.app-dropdown-menu.is-open > .article-editor-toolbar-button{
+  border-color:color-mix(in oklab, var(--accent) 20%, var(--border));
+  background:color-mix(in oklab, var(--panel-2) 80%, var(--accent) 8%);
+  color:var(--accent);
 }
 
 .article-editor-toolbar-button:hover,
@@ -475,6 +557,21 @@
 }
 
 .article-editor-toolbar-icon svg{
+  width:100%;
+  height:100%;
+}
+
+.article-editor-toolbar-caret{
+  width:10px;
+  height:10px;
+  flex:0 0 auto;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  opacity:.84;
+}
+
+.article-editor-toolbar-caret svg{
   width:100%;
   height:100%;
 }
@@ -568,6 +665,7 @@
   gap:14px;
   min-height:0;
   overflow-y:auto;
+  overflow-x:visible;
   padding-right:4px;
   color:var(--muted);
 }
@@ -970,6 +1068,52 @@
   margin: 0;
 }
 
+.article-editor-headline-image-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.article-editor-headline-image-preview {
+  display: grid;
+  grid-template-columns: minmax(0, 180px) minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid color-mix(in oklab, var(--accent-2) 16%, var(--border));
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--panel) 90%, transparent);
+}
+
+.article-editor-headline-image-preview-frame {
+  overflow: hidden;
+  border-radius: 14px;
+  background: color-mix(in oklab, var(--panel) 82%, black 18%);
+  aspect-ratio: 16 / 10;
+}
+
+.article-editor-headline-image-preview-frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.article-editor-headline-image-preview-copy {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.article-editor-headline-image-preview-path {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  color: var(--muted);
+  font-size: .9rem;
+}
+
 @media (max-width: 768px){
   .article-editor-form {
     margin:22px 18px 18px;
@@ -1003,6 +1147,10 @@
 
   .article-editor-actions {
     justify-content:stretch;
+  }
+
+  .article-editor-headline-image-preview {
+    grid-template-columns: 1fr;
   }
 
   .article-editor-actions > * {

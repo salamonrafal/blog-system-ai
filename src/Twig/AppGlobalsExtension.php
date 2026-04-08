@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Twig;
 
 use App\Service\BlogSettingsProvider;
+use App\Service\FileSizeFormatter;
 use App\Service\TopMenuBuilder;
+use App\Service\UploadLimitResolver;
 use App\Service\UserLanguageResolver;
 use App\Service\UserTimeZoneResolver;
 use App\Repository\CategoryExportQueueRepository;
@@ -42,6 +44,8 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
         private readonly ArticleExportRepository $articleExportRepository,
         private readonly TopMenuItemRepository $topMenuItemRepository,
         private readonly TopMenuBuilder $topMenuBuilder,
+        private readonly FileSizeFormatter $fileSizeFormatter,
+        private readonly UploadLimitResolver $uploadLimitResolver,
         private readonly CacheInterface $appCache,
         private readonly string $appEnv,
     )
@@ -54,6 +58,7 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
             new TwigFunction('i18n_fallback', $this->getI18nFallback(...)),
             new TwigFunction('ui_translate', $this->translateUi(...)),
             new TwigFunction('ui_language_label', $this->getLanguageLabel(...)),
+            new TwigFunction('format_file_size', $this->formatFileSize(...)),
         ];
     }
 
@@ -67,6 +72,7 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
         $pendingExportQueueCount = $this->articleExportQueueRepository->countPending() + $this->categoryExportQueueRepository->countPending() + $this->topMenuExportQueueRepository->countPending();
         $newExportCount = $this->articleExportRepository->countNew();
         $language = $this->userLanguageResolver->getLanguage();
+        $mediaUploadLimitBytes = $this->uploadLimitResolver->resolveEffectiveLimit(\App\Service\MediaImageSupport::MAX_FILE_SIZE);
         $topMenuItems = $this->appCache->get(
             self::topMenuCacheKey($language),
             function (ItemInterface $item): array {
@@ -83,6 +89,8 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
             'app_env' => $this->appEnv,
             'user_language' => $language,
             'user_timezone' => $this->userTimeZoneResolver->getTimeZone(),
+            'media_upload_limit_bytes' => $mediaUploadLimitBytes,
+            'media_upload_limit_formatted' => null !== $mediaUploadLimitBytes ? $this->formatFileSize($mediaUploadLimitBytes) : '',
             'validation_i18n_json' => json_encode(
                 $this->getValidationMessageFallbacks(),
                 \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT | \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES
@@ -141,6 +149,11 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
             'en' => $this->translateUi('Angielski (EN)', 'English (EN)'),
             default => strtoupper(trim($language)),
         };
+    }
+
+    public function formatFileSize(int $bytes): string
+    {
+        return $this->fileSizeFormatter->format($bytes);
     }
 
     private function getValidationMessageFallbacks(): array

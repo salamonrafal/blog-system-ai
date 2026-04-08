@@ -53,6 +53,65 @@ TEXT);
         $this->assertStringContainsString('<pre><code class="language-php">echo &#039;hi&#039;;</code></pre>', $html);
     }
 
+    public function testRendersImageWithRootRelativePath(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+
+        $html = $renderer->render('![Obrazek](/uploads/media/2026/04/test-image.webp)');
+
+        $this->assertStringContainsString('<img src="/uploads/media/2026/04/test-image.webp" alt="Obrazek" loading="lazy">', $html);
+    }
+
+    public function testDoesNotRenderImageForSchemeRelativeUrl(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+
+        $html = $renderer->render('![Obrazek](//example.com/test-image.webp)');
+
+        $this->assertStringNotContainsString('<img ', $html);
+        $this->assertStringContainsString('![Obrazek](//example.com/test-image.webp)', $html);
+    }
+
+    public function testDoesNotRenderImageForNonUploadRootRelativePath(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+
+        $html = $renderer->render('![Obrazek](/admin/secret/test-image.webp)');
+
+        $this->assertStringNotContainsString('<img ', $html);
+        $this->assertStringContainsString('![Obrazek](/admin/secret/test-image.webp)', $html);
+    }
+
+    public function testDoesNotRenderImageForUploadPathWithDotSegments(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+
+        $html = $renderer->render('![Obrazek](/uploads/../admin/secret/test-image.webp)');
+
+        $this->assertStringNotContainsString('<img ', $html);
+        $this->assertStringContainsString('![Obrazek](/uploads/../admin/secret/test-image.webp)', $html);
+    }
+
+    public function testDoesNotRenderImageForUploadPathWithEncodedDotSegments(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+
+        $html = $renderer->render('![Obrazek](/uploads/%2e%2e/admin/secret/test-image.webp)');
+
+        $this->assertStringNotContainsString('<img ', $html);
+        $this->assertStringContainsString('![Obrazek](/uploads/%2e%2e/admin/secret/test-image.webp)', $html);
+    }
+
+    public function testDoesNotRenderImageForUploadPathWithEncodedBackslashTraversal(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+
+        $html = $renderer->render('![Obrazek](/uploads/%5c..%5cadmin%5csecret/test-image.webp)');
+
+        $this->assertStringNotContainsString('<img ', $html);
+        $this->assertStringContainsString('![Obrazek](/uploads/%5c..%5cadmin%5csecret/test-image.webp)', $html);
+    }
+
     public function testRendersAlignmentAndHeadingLevelSeven(): void
     {
         $renderer = new ArticleMarkupRenderer();

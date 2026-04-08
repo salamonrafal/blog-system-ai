@@ -1,6 +1,7 @@
 import { applyI18n, getTranslation, registerI18nListener } from './i18n.js';
+import { createMediaImagePicker } from './media-image-picker.js';
 import { getLang, isAdminDeviceRemembered, isAdminShortcutsCollapsed, isAdminShortcutsDocked, setAdminDeviceRemembered, setAdminShortcutsCollapsed, setAdminShortcutsDocked } from './preferences.js';
-import { normalizeHexColor, qs, qsa } from './shared.js';
+import { assignFilesToInput, lockDocumentScroll, normalizeHexColor, qs, qsa, unlockDocumentScroll } from './shared.js';
 
 function isDesktopAdminShortcutsViewport(){
   return window.matchMedia('(min-width: 769px)').matches;
@@ -95,6 +96,32 @@ function syncCollapsedShortcutTooltips(shortcuts){
   });
 }
 
+function syncActiveAdminShortcutSubmenus(shortcuts){
+  if(!(shortcuts instanceof HTMLElement)) return;
+
+  const isDockedExpanded = shortcuts.classList.contains('is-docked')
+    && !shortcuts.classList.contains('is-collapsed')
+    && isDesktopAdminShortcutsViewport();
+
+  if(!isDockedExpanded) return;
+
+  const activeSubmenu = qsa('[data-admin-shortcuts-submenu][data-route-active="true"]', shortcuts)
+    .find((submenu)=> submenu instanceof HTMLElement);
+  if(!(activeSubmenu instanceof HTMLElement)) return;
+
+  const hasOpenSubmenu = qsa('[data-admin-shortcuts-submenu].is-open', shortcuts).length > 0;
+  if(hasOpenSubmenu) return;
+
+  activeSubmenu.classList.add('is-open');
+  const trigger = qs('[data-action="toggle-admin-submenu"]', activeSubmenu);
+  if(trigger instanceof HTMLElement){
+    trigger.setAttribute('aria-expanded', 'true');
+    if(trigger.dataset.originalAriaControls){
+      trigger.setAttribute('aria-controls', trigger.dataset.originalAriaControls);
+    }
+  }
+}
+
 export function syncAdminShortcuts(){
   qsa('[data-admin-shortcuts]').forEach((menu)=>{
     const shortcuts = menu.closest('.admin-shortcuts');
@@ -162,6 +189,7 @@ export function syncAdminShortcuts(){
 
     syncCollapsedSubmenuAccessibility(shortcuts);
     syncCollapsedShortcutTooltips(shortcuts);
+    syncActiveAdminShortcutSubmenus(shortcuts);
   });
 }
 
@@ -170,6 +198,17 @@ export function setupAdminShortcuts(){
   syncAdminShortcuts();
   let collapsedSubmenuPopover = null;
   let collapsedSubmenuOwner = null;
+
+  const resetCollapsedDesktopSubmenus = ()=>{
+    qsa('.admin-shortcuts.is-docked.is-collapsed').forEach((shortcuts)=>{
+      if(!isDesktopAdminShortcutsViewport()) return;
+
+      closeCollapsedSubmenuPopover();
+      qsa('[data-admin-shortcuts-submenu].is-open', shortcuts).forEach((submenu)=>{
+        closeAdminSubmenu(submenu);
+      });
+    });
+  };
 
   const ensureCollapsedSubmenuPopover = ()=>{
     if(collapsedSubmenuPopover) return collapsedSubmenuPopover;
@@ -284,6 +323,13 @@ export function setupAdminShortcuts(){
     }
   };
 
+  const resetOpenAdminSubmenus = ()=>{
+    closeCollapsedSubmenuPopover();
+    qsa('[data-admin-shortcuts-submenu].is-open').forEach((submenu)=>{
+      closeAdminSubmenu(submenu);
+    });
+  };
+
   const openAdminSubmenu = (submenu)=>{
     if(!submenu) return;
     if(shouldUseCollapsedAdminSubmenuPopover(submenu)){
@@ -308,7 +354,9 @@ export function setupAdminShortcuts(){
     trigger.addEventListener('click', (event)=>{
       event.preventDefault();
       event.stopPropagation();
-      const isOpen = submenu.classList.contains('is-open');
+      const isOpen = shouldUseCollapsedAdminSubmenuPopover(submenu)
+        ? collapsedSubmenuOwner === submenu && !!collapsedSubmenuPopover && !collapsedSubmenuPopover.hidden
+        : submenu.classList.contains('is-open');
 
       qsa('[data-admin-shortcuts-submenu].is-open').forEach((openSubmenu)=>{
         if(openSubmenu !== submenu){
@@ -371,8 +419,10 @@ export function setupAdminShortcuts(){
         event.stopPropagation();
 
         if(!shortcuts.classList.contains('is-docked')) return;
+        resetOpenAdminSubmenus();
         setAdminShortcutsCollapsed(!shortcuts.classList.contains('is-collapsed'));
         syncAdminShortcuts();
+        resetCollapsedDesktopSubmenus();
       });
     }
 
@@ -404,6 +454,16 @@ export function setupAdminShortcuts(){
     }
 
     qsa('[data-admin-shortcuts-submenu].is-open').forEach((submenu)=>{
+      const shortcuts = submenu.closest('.admin-shortcuts');
+      if(
+        shortcuts instanceof HTMLElement
+        && shortcuts.classList.contains('is-docked')
+        && !shortcuts.classList.contains('is-collapsed')
+        && isDesktopAdminShortcutsViewport()
+      ){
+        return;
+      }
+
       if(!submenu.contains(event.target)){
         closeAdminSubmenu(submenu);
       }
@@ -427,6 +487,7 @@ export function setupAdminShortcuts(){
   const syncAdminShortcutsOnViewportChange = ()=>{
     syncAdminShortcuts();
     closeCollapsedSubmenuPopover();
+    resetCollapsedDesktopSubmenus();
   };
 
   window.addEventListener('resize', syncAdminShortcutsOnViewportChange, { passive: true });
@@ -466,6 +527,89 @@ export function setupHeadlineImageToggle(){
 
     syncVisibility();
     toggle.addEventListener('change', syncVisibility);
+  });
+}
+
+export function setupHeadlineImagePicker(){
+  qsa('[data-headline-image-section]').forEach((section)=>{
+    const input = qs('[data-headline-image-input]', section);
+    const toggle = qs('[data-headline-image-toggle]', section);
+    const openButton = qs('[data-action="open-headline-image-picker"]', section);
+    const clearButton = qs('[data-action="clear-headline-image"]', section);
+    const modal = qs('[data-headline-image-modal]', section);
+    const dialog = modal ? qs('.headline-image-picker-dialog', modal) : null;
+    const searchInput = modal ? qs('[data-headline-image-search-input]', modal) : null;
+    const sortSelect = modal ? qs('[data-headline-image-sort-select]', modal) : null;
+    const grid = modal ? qs('[data-headline-image-grid]', modal) : null;
+    const emptyResults = modal ? qs('[data-headline-image-empty-results]', modal) : null;
+    const previewShell = qs('[data-headline-image-preview-shell]', section);
+    const previewImage = qs('[data-headline-image-preview]', section);
+    const previewPath = qs('[data-headline-image-preview-path]', section);
+    const endpoint = modal?.getAttribute('data-headline-image-endpoint') || '';
+
+    if(!(input instanceof HTMLInputElement)) return;
+
+    const syncPreview = ()=>{
+      const value = input.value.trim();
+      const defaultValue = input.getAttribute('data-default-headline-image') || '';
+      const isEnabled = !(toggle instanceof HTMLInputElement) || toggle.checked;
+      const previewValue = isEnabled ? (value || defaultValue) : '';
+      const hasValue = previewValue.length > 0;
+
+      if(previewShell instanceof HTMLElement){
+        previewShell.hidden = !hasValue;
+      }
+
+      if(previewImage instanceof HTMLImageElement){
+        if(hasValue){
+          previewImage.src = previewValue;
+          previewImage.alt = getTranslation('form_headline_image_preview_alt');
+        }else{
+          previewImage.removeAttribute('src');
+        }
+      }
+
+      if(previewPath instanceof HTMLElement){
+        previewPath.textContent = previewValue;
+      }
+    };
+
+    const updateInputValue = (value)=>{
+      input.value = value;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      syncPreview();
+    };
+
+    const picker = createMediaImagePicker({
+      modal,
+      dialog,
+      searchInput,
+      sortSelect,
+      grid,
+      emptyResults,
+      endpoint,
+      getCurrentValue: ()=> input.value.trim(),
+      onSelect: ({ path })=>{
+        updateInputValue(path);
+      },
+    });
+
+    openButton?.addEventListener('click', ()=>{
+      picker?.open(openButton);
+    });
+
+    clearButton?.addEventListener('click', ()=>{
+      updateInputValue('');
+    });
+
+    toggle?.addEventListener('change', syncPreview);
+
+    syncPreview();
+    registerI18nListener(()=>{
+      syncPreview();
+      picker?.syncSelectedState();
+    });
   });
 }
 
@@ -1267,6 +1411,27 @@ export function setupImportClearConfirmation(){
     closeI18n: 'admin_close_alert',
     closeFallback: 'Zamknij alert',
   });
+
+  setupDangerConfirmation({
+    triggerSelector: '[data-action="confirm-clear-media-gallery"]',
+    modalClass: 'confirm-clear-media-gallery-modal',
+    modalIdPrefix: 'confirm-clear-media-gallery',
+    titleI18n: 'admin_media_clear_popup_title',
+    titleFallback: 'Wyczyścić galerię?',
+    textI18n: 'admin_media_clear_popup_text',
+    textFallback: 'Ta operacja usunie wszystkie obsługiwane obrazki z galerii.',
+    detailsClass: null,
+    detailsText: null,
+    cancelAction: 'cancel-clear-media-gallery',
+    submitAction: 'submit-clear-media-gallery',
+    closeAction: 'close-clear-media-gallery',
+    cancelI18n: 'admin_media_clear_popup_cancel',
+    cancelFallback: 'Przerwij',
+    submitI18n: 'admin_media_clear_popup_confirm',
+    submitFallback: 'Wyczyść galerię',
+    closeI18n: 'admin_close_alert',
+    closeFallback: 'Zamknij alert',
+  });
 }
 
 export function setupImportDeleteConfirmation(){
@@ -1287,6 +1452,27 @@ export function setupImportDeleteConfirmation(){
     cancelFallback: 'Przerwij',
     submitI18n: 'admin_imports_delete_popup_confirm',
     submitFallback: 'Usuń import',
+    closeI18n: 'admin_close_alert',
+    closeFallback: 'Zamknij alert',
+  });
+
+  setupDangerConfirmation({
+    triggerSelector: '[data-action="confirm-delete-media-image"]',
+    modalClass: 'confirm-delete-media-image-modal',
+    modalIdPrefix: 'confirm-delete-media-image',
+    titleI18n: 'admin_media_delete_popup_title',
+    titleFallback: 'Usunąć obrazek?',
+    textI18n: 'admin_media_delete_popup_text',
+    textFallback: 'Ta operacja usunie obrazek z galerii.',
+    detailsClass: 'confirm-delete-media-image-name',
+    detailsText: (trigger)=> trigger.getAttribute('data-media-file') || '',
+    cancelAction: 'cancel-delete-media-image',
+    submitAction: 'submit-delete-media-image',
+    closeAction: 'close-delete-media-image',
+    cancelI18n: 'admin_media_delete_popup_cancel',
+    cancelFallback: 'Przerwij',
+    submitI18n: 'admin_media_delete_popup_confirm',
+    submitFallback: 'Usuń obrazek',
     closeI18n: 'admin_close_alert',
     closeFallback: 'Zamknij alert',
   });
@@ -1372,5 +1558,209 @@ export function setupImportMessageDialog(){
       event.preventDefault();
       closeModal();
     }
+  });
+}
+
+export function setupMediaRenameDialog(){
+  const triggers = qsa('[data-action="edit-media-name"]');
+  if(!triggers.length) return;
+
+  const existingModal = qs('.media-rename-modal');
+  if(existingModal){
+    existingModal.remove();
+  }
+
+  const titleId = 'media-rename-title';
+  const textId = 'media-rename-text';
+  const modal = document.createElement('div');
+  modal.className = 'confirm-delete-modal media-rename-modal';
+  modal.setAttribute('hidden', '');
+  modal.setAttribute('aria-hidden', 'true');
+  modal.innerHTML = `
+    <div class="confirm-delete-dialog media-rename-dialog" role="dialog" aria-modal="true" aria-labelledby="${titleId}" aria-describedby="${textId}">
+      <div class="confirm-delete-topbar">
+        <div class="confirm-delete-eyebrow">admin://media</div>
+        <button type="button" class="confirm-delete-close" data-action="close-media-rename" data-i18n-aria="admin_close_alert" aria-label="${getTranslation('admin_close_alert')}">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <h2 id="${titleId}" class="confirm-delete-title" data-i18n="admin_media_rename_popup_title">${getTranslation('admin_media_rename_popup_title')}</h2>
+      <p id="${textId}" class="confirm-delete-text" data-i18n="admin_media_rename_popup_text">${getTranslation('admin_media_rename_popup_text')}</p>
+      <label class="sr-only" for="media-rename-input" data-i18n="admin_media_custom_name">${getTranslation('admin_media_custom_name')}</label>
+      <input id="media-rename-input" class="article-editor-input" type="text" maxlength="255" data-i18n-placeholder="admin_media_custom_name_placeholder" placeholder="${getTranslation('admin_media_custom_name_placeholder')}">
+      <div class="confirm-delete-actions">
+        <button type="button" class="button secondary" data-action="cancel-media-rename" data-i18n="admin_media_rename_popup_cancel">${getTranslation('admin_media_rename_popup_cancel')}</button>
+        <button type="button" class="button" data-action="submit-media-rename" data-i18n="admin_media_custom_name_save">${getTranslation('admin_media_custom_name_save')}</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  applyI18n(getLang());
+
+  const dialog = qs('.media-rename-dialog', modal);
+  const input = qs('#media-rename-input', modal);
+  const closeButton = qs('[data-action="close-media-rename"]', modal);
+  const cancelButton = qs('[data-action="cancel-media-rename"]', modal);
+  const submitButton = qs('[data-action="submit-media-rename"]', modal);
+  let activeForm = null;
+  let activeHiddenInput = null;
+  let lastTrigger = null;
+
+  const closeModal = ()=>{
+    modal.setAttribute('hidden', '');
+    modal.setAttribute('aria-hidden', 'true');
+    activeForm = null;
+    activeHiddenInput = null;
+    if(lastTrigger){
+      lastTrigger.focus({ preventScroll: true });
+    }
+  };
+
+  const openModal = (trigger)=>{
+    const actions = trigger.closest('.actions');
+    const form = actions?.previousElementSibling;
+    const hiddenInput = form instanceof HTMLFormElement ? qs('.media-gallery-rename-input', form) : null;
+
+    if(!(form instanceof HTMLFormElement) || !(hiddenInput instanceof HTMLInputElement) || !(input instanceof HTMLInputElement)){
+      return;
+    }
+
+    activeForm = form;
+    activeHiddenInput = hiddenInput;
+    lastTrigger = trigger;
+
+    input.value = trigger.getAttribute('data-media-custom-name') || trigger.getAttribute('data-media-original-name') || '';
+
+    modal.removeAttribute('hidden');
+    modal.setAttribute('aria-hidden', 'false');
+    input.focus({ preventScroll: true });
+    input.select();
+  };
+
+  triggers.forEach((trigger)=>{
+    trigger.addEventListener('click', ()=>{
+      openModal(trigger);
+    });
+  });
+
+  closeButton?.addEventListener('click', closeModal);
+  cancelButton?.addEventListener('click', closeModal);
+
+  submitButton?.addEventListener('click', ()=>{
+    if(activeForm instanceof HTMLFormElement && activeHiddenInput instanceof HTMLInputElement && input instanceof HTMLInputElement){
+      activeHiddenInput.value = input.value.trim();
+      activeForm.submit();
+    }
+  });
+
+  dialog?.addEventListener('click', (event)=>{
+    event.stopPropagation();
+  });
+
+  modal.addEventListener('click', (event)=>{
+    if(event.target === modal){
+      closeModal();
+    }
+  });
+
+  document.addEventListener('keydown', (event)=>{
+    if(modal.hasAttribute('hidden')) return;
+
+    if(event.key === 'Escape'){
+      event.preventDefault();
+      closeModal();
+    }
+
+    if(event.key === 'Enter' && event.target === input){
+      event.preventDefault();
+      submitButton?.click();
+    }
+  });
+}
+
+export function setupMediaGalleryDropSlot(){
+  const uploadForm = qs('[data-gallery-upload-form]');
+  const uploadInput = qs('[data-gallery-upload-input]');
+
+  qsa('[data-media-gallery-drop-slot]').forEach((slot)=>{
+    if(!(slot instanceof HTMLElement)) return;
+
+    let dragDepth = 0;
+    const setActive = (isActive)=>{
+      slot.classList.toggle('is-drag-over', isActive);
+    };
+
+    ['dragenter', 'dragover'].forEach((eventName)=>{
+      slot.addEventListener(eventName, (event)=>{
+        event.preventDefault();
+
+        if(eventName === 'dragenter'){
+          dragDepth += 1;
+        }
+
+        setActive(true);
+      });
+    });
+
+    slot.addEventListener('dragleave', (event)=>{
+      event.preventDefault();
+      dragDepth = Math.max(0, dragDepth - 1);
+
+      if(dragDepth === 0){
+        setActive(false);
+      }
+    });
+
+    slot.addEventListener('drop', (event)=>{
+      event.preventDefault();
+      event.stopPropagation();
+      dragDepth = 0;
+      setActive(false);
+
+      if(!(uploadForm instanceof HTMLFormElement) || !(uploadInput instanceof HTMLInputElement)){
+        return;
+      }
+
+      const files = event.dataTransfer?.files;
+      if(!files || files.length === 0){
+        return;
+      }
+
+      if(!assignFilesToInput(uploadInput, files)){
+        return;
+      }
+
+      slot.classList.add('is-uploading');
+      if(typeof uploadForm.requestSubmit === 'function'){
+        uploadForm.requestSubmit();
+        return;
+      }
+
+      uploadForm.submit();
+    });
+  });
+}
+
+export function setupMediaGallerySorting(){
+  const form = qs('[data-media-gallery-search-form]');
+
+  if(!(form instanceof HTMLFormElement)){
+    return;
+  }
+
+  const sortSelect = qs('[data-media-gallery-sort-select]', form);
+
+  if(!(sortSelect instanceof HTMLSelectElement)){
+    return;
+  }
+
+  sortSelect.addEventListener('change', ()=>{
+    if(typeof form.requestSubmit === 'function'){
+      form.requestSubmit();
+      return;
+    }
+
+    form.submit();
   });
 }

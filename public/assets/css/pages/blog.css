@@ -7,6 +7,8 @@
   margin: 0 0 1.4rem;
   position: relative;
   overflow: hidden;
+  width: 100%;
+  min-height: min(52vh, 460px);
   border: 1px solid color-mix(in oklab, var(--accent-2) 20%, var(--border));
   border-radius: 24px;
   background:
@@ -18,6 +20,7 @@
 .article-headline-image {
   display: block;
   width: 100%;
+  min-height: inherit;
   max-height: min(52vh, 460px);
   object-fit: cover;
 }
@@ -530,10 +533,12 @@
 
   .article-headline-figure {
     margin-bottom: 1.1rem;
+    min-height: 280px;
     border-radius: 20px;
   }
 
   .article-headline-image {
+    min-height: inherit;
     max-height: 280px;
   }
 

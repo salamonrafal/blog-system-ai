@@ -70,6 +70,7 @@ final class ArticleTypeTest extends TestCase
 
         $this->assertInstanceOf(TextareaType::class, $form->get('content')->getConfig()->getType()->getInnerType());
         $this->assertSame(16, $form->get('content')->getConfig()->getOption('attr')['rows']);
+        $this->assertSame('', $form->get('content')->getConfig()->getOption('empty_data'));
 
         $this->assertInstanceOf(EnumType::class, $form->get('status')->getConfig()->getType()->getInnerType());
         $this->assertSame(ArticleStatus::class, $form->get('status')->getConfig()->getOption('class'));
