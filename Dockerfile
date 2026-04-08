@@ -7,18 +7,47 @@ FROM php:8.4.19-fpm AS base
     
 FROM base AS install_dependencies
     RUN apt-get update \
-    && apt-get install -y --no-install-recommends mc nano nginx curl zip unzip htop cron \
+    && apt-get install -y --no-install-recommends \
+    cron \
+    curl \
+    htop \
+    libbz2-dev \
+    libcurl4-openssl-dev \
+    libfreetype6-dev \
+    libgmp-dev \
+    libicu-dev \
+    libjpeg62-turbo-dev \
+    libonig-dev \
+    libpng-dev \
+    libsqlite3-dev \
+    libwebp-dev \
+    libxml2-dev \
+    libxslt1-dev \
+    libzip-dev \
+    mc \
+    nano \
+    nginx \
+    unzip \
+    zip \
+    zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*;
 
 FROM install_dependencies AS install_php
-    RUN docker-php-ext-install \
-    bz2 bcmath ctype curl iconv \
-    exif fileinfo gd gmp hash \
-    json intl mbstring opcache \
-    pdo_sqlite readline session \
-    tokenizer xml xmlreader xmlwriter \
-    xsl zip; \
-    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer;
+    RUN set -eux; \
+    docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp; \
+    docker-php-ext-install -j"$(nproc)" \
+    bcmath \
+    bz2 \
+    curl \
+    gd \
+    gmp \
+    intl \
+    mbstring \
+    opcache \
+    pdo_sqlite \
+    xsl \
+    zip; \
+    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 FROM node:22-bookworm-slim AS build_assets
     WORKDIR /var/www/app/
