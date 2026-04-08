@@ -14,9 +14,14 @@ class UserChecker implements UserCheckerInterface
 {
     public function checkPreAuth(UserInterface $user): void
     {
-        if ($user instanceof User && !$user->isActive()) {
+        if (!$user instanceof User) {
+            return;
+        }
+
+        if (!$user->isActive()) {
             throw new CustomUserMessageAccountStatusException('Your account is inactive.');
         }
+
     }
 
     public function checkPostAuth(UserInterface $user, ?TokenInterface $token = null): void

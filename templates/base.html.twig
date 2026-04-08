@@ -49,6 +49,8 @@
 
 {% set route_name = app.request.attributes.get('_route')|default('') %}
 {% set is_admin_route = route_name starts with 'admin_' %}
+{% set force_non_admin_layout = force_non_admin_layout|default(false) %}
+{% set is_admin_layout = is_admin_route and not force_non_admin_layout %}
 {% set is_dashboard_shortcut_active = route_name == 'admin_dashboard' %}
 {% set is_new_article_shortcut_active = route_name == 'admin_article_new' %}
 {% set is_content_shortcut_active = (
@@ -67,7 +69,7 @@
 
 <body
     data-page-title="{% block page_title %}{{ block('title') }}{% endblock %}"
-    {% if is_admin_route %}
+    {% if is_admin_layout %}
         data-admin-page="true"
     {% endif %}
     {% if is_granted('ROLE_ADMIN') %}
@@ -75,7 +77,7 @@
         data-user-notifications-csrf="{{ csrf_token('consume_user_notifications') }}"
     {% endif %}
 >
-{% if is_admin_route %}
+{% if is_admin_layout %}
     <script>
         (function(){
             var body = document.body;
@@ -197,7 +199,9 @@ Fullstack Developer</span>
 </main>
 
 {% set is_login_route = app.request.attributes.get('_route') == 'app_login' %}
-{% if app.user or not is_login_route %}
+{% set show_admin_shortcuts = show_admin_shortcuts|default(app.user or not is_login_route) %}
+{% set is_admin_shortcuts_user = is_granted('ROLE_ADMIN') %}
+{% if show_admin_shortcuts %}
     <details class="admin-shortcuts"{% if not app.user %} hidden{% endif %}>
         <summary class="admin-shortcuts-toggle" data-i18n-aria="admin_shortcut_menu_label" aria-label="Skróty administratora">
             <span class="admin-shortcuts-gear" aria-hidden="true">
@@ -210,38 +214,40 @@ Fullstack Developer</span>
         <nav class="admin-shortcuts-menu" data-i18n-aria="admin_shortcut_menu_label" aria-label="Skróty administratora" data-admin-shortcuts data-authenticated="{{ app.user ? 'true' : 'false' }}">
             <div class="admin-shortcuts-desktop-bar">
                 <span class="admin-shortcuts-desktop-title" data-i18n="admin_shortcut_menu_label">Skróty administratora</span>
-                <div class="admin-shortcuts-desktop-actions">
-                    <button
-                        type="button"
-                        class="admin-shortcuts-desktop-collapse"
-                        data-action="toggle-admin-shortcuts-collapse"
-                        data-i18n-aria="admin_shortcut_collapse"
-                        aria-label="Zwiń panel skrótów"
-                        aria-pressed="false"
-                    >
-                        <span class="admin-shortcuts-link-icon" aria-hidden="true">
-                            <svg viewBox="0 0 32 32">
-                                <path d="M20 8l-8 8 8 8"></path>
-                            </svg>
-                        </span>
-                    </button>
-                    <button
-                        type="button"
-                        class="admin-shortcuts-desktop-dock"
-                        data-action="toggle-admin-shortcuts-dock"
-                        data-i18n-aria="admin_shortcut_dock"
-                        aria-label="Dokuj panel skrótów"
-                        aria-pressed="false"
-                    >
-                        <span class="admin-shortcuts-link-icon" aria-hidden="true">
-                            <svg viewBox="0 0 32 32">
-                                <rect x="6" y="7" width="20" height="18" rx="3"></rect>
-                                <path d="M12 11v10"></path>
-                                <path d="M15 16h8"></path>
-                            </svg>
-                        </span>
-                    </button>
-                </div>
+                {% if is_admin_shortcuts_user %}
+                    <div class="admin-shortcuts-desktop-actions">
+                        <button
+                            type="button"
+                            class="admin-shortcuts-desktop-collapse"
+                            data-action="toggle-admin-shortcuts-collapse"
+                            data-i18n-aria="admin_shortcut_collapse"
+                            aria-label="Zwiń panel skrótów"
+                            aria-pressed="false"
+                        >
+                            <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                                <svg viewBox="0 0 32 32">
+                                    <path d="M20 8l-8 8 8 8"></path>
+                                </svg>
+                            </span>
+                        </button>
+                        <button
+                            type="button"
+                            class="admin-shortcuts-desktop-dock"
+                            data-action="toggle-admin-shortcuts-dock"
+                            data-i18n-aria="admin_shortcut_dock"
+                            aria-label="Dokuj panel skrótów"
+                            aria-pressed="false"
+                        >
+                            <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                                <svg viewBox="0 0 32 32">
+                                    <rect x="6" y="7" width="20" height="18" rx="3"></rect>
+                                    <path d="M12 11v10"></path>
+                                    <path d="M15 16h8"></path>
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+                {% endif %}
             </div>
             <div class="admin-shortcuts-mobile-bar">
                 <span class="admin-shortcuts-mobile-title" data-i18n="admin_shortcut_menu_label">Skróty administratora</span>
@@ -249,7 +255,7 @@ Fullstack Developer</span>
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            {% if app.user %}
+            {% if app.user and is_admin_shortcuts_user %}
                 <div class="admin-shortcuts-section admin-shortcuts-section-pinned">
                     <a class="admin-shortcuts-link primary{{ is_new_article_shortcut_active ? ' is-active' : '' }}" href="{{ path('admin_article_new') }}"{% if is_new_article_shortcut_active %} aria-current="page"{% endif %}>
                         <span class="admin-shortcuts-link-icon" aria-hidden="true">
@@ -562,6 +568,21 @@ Fullstack Developer</span>
                         <span data-i18n="admin_shortcut_blog_settings">Ustawienia bloga</span>
                     </a>
                 </section>
+            {% elseif app.user %}
+                <div class="admin-shortcuts-scroll">
+                    <div class="admin-shortcuts-section">
+                        <a class="admin-shortcuts-link" href="{{ path('app_logout') }}">
+                            <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                                <svg viewBox="0 0 32 32">
+                                    <path d="M14 8H9a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h5"></path>
+                                    <path d="M18 11l6 5-6 5"></path>
+                                    <path d="M23 16H12"></path>
+                                </svg>
+                            </span>
+                            <span data-i18n="admin_shortcut_logout">Wyloguj</span>
+                        </a>
+                    </div>
+                </div>
             {% else %}
                 <a class="admin-shortcuts-link primary" href="{{ path('app_login') }}">
                     <span class="admin-shortcuts-link-icon" aria-hidden="true">

@@ -70,19 +70,81 @@
             {% endif %}
         </div>
 
-        {% set avatar_has_errors = form.avatar.vars.errors|length > 0 %}
-        <div class="field article-editor-field{{ avatar_has_errors ? ' has-error' : '' }}">
-            {{ form_label(form.avatar) }}
-            {{ form_widget(form.avatar, {
-                attr: form.avatar.vars.attr|merge(avatar_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.avatar.vars.id ~ '-error'} : {})
-            }) }}
-            <div class="article-editor-field-meta">
-                <span class="article-editor-field-hint" data-i18n="user_form_avatar_hint">Może to być pełny URL albo nazwa pliku graficznego przechowywanego lokalnie.</span>
+        {% set avatar_has_errors = form.avatarFile.vars.errors|length > 0 %}
+        {% set avatar_error_id = form.avatarFile.vars.id ~ '-error' %}
+        {% set avatar_hint_id = form.avatarFile.vars.id ~ '-hint' %}
+        {% set avatar_preview_id = form.avatarFile.vars.id ~ '-preview' %}
+        {% set avatar_preview_image_id = form.avatarFile.vars.id ~ '-preview-image' %}
+        {% set avatar_preview_empty_id = form.avatarFile.vars.id ~ '-preview-empty' %}
+        {% set current_avatar = form.vars.data.avatar %}
+        {% set avatar_described_by = avatar_hint_id ~ (avatar_has_errors ? ' ' ~ avatar_error_id : '') %}
+        <div class="field article-editor-field{{ avatar_has_errors ? ' has-error' : '' }}" data-avatar-upload>
+            {{ form_label(form.avatarFile, null, { label_attr: { class: 'sr-only' } }) }}
+            <div class="file-upload" data-file-upload data-file-upload-drop-enabled="false">
+                {{ form_widget(form.avatarFile, { attr: form.avatarFile.vars.attr|merge({
+                    class: 'sr-only file-upload-input',
+                    'aria-describedby': avatar_described_by,
+                    'data-file-upload-input': '',
+                    'data-avatar-input': '',
+                    'data-avatar-preview-target': '#' ~ avatar_preview_id
+                }|merge(avatar_has_errors ? {'aria-invalid': 'true'} : {})) }) }}
+                <div class="file-upload-surface" data-file-upload-surface>
+                    <div class="file-upload-topbar">
+                        <div
+                            id="{{ avatar_preview_id }}"
+                            class="user-avatar-upload-preview{{ current_avatar ? ' has-image' : '' }}"
+                            data-avatar-preview
+                            data-avatar-preview-default-src="{{ current_avatar }}"
+                        >
+                            <div class="user-avatar-upload-preview-frame">
+                                <img
+                                    id="{{ avatar_preview_image_id }}"
+                                    alt="{{ i18n_fallback('user_form_avatar_preview_alt') }}"
+                                    class="user-avatar-upload-preview-image"
+                                    data-avatar-preview-image
+                                    {% if current_avatar %}src="{{ current_avatar }}"{% endif %}
+                                    {{ current_avatar ? '' : 'hidden' }}
+                                >
+                                <div
+                                    id="{{ avatar_preview_empty_id }}"
+                                    class="user-avatar-upload-preview-empty"
+                                    data-avatar-preview-empty
+                                    {{ current_avatar ? 'hidden' : '' }}
+                                >
+                                    <span class="user-avatar-upload-preview-empty-icon" aria-hidden="true"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <span
+                            class="file-upload-filename"
+                            data-file-upload-filename
+                            data-empty-label-key="file_upload_no_file"
+                            data-selected-label-key="file_upload_selected"
+                            data-i18n="file_upload_no_file"
+                        >{{ i18n_fallback('file_upload_no_file') }}</span>
+                        <button
+                            type="button"
+                            class="button secondary file-upload-trigger"
+                            data-file-upload-trigger
+                            data-i18n="file_upload_choose"
+                        >{{ i18n_fallback('file_upload_choose') }}</button>
+                        <button
+                            type="button"
+                            class="article-keyword-help-trigger"
+                            data-i18n-tooltip="user_form_avatar_hint"
+                            data-i18n-aria="user_form_avatar_help_aria"
+                            data-tooltip="{{ i18n_fallback('user_form_avatar_hint') }}"
+                            data-tooltip-wide="true"
+                            data-tooltip-wrap="true"
+                            aria-label="{{ i18n_fallback('user_form_avatar_help_aria') }}"
+                        >?</button>
+                    </div>
+                </div>
             </div>
             {% if avatar_has_errors %}
-                <div id="{{ form.avatar.vars.id }}-error" class="article-editor-error-message" role="alert">
-                    {% for error in form.avatar.vars.errors %}
-                        <p>{{ error.message }}</p>
+                <div id="{{ avatar_error_id }}" class="article-editor-error-message" role="alert">
+                    {% for error in form.avatarFile.vars.errors %}
+                        {% include 'admin/_validation_error.html.twig' with { error: error } %}
                     {% endfor %}
                 </div>
             {% endif %}

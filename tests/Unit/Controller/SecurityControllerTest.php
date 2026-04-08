@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Controller;
 
 use App\Controller\SecurityController;
+use App\Service\UserLanguageResolver;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -26,7 +27,7 @@ final class SecurityControllerTest extends TestCase
         $controller = new TestSecurityController();
         $controller->grantedRoles['ROLE_ADMIN'] = true;
 
-        $response = $controller->login($authenticationUtils);
+        $response = $controller->login($authenticationUtils, $this->createUserLanguageResolver('pl'));
 
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertSame('/admin', $response->getTargetUrl());
@@ -34,7 +35,7 @@ final class SecurityControllerTest extends TestCase
 
     public function testLoginRendersLoginTemplateForNonAdministrator(): void
     {
-        $error = new AuthenticationException('Invalid credentials.');
+        $error = new InvalidCredentialsAuthenticationException();
         $authenticationUtils = $this->createMock(AuthenticationUtils::class);
         $authenticationUtils
             ->expects($this->once())
@@ -47,12 +48,13 @@ final class SecurityControllerTest extends TestCase
 
         $controller = new TestSecurityController();
 
-        $response = $controller->login($authenticationUtils);
+        $response = $controller->login($authenticationUtils, $this->createUserLanguageResolver('pl'));
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
         $this->assertSame('security/login.html.twig', $controller->capturedView);
         $this->assertSame('admin@example.com', $controller->capturedParameters['last_username']);
         $this->assertSame($error, $controller->capturedParameters['error']);
+        $this->assertSame('Nieprawidłowe dane logowania.', $controller->capturedParameters['error_message']);
     }
 
     public function testLogoutThrowsFrameworkHandledLogicException(): void
@@ -63,6 +65,63 @@ final class SecurityControllerTest extends TestCase
         $this->expectExceptionMessage('Logout is handled by Symfony security.');
 
         $controller->logout();
+    }
+
+    public function testAccessDeniedRendersAccessDeniedTemplate(): void
+    {
+        $controller = new TestSecurityController();
+
+        $response = $controller->accessDenied();
+
+        $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
+        $this->assertSame('security/access_denied.html.twig', $controller->capturedView);
+    }
+
+    public function testLoginTranslatesMissingAdministratorRoleError(): void
+    {
+        $error = new MissingAdministratorRoleAuthenticationException();
+        $authenticationUtils = $this->createMock(AuthenticationUtils::class);
+        $authenticationUtils
+            ->expects($this->once())
+            ->method('getLastUsername')
+            ->willReturn('user@example.com');
+        $authenticationUtils
+            ->expects($this->once())
+            ->method('getLastAuthenticationError')
+            ->willReturn($error);
+
+        $controller = new TestSecurityController();
+
+        $response = $controller->login($authenticationUtils, $this->createUserLanguageResolver('pl'));
+
+        $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
+        $this->assertSame('To konto nie ma dostępu administratora.', $controller->capturedParameters['error_message']);
+    }
+
+    private function createUserLanguageResolver(string $language): UserLanguageResolver
+    {
+        $resolver = $this->createMock(UserLanguageResolver::class);
+        $resolver
+            ->method('translate')
+            ->willReturnCallback(static fn (string $polish, string $english): string => 'pl' === $language ? $polish : $english);
+
+        return $resolver;
+    }
+}
+
+final class InvalidCredentialsAuthenticationException extends AuthenticationException
+{
+    public function getMessageKey(): string
+    {
+        return 'Invalid credentials.';
+    }
+}
+
+final class MissingAdministratorRoleAuthenticationException extends AuthenticationException
+{
+    public function getMessageKey(): string
+    {
+        return 'Administrator access is required.';
     }
 }
 

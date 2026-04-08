@@ -8,6 +8,7 @@ use App\Entity\User;
 use App\Form\UserType;
 use App\Repository\ArticleRepository;
 use App\Repository\UserRepository;
+use App\Service\AvatarImageStorage;
 use App\Service\UserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -41,6 +42,7 @@ class UserController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         UserPasswordHasherInterface $passwordHasher,
+        AvatarImageStorage $avatarImageStorage,
         UserLanguageResolver $userLanguageResolver,
     ): Response {
         $user = new User();
@@ -61,6 +63,11 @@ class UserController extends AbstractController
 
             $user->setRoles($isAdmin ? ['ROLE_ADMIN'] : []);
             $user->setPassword($passwordHasher->hashPassword($user, $plainPassword));
+            $avatarFile = $form->get('avatarFile')->getData();
+            if ($avatarFile instanceof \Symfony\Component\HttpFoundation\File\UploadedFile) {
+                $storedAvatar = $avatarImageStorage->store($avatarFile);
+                $user->setAvatar($storedAvatar['public_path']);
+            }
 
             $entityManager->persist($user);
             $entityManager->flush();
@@ -81,6 +88,7 @@ class UserController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         UserPasswordHasherInterface $passwordHasher,
+        AvatarImageStorage $avatarImageStorage,
         UserLanguageResolver $userLanguageResolver,
     ): Response {
         $currentUser = $this->getUser();
@@ -110,6 +118,12 @@ class UserController extends AbstractController
             $plainPassword = $form->get('plainPassword')->getData();
             if (is_string($plainPassword) && '' !== trim($plainPassword)) {
                 $managedUser->setPassword($passwordHasher->hashPassword($managedUser, $plainPassword));
+            }
+
+            $avatarFile = $form->get('avatarFile')->getData();
+            if ($avatarFile instanceof \Symfony\Component\HttpFoundation\File\UploadedFile) {
+                $storedAvatar = $avatarImageStorage->store($avatarFile, $managedUser->getAvatar());
+                $managedUser->setAvatar($storedAvatar['public_path']);
             }
 
             $entityManager->flush();

@@ -7,13 +7,16 @@ namespace App\Tests\Unit\Controller\Admin;
 use App\Controller\Admin\UserController;
 use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Service\AvatarImageStorage;
 use App\Service\UserLanguageResolver;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Form\Extension\HttpFoundation\HttpFoundationExtension;
+use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\Forms;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Validator\Validation;
 
 final class UserControllerTest extends TestCase
 {
@@ -81,6 +84,7 @@ final class UserControllerTest extends TestCase
             new \Symfony\Component\HttpFoundation\Request(),
             $this->createMock(\Doctrine\ORM\EntityManagerInterface::class),
             $this->createMock(\Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface::class),
+            $this->createMock(AvatarImageStorage::class),
             $this->createMock(UserLanguageResolver::class),
         );
 
@@ -108,6 +112,7 @@ final class TestUserController extends UserController
     {
         return Forms::createFormFactoryBuilder()
             ->addExtension(new HttpFoundationExtension())
+            ->addExtension(new ValidatorExtension(Validation::createValidator()))
             ->getFormFactory()
             ->create($type, $data, $options);
     }
