@@ -11,11 +11,25 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Forms;
 use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Validation;
 
 final class ArticleImportTypeTest extends TestCase
 {
+    private string $projectDir;
+
+    protected function setUp(): void
+    {
+        $this->projectDir = sys_get_temp_dir().'/blog-system-ai-article-import-type-'.bin2hex(random_bytes(4));
+        mkdir($this->projectDir, 0777, true);
+    }
+
+    protected function tearDown(): void
+    {
+        $this->removeDirectory($this->projectDir);
+    }
+
     public function testConfigureOptionsSetsNoUnexpectedDefaults(): void
     {
         $resolver = new OptionsResolver();
@@ -57,5 +71,53 @@ final class ArticleImportTypeTest extends TestCase
         $this->assertFalse($field->getConfig()->getOption('mapped'));
         $this->assertSame('.json', $field->getConfig()->getOption('attr')['accept']);
         $this->assertCount(2, $field->getConfig()->getOption('constraints'));
+    }
+
+    public function testValidationSkipsCustomChecksWhenUploadFailedInPhp(): void
+    {
+        $validator = Validation::createValidator();
+        $factory = Forms::createFormFactoryBuilder()
+            ->addType(new ArticleImportType())
+            ->addExtension(new ValidatorExtension($validator))
+            ->getFormFactory();
+        $form = $factory->create(ArticleImportType::class);
+
+        $sourcePath = $this->projectDir.'/too-large.json';
+        file_put_contents($sourcePath, '{"invalid":true}');
+
+        $uploadedFile = new UploadedFile($sourcePath, 'too-large.json', 'application/json', \UPLOAD_ERR_INI_SIZE, true);
+        $constraints = $form->get('importFile')->getConfig()->getOption('constraints');
+        $violations = $validator->validate($uploadedFile, $constraints);
+
+        $this->assertCount(0, $violations);
+    }
+
+    private function removeDirectory(string $path): void
+    {
+        if (!is_dir($path)) {
+            return;
+        }
+
+        $items = scandir($path);
+        if (false === $items) {
+            return;
+        }
+
+        foreach ($items as $item) {
+            if ('.' === $item || '..' === $item) {
+                continue;
+            }
+
+            $itemPath = $path.'/'.$item;
+            if (is_dir($itemPath)) {
+                $this->removeDirectory($itemPath);
+
+                continue;
+            }
+
+            @unlink($itemPath);
+        }
+
+        @rmdir($path);
     }
 }

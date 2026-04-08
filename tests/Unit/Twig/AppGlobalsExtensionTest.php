@@ -21,6 +21,7 @@ use App\Service\UserLanguageResolver;
 use App\Service\UserTimeZoneResolver;
 use App\Twig\AppGlobalsExtension;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Form\FormError;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 
@@ -71,6 +72,53 @@ final class AppGlobalsExtensionTest extends TestCase
         $this->assertSame('unknown_key', $extension->getI18nFallback('unknown_key'));
         $this->assertSame('Category import', $extension->translateUi('Import kategorii', 'Category import'));
         $this->assertSame('English (EN)', $extension->getLanguageLabel('en'));
+    }
+
+    public function testTranslateValidationErrorInterpolatesTranslatedSymfonyMessage(): void
+    {
+        $provider = $this->createMock(BlogSettingsProvider::class);
+        $languageResolver = $this->createMock(UserLanguageResolver::class);
+        $languageResolver
+            ->method('getLanguage')
+            ->willReturn('pl');
+
+        $extension = new AppGlobalsExtension(
+            $provider,
+            $languageResolver,
+            $this->createMock(UserTimeZoneResolver::class),
+            $this->createMock(ArticleImportQueueRepository::class),
+            $this->createMock(CategoryImportQueueRepository::class),
+            $this->createMock(TopMenuImportQueueRepository::class),
+            $this->createMock(ArticleExportQueueRepository::class),
+            $this->createMock(CategoryExportQueueRepository::class),
+            $this->createMock(TopMenuExportQueueRepository::class),
+            $this->createMock(ArticleExportRepository::class),
+            $this->createMock(TopMenuItemRepository::class),
+            $this->createMock(TopMenuBuilder::class),
+            new FileSizeFormatter(),
+            new UploadLimitResolver(static fn (string $key): string|false => false),
+            $this->createMock(CacheInterface::class),
+            'test',
+        );
+
+        $error = new FormError(
+            'The file is too large. Allowed maximum size is 2 MiB.',
+            'The file is too large. Allowed maximum size is {{ limit }} {{ suffix }}.',
+            ['{{ limit }}' => '2', '{{ suffix }}' => 'MiB'],
+        );
+
+        $this->assertSame(
+            'Plik jest za duży. Maksymalny dozwolony rozmiar to 2 MiB.',
+            $extension->translateValidationError($error),
+        );
+        $this->assertSame(
+            'The file is too large. Allowed maximum size is {{ limit }} {{ suffix }}.',
+            $extension->getValidationErrorI18nKey($error),
+        );
+        $this->assertSame(
+            ['limit' => '2', 'suffix' => 'MiB'],
+            $extension->getValidationErrorI18nParams($error),
+        );
     }
 
     public function testGetGlobalsExposesAppNameAndBlogSettings(): void

@@ -18,8 +18,10 @@ use App\Repository\CategoryImportQueueRepository;
 use App\Repository\TopMenuImportQueueRepository;
 use App\Repository\TopMenuItemRepository;
 use App\Repository\TopMenuExportQueueRepository;
+use Symfony\Component\Form\FormError;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Extension\AbstractExtension;
 use Twig\Extension\GlobalsInterface;
 use Twig\TwigFunction;
@@ -48,6 +50,7 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
         private readonly UploadLimitResolver $uploadLimitResolver,
         private readonly CacheInterface $appCache,
         private readonly string $appEnv,
+        private readonly ?TranslatorInterface $translator = null,
     )
     {
     }
@@ -59,6 +62,9 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
             new TwigFunction('ui_translate', $this->translateUi(...)),
             new TwigFunction('ui_language_label', $this->getLanguageLabel(...)),
             new TwigFunction('format_file_size', $this->formatFileSize(...)),
+            new TwigFunction('validation_error_message', $this->translateValidationError(...)),
+            new TwigFunction('validation_error_i18n_key', $this->getValidationErrorI18nKey(...)),
+            new TwigFunction('validation_error_i18n_params', $this->getValidationErrorI18nParams(...)),
         ];
     }
 
@@ -154,6 +160,59 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
     public function formatFileSize(int $bytes): string
     {
         return $this->fileSizeFormatter->format($bytes);
+    }
+
+    public function translateValidationError(mixed $error): string
+    {
+        if (!$error instanceof FormError) {
+            return is_string($error) ? $this->getI18nFallback($error) : '';
+        }
+
+        $messageTemplate = $this->getValidationErrorI18nKey($error);
+        $messageParameters = $error->getMessageParameters();
+
+        if (null !== $this->translator) {
+            return $this->translator->trans(
+                $messageTemplate,
+                $messageParameters,
+                'validators',
+                $this->userLanguageResolver->getLanguage(),
+            );
+        }
+
+        return strtr($this->getI18nFallback($messageTemplate), $messageParameters);
+    }
+
+    public function getValidationErrorI18nKey(mixed $error): string
+    {
+        if ($error instanceof FormError) {
+            return $error->getMessageTemplate();
+        }
+
+        return is_string($error) ? $error : '';
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function getValidationErrorI18nParams(mixed $error): array
+    {
+        if (!$error instanceof FormError) {
+            return [];
+        }
+
+        $parameters = [];
+
+        foreach ($error->getMessageParameters() as $name => $value) {
+            $normalizedName = preg_replace('/[^a-zA-Z0-9_-]/', '', trim((string) $name, "{} \t\n\r\0\x0B"));
+            if (!is_string($normalizedName) || '' === $normalizedName) {
+                continue;
+            }
+
+            $parameters[$normalizedName] = (string) $value;
+        }
+
+        return $parameters;
     }
 
     private function getValidationMessageFallbacks(): array

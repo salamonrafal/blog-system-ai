@@ -2,7 +2,7 @@
     {% if form.vars.errors|length > 0 %}
         <div class="form-errors article-editor-errors" role="alert">
             {% for error in form.vars.errors %}
-                <p data-i18n="{{ error.message }}">{{ i18n_fallback(error.message) }}</p>
+                {% include 'admin/_validation_error.html.twig' with { error: error } %}
             {% endfor %}
         </div>
     {% endif %}
@@ -25,7 +25,7 @@
             {% if title_has_errors %}
                 <div id="{{ form.title.vars.id }}-error" class="article-editor-error-message" role="alert">
                     {% for error in form.title.vars.errors %}
-                        <p data-i18n="{{ error.message }}">{{ i18n_fallback(error.message) }}</p>
+                        {% include 'admin/_validation_error.html.twig' with { error: error } %}
                     {% endfor %}
                 </div>
             {% endif %}
@@ -41,7 +41,7 @@
                 {% if language_has_errors %}
                     <div id="{{ form.language.vars.id }}-error" class="article-editor-error-message" role="alert">
                         {% for error in form.language.vars.errors %}
-                            <p data-i18n="{{ error.message }}">{{ i18n_fallback(error.message) }}</p>
+                            {% include 'admin/_validation_error.html.twig' with { error: error } %}
                         {% endfor %}
                     </div>
                 {% endif %}
@@ -56,7 +56,7 @@
                 {% if status_has_errors %}
                     <div id="{{ form.status.vars.id }}-error" class="article-editor-error-message" role="alert">
                         {% for error in form.status.vars.errors %}
-                            <p data-i18n="{{ error.message }}">{{ i18n_fallback(error.message) }}</p>
+                            {% include 'admin/_validation_error.html.twig' with { error: error } %}
                         {% endfor %}
                     </div>
                 {% endif %}
@@ -71,7 +71,7 @@
                 {% if category_has_errors %}
                     <div id="{{ form.category.vars.id }}-error" class="article-editor-error-message" role="alert">
                         {% for error in form.category.vars.errors %}
-                            <p data-i18n="{{ error.message }}">{{ i18n_fallback(error.message) }}</p>
+                            {% include 'admin/_validation_error.html.twig' with { error: error } %}
                         {% endfor %}
                     </div>
                 {% endif %}
@@ -124,7 +124,7 @@
             {% if keywords_has_errors %}
                 <div id="{{ form.keywords.vars.id }}-error" class="article-editor-error-message" role="alert">
                     {% for error in form.keywords.vars.errors %}
-                        <p data-i18n="{{ error.message }}">{{ i18n_fallback(error.message) }}</p>
+                        {% include 'admin/_validation_error.html.twig' with { error: error } %}
                     {% endfor %}
                 </div>
             {% endif %}
@@ -147,7 +147,7 @@
             {% if excerpt_has_errors %}
                 <div id="{{ form.excerpt.vars.id }}-error" class="article-editor-error-message" role="alert">
                     {% for error in form.excerpt.vars.errors %}
-                        <p data-i18n="{{ error.message }}">{{ i18n_fallback(error.message) }}</p>
+                        {% include 'admin/_validation_error.html.twig' with { error: error } %}
                     {% endfor %}
                 </div>
             {% endif %}
@@ -179,7 +179,7 @@
             {% if headline_image_enabled_has_errors %}
                 <div id="{{ form.headlineImageEnabled.vars.id }}-error" class="article-editor-error-message" role="alert">
                     {% for error in form.headlineImageEnabled.vars.errors %}
-                        <p data-i18n="{{ error.message }}">{{ i18n_fallback(error.message) }}</p>
+                        {% include 'admin/_validation_error.html.twig' with { error: error } %}
                     {% endfor %}
                 </div>
             {% endif %}
@@ -246,7 +246,7 @@
                     {% if headline_image_has_errors %}
                         <div id="{{ form.headlineImage.vars.id }}-error" class="article-editor-error-message" role="alert">
                             {% for error in form.headlineImage.vars.errors %}
-                                <p data-i18n="{{ error.message }}">{{ i18n_fallback(error.message) }}</p>
+                                {% include 'admin/_validation_error.html.twig' with { error: error } %}
                             {% endfor %}
                         </div>
                     {% endif %}
@@ -563,7 +563,7 @@ const message = 'Hello';
             {% if content_has_errors %}
                 <div id="{{ form.content.vars.id }}-error" class="article-editor-error-message" role="alert">
                     {% for error in form.content.vars.errors %}
-                        <p data-i18n="{{ error.message }}">{{ i18n_fallback(error.message) }}</p>
+                        {% include 'admin/_validation_error.html.twig' with { error: error } %}
                     {% endfor %}
                 </div>
             {% endif %}
@@ -579,7 +579,7 @@ const message = 'Hello';
                 {% if published_at_has_errors %}
                     <div id="{{ form.publishedAt.vars.id }}-error" class="article-editor-error-message" role="alert">
                         {% for error in form.publishedAt.vars.errors %}
-                            <p data-i18n="{{ error.message }}">{{ i18n_fallback(error.message) }}</p>
+                            {% include 'admin/_validation_error.html.twig' with { error: error } %}
                         {% endfor %}
                     </div>
                 {% endif %}

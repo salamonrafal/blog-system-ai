@@ -1,0 +1,4 @@
+<p
+    data-i18n="{{ validation_error_i18n_key(error) }}"
+    {% for name, value in validation_error_i18n_params(error) %} data-i18n-param-{{ name }}="{{ value }}"{% endfor %}
+>{{ validation_error_message(error) }}</p>

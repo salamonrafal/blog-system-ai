@@ -114,6 +114,25 @@ final class MediaImageUploadTypeTest extends TestCase
         $this->assertSame('validation_media_file_invalid', $violations[0]->getMessage());
     }
 
+    public function testValidationSkipsCustomChecksWhenUploadFailedInPhp(): void
+    {
+        $validator = Validation::createValidator();
+        $factory = Forms::createFormFactoryBuilder()
+            ->addType(new MediaImageUploadType())
+            ->addExtension(new ValidatorExtension($validator))
+            ->getFormFactory();
+        $form = $factory->create(MediaImageUploadType::class);
+
+        $sourcePath = $this->projectDir.'/too-large.jpg';
+        file_put_contents($sourcePath, 'not-an-image');
+
+        $uploadedFile = new UploadedFile($sourcePath, 'too-large.jpg', 'image/jpeg', \UPLOAD_ERR_INI_SIZE, true);
+        $constraints = $form->get('imageFile')->getConfig()->getOption('constraints');
+        $violations = $validator->validate($uploadedFile, $constraints);
+
+        $this->assertCount(0, $violations);
+    }
+
     private function removeDirectory(string $path): void
     {
         if (!is_dir($path)) {
