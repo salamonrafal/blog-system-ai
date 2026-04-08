@@ -73,7 +73,7 @@ final class SecurityControllerTest extends TestCase
 
         $response = $controller->accessDenied();
 
-        $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
+        $this->assertSame(Response::HTTP_FORBIDDEN, $response->getStatusCode());
         $this->assertSame('security/access_denied.html.twig', $controller->capturedView);
     }
 
@@ -145,7 +145,7 @@ final class TestSecurityController extends SecurityController
         $this->capturedView = $view;
         $this->capturedParameters = $parameters;
 
-        return new Response('', Response::HTTP_OK);
+        return new Response('', $response?->getStatusCode() ?? Response::HTTP_OK);
     }
 
     protected function redirectToRoute(string $route, array $parameters = [], int $status = 302): RedirectResponse

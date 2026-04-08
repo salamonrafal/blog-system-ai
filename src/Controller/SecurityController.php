@@ -38,7 +38,7 @@ class SecurityController extends AbstractController
     #[Route('/access-denied', name: 'app_access_denied', methods: ['GET'])]
     public function accessDenied(): Response
     {
-        return $this->render('security/access_denied.html.twig');
+        return $this->render('security/access_denied.html.twig', [], new Response('', Response::HTTP_FORBIDDEN));
     }
 
     private function translateAuthenticationError(?AuthenticationException $error, UserLanguageResolver $userLanguageResolver): ?string
