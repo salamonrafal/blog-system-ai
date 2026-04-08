@@ -72,6 +72,29 @@ final class AvatarImageStorageTest extends TestCase
         $this->assertFileDoesNotExist($existingPath);
     }
 
+    public function testStoreDeletesPreviouslyManagedAvatarFromConfigurableDirectory(): void
+    {
+        mkdir($this->projectDir.'/custom/avatars/2026/04/08', 0777, true);
+        $existingPath = $this->projectDir.'/custom/avatars/2026/04/08/old-avatar.jpg';
+        file_put_contents($existingPath, 'old-avatar');
+
+        $sourcePath = $this->projectDir.'/avatar-custom-replacement.jpg';
+        file_put_contents($sourcePath, $this->createTinyJpeg());
+
+        $uploadedFile = new UploadedFile($sourcePath, 'replacement.jpg', 'image/jpeg', null, true);
+        $storage = new AvatarImageStorage(
+            'custom/avatars',
+            $this->projectDir,
+            new ManagedUploadedFileStorage($this->projectDir),
+            new AvatarImageOptimizer(),
+            new ManagedFileDeleter(),
+        );
+
+        $storage->store($uploadedFile, '/custom/avatars/2026/04/08/old-avatar.jpg');
+
+        $this->assertFileDoesNotExist($existingPath);
+    }
+
     private function createTinyJpeg(): string
     {
         if (!function_exists('imagecreatetruecolor') || !function_exists('imagejpeg')) {

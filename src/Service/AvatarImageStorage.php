@@ -73,15 +73,17 @@ class AvatarImageStorage
             return null;
         }
 
-        $managedPublicPrefix = $this->toPublicPath(trim($this->avatarDirectory, '/')).'/';
+        $normalizedAvatarDirectory = trim($this->avatarDirectory, '/');
+        $managedPublicPrefix = $this->toPublicPath($normalizedAvatarDirectory).'/';
         if (!str_starts_with($normalizedAvatarPath, $managedPublicPrefix)) {
             return null;
         }
 
-        $relativePath = 'public/'.ltrim(substr($normalizedAvatarPath, strlen('/')), '/');
+        $relativeSuffix = ltrim(substr($normalizedAvatarPath, strlen($managedPublicPrefix)), '/');
+        $relativePath = '' !== $relativeSuffix ? $normalizedAvatarDirectory.'/'.$relativeSuffix : $normalizedAvatarDirectory;
         $absolutePath = $this->projectDir.'/'.$relativePath;
         $realProjectDir = realpath($this->projectDir);
-        $realManagedDirectory = realpath($this->projectDir.'/'.trim($this->avatarDirectory, '/'));
+        $realManagedDirectory = realpath($this->projectDir.'/'.$normalizedAvatarDirectory);
         $realAbsolutePath = realpath($absolutePath);
 
         if (false === $realProjectDir || false === $realManagedDirectory || false === $realAbsolutePath) {

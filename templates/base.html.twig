@@ -201,9 +201,11 @@ Fullstack Developer</span>
 {% set is_login_route = app.request.attributes.get('_route') == 'app_login' %}
 {% set show_admin_shortcuts = show_admin_shortcuts|default(app.user or not is_login_route) %}
 {% set is_admin_shortcuts_user = is_granted('ROLE_ADMIN') %}
+{% set shortcuts_menu_label_key = is_admin_shortcuts_user ? 'admin_shortcut_menu_label' : 'user_shortcut_menu_label' %}
+{% set shortcuts_menu_label = is_admin_shortcuts_user ? 'Skróty administratora' : 'Menu użytkownika' %}
 {% if show_admin_shortcuts %}
     <details class="admin-shortcuts"{% if not app.user %} hidden{% endif %}>
-        <summary class="admin-shortcuts-toggle" data-i18n-aria="admin_shortcut_menu_label" aria-label="Skróty administratora">
+        <summary class="admin-shortcuts-toggle" data-i18n-aria="{{ shortcuts_menu_label_key }}" aria-label="{{ shortcuts_menu_label }}">
             <span class="admin-shortcuts-gear" aria-hidden="true">
                 <svg viewBox="0 0 32 32">
                     <path d="M13.2 4h5.6l.7 3.2c.9.3 1.8.7 2.6 1.3l3.1-1.1 2.8 4.8-2.5 2.2c.1.5.1 1 .1 1.6s0 1.1-.1 1.6l2.5 2.2-2.8 4.8-3.1-1.1c-.8.6-1.7 1-2.6 1.3l-.7 3.2h-5.6l-.7-3.2c-.9-.3-1.8-.7-2.6-1.3l-3.1 1.1-2.8-4.8 2.5-2.2a9.2 9.2 0 0 1 0-3.2l-2.5-2.2 2.8-4.8 3.1 1.1c.8-.6 1.7-1 2.6-1.3Z"></path>
@@ -211,9 +213,9 @@ Fullstack Developer</span>
                 </svg>
             </span>
         </summary>
-        <nav class="admin-shortcuts-menu" data-i18n-aria="admin_shortcut_menu_label" aria-label="Skróty administratora" data-admin-shortcuts data-authenticated="{{ app.user ? 'true' : 'false' }}">
+        <nav class="admin-shortcuts-menu" data-i18n-aria="{{ shortcuts_menu_label_key }}" aria-label="{{ shortcuts_menu_label }}" data-admin-shortcuts data-authenticated="{{ app.user ? 'true' : 'false' }}">
             <div class="admin-shortcuts-desktop-bar">
-                <span class="admin-shortcuts-desktop-title" data-i18n="admin_shortcut_menu_label">Skróty administratora</span>
+                <span class="admin-shortcuts-desktop-title" data-i18n="{{ shortcuts_menu_label_key }}">{{ shortcuts_menu_label }}</span>
                 {% if is_admin_shortcuts_user %}
                     <div class="admin-shortcuts-desktop-actions">
                         <button
@@ -250,7 +252,7 @@ Fullstack Developer</span>
                 {% endif %}
             </div>
             <div class="admin-shortcuts-mobile-bar">
-                <span class="admin-shortcuts-mobile-title" data-i18n="admin_shortcut_menu_label">Skróty administratora</span>
+                <span class="admin-shortcuts-mobile-title" data-i18n="{{ shortcuts_menu_label_key }}">{{ shortcuts_menu_label }}</span>
                 <button type="button" class="admin-shortcuts-mobile-close" data-action="close-admin-shortcuts" data-i18n-aria="admin_shortcut_close_panel" aria-label="Zamknij panel skrótów">
                     <span aria-hidden="true">&times;</span>
                 </button>

@@ -47,11 +47,18 @@ class SecurityController extends AbstractController
             return null;
         }
 
-        return match ($error->getMessageKey()) {
+        $translatedMessage = match ($error->getMessageKey()) {
             'Invalid credentials.' => $userLanguageResolver->translate('Nieprawidłowe dane logowania.', 'Invalid credentials.'),
             'Your account is inactive.' => $userLanguageResolver->translate('Twoje konto jest nieaktywne.', 'Your account is inactive.'),
             'Administrator access is required.' => $userLanguageResolver->translate('To konto nie ma dostępu administratora.', 'This account does not have administrator access.'),
             default => $userLanguageResolver->translate($error->getMessageKey(), $error->getMessageKey()),
         };
+
+        return $this->interpolateAuthenticationMessage($translatedMessage, $error);
+    }
+
+    private function interpolateAuthenticationMessage(string $message, AuthenticationException $error): string
+    {
+        return strtr($message, $error->getMessageData());
     }
 }
