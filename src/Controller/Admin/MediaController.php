@@ -122,15 +122,18 @@ class MediaController extends AbstractController
             throw $this->createAccessDeniedException('Invalid CSRF token.');
         }
 
+        try {
+            $mediaGalleryManager->delete($mediaImage);
+        } catch (\Throwable) {
+            $this->addFlash('error', $userLanguageResolver->translate('Nie udało się usunąć pliku obrazka z dysku. Obrazek pozostał w galerii.', 'The image file could not be deleted from disk. The image remains in the gallery.'));
+
+            return $this->redirectToRoute('admin_media_gallery');
+        }
+
         $entityManager->remove($mediaImage);
         $entityManager->flush();
 
         $this->addFlash('success', $userLanguageResolver->translate('Obrazek został usunięty z galerii.', 'The image has been removed from the gallery.'));
-        try {
-            $mediaGalleryManager->delete($mediaImage);
-        } catch (\Throwable) {
-            $this->addFlash('error', $userLanguageResolver->translate('Obrazek został usunięty z galerii, ale nie udało się usunąć pliku z dysku.', 'The image was removed from the gallery, but the file could not be deleted from disk.'));
-        }
 
         return $this->redirectToRoute('admin_media_gallery');
     }
@@ -148,15 +151,25 @@ class MediaController extends AbstractController
         }
 
         $mediaImages = $mediaImageRepository->findBy([]);
+        $failedFilePaths = $mediaGalleryManager->clear($mediaImages);
+        $failedFilePathsLookup = array_fill_keys($failedFilePaths, true);
+
         foreach ($mediaImages as $mediaImage) {
+            if (isset($failedFilePathsLookup[$mediaImage->getFilePath()])) {
+                continue;
+            }
+
             $entityManager->remove($mediaImage);
         }
-        $entityManager->flush();
-        $failedFilePaths = $mediaGalleryManager->clear($mediaImages);
 
-        $this->addFlash('success', $userLanguageResolver->translate('Galeria została wyczyszczona.', 'The gallery has been cleared.'));
-        if ([] !== $failedFilePaths) {
-            $this->addFlash('error', $userLanguageResolver->translate('Galeria została wyczyszczona, ale nie udało się usunąć wszystkich plików z dysku.', 'The gallery was cleared, but not all files could be deleted from disk.'));
+        if ([] !== $mediaImages && count($failedFilePaths) < count($mediaImages)) {
+            $entityManager->flush();
+        }
+
+        if ([] === $failedFilePaths) {
+            $this->addFlash('success', $userLanguageResolver->translate('Galeria została wyczyszczona.', 'The gallery has been cleared.'));
+        } else {
+            $this->addFlash('error', $userLanguageResolver->translate('Usunięto tylko część obrazków z galerii. Nie udało się usunąć wszystkich plików z dysku.', 'Only part of the gallery was cleared. Not all files could be deleted from disk.'));
         }
 
         return $this->redirectToRoute('admin_media_gallery');
