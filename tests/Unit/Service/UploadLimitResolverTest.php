@@ -26,4 +26,15 @@ final class UploadLimitResolverTest extends TestCase
 
         $this->assertSame(5 * 1024 * 1024, $resolver->resolveEffectiveLimit(5 * 1024 * 1024));
     }
+
+    public function testResolveEffectiveLimitTreatsZeroPhpLimitAsBlockingUploads(): void
+    {
+        $resolver = new UploadLimitResolver(static fn (string $key): string|false => match ($key) {
+            'upload_max_filesize' => '0',
+            'post_max_size' => '8M',
+            default => false,
+        });
+
+        $this->assertSame(0, $resolver->resolveEffectiveLimit(5 * 1024 * 1024));
+    }
 }

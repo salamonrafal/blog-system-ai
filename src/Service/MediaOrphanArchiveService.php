@@ -148,6 +148,7 @@ class MediaOrphanArchiveService
         $iterator = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator($mediaRoot, \FilesystemIterator::SKIP_DOTS)
         );
+        $projectDirPrefix = rtrim(str_replace('\\', '/', $this->projectDir), '/').'/';
 
         foreach ($iterator as $item) {
             if (!$item->isFile()) {
@@ -159,13 +160,12 @@ class MediaOrphanArchiveService
             }
 
             $absolutePath = str_replace('\\', '/', $item->getPathname());
-            $prefix = rtrim(str_replace('\\', '/', $this->projectDir), '/').'/';
 
-            if (!str_starts_with($absolutePath, $prefix)) {
+            if (!str_starts_with($absolutePath, $projectDirPrefix)) {
                 continue;
             }
 
-            $files[] = substr($absolutePath, strlen($prefix));
+            $files[] = substr($absolutePath, strlen($projectDirPrefix));
         }
 
         sort($files);
