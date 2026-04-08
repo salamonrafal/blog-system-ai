@@ -45,6 +45,10 @@ class ArticleImportType extends AbstractType
                             return;
                         }
 
+                        if (!$value->isValid()) {
+                            return;
+                        }
+
                         if ($value->getSize() > self::MAX_FILE_SIZE) {
                             $context->buildViolation($applicationLimitMessage)
                                 ->addViolation();
