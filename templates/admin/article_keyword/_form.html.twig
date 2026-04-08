@@ -2,7 +2,7 @@
     {% if form.vars.errors|length > 0 %}
         <div class="form-errors article-editor-errors" role="alert">
             {% for error in form.vars.errors %}
-                <p>{{ validation_error_message(error) }}</p>
+                {% include 'admin/_validation_error.html.twig' with { error: error } %}
             {% endfor %}
         </div>
     {% endif %}
@@ -18,7 +18,7 @@
                 {% if language_has_errors %}
                     <div id="{{ form.language.vars.id }}-error" class="article-editor-error-message" role="alert">
                         {% for error in form.language.vars.errors %}
-                            <p>{{ validation_error_message(error) }}</p>
+                            {% include 'admin/_validation_error.html.twig' with { error: error } %}
                         {% endfor %}
                     </div>
                 {% endif %}
@@ -66,7 +66,7 @@
                 {% if color_has_errors %}
                     <div id="{{ form.color.vars.id }}-error" class="article-editor-error-message" role="alert">
                         {% for error in form.color.vars.errors %}
-                            <p>{{ validation_error_message(error) }}</p>
+                            {% include 'admin/_validation_error.html.twig' with { error: error } %}
                         {% endfor %}
                     </div>
                 {% endif %}
@@ -81,7 +81,7 @@
                 {% if status_has_errors %}
                     <div id="{{ form.status.vars.id }}-error" class="article-editor-error-message" role="alert">
                         {% for error in form.status.vars.errors %}
-                            <p>{{ validation_error_message(error) }}</p>
+                            {% include 'admin/_validation_error.html.twig' with { error: error } %}
                         {% endfor %}
                     </div>
                 {% endif %}
@@ -115,7 +115,7 @@
             {% if name_has_errors %}
                 <div id="{{ form.name.vars.id }}-error" class="article-editor-error-message" role="alert">
                     {% for error in form.name.vars.errors %}
-                        <p>{{ validation_error_message(error) }}</p>
+                        {% include 'admin/_validation_error.html.twig' with { error: error } %}
                     {% endfor %}
                 </div>
             {% endif %}

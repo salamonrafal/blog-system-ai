@@ -40,7 +40,7 @@
                 {% if form.vars.errors|length > 0 %}
                     <div class="form-errors article-editor-errors" role="alert">
                         {% for error in form.vars.errors %}
-                            <p>{{ validation_error_message(error) }}</p>
+                            {% include 'admin/_validation_error.html.twig' with { error: error } %}
                         {% endfor %}
                     </div>
                 {% endif %}
@@ -62,7 +62,7 @@
                         {% if import_file_has_errors %}
                             <div id="{{ import_file_error_id }}" class="article-editor-error-message" role="alert">
                                 {% for error in form.importFile.vars.errors %}
-                                    <p>{{ validation_error_message(error) }}</p>
+                                    {% include 'admin/_validation_error.html.twig' with { error: error } %}
                                 {% endfor %}
                             </div>
                         {% endif %}
