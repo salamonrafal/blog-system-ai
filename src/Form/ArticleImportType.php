@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Form;
 
+use App\Service\FileSizeFormatter;
+use App\Service\UploadLimitResolver;
+use App\Service\UserLanguageResolver;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -15,8 +18,19 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 class ArticleImportType extends AbstractType
 {
+    private const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
+    public function __construct(
+        private readonly ?UploadLimitResolver $uploadLimitResolver = null,
+        private readonly ?FileSizeFormatter $fileSizeFormatter = null,
+        private readonly ?UserLanguageResolver $userLanguageResolver = null,
+    ) {
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $applicationLimitMessage = $this->buildTooLargeMessage(self::MAX_FILE_SIZE);
+
         $builder->add('importFile', FileType::class, [
             'label' => 'Plik importu',
             'label_attr' => ['data-i18n' => 'admin_import_form_file'],
@@ -26,13 +40,13 @@ class ArticleImportType extends AbstractType
                     'message' => 'validation_import_file_required',
                 ]),
                 new Callback([
-                    'callback' => static function (mixed $value, ExecutionContextInterface $context): void {
+                    'callback' => function (mixed $value, ExecutionContextInterface $context) use ($applicationLimitMessage): void {
                         if (!$value instanceof UploadedFile) {
                             return;
                         }
 
-                        if ($value->getSize() > 10 * 1024 * 1024) {
-                            $context->buildViolation('validation_import_file_too_large')
+                        if ($value->getSize() > self::MAX_FILE_SIZE) {
+                            $context->buildViolation($applicationLimitMessage)
                                 ->addViolation();
 
                             return;
@@ -54,6 +68,30 @@ class ArticleImportType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults([]);
+        $resolver->setDefaults([
+            'post_max_size_message' => $this->buildTooLargeMessage(
+                $this->resolveEffectiveLimit(self::MAX_FILE_SIZE),
+            ),
+        ]);
+    }
+
+    private function resolveEffectiveLimit(int $applicationLimit): int
+    {
+        return ($this->uploadLimitResolver ?? new UploadLimitResolver())->resolveEffectiveLimit($applicationLimit) ?? $applicationLimit;
+    }
+
+    private function buildTooLargeMessage(int $limitBytes): string
+    {
+        $formattedLimit = ($this->fileSizeFormatter ?? new FileSizeFormatter())->format($limitBytes);
+
+        return $this->translate(
+            sprintf('Plik importu nie może być większy niż %s.', $formattedLimit),
+            sprintf('The import file cannot be larger than %s.', $formattedLimit),
+        );
+    }
+
+    private function translate(string $polish, string $english): string
+    {
+        return $this->userLanguageResolver?->translate($polish, $english) ?? $polish;
     }
 }

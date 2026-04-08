@@ -44,7 +44,7 @@ final class UploadLimitResolver
             return null;
         }
 
-        if ('0' === $normalizedValue || '-1' === $normalizedValue) {
+        if ('-1' === $normalizedValue) {
             return null;
         }
 
@@ -53,7 +53,7 @@ final class UploadLimitResolver
         }
 
         $size = (int) $matches['size'];
-        if ($size <= 0) {
+        if ($size < 0) {
             return null;
         }
 
