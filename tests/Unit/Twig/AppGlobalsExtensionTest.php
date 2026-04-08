@@ -111,6 +111,14 @@ final class AppGlobalsExtensionTest extends TestCase
             'Plik jest za duży. Maksymalny dozwolony rozmiar to 2 MiB.',
             $extension->translateValidationError($error),
         );
+        $this->assertSame(
+            'The file is too large. Allowed maximum size is {{ limit }} {{ suffix }}.',
+            $extension->getValidationErrorI18nKey($error),
+        );
+        $this->assertSame(
+            ['limit' => '2', 'suffix' => 'MiB'],
+            $extension->getValidationErrorI18nParams($error),
+        );
     }
 
     public function testGetGlobalsExposesAppNameAndBlogSettings(): void

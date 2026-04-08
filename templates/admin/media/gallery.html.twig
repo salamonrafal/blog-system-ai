@@ -66,10 +66,10 @@
                     <span class="article-action-icon is-warning media-gallery-upload-error-icon" aria-hidden="true"></span>
                     <div class="media-gallery-upload-error-copy">
                         {% for error in upload_form.vars.errors %}
-                            <p>{{ validation_error_message(error) }}</p>
+                            {% include 'admin/_validation_error.html.twig' with { error: error } %}
                         {% endfor %}
                         {% for error in upload_form.imageFile.vars.errors %}
-                            <p>{{ validation_error_message(error) }}</p>
+                            {% include 'admin/_validation_error.html.twig' with { error: error } %}
                         {% endfor %}
                     </div>
                 </div>
