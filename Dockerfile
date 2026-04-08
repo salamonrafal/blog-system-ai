@@ -61,6 +61,7 @@ FROM node:22-bookworm-slim AS build_assets
 FROM install_php AS final
     COPY ./docker/scripts/ /var/scripts/
     COPY ./docker/conf/nginx/sites-available/application /etc/nginx/sites-available/default
+    COPY ./docker/conf/nginx/nginx.conf /etc/nginx/nginx.conf
     COPY --chown=www-data:www-data . /var/www/app/
     COPY --from=build_assets --chown=www-data:www-data /var/www/app/public/assets/build/app.min.js /var/www/app/public/assets/build/app.min.js
     COPY --from=build_assets --chown=www-data:www-data /var/www/app/public/assets/build/styles.min.css /var/www/app/public/assets/build/styles.min.css
