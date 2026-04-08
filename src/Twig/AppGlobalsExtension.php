@@ -18,8 +18,10 @@ use App\Repository\CategoryImportQueueRepository;
 use App\Repository\TopMenuImportQueueRepository;
 use App\Repository\TopMenuItemRepository;
 use App\Repository\TopMenuExportQueueRepository;
+use Symfony\Component\Form\FormError;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Extension\AbstractExtension;
 use Twig\Extension\GlobalsInterface;
 use Twig\TwigFunction;
@@ -48,6 +50,7 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
         private readonly UploadLimitResolver $uploadLimitResolver,
         private readonly CacheInterface $appCache,
         private readonly string $appEnv,
+        private readonly ?TranslatorInterface $translator = null,
     )
     {
     }
@@ -59,6 +62,7 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
             new TwigFunction('ui_translate', $this->translateUi(...)),
             new TwigFunction('ui_language_label', $this->getLanguageLabel(...)),
             new TwigFunction('format_file_size', $this->formatFileSize(...)),
+            new TwigFunction('validation_error_message', $this->translateValidationError(...)),
         ];
     }
 
@@ -154,6 +158,27 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
     public function formatFileSize(int $bytes): string
     {
         return $this->fileSizeFormatter->format($bytes);
+    }
+
+    public function translateValidationError(mixed $error): string
+    {
+        if (!$error instanceof FormError) {
+            return is_string($error) ? $this->getI18nFallback($error) : '';
+        }
+
+        $messageTemplate = $error->getMessageTemplate();
+        $messageParameters = $error->getMessageParameters();
+
+        if (null !== $this->translator) {
+            return $this->translator->trans(
+                $messageTemplate,
+                $messageParameters,
+                'validators',
+                $this->userLanguageResolver->getLanguage(),
+            );
+        }
+
+        return strtr($this->getI18nFallback($messageTemplate), $messageParameters);
     }
 
     private function getValidationMessageFallbacks(): array

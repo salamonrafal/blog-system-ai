@@ -44,6 +44,10 @@ class MediaImageUploadType extends AbstractType
                             return;
                         }
 
+                        if (!$value->isValid()) {
+                            return;
+                        }
+
                         if ($value->getSize() > MediaImageSupport::MAX_FILE_SIZE) {
                             $context->buildViolation($applicationLimitMessage)
                                 ->addViolation();

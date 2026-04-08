@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 return [
     'pl' => [
+        'The file is too large. Allowed maximum size is {{ limit }} {{ suffix }}.' => 'Plik jest za duży. Maksymalny dozwolony rozmiar to {{ limit }} {{ suffix }}.',
+        'The uploaded file was too large. Please try to upload a smaller file.' => 'Przesłany plik jest za duży. Spróbuj przesłać mniejszy plik.',
         'validation_import_file_required' => 'Wybierz plik importu.',
         'validation_import_file_too_large' => 'Plik importu nie może być większy niż 10 MB.',
         'validation_import_file_invalid' => 'Prześlij poprawny plik JSON z eksportem.',
@@ -54,6 +56,8 @@ return [
         'validation_top_menu_parent_cycle' => 'Wybrany rodzic tworzy zapętloną strukturę menu.',
     ],
     'en' => [
+        'The file is too large. Allowed maximum size is {{ limit }} {{ suffix }}.' => 'The file is too large. Allowed maximum size is {{ limit }} {{ suffix }}.',
+        'The uploaded file was too large. Please try to upload a smaller file.' => 'The uploaded file was too large. Please try to upload a smaller file.',
         'validation_import_file_required' => 'Select an import file.',
         'validation_import_file_too_large' => 'The import file cannot be larger than 10 MB.',
         'validation_import_file_invalid' => 'Upload a valid JSON export file.',

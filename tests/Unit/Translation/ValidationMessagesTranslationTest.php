@@ -23,4 +23,15 @@ final class ValidationMessagesTranslationTest extends TestCase
 
         $this->assertSame('The image cannot be larger than 5 MB.', $messages['validation_media_file_too_large'] ?? null);
     }
+
+    public function testPolishValidatorsCatalogContainsSymfonyUploadIniLimitMessage(): void
+    {
+        /** @var array<string, string> $messages */
+        $messages = require __DIR__.'/../../../translations/validators.pl.php';
+
+        $this->assertSame(
+            'Plik jest za duży. Maksymalny dozwolony rozmiar to {{ limit }} {{ suffix }}.',
+            $messages['The file is too large. Allowed maximum size is {{ limit }} {{ suffix }}.'] ?? null,
+        );
+    }
 }
