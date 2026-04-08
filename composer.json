@@ -3,7 +3,6 @@
     "description": "Symfony blog foundation with article management",
     "type": "project",
     "license": "proprietary",
-    "version": "2.0.1",
     "require": {
         "php": "^8.2",
         "ext-ctype": "*",
