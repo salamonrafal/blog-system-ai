@@ -199,7 +199,7 @@ Fullstack Developer</span>
 </main>
 
 {% set is_login_route = app.request.attributes.get('_route') == 'app_login' %}
-{% set show_admin_shortcuts = show_admin_shortcuts|default(app.user or not is_login_route) %}
+{% set show_admin_shortcuts = show_admin_shortcuts is defined ? show_admin_shortcuts : (app.user or not is_login_route) %}
 {% set is_admin_shortcuts_user = is_granted('ROLE_ADMIN') %}
 {% set shortcuts_menu_label_key = is_admin_shortcuts_user ? 'admin_shortcut_menu_label' : 'user_shortcut_menu_label' %}
 {% set shortcuts_menu_label = is_admin_shortcuts_user ? 'Skróty administratora' : 'Menu użytkownika' %}
