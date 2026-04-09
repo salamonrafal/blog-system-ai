@@ -30,11 +30,7 @@ class MediaImageUploadType extends AbstractType
             'label' => 'Obrazek',
             'label_attr' => ['data-i18n' => 'admin_media_form_file'],
             'mapped' => false,
-            'constraints' => ($this->imageUploadConstraintFactory ?? new ImageUploadConstraintFactory(
-                $this->uploadLimitResolver,
-                $this->fileSizeFormatter,
-                $this->userLanguageResolver,
-            ))->createRequiredImageConstraints(MediaImageSupport::MAX_FILE_SIZE),
+            'constraints' => $this->imageUploadConstraintFactory()->createRequiredImageConstraints(MediaImageSupport::MAX_FILE_SIZE),
             'attr' => [
                 'accept' => MediaImageSupport::acceptAttribute(),
             ],
@@ -44,11 +40,16 @@ class MediaImageUploadType extends AbstractType
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'post_max_size_message' => ($this->imageUploadConstraintFactory ?? new ImageUploadConstraintFactory(
-                $this->uploadLimitResolver,
-                $this->fileSizeFormatter,
-                $this->userLanguageResolver,
-            ))->buildPostMaxSizeMessage(MediaImageSupport::MAX_FILE_SIZE),
+            'post_max_size_message' => $this->imageUploadConstraintFactory()->buildPostMaxSizeMessage(MediaImageSupport::MAX_FILE_SIZE),
         ]);
+    }
+
+    private function imageUploadConstraintFactory(): ImageUploadConstraintFactory
+    {
+        return $this->imageUploadConstraintFactory ?? new ImageUploadConstraintFactory(
+            $this->uploadLimitResolver,
+            $this->fileSizeFormatter,
+            $this->userLanguageResolver,
+        );
     }
 }

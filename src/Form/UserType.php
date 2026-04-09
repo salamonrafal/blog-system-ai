@@ -83,11 +83,7 @@ class UserType extends AbstractType
                 'required' => false,
                 'label_attr' => ['data-i18n' => 'user_form_avatar'],
                 'mapped' => false,
-                'constraints' => ($this->imageUploadConstraintFactory ?? new ImageUploadConstraintFactory(
-                    $this->uploadLimitResolver,
-                    $this->fileSizeFormatter,
-                    $this->userLanguageResolver,
-                ))->createOptionalImageConstraints(MediaImageSupport::MAX_FILE_SIZE),
+                'constraints' => $this->imageUploadConstraintFactory()->createOptionalImageConstraints(MediaImageSupport::MAX_FILE_SIZE),
                 'attr' => [
                     'accept' => MediaImageSupport::acceptAttribute(),
                 ],
@@ -126,14 +122,19 @@ class UserType extends AbstractType
             'data_class' => User::class,
             'is_admin' => false,
             'password_required' => false,
-            'post_max_size_message' => ($this->imageUploadConstraintFactory ?? new ImageUploadConstraintFactory(
-                $this->uploadLimitResolver,
-                $this->fileSizeFormatter,
-                $this->userLanguageResolver,
-            ))->buildPostMaxSizeMessage(MediaImageSupport::MAX_FILE_SIZE),
+            'post_max_size_message' => $this->imageUploadConstraintFactory()->buildPostMaxSizeMessage(MediaImageSupport::MAX_FILE_SIZE),
         ]);
 
         $resolver->setAllowedTypes('is_admin', 'bool');
         $resolver->setAllowedTypes('password_required', 'bool');
+    }
+
+    private function imageUploadConstraintFactory(): ImageUploadConstraintFactory
+    {
+        return $this->imageUploadConstraintFactory ?? new ImageUploadConstraintFactory(
+            $this->uploadLimitResolver,
+            $this->fileSizeFormatter,
+            $this->userLanguageResolver,
+        );
     }
 }
