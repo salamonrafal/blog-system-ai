@@ -12,6 +12,8 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 class ImageUploadConstraintFactory
 {
+    private const TOO_LARGE_MESSAGE_KEY = 'validation_media_file_too_large';
+
     public function __construct(
         private readonly ?UploadLimitResolver $uploadLimitResolver = null,
         private readonly ?FileSizeFormatter $fileSizeFormatter = null,
@@ -44,17 +46,21 @@ class ImageUploadConstraintFactory
 
     public function buildPostMaxSizeMessage(int $applicationLimit = MediaImageSupport::MAX_FILE_SIZE): string
     {
-        return $this->buildTooLargeMessage(
-            $this->resolveEffectiveLimit($applicationLimit),
+        return strtr(
+            $this->translate(
+                'Obrazek nie może być większy niż {{ limit }}.',
+                'The image cannot be larger than {{ limit }}.',
+            ),
+            $this->buildTooLargeMessageParameters($this->resolveEffectiveLimit($applicationLimit)),
         );
     }
 
     private function createImageConstraint(int $applicationLimit): Constraint
     {
-        $applicationLimitMessage = $this->buildTooLargeMessage($applicationLimit);
+        $applicationLimitMessageParameters = $this->buildTooLargeMessageParameters($applicationLimit);
 
         return new Callback([
-            'callback' => function (mixed $value, ExecutionContextInterface $context) use ($applicationLimit, $applicationLimitMessage): void {
+            'callback' => function (mixed $value, ExecutionContextInterface $context) use ($applicationLimit, $applicationLimitMessageParameters): void {
                 if (!$value instanceof UploadedFile) {
                     return;
                 }
@@ -64,7 +70,8 @@ class ImageUploadConstraintFactory
                 }
 
                 if ($value->getSize() > $applicationLimit) {
-                    $context->buildViolation($applicationLimitMessage)
+                    $context->buildViolation(self::TOO_LARGE_MESSAGE_KEY)
+                        ->setParameters($applicationLimitMessageParameters)
                         ->addViolation();
 
                     return;
@@ -88,14 +95,16 @@ class ImageUploadConstraintFactory
         return ($this->uploadLimitResolver ?? new UploadLimitResolver())->resolveEffectiveLimit($applicationLimit) ?? $applicationLimit;
     }
 
-    private function buildTooLargeMessage(int $limitBytes): string
+    /**
+     * @return array<string, string>
+     */
+    private function buildTooLargeMessageParameters(int $limitBytes): array
     {
         $formattedLimit = ($this->fileSizeFormatter ?? new FileSizeFormatter())->format($limitBytes);
 
-        return $this->translate(
-            sprintf('Obrazek nie może być większy niż %s.', $formattedLimit),
-            sprintf('The image cannot be larger than %s.', $formattedLimit),
-        );
+        return [
+            '{{ limit }}' => $formattedLimit,
+        ];
     }
 
     private function translate(string $polish, string $english): string

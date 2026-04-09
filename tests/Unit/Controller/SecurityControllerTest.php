@@ -55,6 +55,8 @@ final class SecurityControllerTest extends TestCase
         $this->assertSame('security/login.html.twig', $controller->capturedView);
         $this->assertSame('admin@example.com', $controller->capturedParameters['last_username']);
         $this->assertSame($error, $controller->capturedParameters['error']);
+        $this->assertSame('login_error_invalid_credentials', $controller->capturedParameters['error_i18n_key']);
+        $this->assertSame([], $controller->capturedParameters['error_i18n_params']);
         $this->assertSame('Nieprawidłowe dane logowania.', $controller->capturedParameters['error_message']);
     }
 
@@ -115,6 +117,7 @@ final class SecurityControllerTest extends TestCase
         $response = $controller->login($authenticationUtils, $this->createUserLanguageResolver('pl'));
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
+        $this->assertSame('login_error_administrator_access_required', $controller->capturedParameters['error_i18n_key']);
         $this->assertSame('To konto nie ma dostępu administratora.', $controller->capturedParameters['error_message']);
     }
 

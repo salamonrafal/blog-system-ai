@@ -68,7 +68,7 @@ final class AppGlobalsExtensionTest extends TestCase
 
         $this->assertSame('Select an import file.', $extension->getI18nFallback('validation_import_file_required'));
         $this->assertSame('The import file cannot be larger than 10 MB.', $extension->getI18nFallback('validation_import_file_too_large'));
-        $this->assertSame('The image cannot be larger than 5 MB.', $extension->getI18nFallback('validation_media_file_too_large'));
+        $this->assertSame('The image cannot be larger than {{ limit }}.', $extension->getI18nFallback('validation_media_file_too_large'));
         $this->assertSame('unknown_key', $extension->getI18nFallback('unknown_key'));
         $this->assertSame('Category import', $extension->translateUi('Import kategorii', 'Category import'));
         $this->assertSame('English (EN)', $extension->getLanguageLabel('en'));
