@@ -64,9 +64,7 @@ final class AvatarImageOptimizer
             return;
         }
 
-        if (!@rename($temporaryPath, $absolutePath)) {
-            @unlink($temporaryPath);
-        }
+        $this->replaceOptimizedFile($temporaryPath, $absolutePath);
     }
 
     private function isGdAvailable(): bool
@@ -110,5 +108,30 @@ final class AvatarImageOptimizer
             'image/avif' => function_exists('imageavif') && @imageavif($image, $absolutePath, self::AVIF_QUALITY),
             default => false,
         };
+    }
+
+    private function replaceOptimizedFile(string $temporaryPath, string $absolutePath): void
+    {
+        if (@rename($temporaryPath, $absolutePath)) {
+            return;
+        }
+
+        if (is_file($absolutePath) && !@unlink($absolutePath)) {
+            @unlink($temporaryPath);
+
+            return;
+        }
+
+        if (@rename($temporaryPath, $absolutePath)) {
+            return;
+        }
+
+        if (@copy($temporaryPath, $absolutePath)) {
+            @unlink($temporaryPath);
+
+            return;
+        }
+
+        @unlink($temporaryPath);
     }
 }
