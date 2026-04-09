@@ -8,6 +8,7 @@ use App\Service\AvatarImageOptimizer;
 use App\Service\AvatarImageStorage;
 use App\Service\ManagedFileDeleter;
 use App\Service\ManagedUploadedFileStorage;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
@@ -93,6 +94,41 @@ final class AvatarImageStorageTest extends TestCase
         $storage->store($uploadedFile, '/custom/avatars/2026/04/08/old-avatar.jpg');
 
         $this->assertFileDoesNotExist($existingPath);
+    }
+
+    public function testStoreSucceedsWhenDeletingPreviousAvatarFails(): void
+    {
+        $existingDirectory = $this->projectDir.'/public/uploads/avatars/2026/04/08';
+        mkdir($existingDirectory, 0777, true);
+        $existingPath = $existingDirectory.'/old-avatar.jpg';
+        file_put_contents($existingPath, 'old-avatar');
+
+        $sourcePath = $this->projectDir.'/avatar-delete-failure.jpg';
+        file_put_contents($sourcePath, $this->createTinyJpeg());
+
+        $uploadedFile = new UploadedFile($sourcePath, 'replacement.jpg', 'image/jpeg', null, true);
+
+        /** @var ManagedFileDeleter&MockObject $managedFileDeleter */
+        $managedFileDeleter = $this->createMock(ManagedFileDeleter::class);
+        $managedFileDeleter
+            ->expects($this->once())
+            ->method('delete')
+            ->with($this->anything(), 'avatar')
+            ->willThrowException(new \RuntimeException('Cannot delete avatar'));
+
+        $storage = new AvatarImageStorage(
+            'public/uploads/avatars',
+            $this->projectDir,
+            new ManagedUploadedFileStorage($this->projectDir),
+            new AvatarImageOptimizer(),
+            $managedFileDeleter,
+        );
+
+        $storedFile = $storage->store($uploadedFile, '/uploads/avatars/2026/04/08/old-avatar.jpg');
+
+        $this->assertStringStartsWith('/uploads/avatars/', $storedFile['public_path']);
+        $this->assertFileExists($this->projectDir.'/'.$storedFile['relative_path']);
+        $this->assertFileExists($existingPath);
     }
 
     private function createTinyJpeg(): string

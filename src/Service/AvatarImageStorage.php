@@ -63,7 +63,11 @@ class AvatarImageStorage
             return;
         }
 
-        ($this->managedFileDeleter ?? new ManagedFileDeleter())->delete($absolutePreviousPath, 'avatar');
+        try {
+            ($this->managedFileDeleter ?? new ManagedFileDeleter())->delete($absolutePreviousPath, 'avatar');
+        } catch (\RuntimeException) {
+            // Best-effort cleanup: a failure to remove the old avatar must not block saving the new one.
+        }
     }
 
     private function resolveManagedAvatarAbsolutePath(?string $avatarPath): ?string
