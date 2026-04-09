@@ -40,6 +40,7 @@ final class LoginSuccessHandlerTest extends TestCase
 
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertSame('/admin/users', $response->getTargetUrl());
+        $this->assertNull($this->getTargetPath($session, 'main'));
     }
 
     public function testRedirectsAdministratorToDashboard(): void

@@ -26,6 +26,8 @@ final class LoginSuccessHandler implements AuthenticationSuccessHandlerInterface
             $session = $request->getSession();
             $targetPath = $this->getTargetPath($session, 'main');
             if (is_string($targetPath) && '' !== trim($targetPath)) {
+                $this->removeTargetPath($session, 'main');
+
                 return new RedirectResponse($targetPath);
             }
         }

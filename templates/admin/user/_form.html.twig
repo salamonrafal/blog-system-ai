@@ -78,15 +78,17 @@
         {% set avatar_preview_empty_id = form.avatarFile.vars.id ~ '-preview-empty' %}
         {% set current_avatar = form.vars.data.avatar %}
         {% set avatar_described_by = avatar_hint_id ~ (avatar_has_errors ? ' ' ~ avatar_error_id : '') %}
+        {% set avatar_label_attr = form.avatarFile.vars.label_attr|merge({
+            class: ((form.avatarFile.vars.label_attr.class|default('') ~ ' sr-only')|trim)
+        }) %}
         <div class="field article-editor-field{{ avatar_has_errors ? ' has-error' : '' }}" data-avatar-upload>
-            {{ form_label(form.avatarFile, null, { label_attr: { class: 'sr-only' } }) }}
+            {{ form_label(form.avatarFile, null, { label_attr: avatar_label_attr }) }}
             <div class="file-upload" data-file-upload data-file-upload-drop-enabled="false">
                 {{ form_widget(form.avatarFile, { attr: form.avatarFile.vars.attr|merge({
                     class: 'sr-only file-upload-input',
                     'aria-describedby': avatar_described_by,
                     'data-file-upload-input': '',
-                    'data-avatar-input': '',
-                    'data-avatar-preview-target': '#' ~ avatar_preview_id
+                    'data-avatar-input': ''
                 }|merge(avatar_has_errors ? {'aria-invalid': 'true'} : {})) }) }}
                 <div class="file-upload-surface" data-file-upload-surface>
                     <div class="file-upload-topbar">
