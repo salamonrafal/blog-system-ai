@@ -5,9 +5,15 @@ declare(strict_types=1);
 namespace App\Form;
 
 use App\Entity\User;
+use App\Service\FileSizeFormatter;
+use App\Service\ImageUploadConstraintFactory;
+use App\Service\MediaImageSupport;
+use App\Service\UploadLimitResolver;
+use App\Service\UserLanguageResolver;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -16,6 +22,14 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class UserType extends AbstractType
 {
+    public function __construct(
+        private readonly ?UploadLimitResolver $uploadLimitResolver = null,
+        private readonly ?FileSizeFormatter $fileSizeFormatter = null,
+        private readonly ?UserLanguageResolver $userLanguageResolver = null,
+        private readonly ?ImageUploadConstraintFactory $imageUploadConstraintFactory = null,
+    ) {
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
@@ -64,15 +78,14 @@ class UserType extends AbstractType
                     'data-i18n-placeholder' => 'user_form_short_bio_placeholder',
                 ],
             ])
-            ->add('avatar', TextType::class, [
+            ->add('avatarFile', FileType::class, [
                 'label' => 'Avatar',
                 'required' => false,
                 'label_attr' => ['data-i18n' => 'user_form_avatar'],
+                'mapped' => false,
+                'constraints' => $this->imageUploadConstraintFactory()->createOptionalImageConstraints(MediaImageSupport::MAX_FILE_SIZE),
                 'attr' => [
-                    'class' => 'article-editor-input',
-                    'maxlength' => 500,
-                    'placeholder' => 'https://... lub avatar.webp',
-                    'data-i18n-placeholder' => 'user_form_avatar_placeholder',
+                    'accept' => MediaImageSupport::acceptAttribute(),
                 ],
             ])
             ->add('isAdmin', CheckboxType::class, [
@@ -109,9 +122,19 @@ class UserType extends AbstractType
             'data_class' => User::class,
             'is_admin' => false,
             'password_required' => false,
+            'post_max_size_message' => $this->imageUploadConstraintFactory()->buildPostMaxSizeMessage(MediaImageSupport::MAX_FILE_SIZE),
         ]);
 
         $resolver->setAllowedTypes('is_admin', 'bool');
         $resolver->setAllowedTypes('password_required', 'bool');
+    }
+
+    private function imageUploadConstraintFactory(): ImageUploadConstraintFactory
+    {
+        return $this->imageUploadConstraintFactory ?? new ImageUploadConstraintFactory(
+            $this->uploadLimitResolver,
+            $this->fileSizeFormatter,
+            $this->userLanguageResolver,
+        );
     }
 }

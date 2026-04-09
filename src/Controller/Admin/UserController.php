@@ -8,6 +8,7 @@ use App\Entity\User;
 use App\Form\UserType;
 use App\Repository\ArticleRepository;
 use App\Repository\UserRepository;
+use App\Service\AvatarImageStorage;
 use App\Service\UserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -41,6 +42,7 @@ class UserController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         UserPasswordHasherInterface $passwordHasher,
+        AvatarImageStorage $avatarImageStorage,
         UserLanguageResolver $userLanguageResolver,
     ): Response {
         $user = new User();
@@ -61,9 +63,24 @@ class UserController extends AbstractController
 
             $user->setRoles($isAdmin ? ['ROLE_ADMIN'] : []);
             $user->setPassword($passwordHasher->hashPassword($user, $plainPassword));
+            $newAvatarPath = null;
+            $avatarFile = $form->get('avatarFile')->getData();
+            if ($avatarFile instanceof \Symfony\Component\HttpFoundation\File\UploadedFile) {
+                $storedAvatar = $avatarImageStorage->store($avatarFile);
+                $newAvatarPath = $storedAvatar['public_path'];
+                $user->setAvatar($newAvatarPath);
+            }
 
             $entityManager->persist($user);
-            $entityManager->flush();
+            try {
+                $entityManager->flush();
+            } catch (\Throwable $exception) {
+                if (is_string($newAvatarPath) && '' !== $newAvatarPath) {
+                    $avatarImageStorage->deleteIfManaged($newAvatarPath);
+                }
+
+                throw $exception;
+            }
 
             $this->addFlash('success', $userLanguageResolver->translate('Użytkownik został utworzony.', 'User created.'));
 
@@ -81,6 +98,7 @@ class UserController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         UserPasswordHasherInterface $passwordHasher,
+        AvatarImageStorage $avatarImageStorage,
         UserLanguageResolver $userLanguageResolver,
     ): Response {
         $currentUser = $this->getUser();
@@ -112,7 +130,29 @@ class UserController extends AbstractController
                 $managedUser->setPassword($passwordHasher->hashPassword($managedUser, $plainPassword));
             }
 
-            $entityManager->flush();
+            $previousAvatarPath = $managedUser->getAvatar();
+            $newAvatarPath = null;
+            $avatarFile = $form->get('avatarFile')->getData();
+            if ($avatarFile instanceof \Symfony\Component\HttpFoundation\File\UploadedFile) {
+                $storedAvatar = $avatarImageStorage->store($avatarFile);
+                $newAvatarPath = $storedAvatar['public_path'];
+                $managedUser->setAvatar($newAvatarPath);
+            }
+
+            try {
+                $entityManager->flush();
+            } catch (\Throwable $exception) {
+                if (is_string($newAvatarPath) && '' !== $newAvatarPath) {
+                    $managedUser->setAvatar($previousAvatarPath);
+                    $avatarImageStorage->deleteIfManaged($newAvatarPath);
+                }
+
+                throw $exception;
+            }
+
+            if (is_string($newAvatarPath) && '' !== $newAvatarPath) {
+                $avatarImageStorage->deleteReplacedAvatarIfManaged($previousAvatarPath, $newAvatarPath);
+            }
 
             $this->addFlash('success', $userLanguageResolver->translate('Użytkownik został zaktualizowany.', 'User updated.'));
 
@@ -132,6 +172,7 @@ class UserController extends AbstractController
         UserRepository $userRepository,
         ArticleRepository $articleRepository,
         EntityManagerInterface $entityManager,
+        AvatarImageStorage $avatarImageStorage,
         UserLanguageResolver $userLanguageResolver,
     ): Response {
         if (!$this->isCsrfTokenValid('delete_user_'.$managedUser->getId(), (string) $request->request->get('_token'))) {
@@ -145,6 +186,8 @@ class UserController extends AbstractController
             return $this->redirectToRoute('admin_user_index');
         }
 
+        $avatarPath = $managedUser->getAvatar();
+
         foreach ($articleRepository->findBy(['createdBy' => $managedUser]) as $article) {
             $article->setCreatedBy(null);
         }
@@ -155,6 +198,7 @@ class UserController extends AbstractController
 
         $entityManager->remove($managedUser);
         $entityManager->flush();
+        $avatarImageStorage->deleteIfManaged($avatarPath);
 
         $this->addFlash('success', $userLanguageResolver->translate('Użytkownik został usunięty.', 'User deleted.'));
 

@@ -494,6 +494,60 @@ export function setupAdminShortcuts(){
   window.addEventListener('orientationchange', syncAdminShortcutsOnViewportChange);
 }
 
+export function setupUserAvatarPreview(){
+  qsa('[data-avatar-upload]').forEach((root)=>{
+    const input = qs('[data-avatar-input]', root);
+    const preview = qs('[data-avatar-preview]', root);
+    const previewImage = qs('[data-avatar-preview-image]', root);
+    const previewEmpty = qs('[data-avatar-preview-empty]', root);
+
+    if(!(input instanceof HTMLInputElement) || !(preview instanceof HTMLElement) || !(previewImage instanceof HTMLImageElement) || !(previewEmpty instanceof HTMLElement)){
+      return;
+    }
+
+    let objectUrl = null;
+
+    const syncPreview = ()=>{
+      const selectedFile = input.files && input.files.length > 0 ? input.files[0] : null;
+      const defaultSrc = preview.getAttribute('data-avatar-preview-default-src') || '';
+
+      if(objectUrl){
+        URL.revokeObjectURL(objectUrl);
+        objectUrl = null;
+      }
+
+      const nextSrc = selectedFile ? URL.createObjectURL(selectedFile) : defaultSrc;
+      const hasImage = Boolean(nextSrc);
+
+      if(selectedFile){
+        objectUrl = nextSrc;
+      }
+
+      preview.classList.toggle('has-image', hasImage);
+
+      if(hasImage){
+        previewImage.src = nextSrc;
+        previewImage.hidden = false;
+        previewEmpty.hidden = true;
+      }else{
+        previewImage.removeAttribute('src');
+        previewImage.hidden = true;
+        previewEmpty.hidden = false;
+      }
+
+      preview.setAttribute('data-has-image', hasImage ? 'true' : 'false');
+    };
+
+    input.addEventListener('change', syncPreview);
+    window.addEventListener('beforeunload', ()=>{
+      if(objectUrl){
+        URL.revokeObjectURL(objectUrl);
+      }
+    }, { once: true });
+    syncPreview();
+  });
+}
+
 export function setupCharacterCounters(){
   qsa('[data-character-count-input]').forEach((input)=>{
     const field = input.closest('.article-editor-field');

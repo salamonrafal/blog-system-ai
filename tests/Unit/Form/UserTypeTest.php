@@ -9,11 +9,14 @@ use App\Form\UserType;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
 use Symfony\Component\Form\Forms;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Validation;
 
 final class UserTypeTest extends TestCase
 {
@@ -30,7 +33,9 @@ final class UserTypeTest extends TestCase
 
     public function testBuildFormRegistersExpectedFieldsAndOptions(): void
     {
-        $factory = Forms::createFormFactoryBuilder()->getFormFactory();
+        $factory = Forms::createFormFactoryBuilder()
+            ->addExtension(new ValidatorExtension(Validation::createValidator()))
+            ->getFormFactory();
         $form = $factory->create(UserType::class, new User(), ['is_admin' => true]);
 
         $this->assertInstanceOf(EmailType::class, $form->get('email')->getConfig()->getType()->getInnerType());
@@ -49,9 +54,10 @@ final class UserTypeTest extends TestCase
         $this->assertSame(500, $form->get('shortBio')->getConfig()->getOption('attr')['maxlength']);
         $this->assertSame(4, $form->get('shortBio')->getConfig()->getOption('attr')['rows']);
 
-        $this->assertInstanceOf(TextType::class, $form->get('avatar')->getConfig()->getType()->getInnerType());
-        $this->assertFalse($form->get('avatar')->getConfig()->getOption('required'));
-        $this->assertSame(500, $form->get('avatar')->getConfig()->getOption('attr')['maxlength']);
+        $this->assertInstanceOf(FileType::class, $form->get('avatarFile')->getConfig()->getType()->getInnerType());
+        $this->assertFalse($form->get('avatarFile')->getConfig()->getOption('required'));
+        $this->assertFalse($form->get('avatarFile')->getConfig()->getOption('mapped'));
+        $this->assertStringContainsString('image/jpeg', $form->get('avatarFile')->getConfig()->getOption('attr')['accept']);
 
         $this->assertInstanceOf(CheckboxType::class, $form->get('isAdmin')->getConfig()->getType()->getInnerType());
         $this->assertFalse($form->get('isAdmin')->getConfig()->getOption('required'));
@@ -68,7 +74,9 @@ final class UserTypeTest extends TestCase
 
     public function testBuildFormCanRequirePasswordForUserCreation(): void
     {
-        $factory = Forms::createFormFactoryBuilder()->getFormFactory();
+        $factory = Forms::createFormFactoryBuilder()
+            ->addExtension(new ValidatorExtension(Validation::createValidator()))
+            ->getFormFactory();
         $form = $factory->create(UserType::class, new User(), ['password_required' => true]);
 
         $this->assertTrue($form->get('plainPassword')->getConfig()->getOption('required'));

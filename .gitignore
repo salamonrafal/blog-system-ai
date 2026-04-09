@@ -61,6 +61,8 @@
 # Uploads media
 /public/uploads/media/*
 !public/uploads/media/.gitkeep
+/public/uploads/avatars/*
+!public/uploads/avatars/.gitkeep
 
 # Assets and user uploads
 /web/bundles/

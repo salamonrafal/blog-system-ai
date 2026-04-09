@@ -23,6 +23,7 @@ import {
   setupTopMenuDeleteConfirmation,
   setupTopMenuTargetTabs,
   setupTranslationTabs,
+  setupUserAvatarPreview,
   setupUserDeleteConfirmation,
 } from './modules/admin.js';
 import { setupCustomSelects } from './modules/custom-select.js';
@@ -70,6 +71,7 @@ function init(){
   setupArticleKeywordDeleteConfirmation();
   setupCategoryDeleteConfirmation();
   setupTopMenuDeleteConfirmation();
+  setupUserAvatarPreview();
   setupUserDeleteConfirmation();
   setupExportDeleteConfirmation();
   setupExportClearConfirmation();

@@ -386,3 +386,13 @@
 - Rozszerzono ekran `Galeria mediów` o paginację opartą o globalne ustawienie `Ilość elementów na stronę w panelu administracyjnym`, wyszukiwanie po nazwie niestandardowej lub oryginalnej, sortowanie po dacie od najnowszych i od najstarszych oraz statyczny, uporządkowany panel filtrów z połączonym polem wyszukiwania i ikoną lupy.
 - Ujednolicono komunikaty i podpowiedzi uploadu obrazków w module mediów, tłumacząc również przypadki limitu rozmiaru zwracane przez Symfony/PHP oraz wyliczając hint limitu pliku na podstawie rzeczywiście obowiązującego minimum z konfiguracji aplikacji i ustawień `upload_max_filesize` oraz `post_max_size`.
 - Uzupełniono deployment kontenera o osobny mount katalogu `public/uploads/media`, dzięki czemu pliki biblioteki mediów są zachowywane poza obrazem aplikacji i pozostają dostępne po wdrożeniu.
+
+## 2026-04-08
+
+- Zastąpiono tekstowe pole URL avatara w formularzach dodawania i edycji użytkownika uploadem obrazka, zapisując pliki w konfigurowalnym katalogu `public/uploads/avatars`, dodając walidację typów i rozmiaru, optymalizację przesyłanych zdjęć oraz automatyczne usuwanie podmienianego lokalnego avatara.
+- Rozszerzono formularz użytkownika o podgląd avatara wybranego do uploadu, dopracowując kilka wariantów pustego stanu placeholdera oraz finalnie osadzając podgląd bezpośrednio w górnym rzędzie komponentu uploadu, w miejscu wcześniejszej ikony.
+- Ujednolicono walidację uploadu obrazów przez wydzielenie wspólnego factory constraints, wykorzystywanego zarówno przez moduł mediów, jak i nowy upload avatarów, oraz uzupełniono testy jednostkowe formularzy, storage avatara i kontrolera użytkowników.
+- Naprawiono internacjonalizację błędów logowania, odchodząc od nieaktywnego w projekcie tłumacza domeny `security` i mapując komunikaty uwierzytelnienia bezpośrednio w `SecurityController` zgodnie z językiem użytkownika.
+- Zmieniono obsługę kont bez roli administratora: zwykły użytkownik może się teraz normalnie zalogować, a po sukcesie jest kierowany na stronę główną, podczas gdy administrator po logowaniu trafia do panelu `/admin`.
+- Dodano dedykowaną stronę `403 Access denied` renderowaną w layoucie aplikacji oraz spięto ją z firewallem przez `access_denied_url`, dzięki czemu ręczne wejście na `/admin` bez uprawnień nie pokazuje już debugowego exception page Symfony.
+- Dopracowano pływające skróty administratora dla różnych typów użytkowników: na stronie `403` panel jest ukrywany, dla zapamiętanego urządzenia bez aktywnej sesji nadal pozostaje dostępny pływający przycisk logowania, a dla zwykłego zalogowanego użytkownika menu pokazuje wyłącznie akcję `Wyloguj` bez opcji dokowania i bez sekcji administracyjnych.
