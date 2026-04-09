@@ -97,25 +97,13 @@ final class AvatarImageStorageTest extends TestCase
 
     private function createTinyJpeg(): string
     {
-        if (!function_exists('imagecreatetruecolor') || !function_exists('imagejpeg')) {
-            $this->markTestSkipped('GD extension is required for avatar image tests.');
-        }
-
-        $image = imagecreatetruecolor(32, 32);
-        if (!$image instanceof \GdImage) {
-            $this->fail('Failed to create GD image for test.');
-        }
-
-        $background = imagecolorallocate($image, 64, 128, 196);
-        imagefilledrectangle($image, 0, 0, 31, 31, $background);
-
-        ob_start();
-        imagejpeg($image, null, 90);
-        $jpeg = ob_get_clean();
-        imagedestroy($image);
+        $jpeg = base64_decode(
+            '/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxAQEBUQEBAVFRUVFRUVFRUVFRUVFRUQFRUWFhUVFRUYHSggGBolHRUVITEhJSkrLi4uFx8zODMsNygtLisBCgoKDg0OGhAQGzIlHyUtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLf/AABEIAAgACAMBIgACEQEDEQH/xAAXAAEBAQEAAAAAAAAAAAAAAAAAAQID/8QAFhEBAQEAAAAAAAAAAAAAAAAAAQAC/9oADAMBAAIQAxAAAAHJrKkP/8QAHBAAAgICAwAAAAAAAAAAAAAAAAECEQMhMRIy/9oACAEBAAEFAvVnMZl5Y0//xAAVEQEBAAAAAAAAAAAAAAAAAAABAP/aAAgBAwEBPwGn/8QAFhEBAQEAAAAAAAAAAAAAAAAAABEB/9oACAECAQE/Aaf/xAAbEAACAQUAAAAAAAAAAAAAAAAAAREhMUFhcf/aAAgBAQAGPwJx2uM2f//EABsQAQADAQEBAQAAAAAAAAAAAAEAESExQVFh/9oACAEBAAE/IXbNk2u0l8Q8Hq6m1F//2gAMAwEAAgADAAAAENAP/8QAFhEBAQEAAAAAAAAAAAAAAAAAARAR/9oACAEDAQE/EEqf/8QAFhEBAQEAAAAAAAAAAAAAAAAAARAR/9oACAECAQE/EEtP/8QAGxABAQADAQEBAAAAAAAAAAAAAREAITFBUWH/2gAIAQEAAT8Qh1p4kMsS2y8FcZbK9mHzonlWQhV8/9k=',
+            true,
+        );
 
         if (!is_string($jpeg) || '' === $jpeg) {
-            $this->fail('Failed to generate JPEG test image.');
+            $this->fail('Failed to decode embedded JPEG test image.');
         }
 
         return $jpeg;
