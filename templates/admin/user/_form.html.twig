@@ -72,20 +72,22 @@
 
         {% set avatar_has_errors = form.avatarFile.vars.errors|length > 0 %}
         {% set avatar_error_id = form.avatarFile.vars.id ~ '-error' %}
+        {% set avatar_hint_id = form.avatarFile.vars.id ~ '-hint' %}
         {% set avatar_preview_id = form.avatarFile.vars.id ~ '-preview' %}
         {% set avatar_preview_image_id = form.avatarFile.vars.id ~ '-preview-image' %}
         {% set avatar_preview_empty_id = form.avatarFile.vars.id ~ '-preview-empty' %}
         {% set current_avatar = form.vars.data.avatar %}
-        {% set avatar_described_by = avatar_has_errors ? avatar_error_id : null %}
+        {% set avatar_described_by = avatar_hint_id ~ (avatar_has_errors ? ' ' ~ avatar_error_id : '') %}
         <div class="field article-editor-field{{ avatar_has_errors ? ' has-error' : '' }}" data-avatar-upload>
             {{ form_label(form.avatarFile, null, { label_attr: { class: 'sr-only' } }) }}
             <div class="file-upload" data-file-upload data-file-upload-drop-enabled="false">
                 {{ form_widget(form.avatarFile, { attr: form.avatarFile.vars.attr|merge({
                     class: 'sr-only file-upload-input',
+                    'aria-describedby': avatar_described_by,
                     'data-file-upload-input': '',
                     'data-avatar-input': '',
                     'data-avatar-preview-target': '#' ~ avatar_preview_id
-                }|merge(avatar_described_by ? {'aria-describedby': avatar_described_by} : {})|merge(avatar_has_errors ? {'aria-invalid': 'true'} : {})) }) }}
+                }|merge(avatar_has_errors ? {'aria-invalid': 'true'} : {})) }) }}
                 <div class="file-upload-surface" data-file-upload-surface>
                     <div class="file-upload-topbar">
                         <div
@@ -142,6 +144,7 @@
                     </div>
                 </div>
             </div>
+            <span id="{{ avatar_hint_id }}" class="sr-only" data-i18n="user_form_avatar_hint">{{ i18n_fallback('user_form_avatar_hint') }}</span>
             {% if avatar_has_errors %}
                 <div id="{{ avatar_error_id }}" class="article-editor-error-message" role="alert">
                     {% for error in form.avatarFile.vars.errors %}
