@@ -8,11 +8,40 @@ use App\Security\LoginSuccessHandler;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Http\Util\TargetPathTrait;
 
 final class LoginSuccessHandlerTest extends TestCase
 {
+    use TargetPathTrait;
+
+    public function testRedirectsToSavedTargetPathBeforeRoleFallback(): void
+    {
+        $router = $this->createMock(RouterInterface::class);
+        $router
+            ->expects($this->never())
+            ->method('generate');
+
+        $token = $this->createMock(TokenInterface::class);
+        $token
+            ->expects($this->never())
+            ->method('getRoleNames');
+
+        $request = new Request();
+        $session = new Session(new MockArraySessionStorage());
+        $request->setSession($session);
+        $this->saveTargetPath($session, 'main', '/admin/users');
+
+        $handler = new LoginSuccessHandler($router);
+        $response = $handler->onAuthenticationSuccess($request, $token);
+
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertSame('/admin/users', $response->getTargetUrl());
+    }
+
     public function testRedirectsAdministratorToDashboard(): void
     {
         $router = $this->createMock(RouterInterface::class);
