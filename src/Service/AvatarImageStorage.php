@@ -52,6 +52,20 @@ class AvatarImageStorage
         ];
     }
 
+    public function deleteIfManaged(?string $avatarPath): void
+    {
+        $absoluteAvatarPath = $this->resolveManagedAvatarAbsolutePath($avatarPath);
+        if (null === $absoluteAvatarPath) {
+            return;
+        }
+
+        try {
+            ($this->managedFileDeleter ?? new ManagedFileDeleter())->delete($absoluteAvatarPath, 'avatar');
+        } catch (\RuntimeException) {
+            // Best-effort cleanup: avatar deletion must not break user lifecycle actions.
+        }
+    }
+
     private function deleteReplacedAvatar(?string $previousAvatarPath, string $newPublicPath): void
     {
         $absolutePreviousPath = $this->resolveManagedAvatarAbsolutePath($previousAvatarPath);
@@ -63,11 +77,7 @@ class AvatarImageStorage
             return;
         }
 
-        try {
-            ($this->managedFileDeleter ?? new ManagedFileDeleter())->delete($absolutePreviousPath, 'avatar');
-        } catch (\RuntimeException) {
-            // Best-effort cleanup: a failure to remove the old avatar must not block saving the new one.
-        }
+        $this->deleteIfManaged($previousAvatarPath);
     }
 
     private function resolveManagedAvatarAbsolutePath(?string $avatarPath): ?string

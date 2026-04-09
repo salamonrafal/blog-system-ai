@@ -146,6 +146,7 @@ class UserController extends AbstractController
         UserRepository $userRepository,
         ArticleRepository $articleRepository,
         EntityManagerInterface $entityManager,
+        AvatarImageStorage $avatarImageStorage,
         UserLanguageResolver $userLanguageResolver,
     ): Response {
         if (!$this->isCsrfTokenValid('delete_user_'.$managedUser->getId(), (string) $request->request->get('_token'))) {
@@ -159,6 +160,8 @@ class UserController extends AbstractController
             return $this->redirectToRoute('admin_user_index');
         }
 
+        $avatarPath = $managedUser->getAvatar();
+
         foreach ($articleRepository->findBy(['createdBy' => $managedUser]) as $article) {
             $article->setCreatedBy(null);
         }
@@ -169,6 +172,7 @@ class UserController extends AbstractController
 
         $entityManager->remove($managedUser);
         $entityManager->flush();
+        $avatarImageStorage->deleteIfManaged($avatarPath);
 
         $this->addFlash('success', $userLanguageResolver->translate('Użytkownik został usunięty.', 'User deleted.'));
 

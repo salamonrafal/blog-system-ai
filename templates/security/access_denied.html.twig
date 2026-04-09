@@ -24,7 +24,11 @@
                     </p>
                     <div class="error-actions">
                         <a class="button" href="{{ path('blog_index') }}">{{ ui_translate('Wróć na stronę główną', 'Back to homepage') }}</a>
-                        <a class="button secondary" href="{{ path('app_login') }}">{{ ui_translate('Przejdź do logowania', 'Go to login') }}</a>
+                        {% if app.user %}
+                            <a class="button secondary" href="{{ path('app_logout') }}">{{ ui_translate('Wyloguj się i zmień konto', 'Log out and switch account') }}</a>
+                        {% else %}
+                            <a class="button secondary" href="{{ path('app_login') }}">{{ ui_translate('Przejdź do logowania', 'Go to login') }}</a>
+                        {% endif %}
                     </div>
                 </div>
             </div>

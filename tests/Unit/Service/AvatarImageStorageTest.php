@@ -131,6 +131,54 @@ final class AvatarImageStorageTest extends TestCase
         $this->assertFileExists($existingPath);
     }
 
+    public function testDeleteIfManagedRemovesManagedAvatar(): void
+    {
+        $existingDirectory = $this->projectDir.'/public/uploads/avatars/2026/04/09';
+        mkdir($existingDirectory, 0777, true);
+        $existingPath = $existingDirectory.'/delete-me.jpg';
+        file_put_contents($existingPath, 'avatar');
+
+        $storage = new AvatarImageStorage(
+            'public/uploads/avatars',
+            $this->projectDir,
+            new ManagedUploadedFileStorage($this->projectDir),
+            new AvatarImageOptimizer(),
+            new ManagedFileDeleter(),
+        );
+
+        $storage->deleteIfManaged('/uploads/avatars/2026/04/09/delete-me.jpg');
+
+        $this->assertFileDoesNotExist($existingPath);
+    }
+
+    public function testDeleteIfManagedIgnoresDeletionFailures(): void
+    {
+        $existingDirectory = $this->projectDir.'/public/uploads/avatars/2026/04/09';
+        mkdir($existingDirectory, 0777, true);
+        $existingPath = $existingDirectory.'/delete-failure.jpg';
+        file_put_contents($existingPath, 'avatar');
+
+        /** @var ManagedFileDeleter&MockObject $managedFileDeleter */
+        $managedFileDeleter = $this->createMock(ManagedFileDeleter::class);
+        $managedFileDeleter
+            ->expects($this->once())
+            ->method('delete')
+            ->with($existingPath, 'avatar')
+            ->willThrowException(new \RuntimeException('Cannot delete avatar'));
+
+        $storage = new AvatarImageStorage(
+            'public/uploads/avatars',
+            $this->projectDir,
+            new ManagedUploadedFileStorage($this->projectDir),
+            new AvatarImageOptimizer(),
+            $managedFileDeleter,
+        );
+
+        $storage->deleteIfManaged('/uploads/avatars/2026/04/09/delete-failure.jpg');
+
+        $this->assertFileExists($existingPath);
+    }
+
     private function createTinyJpeg(): string
     {
         $jpeg = base64_decode(
