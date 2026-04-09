@@ -63,14 +63,24 @@ class UserController extends AbstractController
 
             $user->setRoles($isAdmin ? ['ROLE_ADMIN'] : []);
             $user->setPassword($passwordHasher->hashPassword($user, $plainPassword));
+            $newAvatarPath = null;
             $avatarFile = $form->get('avatarFile')->getData();
             if ($avatarFile instanceof \Symfony\Component\HttpFoundation\File\UploadedFile) {
                 $storedAvatar = $avatarImageStorage->store($avatarFile);
-                $user->setAvatar($storedAvatar['public_path']);
+                $newAvatarPath = $storedAvatar['public_path'];
+                $user->setAvatar($newAvatarPath);
             }
 
             $entityManager->persist($user);
-            $entityManager->flush();
+            try {
+                $entityManager->flush();
+            } catch (\Throwable $exception) {
+                if (is_string($newAvatarPath) && '' !== $newAvatarPath) {
+                    $avatarImageStorage->deleteIfManaged($newAvatarPath);
+                }
+
+                throw $exception;
+            }
 
             $this->addFlash('success', $userLanguageResolver->translate('Użytkownik został utworzony.', 'User created.'));
 
@@ -120,13 +130,29 @@ class UserController extends AbstractController
                 $managedUser->setPassword($passwordHasher->hashPassword($managedUser, $plainPassword));
             }
 
+            $previousAvatarPath = $managedUser->getAvatar();
+            $newAvatarPath = null;
             $avatarFile = $form->get('avatarFile')->getData();
             if ($avatarFile instanceof \Symfony\Component\HttpFoundation\File\UploadedFile) {
-                $storedAvatar = $avatarImageStorage->store($avatarFile, $managedUser->getAvatar());
-                $managedUser->setAvatar($storedAvatar['public_path']);
+                $storedAvatar = $avatarImageStorage->store($avatarFile);
+                $newAvatarPath = $storedAvatar['public_path'];
+                $managedUser->setAvatar($newAvatarPath);
             }
 
-            $entityManager->flush();
+            try {
+                $entityManager->flush();
+            } catch (\Throwable $exception) {
+                if (is_string($newAvatarPath) && '' !== $newAvatarPath) {
+                    $managedUser->setAvatar($previousAvatarPath);
+                    $avatarImageStorage->deleteIfManaged($newAvatarPath);
+                }
+
+                throw $exception;
+            }
+
+            if (is_string($newAvatarPath) && '' !== $newAvatarPath) {
+                $avatarImageStorage->deleteReplacedAvatarIfManaged($previousAvatarPath, $newAvatarPath);
+            }
 
             $this->addFlash('success', $userLanguageResolver->translate('Użytkownik został zaktualizowany.', 'User updated.'));
 

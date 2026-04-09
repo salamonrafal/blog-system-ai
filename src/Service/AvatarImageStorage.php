@@ -24,7 +24,7 @@ class AvatarImageStorage
     /**
      * @return array{relative_path: string, public_path: string, original_filename: string, file_size: int, mime_type: string}
      */
-    public function store(UploadedFile $uploadedFile, ?string $previousAvatarPath = null): array
+    public function store(UploadedFile $uploadedFile): array
     {
         $detectedMimeType = MediaImageSupport::detectMimeType($uploadedFile);
         $subdirectory = (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format('Y/m/d');
@@ -42,11 +42,8 @@ class AvatarImageStorage
         ($this->avatarImageOptimizer ?? new AvatarImageOptimizer())->optimize($absolutePath, $detectedMimeType);
         $storedMimeType = is_file($absolutePath) ? MediaImageSupport::detectMimeType(new File($absolutePath)) : $detectedMimeType;
 
-        $publicPath = $this->toPublicPath($storedFile['relative_path']);
-        $this->deleteReplacedAvatar($previousAvatarPath, $publicPath);
-
         return $storedFile + [
-            'public_path' => $publicPath,
+            'public_path' => $this->toPublicPath($storedFile['relative_path']),
             'file_size' => is_file($absolutePath) ? (filesize($absolutePath) ?: 0) : 0,
             'mime_type' => '' !== $storedMimeType ? $storedMimeType : $detectedMimeType,
         ];
@@ -66,7 +63,7 @@ class AvatarImageStorage
         }
     }
 
-    private function deleteReplacedAvatar(?string $previousAvatarPath, string $newPublicPath): void
+    public function deleteReplacedAvatarIfManaged(?string $previousAvatarPath, string $newPublicPath): void
     {
         $absolutePreviousPath = $this->resolveManagedAvatarAbsolutePath($previousAvatarPath);
         if (null === $absolutePreviousPath) {

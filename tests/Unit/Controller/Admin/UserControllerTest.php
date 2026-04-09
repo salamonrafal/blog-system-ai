@@ -20,6 +20,7 @@ use Symfony\Component\Form\Forms;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Validator\Validation;
 
 final class UserControllerTest extends TestCase
@@ -96,6 +97,96 @@ final class UserControllerTest extends TestCase
         $this->assertSame('admin/user/new.html.twig', $controller->capturedView);
     }
 
+    public function testNewStoresUploadedAvatarAndPersistsUserAvatarPath(): void
+    {
+        $uploadedAvatar = $this->createUploadedAvatarFile();
+
+        /** @var AvatarImageStorage&MockObject $avatarImageStorage */
+        $avatarImageStorage = $this->createMock(AvatarImageStorage::class);
+        $avatarImageStorage
+            ->expects($this->once())
+            ->method('store')
+            ->with($this->callback(static fn (UploadedFile $file): bool => 'avatar.jpg' === $file->getClientOriginalName()))
+            ->willReturn([
+                'relative_path' => 'public/uploads/avatars/2026/04/09/avatar-test.jpg',
+                'public_path' => '/uploads/avatars/2026/04/09/avatar-test.jpg',
+                'original_filename' => 'avatar.jpg',
+                'file_size' => 1234,
+                'mime_type' => 'image/jpeg',
+            ]);
+
+        /** @var \Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface&MockObject $passwordHasher */
+        $passwordHasher = $this->createMock(\Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface::class);
+        $passwordHasher
+            ->expects($this->once())
+            ->method('hashPassword')
+            ->with(
+                $this->isInstanceOf(User::class),
+                'secret-password'
+            )
+            ->willReturn('hashed-password');
+
+        /** @var EntityManagerInterface&MockObject $entityManager */
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager
+            ->expects($this->once())
+            ->method('persist')
+            ->with($this->callback(static function (User $user): bool {
+                return 'new@example.com' === $user->getEmail()
+                    && '/uploads/avatars/2026/04/09/avatar-test.jpg' === $user->getAvatar()
+                    && 'hashed-password' === $user->getPassword()
+                    && in_array('ROLE_ADMIN', $user->getRoles(), true);
+            }));
+        $entityManager
+            ->expects($this->once())
+            ->method('flush');
+
+        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
+        $userLanguageResolver
+            ->expects($this->once())
+            ->method('translate')
+            ->with('Użytkownik został utworzony.', 'User created.')
+            ->willReturn('Użytkownik został utworzony.');
+
+        $request = new Request(
+            [],
+            [
+                'user' => [
+                    'email' => 'new@example.com',
+                    'fullName' => 'Nowy Uzytkownik',
+                    'nickname' => 'nowy',
+                    'shortBio' => 'Opis',
+                    'isAdmin' => '1',
+                    'isActive' => '1',
+                    'plainPassword' => 'secret-password',
+                ],
+            ],
+            [],
+            [],
+            [
+                'user' => [
+                    'avatarFile' => $uploadedAvatar,
+                ],
+            ],
+            [
+                'REQUEST_METHOD' => 'POST',
+            ],
+        );
+
+        $controller = new TestUserController();
+        $response = $controller->new(
+            $request,
+            $entityManager,
+            $passwordHasher,
+            $avatarImageStorage,
+            $userLanguageResolver,
+        );
+
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertSame('/admin/users', $response->getTargetUrl());
+        $this->assertSame([['success', 'Użytkownik został utworzony.']], $controller->flashMessages);
+    }
+
     public function testDeleteRemovesManagedAvatarAfterUserDeletion(): void
     {
         $managedUser = (new User())
@@ -157,6 +248,21 @@ final class UserControllerTest extends TestCase
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertSame('/admin/users', $response->getTargetUrl());
         $this->assertSame([['success', 'Użytkownik został usunięty.']], $controller->flashMessages);
+    }
+
+    private function createUploadedAvatarFile(): UploadedFile
+    {
+        $path = tempnam(sys_get_temp_dir(), 'avatar-test-');
+        if (false === $path) {
+            $this->fail('Failed to create temporary avatar file.');
+        }
+
+        file_put_contents($path, base64_decode(
+            '/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxAQEBUQEBAVFRUVFRUVFRUVFRUVFRUQFRUWFhUVFRUYHSggGBolHRUVITEhJSkrLi4uFx8zODMsNygtLisBCgoKDg0OGhAQGzIlHyUtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLf/AABEIAAgACAMBIgACEQEDEQH/xAAXAAEBAQEAAAAAAAAAAAAAAAAAAQID/8QAFhEBAQEAAAAAAAAAAAAAAAAAAQAC/9oADAMBAAIQAxAAAAHJrKkP/8QAHBAAAgICAwAAAAAAAAAAAAAAAAECEQMhMRIy/9oACAEBAAEFAvVnMZl5Y0//xAAVEQEBAAAAAAAAAAAAAAAAAAABAP/aAAgBAwEBPwGn/8QAFhEBAQEAAAAAAAAAAAAAAAAAABEB/9oACAECAQE/Aaf/xAAbEAACAQUAAAAAAAAAAAAAAAAAAREhMUFhcf/aAAgBAQAGPwJx2uM2f//EABsQAQADAQEBAQAAAAAAAAAAAAEAESExQVFh/9oACAEBAAE/IXbNk2u0l8Q8Hq6m1F//2gAMAwEAAgADAAAAENAP/8QAFhEBAQEAAAAAAAAAAAAAAAAAARAR/9oACAEDAQE/EEqf/8QAFhEBAQEAAAAAAAAAAAAAAAAAARAR/9oACAECAQE/EEtP/8QAGxABAQADAQEBAAAAAAAAAAAAAREAITFBUWH/2gAIAQEAAT8Qh1p4kMsS2y8FcZbK9mHzonlWQhV8/9k=',
+            true,
+        ) ?: '');
+
+        return new UploadedFile($path, 'avatar.jpg', 'image/jpeg', null, true);
     }
 }
 

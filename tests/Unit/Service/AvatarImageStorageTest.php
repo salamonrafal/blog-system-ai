@@ -49,7 +49,7 @@ final class AvatarImageStorageTest extends TestCase
         $this->assertSame('profile.jpg', $storedFile['original_filename']);
     }
 
-    public function testStoreDeletesPreviouslyManagedAvatarWhenReplacing(): void
+    public function testStoreDoesNotDeletePreviousManagedAvatarBeforePersistenceSucceeds(): void
     {
         $existingDirectory = $this->projectDir.'/public/uploads/avatars/2026/04/08';
         mkdir($existingDirectory, 0777, true);
@@ -68,21 +68,37 @@ final class AvatarImageStorageTest extends TestCase
             new ManagedFileDeleter(),
         );
 
-        $storage->store($uploadedFile, '/uploads/avatars/2026/04/08/old-avatar.jpg');
+        $storage->store($uploadedFile);
+
+        $this->assertFileExists($existingPath);
+    }
+
+    public function testDeleteReplacedAvatarIfManagedDeletesPreviousManagedAvatar(): void
+    {
+        $existingDirectory = $this->projectDir.'/public/uploads/avatars/2026/04/08';
+        mkdir($existingDirectory, 0777, true);
+        $existingPath = $existingDirectory.'/old-avatar.jpg';
+        file_put_contents($existingPath, 'old-avatar');
+
+        $storage = new AvatarImageStorage(
+            'public/uploads/avatars',
+            $this->projectDir,
+            new ManagedUploadedFileStorage($this->projectDir),
+            new AvatarImageOptimizer(),
+            new ManagedFileDeleter(),
+        );
+
+        $storage->deleteReplacedAvatarIfManaged('/uploads/avatars/2026/04/08/old-avatar.jpg', '/uploads/avatars/2026/04/09/new-avatar.jpg');
 
         $this->assertFileDoesNotExist($existingPath);
     }
 
-    public function testStoreDeletesPreviouslyManagedAvatarFromConfigurableDirectory(): void
+    public function testDeleteReplacedAvatarIfManagedDeletesPreviousManagedAvatarFromConfigurableDirectory(): void
     {
         mkdir($this->projectDir.'/custom/avatars/2026/04/08', 0777, true);
         $existingPath = $this->projectDir.'/custom/avatars/2026/04/08/old-avatar.jpg';
         file_put_contents($existingPath, 'old-avatar');
 
-        $sourcePath = $this->projectDir.'/avatar-custom-replacement.jpg';
-        file_put_contents($sourcePath, $this->createTinyJpeg());
-
-        $uploadedFile = new UploadedFile($sourcePath, 'replacement.jpg', 'image/jpeg', null, true);
         $storage = new AvatarImageStorage(
             'custom/avatars',
             $this->projectDir,
@@ -91,22 +107,17 @@ final class AvatarImageStorageTest extends TestCase
             new ManagedFileDeleter(),
         );
 
-        $storage->store($uploadedFile, '/custom/avatars/2026/04/08/old-avatar.jpg');
+        $storage->deleteReplacedAvatarIfManaged('/custom/avatars/2026/04/08/old-avatar.jpg', '/custom/avatars/2026/04/09/new-avatar.jpg');
 
         $this->assertFileDoesNotExist($existingPath);
     }
 
-    public function testStoreSucceedsWhenDeletingPreviousAvatarFails(): void
+    public function testDeleteReplacedAvatarIfManagedIgnoresDeletionFailures(): void
     {
         $existingDirectory = $this->projectDir.'/public/uploads/avatars/2026/04/08';
         mkdir($existingDirectory, 0777, true);
         $existingPath = $existingDirectory.'/old-avatar.jpg';
         file_put_contents($existingPath, 'old-avatar');
-
-        $sourcePath = $this->projectDir.'/avatar-delete-failure.jpg';
-        file_put_contents($sourcePath, $this->createTinyJpeg());
-
-        $uploadedFile = new UploadedFile($sourcePath, 'replacement.jpg', 'image/jpeg', null, true);
 
         /** @var ManagedFileDeleter&MockObject $managedFileDeleter */
         $managedFileDeleter = $this->createMock(ManagedFileDeleter::class);
@@ -124,10 +135,8 @@ final class AvatarImageStorageTest extends TestCase
             $managedFileDeleter,
         );
 
-        $storedFile = $storage->store($uploadedFile, '/uploads/avatars/2026/04/08/old-avatar.jpg');
+        $storage->deleteReplacedAvatarIfManaged('/uploads/avatars/2026/04/08/old-avatar.jpg', '/uploads/avatars/2026/04/09/new-avatar.jpg');
 
-        $this->assertStringStartsWith('/uploads/avatars/', $storedFile['public_path']);
-        $this->assertFileExists($this->projectDir.'/'.$storedFile['relative_path']);
         $this->assertFileExists($existingPath);
     }
 
