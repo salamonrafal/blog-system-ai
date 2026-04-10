@@ -10,6 +10,7 @@
         status_code: 403,
         prompt: ui_translate('Sekcja administracyjna', 'Administration section'),
         message: ui_translate('Nie masz uprawnień, aby wejść do tej sekcji. Jeśli potrzebujesz dostępu administratora, skontaktuj się z właścicielem systemu.', 'You do not have permission to enter this section. If you need administrator access, contact the system owner.'),
+        primary_href: path('blog_index'),
         home_label: ui_translate('Wróć na stronę główną', 'Back to homepage'),
         secondary_href: app.user ? path('app_logout') : path('app_login'),
         secondary_label: app.user ? ui_translate('Wyloguj się i zmień konto', 'Log out and switch account') : ui_translate('Przejdź do logowania', 'Go to login'),

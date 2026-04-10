@@ -72,6 +72,7 @@
     data-page-title="{% block page_title %}{{ block('title') }}{% endblock %}"
     {% if page_title_i18n_key is not empty %}
         data-page-title-i18n="{{ page_title_i18n_key }}"
+        data-i18n-param-app_name="{{ app_name }}"
     {% endif %}
     {% if is_admin_layout %}
         data-admin-page="true"
