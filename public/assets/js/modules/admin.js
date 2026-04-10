@@ -251,13 +251,16 @@ export function setupAdminShortcuts(){
 
   const syncAdminNotificationsBadge = (totalCount)=>{
     const normalizedCount = Number.isFinite(Number(totalCount)) ? Math.max(0, Number(totalCount)) : 0;
+    const badgeLabel = getLang() === 'pl'
+      ? `${normalizedCount} ${normalizedCount === 1 ? 'powiadomienie' : 'powiadomień'}`
+      : `${normalizedCount} ${normalizedCount === 1 ? 'notification' : 'notifications'}`;
 
     qsa('[data-admin-notifications-badge]').forEach((badge)=>{
       if(!(badge instanceof HTMLElement)) return;
 
       badge.textContent = `${normalizedCount}`;
       badge.hidden = normalizedCount <= 0;
-      badge.setAttribute('aria-label', `${normalizedCount}`);
+      badge.setAttribute('aria-label', badgeLabel);
     });
 
     qsa('.admin-shortcuts').forEach((shortcuts)=>{
