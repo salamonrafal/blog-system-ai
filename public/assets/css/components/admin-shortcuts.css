@@ -332,6 +332,55 @@
   background: color-mix(in oklab, var(--panel) 78%, var(--panel-2) 22%);
 }
 
+@media (min-width: 769px){
+  .admin-shortcuts-menu{
+    overflow:visible;
+  }
+
+  .admin-shortcuts-submenu-flyout{
+    position:relative;
+  }
+
+  .admin-shortcuts-submenu-flyout > .admin-shortcuts-submenu-panel{
+    position:absolute;
+    right:calc(100% + 12px);
+    bottom:0;
+    width:min(360px, calc(100vw - 48px));
+    max-height:min(420px, calc(100vh - 48px));
+    border:1px solid color-mix(in oklab, var(--accent-2) 24%, var(--border));
+    border-radius:16px;
+    box-shadow:var(--shadow);
+    opacity:0;
+    overflow-y:auto;
+    pointer-events:none;
+    transform:translateX(8px);
+    visibility:hidden;
+    transition:opacity .18s ease, transform .18s ease;
+  }
+
+  .admin-shortcuts.is-docked .admin-shortcuts-submenu-flyout > .admin-shortcuts-submenu-panel{
+    right:auto;
+    left:calc(100% + 12px);
+    transform:translateX(-8px);
+  }
+
+  .admin-shortcuts-submenu-flyout.is-open > .admin-shortcuts-submenu-panel{
+    opacity:1;
+    pointer-events:auto;
+    transform:translateX(0);
+    visibility:visible;
+  }
+
+  .admin-shortcuts.is-docked .admin-shortcuts-submenu-flyout.is-open > .admin-shortcuts-submenu-panel{
+    transform:translateX(0);
+  }
+
+  .admin-shortcuts-submenu-flyout > .admin-shortcuts-submenu-panel .admin-shortcuts-link{
+    min-height:54px;
+  }
+
+}
+
 .admin-shortcuts-link-icon{
   flex:0 0 auto;
   display:inline-flex;
@@ -379,7 +428,7 @@
 .admin-shortcuts-collapsed-popover{
   position:fixed;
   z-index:95;
-  width:220px;
+  width:min(360px, calc(100vw - 24px));
 }
 
 .admin-shortcuts-collapsed-popover[hidden]{
@@ -402,7 +451,9 @@
 .admin-shortcuts-collapsed-popover-panel .admin-shortcuts-link{
   justify-content:flex-start;
   padding:11px 14px;
+  min-height:46px;
   background:color-mix(in oklab, var(--panel-2) 94%, transparent);
+  font-size:13px;
 }
 
 .admin-shortcuts-collapsed-popover-panel .admin-shortcuts-link + .admin-shortcuts-link{

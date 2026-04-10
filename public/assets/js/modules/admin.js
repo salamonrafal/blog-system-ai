@@ -1,4 +1,5 @@
 import { applyI18n, getTranslation, registerI18nListener } from './i18n.js';
+import { createAdminNotificationsController } from './admin-notifications.js';
 import { createMediaImagePicker } from './media-image-picker.js';
 import { getLang, isAdminDeviceRemembered, isAdminShortcutsCollapsed, isAdminShortcutsDocked, setAdminDeviceRemembered, setAdminShortcutsCollapsed, setAdminShortcutsDocked } from './preferences.js';
 import { assignFilesToInput, lockDocumentScroll, normalizeHexColor, qs, qsa, unlockDocumentScroll } from './shared.js';
@@ -15,6 +16,10 @@ function shouldUseCollapsedAdminSubmenuPopover(submenu){
     && shortcuts.classList.contains('is-docked')
     && shortcuts.classList.contains('is-collapsed')
     && isDesktopAdminShortcutsViewport();
+}
+
+function isPersistentAdminFlyoutSubmenu(submenu){
+  return submenu instanceof HTMLElement && submenu.hasAttribute('data-admin-shortcuts-flyout');
 }
 
 function syncCollapsedSubmenuAccessibility(shortcuts){
@@ -198,6 +203,34 @@ export function setupAdminShortcuts(){
   syncAdminShortcuts();
   let collapsedSubmenuPopover = null;
   let collapsedSubmenuOwner = null;
+  const notificationsController = createAdminNotificationsController({
+    recentNotificationsEndpoint: document.body.getAttribute('data-user-notifications-recent-endpoint'),
+    notificationsCsrfToken: document.body.getAttribute('data-user-notifications-csrf'),
+    onBadgesUpdated: ()=>{
+      qsa('.admin-shortcuts').forEach((shortcuts)=>{
+        if(!(shortcuts instanceof HTMLElement)) return;
+        syncCollapsedShortcutTooltips(shortcuts);
+      });
+    },
+  });
+
+  const refreshAdminNotificationsViews = ()=>{
+    notificationsController.refreshNotificationsViews(()=>{
+      if(
+        collapsedSubmenuOwner instanceof HTMLElement
+        && collapsedSubmenuOwner.hasAttribute('data-admin-notifications-submenu')
+        && collapsedSubmenuPopover
+        && !collapsedSubmenuPopover.hidden
+      ){
+        openCollapsedSubmenuPopover(collapsedSubmenuOwner);
+      }
+    });
+  };
+  notificationsController.setup();
+
+  document.addEventListener('app:admin-notifications-changed', ()=>{
+    refreshAdminNotificationsViews();
+  });
 
   const resetCollapsedDesktopSubmenus = ()=>{
     qsa('.admin-shortcuts.is-docked.is-collapsed').forEach((shortcuts)=>{
@@ -347,6 +380,24 @@ export function setupAdminShortcuts(){
     }
   };
 
+  const loadNotificationsForSubmenu = (submenu)=>{
+    if(!(submenu instanceof HTMLElement) || !submenu.hasAttribute('data-admin-notifications-submenu')){
+      return;
+    }
+
+    window.requestAnimationFrame(()=>{
+      void notificationsController.loadRecentNotifications(true).then(()=>{
+        if(
+          collapsedSubmenuOwner === submenu
+          && collapsedSubmenuPopover
+          && !collapsedSubmenuPopover.hidden
+        ){
+          openCollapsedSubmenuPopover(submenu);
+        }
+      });
+    });
+  };
+
   qsa('[data-admin-shortcuts-submenu]').forEach((submenu)=>{
     const trigger = qs('[data-action="toggle-admin-submenu"]', submenu);
     if(!trigger) return;
@@ -354,20 +405,33 @@ export function setupAdminShortcuts(){
     trigger.addEventListener('click', (event)=>{
       event.preventDefault();
       event.stopPropagation();
+
       const isOpen = shouldUseCollapsedAdminSubmenuPopover(submenu)
         ? collapsedSubmenuOwner === submenu && !!collapsedSubmenuPopover && !collapsedSubmenuPopover.hidden
         : submenu.classList.contains('is-open');
 
+      const shouldKeepOtherSubmenusOpen = isPersistentAdminFlyoutSubmenu(submenu);
+
       qsa('[data-admin-shortcuts-submenu].is-open').forEach((openSubmenu)=>{
-        if(openSubmenu !== submenu){
-          closeAdminSubmenu(openSubmenu);
+        if(openSubmenu === submenu){
+          return;
         }
+
+        if(shouldKeepOtherSubmenusOpen){
+          if(isPersistentAdminFlyoutSubmenu(openSubmenu)){
+            closeAdminSubmenu(openSubmenu);
+          }
+          return;
+        }
+
+        closeAdminSubmenu(openSubmenu);
       });
 
       if(isOpen){
         closeAdminSubmenu(submenu);
       }else{
         openAdminSubmenu(submenu);
+        loadNotificationsForSubmenu(submenu);
       }
     });
   });
@@ -429,6 +493,18 @@ export function setupAdminShortcuts(){
     menu.addEventListener('click', (event)=>{
       const target = event.target;
       if(!(target instanceof Element)) return;
+      if(notificationsController.handleRefreshClick(target, refreshAdminNotificationsViews)){
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+
+      if(notificationsController.handleActionClick(target, refreshAdminNotificationsViews)){
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+
       if(!target.closest('a[href]')) return;
       if(shortcuts.classList.contains('is-docked') && isDesktopAdminShortcutsViewport()) return;
 
@@ -437,6 +513,18 @@ export function setupAdminShortcuts(){
   });
 
   document.addEventListener('click', (event)=>{
+    if(notificationsController.handleRefreshClick(event.target, refreshAdminNotificationsViews)){
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
+    if(notificationsController.handleActionClick(event.target, refreshAdminNotificationsViews)){
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
     qsa('.admin-shortcuts[open]').forEach((shortcuts)=>{
       if(shortcuts.classList.contains('is-docked')) return;
       if(!shortcuts.contains(event.target)){
@@ -473,14 +561,29 @@ export function setupAdminShortcuts(){
   document.addEventListener('keydown', (event)=>{
     if(event.key !== 'Escape') return;
 
-    closeCollapsedSubmenuPopover();
+    const hasOpenCollapsedPopover = !!(collapsedSubmenuPopover && !collapsedSubmenuPopover.hidden);
+    const openSubmenus = qsa('[data-admin-shortcuts-submenu].is-open');
+    const openNotificationsSubmenu = openSubmenus.find((submenu)=> submenu.hasAttribute('data-admin-notifications-submenu'));
+
+    if(hasOpenCollapsedPopover){
+      closeCollapsedSubmenuPopover();
+      return;
+    }
+
+    if(openNotificationsSubmenu){
+      closeAdminSubmenu(openNotificationsSubmenu);
+      return;
+    }
+
+    if(openSubmenus.length > 0){
+      openSubmenus.forEach((submenu)=>{
+        closeAdminSubmenu(submenu);
+      });
+      return;
+    }
 
     qsa('.admin-shortcuts[open]').forEach((shortcuts)=>{
       closeAdminShortcuts(shortcuts);
-    });
-
-    qsa('[data-admin-shortcuts-submenu].is-open').forEach((submenu)=>{
-      closeAdminSubmenu(submenu);
     });
   });
 

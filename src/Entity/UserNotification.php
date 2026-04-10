@@ -32,6 +32,9 @@ class UserNotification
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $displayedAt = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $readAt = null;
+
     public function __construct(User $recipient, UserNotificationType $type)
     {
         $this->recipient = $recipient;
@@ -64,9 +67,28 @@ class UserNotification
         return $this->displayedAt;
     }
 
+    public function isRead(): bool
+    {
+        return null !== $this->readAt;
+    }
+
     public function setDisplayedAt(?\DateTimeImmutable $displayedAt): self
     {
         $this->displayedAt = $displayedAt?->setTimezone(new \DateTimeZone(self::STORAGE_TIMEZONE));
+
+        return $this;
+    }
+
+    public function markAsRead(): self
+    {
+        $this->readAt = self::utcNow();
+
+        return $this;
+    }
+
+    public function markAsUnread(): self
+    {
+        $this->readAt = null;
 
         return $this;
     }

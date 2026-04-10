@@ -78,6 +78,83 @@ class UserNotificationService
         return $this->collapseNotifications($notifications);
     }
 
+    /**
+     * @return list<UserNotification>
+     */
+    public function findLatestForUserId(?int $userId, int $limit = 10): array
+    {
+        if (null === $userId) {
+            return [];
+        }
+
+        $entityManager = $this->getWritableEntityManager(UserNotification::class);
+
+        return $this->getNotificationRepository($entityManager)->findLatestForUserId($userId, $limit);
+    }
+
+    public function toggleReadStatusForUserId(?int $userId, int $notificationId): ?UserNotification
+    {
+        if (null === $userId) {
+            return null;
+        }
+
+        $entityManager = $this->getWritableEntityManager(UserNotification::class);
+        $notification = $this->getNotificationRepository($entityManager)->findOneForUserId($userId, $notificationId);
+        if (!$notification instanceof UserNotification) {
+            return null;
+        }
+
+        if ($notification->isRead()) {
+            $notification->markAsUnread();
+        } else {
+            $notification->markAsRead();
+        }
+
+        $entityManager->flush();
+
+        return $notification;
+    }
+
+    public function countForUserId(?int $userId): int
+    {
+        if (null === $userId) {
+            return 0;
+        }
+
+        $entityManager = $this->getWritableEntityManager(UserNotification::class);
+
+        return $this->getNotificationRepository($entityManager)->countForUserId($userId);
+    }
+
+    public function deleteForUserId(?int $userId, int $notificationId): bool
+    {
+        if (null === $userId) {
+            return false;
+        }
+
+        $entityManager = $this->getWritableEntityManager(UserNotification::class);
+        $notification = $this->getNotificationRepository($entityManager)->findOneForUserId($userId, $notificationId);
+        if (!$notification instanceof UserNotification) {
+            return false;
+        }
+
+        $entityManager->remove($notification);
+        $entityManager->flush();
+
+        return true;
+    }
+
+    public function deleteAllForUserId(?int $userId): int
+    {
+        if (null === $userId) {
+            return 0;
+        }
+
+        $entityManager = $this->getWritableEntityManager(UserNotification::class);
+
+        return $this->getNotificationRepository($entityManager)->deleteAllForUserId($userId);
+    }
+
     private function createNotification(?int $userId, UserNotificationType $type): void
     {
         if (null === $userId) {

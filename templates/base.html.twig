@@ -79,6 +79,7 @@
     {% endif %}
     {% if is_granted('ROLE_ADMIN') %}
         data-user-notifications-endpoint="{{ path('admin_user_notification_pending') }}"
+        data-user-notifications-recent-endpoint="{{ path('admin_user_notification_recent') }}"
         data-user-notifications-csrf="{{ csrf_token('consume_user_notifications') }}"
     {% endif %}
 >
@@ -549,6 +550,65 @@ Fullstack Developer</span>
                     </a>
                 </div>
                 </div>
+                <section class="admin-shortcuts-section admin-shortcuts-notifications" data-i18n-aria="admin_shortcut_notifications_title" aria-label="Centrum Powiadomień">
+                    <div class="admin-shortcuts-submenu admin-shortcuts-submenu-flyout" data-admin-shortcuts-submenu data-admin-shortcuts-flyout data-admin-notifications-submenu>
+                        <button type="button" class="admin-shortcuts-link admin-shortcuts-button admin-shortcuts-submenu-trigger" data-action="toggle-admin-submenu" aria-haspopup="true" aria-expanded="false" aria-controls="admin-shortcuts-notifications-panel" data-collapsed-tooltip-key="admin_shortcut_notifications_title" data-i18n-tooltip="admin_shortcut_notifications_title">
+                            <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                                <svg viewBox="0 0 32 32">
+                                    <path d="M16 6a5 5 0 0 0-5 5v2.4c0 1.3-.4 2.6-1.2 3.7L8 19.5h16l-1.8-2.4a6.2 6.2 0 0 1-1.2-3.7V11a5 5 0 0 0-5-5"></path>
+                                    <path d="M13 23a3 3 0 0 0 6 0"></path>
+                                </svg>
+                            </span>
+                            <span data-i18n="admin_shortcut_notifications_title">Centrum Powiadomień</span>
+                            <span class="admin-shortcuts-badge" data-admin-notifications-badge hidden>0</span>
+                            <span class="admin-shortcuts-submenu-caret" aria-hidden="true">
+                                <svg viewBox="0 0 32 32">
+                                    <path d="M10 13l6 6 6-6"></path>
+                                </svg>
+                            </span>
+                        </button>
+                        <div class="admin-shortcuts-submenu-panel admin-shortcuts-notifications-panel" id="admin-shortcuts-notifications-panel" data-i18n-aria="admin_shortcut_notifications_title" aria-label="Centrum Powiadomień">
+                            <div class="admin-shortcuts-notifications-header">
+                                <p class="admin-shortcuts-notifications-title" data-i18n="admin_shortcut_notifications_title">Centrum Powiadomień</p>
+                                <button type="button" class="admin-shortcuts-notifications-refresh" data-action="refresh-admin-notifications" data-i18n-aria="admin_shortcut_notifications_refresh" data-i18n-tooltip="admin_shortcut_notifications_refresh" data-tooltip="Odśwież powiadomienia" aria-label="Odśwież powiadomienia">
+                                    <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                                        <svg viewBox="0 0 32 32">
+                                            <path d="M25 10v6h-6"></path>
+                                            <path d="M7 22v-6h6"></path>
+                                            <path d="M9.5 14A8 8 0 0 1 25 16"></path>
+                                            <path d="M22.5 18A8 8 0 0 1 7 16"></path>
+                                        </svg>
+                                    </span>
+                                </button>
+                            </div>
+                            <div class="admin-shortcuts-notifications-body" data-admin-notifications-panel>
+                                <div class="admin-shortcuts-notifications-placeholder" data-admin-notifications-placeholder data-i18n="admin_shortcut_notifications_loading">Ładowanie powiadomień...</div>
+                            </div>
+                            <div class="admin-shortcuts-notifications-footer">
+                                <button
+                                    type="button"
+                                    class="admin-shortcuts-notifications-footer-action"
+                                    data-action="delete-all-admin-notifications"
+                                    data-url="{{ path('admin_user_notification_delete_all') }}"
+                                    data-i18n-aria="admin_shortcut_notifications_delete_all"
+                                    data-i18n-tooltip="admin_shortcut_notifications_delete_all"
+                                    data-tooltip="Usuń wszystkie powiadomienia"
+                                    aria-label="Usuń wszystkie powiadomienia"
+                                >
+                                    <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                                        <svg viewBox="0 0 32 32">
+                                            <path d="M8 10h16"></path>
+                                            <path d="M12 10V8h8v2"></path>
+                                            <path d="M11 10l1 14h8l1-14"></path>
+                                            <path d="M14 14v6"></path>
+                                            <path d="M18 14v6"></path>
+                                        </svg>
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
                 <section class="admin-shortcuts-section admin-shortcuts-settings" data-i18n-aria="admin_shortcut_settings_title" aria-label="Szybkie ustawienia">
                     <p class="admin-shortcuts-section-title" data-i18n="admin_shortcut_settings_title">Szybkie ustawienia</p>
                     <button type="button" class="admin-shortcuts-link admin-shortcuts-button" data-action="toggle-device-login" data-collapsed-tooltip-key="admin_shortcut_remember_device" data-i18n-tooltip="admin_shortcut_remember_device" aria-pressed="false">

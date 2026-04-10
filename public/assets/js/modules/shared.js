@@ -147,6 +147,31 @@ export function getBrowserTimeZone(){
   }
 }
 
+export function formatDateTime(value, {
+  locale,
+  options = {},
+} = {}){
+  if(value === null || value === undefined) return '';
+  if(typeof value === 'string' && value.trim() === '') return '';
+
+  const date = value instanceof Date ? value : new Date(value);
+  if(Number.isNaN(date.getTime())) return '';
+
+  const preferredLocale = typeof locale === 'string' && locale.trim() !== ''
+    ? locale.trim()
+    : document?.documentElement?.lang || navigator.language || undefined;
+
+  try{
+    return new Intl.DateTimeFormat(preferredLocale, options).format(date);
+  }catch(err){
+    try{
+      return new Intl.DateTimeFormat(undefined, options).format(date);
+    }catch(formatError){
+      return '';
+    }
+  }
+}
+
 export function assignFilesToInput(input, files){
   if(!(input instanceof HTMLInputElement) || !(files instanceof FileList) || files.length === 0){
     return false;
