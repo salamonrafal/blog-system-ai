@@ -249,18 +249,42 @@ export function setupAdminShortcuts(){
     panel.appendChild(placeholder);
   };
 
+  const formatAdminNotificationsBadgeLabel = (count)=>{
+    const normalizedCount = Number.isFinite(Number(count)) ? Math.max(0, Number(count)) : 0;
+
+    if(getLang() === 'pl'){
+      const mod10 = normalizedCount % 10;
+      const mod100 = normalizedCount % 100;
+      const noun = normalizedCount === 1
+        ? 'powiadomienie'
+        : mod10 >= 2 && mod10 <= 4 && !(mod100 >= 12 && mod100 <= 14)
+          ? 'powiadomienia'
+          : 'powiadomień';
+
+      return `${normalizedCount} ${noun}`;
+    }
+
+    return `${normalizedCount} ${normalizedCount === 1 ? 'notification' : 'notifications'}`;
+  };
+
+  const syncAdminNotificationsBadgeLabel = ()=>{
+    qsa('[data-admin-notifications-badge]').forEach((badge)=>{
+      if(!(badge instanceof HTMLElement)) return;
+
+      const count = Number(badge.textContent || '0');
+      badge.setAttribute('aria-label', formatAdminNotificationsBadgeLabel(count));
+    });
+  };
+
   const syncAdminNotificationsBadge = (totalCount)=>{
     const normalizedCount = Number.isFinite(Number(totalCount)) ? Math.max(0, Number(totalCount)) : 0;
-    const badgeLabel = getLang() === 'pl'
-      ? `${normalizedCount} ${normalizedCount === 1 ? 'powiadomienie' : 'powiadomień'}`
-      : `${normalizedCount} ${normalizedCount === 1 ? 'notification' : 'notifications'}`;
 
     qsa('[data-admin-notifications-badge]').forEach((badge)=>{
       if(!(badge instanceof HTMLElement)) return;
 
       badge.textContent = `${normalizedCount}`;
       badge.hidden = normalizedCount <= 0;
-      badge.setAttribute('aria-label', badgeLabel);
+      badge.setAttribute('aria-label', formatAdminNotificationsBadgeLabel(normalizedCount));
     });
 
     qsa('.admin-shortcuts').forEach((shortcuts)=>{
@@ -480,6 +504,14 @@ export function setupAdminShortcuts(){
   if(recentNotificationsEndpoint){
     void loadRecentAdminNotifications();
   }
+
+  registerI18nListener(()=>{
+    syncAdminNotificationsBadgeLabel();
+    qsa('.admin-shortcuts').forEach((shortcuts)=>{
+      if(!(shortcuts instanceof HTMLElement)) return;
+      syncCollapsedShortcutTooltips(shortcuts);
+    });
+  });
 
   document.addEventListener('app:admin-notifications-changed', ()=>{
     refreshAdminNotificationsViews();

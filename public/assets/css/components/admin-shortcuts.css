@@ -646,6 +646,10 @@
     min-height:54px;
   }
 
+  .admin-shortcuts-submenu-flyout > .admin-shortcuts-notifications-panel{
+    overflow:hidden;
+  }
+
   .admin-shortcuts-submenu-flyout > .admin-shortcuts-submenu-panel .admin-shortcuts-notification-item{
     padding-left:16px;
   }
