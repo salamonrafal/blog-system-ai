@@ -431,6 +431,10 @@ export function setupFlashNotices(){
       notifications.forEach((notification)=>{
         appendNotificationFlash(notification);
       });
+
+      if(notifications.length > 0){
+        document.dispatchEvent(new CustomEvent('app:admin-notifications-changed'));
+      }
     }catch(err){
       // Ignore transient polling failures and retry on the next scheduled cycle.
     }

@@ -236,6 +236,7 @@ final class UserNotificationControllerTest extends TestCase
         $response = $controller->delete(15, $request, $service);
 
         $this->assertSame(204, $response->getStatusCode());
+        $this->assertSame('', (string) $response->getContent());
     }
 
     public function testDeleteAllReturnsDeletedCount(): void

@@ -81,7 +81,7 @@ class UserNotificationController extends AbstractController
     }
 
     #[Route('/{id}', name: 'admin_user_notification_delete', methods: ['DELETE'], requirements: ['id' => '\d+'])]
-    public function delete(int $id, Request $request, UserNotificationService $userNotificationService): JsonResponse
+    public function delete(int $id, Request $request, UserNotificationService $userNotificationService): Response
     {
         if (!$this->isCsrfTokenValid('consume_user_notifications', (string) $request->headers->get('X-CSRF-Token'))) {
             throw $this->createAccessDeniedException('Invalid CSRF token.');
@@ -96,7 +96,7 @@ class UserNotificationController extends AbstractController
             return new JsonResponse(['message' => 'Notification not found.'], Response::HTTP_NOT_FOUND);
         }
 
-        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+        return new Response(status: Response::HTTP_NO_CONTENT);
     }
 
     #[Route('', name: 'admin_user_notification_delete_all', methods: ['DELETE'])]

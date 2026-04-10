@@ -247,21 +247,12 @@ final class UserNotificationServiceTest extends TestCase
 
     public function testDeleteAllForUserIdRemovesEveryNotification(): void
     {
-        $user = (new User())
-            ->setEmail('admin@example.com')
-            ->setFullName('Admin');
-
-        $notifications = [
-            new UserNotification($user, UserNotificationType::IMPORT_COMPLETED_SUCCESS),
-            new UserNotification($user, UserNotificationType::EXPORT_COMPLETED_ERROR),
-        ];
-
         $repository = $this->createMock(UserNotificationRepository::class);
         $repository
             ->expects($this->once())
-            ->method('findAllForUserId')
+            ->method('deleteAllForUserId')
             ->with(7)
-            ->willReturn($notifications);
+            ->willReturn(2);
 
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager
@@ -273,12 +264,6 @@ final class UserNotificationServiceTest extends TestCase
             ->method('getRepository')
             ->with(UserNotification::class)
             ->willReturn($repository);
-        $entityManager
-            ->expects($this->exactly(2))
-            ->method('remove');
-        $entityManager
-            ->expects($this->once())
-            ->method('flush');
 
         $managerRegistry = $this->createMock(ManagerRegistry::class);
         $managerRegistry

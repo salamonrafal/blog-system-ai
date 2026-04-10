@@ -217,6 +217,7 @@ export function setupAdminShortcuts(){
   const notificationsCsrfToken = document.body.getAttribute('data-user-notifications-csrf');
   let recentNotificationsRequest = null;
   let adminNotificationsBodyMinHeight = 0;
+  let latestAdminNotificationsRequestId = 0;
 
   const formatAdminNotificationDate = (value)=>{
     if(!value) return '';
@@ -416,13 +417,15 @@ export function setupAdminShortcuts(){
       return recentNotificationsRequest;
     }
 
+    const requestId = ++latestAdminNotificationsRequestId;
+
     const hasRenderedNotifications = panel.children.length > 0;
     if(!hasRenderedNotifications){
       renderAdminNotificationsState(panel, 'admin_shortcut_notifications_loading');
     }
     setAdminNotificationsLoadingState(panel, true);
 
-    recentNotificationsRequest = fetch(recentNotificationsEndpoint, {
+    const requestPromise = fetch(recentNotificationsEndpoint, {
       method: 'GET',
       headers: {
         'X-Requested-With': 'XMLHttpRequest',
@@ -437,23 +440,42 @@ export function setupAdminShortcuts(){
         }
 
         const payload = await response.json();
+        if(requestId !== latestAdminNotificationsRequestId){
+          return;
+        }
+
         syncAdminNotificationsBadge(payload.total_count);
         renderAdminNotifications(panel, Array.isArray(payload.notifications) ? payload.notifications : []);
       })
       .catch(()=>{
+        if(requestId !== latestAdminNotificationsRequestId){
+          return;
+        }
+
         renderAdminNotificationsState(panel, 'admin_shortcut_notifications_error');
       })
       .finally(()=>{
-        setAdminNotificationsLoadingState(panel, false);
-        recentNotificationsRequest = null;
+        if(requestId === latestAdminNotificationsRequestId){
+          setAdminNotificationsLoadingState(panel, false);
+        }
+
+        if(recentNotificationsRequest === requestPromise){
+          recentNotificationsRequest = null;
+        }
       });
 
-    return recentNotificationsRequest;
+    recentNotificationsRequest = requestPromise;
+
+    return requestPromise;
   };
 
   if(recentNotificationsEndpoint){
     void loadRecentAdminNotifications();
   }
+
+  document.addEventListener('app:admin-notifications-changed', ()=>{
+    refreshAdminNotificationsViews();
+  });
 
   const resetCollapsedDesktopSubmenus = ()=>{
     qsa('.admin-shortcuts.is-docked.is-collapsed').forEach((shortcuts)=>{

@@ -151,18 +151,8 @@ class UserNotificationService
         }
 
         $entityManager = $this->getWritableEntityManager(UserNotification::class);
-        $notifications = $this->getNotificationRepository($entityManager)->findAllForUserId($userId);
-        if ([] === $notifications) {
-            return 0;
-        }
 
-        foreach ($notifications as $notification) {
-            $entityManager->remove($notification);
-        }
-
-        $entityManager->flush();
-
-        return count($notifications);
+        return $this->getNotificationRepository($entityManager)->deleteAllForUserId($userId);
     }
 
     private function createNotification(?int $userId, UserNotificationType $type): void

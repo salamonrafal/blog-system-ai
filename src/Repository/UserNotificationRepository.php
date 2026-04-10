@@ -68,15 +68,13 @@ class UserNotificationRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
-    /**
-     * @return list<UserNotification>
-     */
-    public function findAllForUserId(int $userId): array
+    public function deleteAllForUserId(int $userId): int
     {
         return $this->createQueryBuilder('notification')
+            ->delete()
             ->andWhere('IDENTITY(notification.recipient) = :userId')
             ->setParameter('userId', $userId)
             ->getQuery()
-            ->getResult();
+            ->execute();
     }
 }

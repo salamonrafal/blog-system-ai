@@ -483,7 +483,7 @@
 
 @keyframes admin-shortcuts-notifications-spinner{
   to{
-    transform:rotate(360deg);
+    transform:scale(1) rotate(360deg);
   }
 }
 
