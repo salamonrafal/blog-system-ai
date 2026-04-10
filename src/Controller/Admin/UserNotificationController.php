@@ -117,7 +117,7 @@ class UserNotificationController extends AbstractController
 
     /**
      * @return array{
-     *     id: int|null,
+     *     id: int,
      *     type: string,
      *     translation_key: string,
      *     action_label_translation_key: string,

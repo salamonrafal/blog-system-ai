@@ -59,7 +59,7 @@ export function createAdminNotificationsController({
     qsa('[data-admin-notifications-badge]').forEach((badge)=>{
       if(!(badge instanceof HTMLElement)) return;
 
-      badge.textContent = `${normalizedCount}`;
+      badge.textContent = normalizedCount > 0 ? `${normalizedCount}` : '';
       badge.hidden = normalizedCount <= 0;
       badge.setAttribute('aria-label', formatAdminNotificationsBadgeLabel(normalizedCount));
     });

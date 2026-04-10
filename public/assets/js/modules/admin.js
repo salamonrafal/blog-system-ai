@@ -18,17 +18,6 @@ function shouldUseCollapsedAdminSubmenuPopover(submenu){
     && isDesktopAdminShortcutsViewport();
 }
 
-function shouldUseSideAdminFlyout(submenu){
-  if(!(submenu instanceof HTMLElement)) return false;
-  if(!submenu.hasAttribute('data-admin-shortcuts-flyout')) return false;
-  if(!isDesktopAdminShortcutsViewport()) return false;
-
-  const shortcuts = submenu.closest('.admin-shortcuts');
-  if(!(shortcuts instanceof HTMLElement)) return false;
-
-  return !shortcuts.classList.contains('is-collapsed');
-}
-
 function isPersistentAdminFlyoutSubmenu(submenu){
   return submenu instanceof HTMLElement && submenu.hasAttribute('data-admin-shortcuts-flyout');
 }
