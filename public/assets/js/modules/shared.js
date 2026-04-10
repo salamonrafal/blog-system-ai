@@ -151,7 +151,8 @@ export function formatDateTime(value, {
   locale,
   options = {},
 } = {}){
-  if(!value) return '';
+  if(value === null || value === undefined) return '';
+  if(typeof value === 'string' && value.trim() === '') return '';
 
   const date = value instanceof Date ? value : new Date(value);
   if(Number.isNaN(date.getTime())) return '';
