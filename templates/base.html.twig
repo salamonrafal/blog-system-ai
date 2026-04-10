@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="{% block meta_description %}{{ blog_settings.homepageSeoDescription }}{% endblock %}">
     <meta name="keywords" content="{% block meta_keywords %}{{ blog_settings.homepageSeoKeywords }}{% endblock %}">
-    <meta name="robots" content="index,follow,max-image-preview:large">
+    <meta name="robots" content="{% block meta_robots %}index,follow,max-image-preview:large{% endblock %}">
     <meta name="author" content="Rafał Salamon">
     <meta name="theme-color" content="#0b0f12">
     <script>
@@ -66,9 +66,13 @@
 {% set is_users_shortcut_active = route_name starts with 'admin_user_' %}
 {% set is_import_export_shortcut_active = route_name == 'admin_queue_status' or route_name starts with 'admin_article_import_' or route_name starts with 'admin_category_import_' or route_name starts with 'admin_top_menu_import_' or route_name starts with 'admin_article_export_' %}
 {% set is_blog_settings_shortcut_active = route_name == 'admin_blog_settings' %}
+{% set page_title_i18n_key = page_title_i18n_key|default('') %}
 
 <body
     data-page-title="{% block page_title %}{{ block('title') }}{% endblock %}"
+    {% if page_title_i18n_key is not empty %}
+        data-page-title-i18n="{{ page_title_i18n_key }}"
+    {% endif %}
     {% if is_admin_layout %}
         data-admin-page="true"
     {% endif %}

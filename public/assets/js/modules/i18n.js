@@ -78,6 +78,11 @@ export function applyI18n(lang){
   document.documentElement.lang = lang;
   applyLangVisibility(lang);
 
+  const pageTitleKey = document.body?.getAttribute('data-page-title-i18n');
+  if(pageTitleKey && translations[pageTitleKey] !== undefined){
+    document.title = interpolateTranslation(translations[pageTitleKey], document.body);
+  }
+
   qsa('[data-i18n]').forEach((element)=>{
     const key = element.getAttribute('data-i18n');
     if(translations[key] !== undefined){
