@@ -396,3 +396,18 @@
 - Zmieniono obsługę kont bez roli administratora: zwykły użytkownik może się teraz normalnie zalogować, a po sukcesie jest kierowany na stronę główną, podczas gdy administrator po logowaniu trafia do panelu `/admin`.
 - Dodano dedykowaną stronę `403 Access denied` renderowaną w layoucie aplikacji oraz spięto ją z firewallem przez `access_denied_url`, dzięki czemu ręczne wejście na `/admin` bez uprawnień nie pokazuje już debugowego exception page Symfony.
 - Dopracowano pływające skróty administratora dla różnych typów użytkowników: na stronie `403` panel jest ukrywany, dla zapamiętanego urządzenia bez aktywnej sesji nadal pozostaje dostępny pływający przycisk logowania, a dla zwykłego zalogowanego użytkownika menu pokazuje wyłącznie akcję `Wyloguj` bez opcji dokowania i bez sekcji administracyjnych.
+
+## 2026-04-09
+
+- Rozszerzono moduł avatarów użytkowników o pełny przepływ zarządzania zdjęciem profilowym, dopracowując formularz, komunikaty pomocnicze, dostępność uploadu i prezentację wskazówek dla administratora.
+- Ustabilizowano zapis i podmianę avatarów, wzmacniając obsługę błędów przy wymianie pliku, usuwaniu poprzedniego obrazka i optymalizacji JPEG, tak aby nowy upload nie był blokowany przez nieudaną operację czyszczenia starego zasobu.
+- Dodano automatyczne usuwanie avatara z dysku po skasowaniu użytkownika oraz rozszerzono warstwę usług plikowych i testy jednostkowe o scenariusze bezpiecznej wymiany i czyszczenia plików profilowych.
+- Dopracowano `LoginSuccessHandler`, dodając przekierowanie na zapamiętaną ścieżkę docelową po poprawnym logowaniu oraz czyszczenie `target path` po udanym użyciu, wraz z aktualizacją testów jednostkowych.
+- Uzupełniono komunikaty walidacyjne uploadów o dynamicznie wyliczane limity rozmiaru pliku oraz uporządkowano drobne szczegóły layoutu, w tym jawne korzystanie z wcześniej zdefiniowanej wartości `show_admin_shortcuts`.
+
+## 2026-04-10
+
+- Dodano własną stronę błędu `404` w layoucie aplikacji, używaną zarówno dla nieistniejących route'ów, jak i dla zasobów zgłaszających `NotFoundHttpException`, dzięki czemu zamiast domyślnej strony wyjątku Symfony wyświetlany jest spójny widok błędu.
+- Wydzielono współdzielony komponent widoków statusowych dla stron błędów, upraszczając utrzymanie wspólnego markupu dla ekranów `403` i `404`.
+- Rozszerzono internacjonalizację strony `404`, podpinając ją do frontendowego mechanizmu `data-i18n` oraz aktualizacji `document.title`, tak aby przełącznik języka działał również na ekranie błędu bez przeładowania strony.
+- Dodano subscriber obsługujący błędy `404` dla głównego requestu oraz testy jednostkowe potwierdzające poprawne renderowanie dedykowanej strony i ignorowanie pozostałych wyjątków.

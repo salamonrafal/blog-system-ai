@@ -6,32 +6,13 @@
 {% block title %}{{ ui_translate('Brak dostępu', 'Access denied') }} | {{ app_name }}{% endblock %}
 
 {% block body %}
-    <section class="error-main">
-        <div class="error-shell">
-            <div class="card error-card">
-                <div class="card-header">
-                    <div class="window-dots" aria-hidden="true">
-                        <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
-                    </div>
-                    <span class="pill">error://403</span>
-                </div>
-
-                <div class="error-body">
-                    <p class="error-prompt">{{ ui_translate('Sekcja administracyjna', 'Administration section') }}</p>
-                    <p class="error-code">403</p>
-                    <p class="error-text">
-                        {{ ui_translate('Nie masz uprawnień, aby wejść do tej sekcji. Jeśli potrzebujesz dostępu administratora, skontaktuj się z właścicielem systemu.', 'You do not have permission to enter this section. If you need administrator access, contact the system owner.') }}
-                    </p>
-                    <div class="error-actions">
-                        <a class="button" href="{{ path('blog_index') }}">{{ ui_translate('Wróć na stronę główną', 'Back to homepage') }}</a>
-                        {% if app.user %}
-                            <a class="button secondary" href="{{ path('app_logout') }}">{{ ui_translate('Wyloguj się i zmień konto', 'Log out and switch account') }}</a>
-                        {% else %}
-                            <a class="button secondary" href="{{ path('app_login') }}">{{ ui_translate('Przejdź do logowania', 'Go to login') }}</a>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+    {% include 'error/_status_page.html.twig' with {
+        status_code: 403,
+        prompt: ui_translate('Sekcja administracyjna', 'Administration section'),
+        message: ui_translate('Nie masz uprawnień, aby wejść do tej sekcji. Jeśli potrzebujesz dostępu administratora, skontaktuj się z właścicielem systemu.', 'You do not have permission to enter this section. If you need administrator access, contact the system owner.'),
+        primary_href: path('blog_index'),
+        primary_label: ui_translate('Wróć na stronę główną', 'Back to homepage'),
+        secondary_href: app.user ? path('app_logout') : path('app_login'),
+        secondary_label: app.user ? ui_translate('Wyloguj się i zmień konto', 'Log out and switch account') : ui_translate('Przejdź do logowania', 'Go to login'),
+    } only %}
 {% endblock %}
