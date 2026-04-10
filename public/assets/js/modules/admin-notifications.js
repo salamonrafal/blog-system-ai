@@ -184,7 +184,9 @@ export function createAdminNotificationsController({
 
   const loadRecentNotifications = async (force = false)=>{
     const panel = qs('[data-admin-notifications-panel]');
-    if(!(panel instanceof HTMLElement) || !recentNotificationsEndpoint) return;
+    if(!(panel instanceof HTMLElement) || !recentNotificationsEndpoint){
+      return Promise.resolve();
+    }
 
     if(recentNotificationsRequest && !force){
       return recentNotificationsRequest;
