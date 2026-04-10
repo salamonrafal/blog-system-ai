@@ -161,6 +161,37 @@ final class UserNotificationControllerTest extends TestCase
         ], json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 
+    public function testRecentThrowsLogicExceptionForNotificationWithoutId(): void
+    {
+        $user = (new User())
+            ->setEmail('admin@example.com')
+            ->setFullName('Admin');
+        $this->setEntityId($user, 7);
+
+        $notifications = [
+            new UserNotification($user, UserNotificationType::TOP_MENU_IMPORT_COMPLETED_SUCCESS),
+        ];
+
+        $service = $this->createMock(UserNotificationService::class);
+        $service
+            ->expects($this->once())
+            ->method('findLatestForUserId')
+            ->with(7, 10)
+            ->willReturn($notifications);
+        $service
+            ->expects($this->once())
+            ->method('countForUserId')
+            ->with(7)
+            ->willReturn(1);
+
+        $controller = new TestUserNotificationController($user, $this->createMock(UrlGeneratorInterface::class));
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('Cannot normalize a user notification without an ID.');
+
+        $controller->recent($service);
+    }
+
     public function testToggleReadReturnsUpdatedNotification(): void
     {
         $user = (new User())

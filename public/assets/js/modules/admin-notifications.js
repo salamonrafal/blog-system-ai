@@ -53,6 +53,14 @@ export function createAdminNotificationsController({
     });
   };
 
+  const syncAdminNotificationDates = ()=>{
+    qsa('.admin-shortcuts-notification-meta[data-notification-created-at]').forEach((meta)=>{
+      if(!(meta instanceof HTMLElement)) return;
+
+      meta.textContent = formatAdminNotificationDate(meta.dataset.notificationCreatedAt || '');
+    });
+  };
+
   const syncAdminNotificationsBadge = (totalCount)=>{
     const normalizedCount = Number.isFinite(Number(totalCount)) ? Math.max(0, Number(totalCount)) : 0;
 
@@ -120,6 +128,7 @@ export function createAdminNotificationsController({
 
       const meta = document.createElement('span');
       meta.className = 'admin-shortcuts-notification-meta';
+      meta.dataset.notificationCreatedAt = notification.created_at || '';
       meta.textContent = formatAdminNotificationDate(notification.created_at);
 
       const actions = document.createElement('div');
@@ -287,6 +296,7 @@ export function createAdminNotificationsController({
 
     registerI18nListener(()=>{
       syncAdminNotificationsBadgeLabel();
+      syncAdminNotificationDates();
       onBadgesUpdated();
     });
   };

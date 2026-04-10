@@ -130,8 +130,13 @@ class UserNotificationController extends AbstractController
      */
     private function normalizeNotification(UserNotification $notification): array
     {
+        $notificationId = $notification->getId();
+        if (null === $notificationId) {
+            throw new \LogicException('Cannot normalize a user notification without an ID.');
+        }
+
         return [
-            'id' => $notification->getId(),
+            'id' => $notificationId,
             'type' => $notification->getType()->flashType(),
             'translation_key' => $notification->getType()->translationKey(),
             'action_label_translation_key' => $notification->getType()->actionLabelTranslationKey(),
@@ -144,12 +149,12 @@ class UserNotificationController extends AbstractController
             'is_read' => $notification->isRead(),
             'toggle_read_url' => $this->urlGenerator->generate(
                 'admin_user_notification_toggle_read',
-                ['id' => $notification->getId()],
+                ['id' => $notificationId],
                 UrlGeneratorInterface::ABSOLUTE_PATH,
             ),
             'delete_url' => $this->urlGenerator->generate(
                 'admin_user_notification_delete',
-                ['id' => $notification->getId()],
+                ['id' => $notificationId],
                 UrlGeneratorInterface::ABSOLUTE_PATH,
             ),
         ];
