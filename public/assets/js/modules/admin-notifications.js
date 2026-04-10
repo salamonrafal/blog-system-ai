@@ -36,7 +36,16 @@ export function createAdminNotificationsController({
   const formatAdminNotificationsBadgeLabel = (count)=>{
     const normalizedCount = Number.isFinite(Number(count)) ? Math.max(0, Number(count)) : 0;
     const locale = getLang();
-    const pluralCategory = new Intl.PluralRules(locale).select(normalizedCount);
+    let pluralCategory = 'other';
+
+    if(typeof Intl !== 'undefined' && typeof Intl.PluralRules === 'function'){
+      try{
+        pluralCategory = new Intl.PluralRules(locale).select(normalizedCount);
+      }catch(error){
+        pluralCategory = 'other';
+      }
+    }
+
     const translationKey = `admin_shortcut_notifications_badge_${pluralCategory}`;
     const fallbackTranslationKey = 'admin_shortcut_notifications_badge_other';
     const template = getTranslation(translationKey, locale) || getTranslation(fallbackTranslationKey, locale);
