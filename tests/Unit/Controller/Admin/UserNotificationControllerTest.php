@@ -13,6 +13,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 final class UserNotificationControllerTest extends TestCase
 {
@@ -212,6 +213,53 @@ final class UserNotificationControllerTest extends TestCase
         ], json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 
+    public function testToggleReadThrowsAccessDeniedWhenCsrfTokenIsInvalid(): void
+    {
+        $service = $this->createMock(UserNotificationService::class);
+        $service
+            ->expects($this->never())
+            ->method('toggleReadStatusForUserId');
+
+        $controller = new TestUserNotificationController(new User(), $this->createMock(UrlGeneratorInterface::class));
+        $controller->csrfTokenIsValid = false;
+
+        $request = new Request();
+        $request->headers->set('X-CSRF-Token', 'invalid');
+
+        $this->expectException(AccessDeniedException::class);
+        $this->expectExceptionMessage('Invalid CSRF token.');
+
+        $controller->toggleRead(15, $request, $service);
+    }
+
+    public function testToggleReadReturnsNotFoundWhenNotificationDoesNotExist(): void
+    {
+        $user = (new User())
+            ->setEmail('admin@example.com')
+            ->setFullName('Admin');
+        $this->setEntityId($user, 7);
+
+        $service = $this->createMock(UserNotificationService::class);
+        $service
+            ->expects($this->once())
+            ->method('toggleReadStatusForUserId')
+            ->with(7, 15)
+            ->willReturn(null);
+
+        $controller = new TestUserNotificationController($user, $this->createMock(UrlGeneratorInterface::class));
+        $controller->csrfTokenIsValid = true;
+
+        $request = new Request();
+        $request->headers->set('X-CSRF-Token', 'valid');
+
+        $response = $controller->toggleRead(15, $request, $service);
+
+        $this->assertSame(404, $response->getStatusCode());
+        $this->assertSame([
+            'message' => 'Notification not found.',
+        ], json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR));
+    }
+
     public function testDeleteReturnsNoContentWhenNotificationWasRemoved(): void
     {
         $user = (new User())
@@ -237,6 +285,53 @@ final class UserNotificationControllerTest extends TestCase
 
         $this->assertSame(204, $response->getStatusCode());
         $this->assertSame('', (string) $response->getContent());
+    }
+
+    public function testDeleteThrowsAccessDeniedWhenCsrfTokenIsInvalid(): void
+    {
+        $service = $this->createMock(UserNotificationService::class);
+        $service
+            ->expects($this->never())
+            ->method('deleteForUserId');
+
+        $controller = new TestUserNotificationController(new User(), $this->createMock(UrlGeneratorInterface::class));
+        $controller->csrfTokenIsValid = false;
+
+        $request = new Request();
+        $request->headers->set('X-CSRF-Token', 'invalid');
+
+        $this->expectException(AccessDeniedException::class);
+        $this->expectExceptionMessage('Invalid CSRF token.');
+
+        $controller->delete(15, $request, $service);
+    }
+
+    public function testDeleteReturnsNotFoundWhenNotificationDoesNotExist(): void
+    {
+        $user = (new User())
+            ->setEmail('admin@example.com')
+            ->setFullName('Admin');
+        $this->setEntityId($user, 7);
+
+        $service = $this->createMock(UserNotificationService::class);
+        $service
+            ->expects($this->once())
+            ->method('deleteForUserId')
+            ->with(7, 15)
+            ->willReturn(false);
+
+        $controller = new TestUserNotificationController($user, $this->createMock(UrlGeneratorInterface::class));
+        $controller->csrfTokenIsValid = true;
+
+        $request = new Request();
+        $request->headers->set('X-CSRF-Token', 'valid');
+
+        $response = $controller->delete(15, $request, $service);
+
+        $this->assertSame(404, $response->getStatusCode());
+        $this->assertSame([
+            'message' => 'Notification not found.',
+        ], json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 
     public function testDeleteAllReturnsDeletedCount(): void
@@ -266,6 +361,25 @@ final class UserNotificationControllerTest extends TestCase
         $this->assertSame([
             'deleted_count' => 9,
         ], json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR));
+    }
+
+    public function testDeleteAllThrowsAccessDeniedWhenCsrfTokenIsInvalid(): void
+    {
+        $service = $this->createMock(UserNotificationService::class);
+        $service
+            ->expects($this->never())
+            ->method('deleteAllForUserId');
+
+        $controller = new TestUserNotificationController(new User(), $this->createMock(UrlGeneratorInterface::class));
+        $controller->csrfTokenIsValid = false;
+
+        $request = new Request();
+        $request->headers->set('X-CSRF-Token', 'invalid');
+
+        $this->expectException(AccessDeniedException::class);
+        $this->expectExceptionMessage('Invalid CSRF token.');
+
+        $controller->deleteAll($request, $service);
     }
 
     private function setEntityId(User $user, int $id): void

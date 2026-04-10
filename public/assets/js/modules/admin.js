@@ -391,25 +391,35 @@ export function setupAdminShortcuts(){
     }
   };
 
+  const loadNotificationsForSubmenu = (submenu)=>{
+    if(!(submenu instanceof HTMLElement) || !submenu.hasAttribute('data-admin-notifications-submenu')){
+      return;
+    }
+
+    window.requestAnimationFrame(()=>{
+      void notificationsController.loadRecentNotifications(true).then(()=>{
+        if(
+          collapsedSubmenuOwner === submenu
+          && collapsedSubmenuPopover
+          && !collapsedSubmenuPopover.hidden
+        ){
+          openCollapsedSubmenuPopover(submenu);
+        }
+      });
+    });
+  };
+
   qsa('[data-admin-shortcuts-submenu]').forEach((submenu)=>{
     const trigger = qs('[data-action="toggle-admin-submenu"]', submenu);
     if(!trigger) return;
 
-    trigger.addEventListener('click', async (event)=>{
+    trigger.addEventListener('click', (event)=>{
       event.preventDefault();
       event.stopPropagation();
 
       const isOpen = shouldUseCollapsedAdminSubmenuPopover(submenu)
         ? collapsedSubmenuOwner === submenu && !!collapsedSubmenuPopover && !collapsedSubmenuPopover.hidden
         : submenu.classList.contains('is-open');
-
-      if(
-        submenu.hasAttribute('data-admin-notifications-submenu')
-        && !isOpen
-        && (shouldUseSideAdminFlyout(submenu) || !submenu.classList.contains('is-open'))
-      ){
-        await notificationsController.loadRecentNotifications(true);
-      }
 
       const shouldKeepOtherSubmenusOpen = isPersistentAdminFlyoutSubmenu(submenu);
 
@@ -432,6 +442,7 @@ export function setupAdminShortcuts(){
         closeAdminSubmenu(submenu);
       }else{
         openAdminSubmenu(submenu);
+        loadNotificationsForSubmenu(submenu);
       }
     });
   });
