@@ -259,6 +259,11 @@ export function setupAdminShortcuts(){
       badge.hidden = normalizedCount <= 0;
       badge.setAttribute('aria-label', `${normalizedCount}`);
     });
+
+    qsa('.admin-shortcuts').forEach((shortcuts)=>{
+      if(!(shortcuts instanceof HTMLElement)) return;
+      syncCollapsedShortcutTooltips(shortcuts);
+    });
   };
 
   const setAdminNotificationsLoadingState = (panel, isLoading)=>{

@@ -166,6 +166,53 @@ final class UserNotificationServiceTest extends TestCase
 
         $this->assertSame($notification, $updatedNotification);
         $this->assertTrue($notification->isRead());
+        $this->assertNull($notification->getDisplayedAt());
+    }
+
+    public function testToggleReadStatusForUserIdMarksDisplayedNotificationAsUnreadWithoutClearingDisplayedState(): void
+    {
+        $user = (new User())
+            ->setEmail('admin@example.com')
+            ->setFullName('Admin');
+
+        $notification = new UserNotification($user, UserNotificationType::EXPORT_COMPLETED_SUCCESS);
+        $notification->setDisplayedAt(new \DateTimeImmutable('2026-04-10T12:00:00+00:00'));
+        $notification->markAsRead();
+
+        $repository = $this->createMock(UserNotificationRepository::class);
+        $repository
+            ->expects($this->once())
+            ->method('findOneForUserId')
+            ->with(7, 22)
+            ->willReturn($notification);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager
+            ->expects($this->once())
+            ->method('isOpen')
+            ->willReturn(true);
+        $entityManager
+            ->expects($this->once())
+            ->method('getRepository')
+            ->with(UserNotification::class)
+            ->willReturn($repository);
+        $entityManager
+            ->expects($this->once())
+            ->method('flush');
+
+        $managerRegistry = $this->createMock(ManagerRegistry::class);
+        $managerRegistry
+            ->expects($this->once())
+            ->method('getManagerForClass')
+            ->with(UserNotification::class)
+            ->willReturn($entityManager);
+
+        $service = new UserNotificationService($managerRegistry);
+        $updatedNotification = $service->toggleReadStatusForUserId(7, 22);
+
+        $this->assertSame($notification, $updatedNotification);
+        $this->assertFalse($notification->isRead());
+        $this->assertNotNull($notification->getDisplayedAt());
     }
 
     public function testDeleteForUserIdRemovesNotification(): void
