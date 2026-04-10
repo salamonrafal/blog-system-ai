@@ -64,9 +64,28 @@ class UserNotification
         return $this->displayedAt;
     }
 
+    public function isRead(): bool
+    {
+        return null !== $this->displayedAt;
+    }
+
     public function setDisplayedAt(?\DateTimeImmutable $displayedAt): self
     {
         $this->displayedAt = $displayedAt?->setTimezone(new \DateTimeZone(self::STORAGE_TIMEZONE));
+
+        return $this;
+    }
+
+    public function markAsRead(): self
+    {
+        $this->displayedAt = self::utcNow();
+
+        return $this;
+    }
+
+    public function markAsUnread(): self
+    {
+        $this->displayedAt = null;
 
         return $this;
     }
