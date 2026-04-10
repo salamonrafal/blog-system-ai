@@ -24,6 +24,6 @@ final class Version20260410153000 extends AbstractMigration
     public function down(Schema $schema): void
     {
         $this->addSql('DROP INDEX IDX_BA86D0B4D6AAB794');
-        $this->addSql('ALTER TABLE user_notification DROP read_at');
+        $this->addSql('ALTER TABLE user_notification DROP COLUMN read_at');
     }
 }
