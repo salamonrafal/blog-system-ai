@@ -1,5 +1,6 @@
 <section class="error-main">
     {% set primary_href = primary_href|default(path('blog_index')) %}
+    {% set primary_label = primary_label|default('') %}
     {% set secondary_href = secondary_href|default('') %}
     {% set secondary_label = secondary_label|default('') %}
     <div class="error-shell">
@@ -16,7 +17,7 @@
                 <p class="error-code">{{ status_code }}</p>
                 <p class="error-text"{% if message_i18n_key is defined and message_i18n_key is not empty %} data-i18n="{{ message_i18n_key }}"{% endif %}>{{ message }}</p>
                 <div class="error-actions">
-                    <a class="button" href="{{ primary_href }}"{% if home_label_i18n_key is defined and home_label_i18n_key is not empty %} data-i18n="{{ home_label_i18n_key }}"{% endif %}>{{ home_label }}</a>
+                    <a class="button" href="{{ primary_href }}"{% if primary_label_i18n_key is defined and primary_label_i18n_key is not empty %} data-i18n="{{ primary_label_i18n_key }}"{% endif %}>{{ primary_label }}</a>
                     {% if secondary_href is not empty and secondary_label is not empty %}
                         <a class="button secondary" href="{{ secondary_href }}"{% if secondary_label_i18n_key is defined and secondary_label_i18n_key is not empty %} data-i18n="{{ secondary_label_i18n_key }}"{% endif %}>{{ secondary_label }}</a>
                     {% endif %}
