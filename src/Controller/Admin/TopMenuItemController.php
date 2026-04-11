@@ -73,7 +73,7 @@ class TopMenuItemController extends AbstractController
         $requestedParentId = $request->query->getInt('parent');
         if (null === $menuItem->getParent() && $requestedParentId > 0) {
             $requestedParent = $topMenuItemRepository->find($requestedParentId);
-            if ($requestedParent instanceof TopMenuItem) {
+            if ($requestedParent instanceof TopMenuItem && null === $requestedParent->getParent()) {
                 $menuItem->setParent($requestedParent);
             }
         }
@@ -152,6 +152,7 @@ class TopMenuItemController extends AbstractController
         TopMenuItem $menuItem,
         Request $request,
         EntityManagerInterface $entityManager,
+        TopMenuItemRepository $topMenuItemRepository,
         UserLanguageResolver $userLanguageResolver,
         TopMenuCacheManager $topMenuCacheManager,
     ): Response {
@@ -159,17 +160,21 @@ class TopMenuItemController extends AbstractController
             throw $this->createAccessDeniedException('Invalid CSRF token.');
         }
 
+        $redirectRoute = 'tree' === $request->request->get('redirect_to') ? 'admin_top_menu_tree' : 'admin_top_menu_index';
+        if (!$menuItem->getChildren()->isEmpty()) {
+            $this->addFlash('error', $userLanguageResolver->translate('Nie można usunąć elementu menu, który ma dzieci.', 'You cannot delete a menu item that still has children.'));
+
+            return $this->redirectToRoute($redirectRoute);
+        }
+
+        $topMenuItemRepository->normalizeSiblingPositions($menuItem->getParent()?->getId(), $menuItem->getId());
         $entityManager->remove($menuItem);
         $entityManager->flush();
         $topMenuCacheManager->refresh();
 
         $this->addFlash('success', $userLanguageResolver->translate('Element menu został usunięty.', 'Menu item deleted.'));
 
-        if ('tree' === $request->request->get('redirect_to')) {
-            return $this->redirectToRoute('admin_top_menu_tree');
-        }
-
-        return $this->redirectToRoute('admin_top_menu_index');
+        return $this->redirectToRoute($redirectRoute);
     }
 
     #[Route('/export', name: 'admin_top_menu_export', methods: ['POST'])]
@@ -237,7 +242,7 @@ class TopMenuItemController extends AbstractController
     ): FormInterface {
         $parentItems = array_values(array_filter(
             $topMenuItemRepository->findForAdminIndex(),
-            static fn (TopMenuItem $candidate): bool => $candidate !== $menuItem,
+            static fn (TopMenuItem $candidate): bool => $candidate !== $menuItem && null === $candidate->getParent(),
         ));
 
         return $this->createForm(TopMenuItemType::class, $menuItem, [

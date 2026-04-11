@@ -132,7 +132,7 @@ class TopMenuItemRepository extends ServiceEntityRepository
             return false;
         }
 
-        $queryBuilder = $this->createBaseQueryBuilder();
+        $queryBuilder = $this->createSiblingPositionQueryBuilder();
         if (null === $parentId) {
             $queryBuilder->andWhere('menu_item.parent IS NULL');
         } else {
@@ -191,6 +191,11 @@ class TopMenuItemRepository extends ServiceEntityRepository
         }
     }
 
+    public function normalizeSiblingPositions(?int $parentId, ?int $excludeId = null): void
+    {
+        $this->normalizeBranchPositions($parentId, $excludeId);
+    }
+
     private function createBaseQueryBuilder(): QueryBuilder
     {
         return $this->createQueryBuilder('menu_item')
@@ -204,12 +209,21 @@ class TopMenuItemRepository extends ServiceEntityRepository
             ->addOrderBy('menu_item.id', 'ASC');
     }
 
+    private function createSiblingPositionQueryBuilder(): QueryBuilder
+    {
+        return $this->createQueryBuilder('menu_item')
+            ->leftJoin('menu_item.parent', 'parent')
+            ->addSelect('parent')
+            ->orderBy('menu_item.position', 'ASC')
+            ->addOrderBy('menu_item.id', 'ASC');
+    }
+
     /**
      * @return list<TopMenuItem>
      */
     private function findSiblingsByParentId(?int $parentId, ?int $excludeId = null): array
     {
-        $queryBuilder = $this->createBaseQueryBuilder();
+        $queryBuilder = $this->createSiblingPositionQueryBuilder();
         if (null === $parentId) {
             $queryBuilder->andWhere('menu_item.parent IS NULL');
         } else {

@@ -24,7 +24,7 @@
             {% set item = node.item %}
             {% set item_id = item.id %}
             {% set parent_id = item.parent ? item.parent.id : '' %}
-            <li class="top-menu-tree-node" data-top-menu-tree-node data-item-id="{{ item_id }}" data-parent-id="{{ parent_id }}" draggable="true">
+            <li class="top-menu-tree-node" data-top-menu-tree-node data-item-id="{{ item_id }}" data-parent-id="{{ parent_id }}">
                 <article class="top-menu-tree-card">
                     <button
                         type="button"

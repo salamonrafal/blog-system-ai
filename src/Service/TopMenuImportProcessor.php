@@ -492,6 +492,7 @@ class TopMenuImportProcessor
             'validation_top_menu_position_non_negative' => 'position must be greater than or equal to zero.',
             'validation_top_menu_parent_self' => 'item cannot be its own parent.',
             'validation_top_menu_parent_cycle' => 'cyclic parent-child relation detected.',
+            'validation_top_menu_parent_depth' => 'parent must be a top-level menu item.',
             default => $message,
         };
     }

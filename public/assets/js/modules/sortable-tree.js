@@ -28,6 +28,7 @@ export function createSortableTree(root, {
   let draggedNode = null;
   let sourceLevel = null;
   let originalIds = [];
+  let armedNode = null;
 
   const emitStatus = (translationKey = '', type = 'info')=>{
     if(typeof onStatusChange === 'function'){
@@ -76,6 +77,30 @@ export function createSortableTree(root, {
     qsa('.is-dragging, .is-drop-target-before, .is-drop-target-after', root).forEach((element)=>{
       element.classList.remove('is-dragging', 'is-drop-target-before', 'is-drop-target-after');
     });
+  };
+
+  const disarmNode = (node)=>{
+    if(!(node instanceof HTMLElement)){
+      return;
+    }
+
+    node.draggable = false;
+    if(armedNode === node){
+      armedNode = null;
+    }
+  };
+
+  const armNode = (node)=>{
+    if(!(node instanceof HTMLElement)){
+      return;
+    }
+
+    if(armedNode instanceof HTMLElement && armedNode !== node){
+      disarmNode(armedNode);
+    }
+
+    armedNode = node;
+    node.draggable = true;
   };
 
   const getDropReferenceNode = (level, pointerY)=>{
@@ -174,7 +199,14 @@ export function createSortableTree(root, {
         return;
       }
 
+      node.draggable = false;
+
       node.addEventListener('dragstart', (event)=>{
+        if(node !== armedNode){
+          event.preventDefault();
+          return;
+        }
+
         event.stopPropagation();
         draggedNode = node;
         sourceLevel = node.parentElement instanceof HTMLElement ? node.parentElement : null;
@@ -197,6 +229,7 @@ export function createSortableTree(root, {
 
         clearDragState();
         setDragActive(false);
+        disarmNode(node);
         draggedNode = null;
         sourceLevel = null;
         originalIds = [];
@@ -211,6 +244,28 @@ export function createSortableTree(root, {
       handle.addEventListener('keydown', (event)=>{
         if(event.key === ' '){
           event.preventDefault();
+        }
+      });
+
+      handle.addEventListener('pointerdown', ()=>{
+        armNode(node);
+      });
+
+      handle.addEventListener('pointerup', ()=>{
+        if(draggedNode !== node){
+          disarmNode(node);
+        }
+      });
+
+      handle.addEventListener('pointercancel', ()=>{
+        if(draggedNode !== node){
+          disarmNode(node);
+        }
+      });
+
+      handle.addEventListener('blur', ()=>{
+        if(draggedNode !== node){
+          disarmNode(node);
         }
       });
     });

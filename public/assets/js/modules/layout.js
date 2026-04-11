@@ -32,6 +32,12 @@ export function setupTooltips(){
   let activeTrigger = null;
   let activeTriggerTooltipText = '';
 
+  const normalizeTooltipIconToken = (value)=>{
+    const normalizedValue = typeof value === 'string' ? value.trim().toLowerCase() : '';
+
+    return /^[a-z0-9_-]+$/.test(normalizedValue) ? normalizedValue : '';
+  };
+
   const positionTooltip = (trigger)=>{
     if(!trigger || tooltip.hasAttribute('hidden')) return;
 
@@ -63,7 +69,7 @@ export function setupTooltips(){
     tooltip.classList.toggle('is-wide', trigger.getAttribute('data-tooltip-wide') === 'true');
     tooltip.classList.toggle('is-wrap', trigger.getAttribute('data-tooltip-wrap') === 'true');
     tooltip.classList.toggle('is-multiline', trigger.getAttribute('data-tooltip-multiline') === 'true');
-    const icon = trigger.getAttribute('data-tooltip-icon') || '';
+    const icon = normalizeTooltipIconToken(trigger.getAttribute('data-tooltip-icon'));
     tooltipIcon.className = 'app-tooltip-icon';
     tooltipIcon.hidden = icon === '';
     if(icon !== ''){

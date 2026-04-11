@@ -348,6 +348,12 @@ class TopMenuItem
                 ->atPath('parent')
                 ->addViolation();
         }
+
+        if (null !== $this->parent && null !== $this->parent->getParent()) {
+            $context->buildViolation('validation_top_menu_parent_depth')
+                ->atPath('parent')
+                ->addViolation();
+        }
     }
 
     #[ORM\PrePersist]

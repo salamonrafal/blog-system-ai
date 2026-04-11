@@ -118,6 +118,33 @@ final class TopMenuItemTest extends TestCase
         $this->assertSame('validation_top_menu_position_non_negative', $violations[0]->getMessage());
     }
 
+    public function testSelectingNestedParentTriggersValidationError(): void
+    {
+        $validator = Validation::createValidatorBuilder()
+            ->enableAttributeMapping()
+            ->getValidator();
+
+        $topLevelParent = (new TopMenuItem())
+            ->setLabels(['pl' => 'Blog', 'en' => 'Blog'])
+            ->setUniqueName('blog')
+            ->setTargetType(TopMenuItemTargetType::BLOG_HOME);
+        $nestedParent = (new TopMenuItem())
+            ->setLabels(['pl' => 'PHP', 'en' => 'PHP'])
+            ->setUniqueName('php')
+            ->setTargetType(TopMenuItemTargetType::BLOG_HOME)
+            ->setParent($topLevelParent);
+        $menuItem = (new TopMenuItem())
+            ->setLabels(['pl' => 'Symfony', 'en' => 'Symfony'])
+            ->setUniqueName('symfony')
+            ->setTargetType(TopMenuItemTargetType::BLOG_HOME)
+            ->setParent($nestedParent);
+
+        $violations = $validator->validate($menuItem);
+
+        $this->assertGreaterThan(0, $violations->count());
+        $this->assertSame('validation_top_menu_parent_depth', $violations[0]->getMessage());
+    }
+
     public function testNormalizeTargetConfigurationClearsFieldsNotMatchingCurrentTargetType(): void
     {
         $category = (new ArticleCategory())->setName('PHP')->setSlug('php');

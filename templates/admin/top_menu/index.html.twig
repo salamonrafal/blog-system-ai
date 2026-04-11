@@ -81,22 +81,40 @@
                                     <a class="button secondary article-action-button" href="{{ path('admin_top_menu_edit', {id: item.id}) }}" data-i18n-title="admin_table_edit" data-i18n-tooltip="admin_table_edit" data-i18n-aria="admin_table_edit" data-tooltip="Edytuj" aria-label="Edytuj element menu">
                                         <span class="article-action-icon is-edit" aria-hidden="true"></span>
                                     </a>
-                                    <form method="post" action="{{ path('admin_top_menu_delete', {id: item.id}) }}" data-delete-form>
-                                        <input type="hidden" name="_token" value="{{ csrf_token('delete_top_menu_item_' ~ item.id) }}">
+                                    {% if item.children is not empty %}
                                         <button
-                                            class="button secondary button-danger article-action-button"
+                                            class="button secondary button-danger article-action-button is-disabled"
                                             type="button"
-                                            data-action="confirm-delete-top-menu-item"
-                                            data-top-menu-item-name="{{ item.localizedLabel(user_language) }}"
-                                            data-i18n-title="admin_table_delete"
-                                            data-i18n-tooltip="admin_table_delete"
-                                            data-i18n-aria="admin_table_delete"
-                                            data-tooltip="Usuń"
-                                            aria-label="Usuń element menu"
+                                            disabled
+                                            data-i18n-title="admin_top_menu_tree_delete_blocked"
+                                            data-i18n-tooltip="admin_top_menu_tree_delete_blocked"
+                                            data-i18n-aria="admin_top_menu_tree_delete_blocked"
+                                            data-tooltip-icon="warning"
+                                            data-tooltip-wrap="true"
+                                            data-tooltip="Nie można usunąć elementu, który ma dzieci"
+                                            aria-label="Nie można usunąć elementu, który ma dzieci"
+                                            aria-disabled="true"
                                         >
                                             <span class="article-action-icon is-delete" aria-hidden="true"></span>
                                         </button>
-                                    </form>
+                                    {% else %}
+                                        <form method="post" action="{{ path('admin_top_menu_delete', {id: item.id}) }}" data-delete-form>
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete_top_menu_item_' ~ item.id) }}">
+                                            <button
+                                                class="button secondary button-danger article-action-button"
+                                                type="button"
+                                                data-action="confirm-delete-top-menu-item"
+                                                data-top-menu-item-name="{{ item.localizedLabel(user_language) }}"
+                                                data-i18n-title="admin_table_delete"
+                                                data-i18n-tooltip="admin_table_delete"
+                                                data-i18n-aria="admin_table_delete"
+                                                data-tooltip="Usuń"
+                                                aria-label="Usuń element menu"
+                                            >
+                                                <span class="article-action-icon is-delete" aria-hidden="true"></span>
+                                            </button>
+                                        </form>
+                                    {% endif %}
                                 </div>
                             </td>
                         </tr>
