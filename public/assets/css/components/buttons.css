@@ -278,6 +278,18 @@ button.button {
   color:var(--text);
 }
 
+.article-action-tooltip-trigger{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:10px;
+}
+
+.article-action-tooltip-trigger:focus-visible{
+  outline:2px solid rgba(140, 190, 255, .65);
+  outline-offset:2px;
+}
+
 .article-action-button.button.secondary,
 .article-action-button.button.secondary.button-danger{
   border:none !important;

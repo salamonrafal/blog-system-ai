@@ -145,6 +145,53 @@ final class TopMenuItemTest extends TestCase
         $this->assertSame('validation_top_menu_parent_depth', $violations[0]->getMessage());
     }
 
+    public function testSelfParentTriggersOnlySelfValidationError(): void
+    {
+        $validator = Validation::createValidatorBuilder()
+            ->enableAttributeMapping()
+            ->getValidator();
+
+        $menuItem = (new TopMenuItem())
+            ->setLabels(['pl' => 'Blog', 'en' => 'Blog'])
+            ->setUniqueName('blog')
+            ->setTargetType(TopMenuItemTargetType::BLOG_HOME);
+        $menuItem->setParent($menuItem);
+
+        $violations = $validator->validate($menuItem);
+        $messages = array_map(static fn ($violation): string => $violation->getMessage(), iterator_to_array($violations));
+
+        $this->assertSame(['validation_top_menu_parent_self'], $messages);
+    }
+
+    public function testCycleParentTriggersOnlyCycleValidationError(): void
+    {
+        $validator = Validation::createValidatorBuilder()
+            ->enableAttributeMapping()
+            ->getValidator();
+
+        $grandparent = (new TopMenuItem())
+            ->setLabels(['pl' => 'Blog', 'en' => 'Blog'])
+            ->setUniqueName('blog')
+            ->setTargetType(TopMenuItemTargetType::BLOG_HOME);
+        $parent = (new TopMenuItem())
+            ->setLabels(['pl' => 'PHP', 'en' => 'PHP'])
+            ->setUniqueName('php')
+            ->setTargetType(TopMenuItemTargetType::BLOG_HOME)
+            ->setParent($grandparent);
+        $menuItem = (new TopMenuItem())
+            ->setLabels(['pl' => 'Symfony', 'en' => 'Symfony'])
+            ->setUniqueName('symfony')
+            ->setTargetType(TopMenuItemTargetType::BLOG_HOME)
+            ->setParent($parent);
+
+        $grandparent->setParent($menuItem);
+
+        $violations = $validator->validate($menuItem);
+        $messages = array_map(static fn ($violation): string => $violation->getMessage(), iterator_to_array($violations));
+
+        $this->assertSame(['validation_top_menu_parent_cycle'], $messages);
+    }
+
     public function testNormalizeTargetConfigurationClearsFieldsNotMatchingCurrentTargetType(): void
     {
         $category = (new ArticleCategory())->setName('PHP')->setSlug('php');

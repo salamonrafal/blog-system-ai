@@ -1010,7 +1010,7 @@ export function setupTopMenuTreeSorting(){
       root.classList.toggle('is-drag-active', isActive);
     },
     onStatusChange: setStatus,
-    onPersistOrder: async ({ level, orderedIds, previousOrder, restoreLevelOrder, syncLevel })=>{
+    onPersistOrder: async ({ level, orderedIds, syncLevel })=>{
       if(endpoint === '' || csrfToken === ''){
         setStatus({ translationKey: 'admin_top_menu_tree_save_error', type: 'error' });
         return false;
@@ -1038,7 +1038,6 @@ export function setupTopMenuTreeSorting(){
         });
 
         if(!response.ok){
-          restoreLevelOrder(level, previousOrder);
           setStatus({ translationKey: 'admin_top_menu_tree_save_error', type: 'error' });
           return false;
         }
@@ -1047,7 +1046,6 @@ export function setupTopMenuTreeSorting(){
         setStatus({ translationKey: 'admin_top_menu_tree_save_success', type: 'success' });
         return true;
       }catch(error){
-        restoreLevelOrder(level, previousOrder);
         setStatus({ translationKey: 'admin_top_menu_tree_save_error', type: 'error' });
         return false;
       }finally{
