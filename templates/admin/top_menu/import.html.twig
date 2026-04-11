@@ -51,8 +51,11 @@
                     {% set import_file_error_id = form.importFile.vars.id ~ '-error' %}
                     {% set import_file_hint_id = form.importFile.vars.id ~ '-hint' %}
                     {% set import_file_described_by = import_file_hint_id ~ (import_file_has_errors ? ' ' ~ import_file_error_id : '') %}
+                    {% set import_file_label_attr = form.importFile.vars.label_attr|merge({
+                        class: ((form.importFile.vars.label_attr.class|default('') ~ ' sr-only')|trim)
+                    }) %}
                     <div class="field article-editor-field{{ import_file_has_errors ? ' has-error' : '' }}">
-                        {{ form_label(form.importFile, null, { label_attr: { class: 'sr-only' } }) }}
+                        {{ form_label(form.importFile, null, { label_attr: import_file_label_attr }) }}
                         <div class="file-upload" data-file-upload>
                             {{ form_widget(form.importFile, { attr: form.importFile.vars.attr|merge({
                                 class: 'sr-only file-upload-input',
