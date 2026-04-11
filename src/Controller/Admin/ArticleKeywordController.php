@@ -6,6 +6,7 @@ namespace App\Controller\Admin;
 
 use App\Entity\ArticleKeyword;
 use App\Form\ArticleKeywordType;
+use App\Repository\ArticleKeywordExportQueueRepository;
 use App\Repository\ArticleKeywordRepository;
 use App\Service\ArticleKeywordNameGenerator;
 use App\Service\UserLanguageResolver;
@@ -18,6 +19,8 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/admin/article-keywords')]
 class ArticleKeywordController extends AbstractController
 {
+    use AuthenticatedAdminUserTrait;
+
     #[Route('', name: 'admin_article_keyword_index', methods: ['GET'])]
     public function index(ArticleKeywordRepository $articleKeywordRepository): Response
     {
@@ -112,6 +115,33 @@ class ArticleKeywordController extends AbstractController
         $this->addFlash('success', $userLanguageResolver->translate(
             'Słowo kluczowe zostało usunięte.',
             'Keyword deleted.',
+        ));
+
+        return $this->redirectToRoute('admin_article_keyword_index');
+    }
+
+    #[Route('/export', name: 'admin_article_keyword_export', methods: ['POST'])]
+    public function export(
+        Request $request,
+        ArticleKeywordExportQueueRepository $articleKeywordExportQueueRepository,
+        UserLanguageResolver $userLanguageResolver,
+    ): Response {
+        if (!$this->isCsrfTokenValid('export_article_keywords', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        if (!$articleKeywordExportQueueRepository->enqueuePending($this->resolveAuthenticatedUser())) {
+            $this->addFlash('success', $userLanguageResolver->translate(
+                'Eksport słów kluczowych jest już w kolejce.',
+                'Keyword export is already queued.',
+            ));
+
+            return $this->redirectToRoute('admin_article_keyword_index');
+        }
+
+        $this->addFlash('success', $userLanguageResolver->translate(
+            'Eksport słów kluczowych został dodany do kolejki.',
+            'Keyword export added to the queue.',
         ));
 
         return $this->redirectToRoute('admin_article_keyword_index');

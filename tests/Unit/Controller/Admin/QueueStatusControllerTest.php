@@ -7,6 +7,8 @@ namespace App\Tests\Unit\Controller\Admin;
 use App\Controller\Admin\QueueStatusController;
 use App\Entity\Article;
 use App\Entity\ArticleExportQueue;
+use App\Entity\ArticleKeywordExportQueue;
+use App\Entity\ArticleKeywordImportQueue;
 use App\Entity\CategoryExportQueue;
 use App\Entity\ArticleCategory;
 use App\Entity\ArticleImportQueue;
@@ -16,6 +18,8 @@ use App\Entity\TopMenuExportQueue;
 use App\Enum\ArticleExportQueueStatus;
 use App\Enum\ArticleImportQueueStatus;
 use App\Repository\ArticleExportQueueRepository;
+use App\Repository\ArticleKeywordExportQueueRepository;
+use App\Repository\ArticleKeywordImportQueueRepository;
 use App\Repository\CategoryExportQueueRepository;
 use App\Repository\ArticleImportQueueRepository;
 use App\Repository\CategoryImportQueueRepository;
@@ -39,11 +43,15 @@ final class QueueStatusControllerTest extends TestCase
     public function testIndexBuildsQueueOverview(): void
     {
         $exportQueueItem = new ArticleExportQueue((new Article())->setTitle('Export')->setSlug('export'));
+        $keywordExportQueueItem = new ArticleKeywordExportQueue();
         $categoryExportQueueItem = new CategoryExportQueue((new ArticleCategory())->setName('AI'));
         $topMenuExportQueueItem = new TopMenuExportQueue();
         $importQueueItem = (new ArticleImportQueue())
             ->setOriginalFilename('import.json')
             ->setFilePath('var/imports/import.json');
+        $keywordImportQueueItem = (new ArticleKeywordImportQueue())
+            ->setOriginalFilename('keyword-import.json')
+            ->setFilePath('var/imports/keyword-import.json');
         $categoryImportQueueItem = (new CategoryImportQueue())
             ->setOriginalFilename('category-import.json')
             ->setFilePath('var/imports/category-import.json');
@@ -51,6 +59,7 @@ final class QueueStatusControllerTest extends TestCase
             ->setOriginalFilename('top-menu-import.json')
             ->setFilePath('var/imports/top-menu-import.json');
         $this->setEntityId($exportQueueItem, 11);
+        $this->setEntityId($keywordExportQueueItem, 14);
         $this->setEntityId($categoryExportQueueItem, 12);
         $this->setEntityId($topMenuExportQueueItem, 13);
 
@@ -73,6 +82,15 @@ final class QueueStatusControllerTest extends TestCase
             ->expects($this->once())
             ->method('countPending')
             ->willReturn(0);
+        $keywordImportRepository = $this->createMock(ArticleKeywordImportQueueRepository::class);
+        $keywordImportRepository
+            ->expects($this->once())
+            ->method('findPendingOrderedByCreatedAt')
+            ->willReturn([$keywordImportQueueItem]);
+        $keywordImportRepository
+            ->expects($this->once())
+            ->method('countPending')
+            ->willReturn(0);
         $categoryImportRepository = $this->createMock(CategoryImportQueueRepository::class);
         $categoryImportRepository
             ->expects($this->once())
@@ -82,6 +100,15 @@ final class QueueStatusControllerTest extends TestCase
             ->expects($this->once())
             ->method('countPending')
             ->willReturn(0);
+        $keywordExportRepository = $this->createMock(ArticleKeywordExportQueueRepository::class);
+        $keywordExportRepository
+            ->expects($this->once())
+            ->method('findPendingOrderedByCreatedAt')
+            ->willReturn([$keywordExportQueueItem]);
+        $keywordExportRepository
+            ->expects($this->once())
+            ->method('countPending')
+            ->willReturn(1);
         $topMenuImportRepository = $this->createMock(TopMenuImportQueueRepository::class);
         $topMenuImportRepository
             ->expects($this->once())
@@ -111,32 +138,44 @@ final class QueueStatusControllerTest extends TestCase
             ->willReturn(1);
 
         $controller = $this->createController();
-        $response = $controller->index($exportRepository, $categoryExportRepository, $topMenuExportRepository, $importRepository, $categoryImportRepository, $topMenuImportRepository);
+        $response = $controller->index($exportRepository, $keywordExportRepository, $categoryExportRepository, $topMenuExportRepository, $importRepository, $keywordImportRepository, $categoryImportRepository, $topMenuImportRepository);
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
         $this->assertSame('admin/queue_status/index.html.twig', $controller->capturedView);
-        $this->assertCount(3, $controller->capturedParameters['pending_export_queue_items']);
-        $this->assertSame('delete_queue_item_'.$exportQueueItem->getId(), $controller->capturedParameters['pending_export_queue_items'][0]['csrf_token_id']);
-        $this->assertSame('delete_category_export_queue_item_'.$categoryExportQueueItem->getId(), $controller->capturedParameters['pending_export_queue_items'][1]['csrf_token_id']);
-        $this->assertSame('delete_top_menu_export_queue_item_'.$topMenuExportQueueItem->getId(), $controller->capturedParameters['pending_export_queue_items'][2]['csrf_token_id']);
-        $this->assertCount(3, $controller->capturedParameters['pending_import_queue_items']);
+        $this->assertCount(4, $controller->capturedParameters['pending_export_queue_items']);
+        $exportCsrfIds = array_map(
+            static fn (array $item): string => $item['csrf_token_id'],
+            $controller->capturedParameters['pending_export_queue_items']
+        );
+        sort($exportCsrfIds);
+        $this->assertSame([
+            'delete_article_keyword_export_queue_item_'.$keywordExportQueueItem->getId(),
+            'delete_category_export_queue_item_'.$categoryExportQueueItem->getId(),
+            'delete_queue_item_'.$exportQueueItem->getId(),
+            'delete_top_menu_export_queue_item_'.$topMenuExportQueueItem->getId(),
+        ], $exportCsrfIds);
+        $this->assertCount(4, $controller->capturedParameters['pending_import_queue_items']);
         $typeKeys = array_map(
             static fn (array $item): string => $item['type_key'],
             $controller->capturedParameters['pending_import_queue_items']
         );
         sort($typeKeys);
-        $this->assertSame(['admin_queue_type_article_import', 'admin_queue_type_category_import', 'admin_queue_type_top_menu_import'], $typeKeys);
+        $this->assertSame(['admin_queue_type_article_import', 'admin_queue_type_category_import', 'admin_queue_type_keyword_import', 'admin_queue_type_top_menu_import'], $typeKeys);
         $this->assertTrue($controller->capturedParameters['has_pending_queue_items']);
     }
 
     public function testClearRemovesPendingItemsAndDeletesImportFiles(): void
     {
         $exportQueueItem = new ArticleExportQueue((new Article())->setTitle('Export')->setSlug('export'));
+        $keywordExportQueueItem = new ArticleKeywordExportQueue();
         $categoryExportQueueItem = new CategoryExportQueue((new ArticleCategory())->setName('AI'));
         $topMenuExportQueueItem = new TopMenuExportQueue();
         $importQueueItem = (new ArticleImportQueue())
             ->setOriginalFilename('import.json')
             ->setFilePath('var/imports/import.json');
+        $keywordImportQueueItem = (new ArticleKeywordImportQueue())
+            ->setOriginalFilename('keyword-import.json')
+            ->setFilePath('var/imports/keyword-import.json');
         $categoryImportQueueItem = (new CategoryImportQueue())
             ->setOriginalFilename('category-import.json')
             ->setFilePath('var/imports/category-import.json');
@@ -156,6 +195,12 @@ final class QueueStatusControllerTest extends TestCase
             ->method('findBy')
             ->with(['status' => ArticleExportQueueStatus::PENDING])
             ->willReturn([$categoryExportQueueItem]);
+        $keywordExportRepository = $this->createMock(ArticleKeywordExportQueueRepository::class);
+        $keywordExportRepository
+            ->expects($this->once())
+            ->method('findBy')
+            ->with(['status' => ArticleExportQueueStatus::PENDING])
+            ->willReturn([$keywordExportQueueItem]);
         $topMenuExportRepository = $this->createMock(TopMenuExportQueueRepository::class);
         $topMenuExportRepository
             ->expects($this->once())
@@ -169,6 +214,12 @@ final class QueueStatusControllerTest extends TestCase
             ->method('findBy')
             ->with(['status' => ArticleImportQueueStatus::PENDING])
             ->willReturn([$importQueueItem]);
+        $keywordImportRepository = $this->createMock(ArticleKeywordImportQueueRepository::class);
+        $keywordImportRepository
+            ->expects($this->once())
+            ->method('findBy')
+            ->with(['status' => ArticleImportQueueStatus::PENDING])
+            ->willReturn([$keywordImportQueueItem]);
         $categoryImportRepository = $this->createMock(CategoryImportQueueRepository::class);
         $categoryImportRepository
             ->expects($this->once())
@@ -185,7 +236,7 @@ final class QueueStatusControllerTest extends TestCase
         $removedEntities = [];
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager
-            ->expects($this->exactly(6))
+            ->expects($this->exactly(8))
             ->method('remove')
             ->willReturnCallback(static function (object $entity) use (&$removedEntities): void {
                 $removedEntities[] = $entity;
@@ -196,33 +247,34 @@ final class QueueStatusControllerTest extends TestCase
 
         $pathResolver = $this->createMock(ManagedFilePathResolver::class);
         $pathResolver
-            ->expects($this->exactly(3))
+            ->expects($this->exactly(4))
             ->method('resolveImportPath')
             ->willReturnMap([
                 ['var/imports/import.json', '/tmp/import.json'],
+                ['var/imports/keyword-import.json', '/tmp/keyword-import.json'],
                 ['var/imports/category-import.json', '/tmp/category-import.json'],
                 ['var/imports/top-menu-import.json', '/tmp/top-menu-import.json'],
             ]);
 
         $fileDeleter = $this->createMock(ManagedFileDeleter::class);
         $fileDeleter
-            ->expects($this->exactly(3))
+            ->expects($this->exactly(4))
             ->method('delete')
             ->willReturnCallback(static function (string $path, string $type): void {
                 TestCase::assertSame('import', $type);
-                TestCase::assertContains($path, ['/tmp/import.json', '/tmp/category-import.json', '/tmp/top-menu-import.json']);
+                TestCase::assertContains($path, ['/tmp/import.json', '/tmp/keyword-import.json', '/tmp/category-import.json', '/tmp/top-menu-import.json']);
             });
 
         $controller = $this->createController($pathResolver, $fileDeleter);
         $controller->csrfTokenIsValid = true;
         $userLanguageResolver = $this->createUserLanguageResolverMock('en');
 
-        $response = $controller->clear(new Request([], ['_token' => 'valid']), $exportRepository, $categoryExportRepository, $topMenuExportRepository, $importRepository, $categoryImportRepository, $topMenuImportRepository, $entityManager, $userLanguageResolver);
+        $response = $controller->clear(new Request([], ['_token' => 'valid']), $exportRepository, $keywordExportRepository, $categoryExportRepository, $topMenuExportRepository, $importRepository, $keywordImportRepository, $categoryImportRepository, $topMenuImportRepository, $entityManager, $userLanguageResolver);
 
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertSame('/admin/queues/status', $response->getTargetUrl());
         $this->assertSame([['success', 'The pending queue has been cleared.']], $controller->flashes);
-        $this->assertSame([$exportQueueItem, $categoryExportQueueItem, $topMenuExportQueueItem, $importQueueItem, $categoryImportQueueItem, $topMenuImportQueueItem], $removedEntities);
+        $this->assertSame([$exportQueueItem, $keywordExportQueueItem, $categoryExportQueueItem, $topMenuExportQueueItem, $importQueueItem, $keywordImportQueueItem, $categoryImportQueueItem, $topMenuImportQueueItem], $removedEntities);
     }
 
     public function testDeleteImportDeletesManagedFileAndQueueItem(): void

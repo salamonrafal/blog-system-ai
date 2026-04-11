@@ -82,6 +82,17 @@ class ArticleKeywordRepository extends ServiceEntityRepository
         return (int) $queryBuilder->getQuery()->getSingleScalarResult() > 0;
     }
 
+    public function findOneByName(string $name): ?ArticleKeyword
+    {
+        return $this->createQueryBuilder('keyword')
+            ->andWhere('keyword.name = :name')
+            ->setParameter('name', trim($name))
+            ->orderBy('keyword.id', 'ASC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     public function findOneActiveByLanguageAndName(ArticleKeywordLanguage $language, string $name): ?ArticleKeyword
     {
         return $this->createQueryBuilder('keyword')

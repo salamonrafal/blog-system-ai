@@ -8,6 +8,7 @@ use App\Entity\BlogSettings;
 use App\Repository\ArticleExportQueueRepository;
 use App\Repository\ArticleExportRepository;
 use App\Repository\ArticleImportQueueRepository;
+use App\Repository\ArticleKeywordImportQueueRepository;
 use App\Repository\CategoryExportQueueRepository;
 use App\Repository\CategoryImportQueueRepository;
 use App\Repository\TopMenuImportQueueRepository;
@@ -37,6 +38,7 @@ final class AppGlobalsExtensionTest extends TestCase
 
         $timeZoneResolver = $this->createMock(UserTimeZoneResolver::class);
         $importQueueRepository = $this->createMock(ArticleImportQueueRepository::class);
+        $keywordImportQueueRepository = $this->createMock(ArticleKeywordImportQueueRepository::class);
         $categoryImportQueueRepository = $this->createMock(CategoryImportQueueRepository::class);
         $topMenuImportQueueRepository = $this->createMock(TopMenuImportQueueRepository::class);
         $exportQueueRepository = $this->createMock(ArticleExportQueueRepository::class);
@@ -52,6 +54,7 @@ final class AppGlobalsExtensionTest extends TestCase
             $languageResolver,
             $timeZoneResolver,
             $importQueueRepository,
+            $keywordImportQueueRepository,
             $categoryImportQueueRepository,
             $topMenuImportQueueRepository,
             $exportQueueRepository,
@@ -87,6 +90,7 @@ final class AppGlobalsExtensionTest extends TestCase
             $languageResolver,
             $this->createMock(UserTimeZoneResolver::class),
             $this->createMock(ArticleImportQueueRepository::class),
+            $this->createMock(ArticleKeywordImportQueueRepository::class),
             $this->createMock(CategoryImportQueueRepository::class),
             $this->createMock(TopMenuImportQueueRepository::class),
             $this->createMock(ArticleExportQueueRepository::class),
@@ -150,6 +154,11 @@ final class AppGlobalsExtensionTest extends TestCase
             ->expects($this->once())
             ->method('countPending')
             ->willReturn(2);
+        $keywordImportQueueRepository = $this->createMock(ArticleKeywordImportQueueRepository::class);
+        $keywordImportQueueRepository
+            ->expects($this->once())
+            ->method('countPending')
+            ->willReturn(4);
         $categoryImportQueueRepository = $this->createMock(CategoryImportQueueRepository::class);
         $categoryImportQueueRepository
             ->expects($this->once())
@@ -218,6 +227,7 @@ final class AppGlobalsExtensionTest extends TestCase
             $languageResolver,
             $timeZoneResolver,
             $importQueueRepository,
+            $keywordImportQueueRepository,
             $categoryImportQueueRepository,
             $topMenuImportQueueRepository,
             $exportQueueRepository,
@@ -247,12 +257,13 @@ final class AppGlobalsExtensionTest extends TestCase
         $this->assertSame('2.0 MB', $globals['media_upload_limit_formatted']);
         $this->assertJson($globals['validation_i18n_json']);
         $this->assertSame([
-            'queue_status' => 12,
+            'queue_status' => 16,
             'imports' => 2,
+            'keyword_imports' => 4,
             'category_imports' => 3,
             'top_menu_imports' => 1,
             'exports' => 4,
-            'import_export' => 16,
+            'import_export' => 20,
         ], $globals['admin_shortcut_badges']);
         $this->assertCount(1, $globals['top_menu_items']);
     }

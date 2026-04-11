@@ -8,6 +8,7 @@ enum ArticleExportType: string
 {
     case ARTICLES = 'articles';
     case CATEGORIES = 'categories';
+    case KEYWORDS = 'keywords';
     case TOP_MENU = 'top_menu';
 
     public function label(): string
@@ -15,6 +16,7 @@ enum ArticleExportType: string
         return match ($this) {
             self::ARTICLES => 'Eksport artykułów',
             self::CATEGORIES => 'Eksport kategorii',
+            self::KEYWORDS => 'Eksport słów kluczowych',
             self::TOP_MENU => 'Eksport top menu',
         };
     }
@@ -24,6 +26,7 @@ enum ArticleExportType: string
         return match ($this) {
             self::ARTICLES => 'Article export',
             self::CATEGORIES => 'Category export',
+            self::KEYWORDS => 'Keyword export',
             self::TOP_MENU => 'Top menu export',
         };
     }
@@ -40,6 +43,7 @@ enum ArticleExportType: string
         return match ($this) {
             self::ARTICLES => 'admin_exports_type_articles',
             self::CATEGORIES => 'admin_exports_type_categories',
+            self::KEYWORDS => 'admin_exports_type_keywords',
             self::TOP_MENU => 'admin_exports_type_top_menu',
         };
     }
@@ -49,6 +53,7 @@ enum ArticleExportType: string
         return match ($this) {
             self::ARTICLES => 'admin_queue_type_article_export',
             self::CATEGORIES => 'admin_queue_type_category_export',
+            self::KEYWORDS => 'admin_queue_type_keyword_export',
             self::TOP_MENU => 'admin_queue_type_top_menu_export',
         };
     }

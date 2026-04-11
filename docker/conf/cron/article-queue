@@ -1,8 +1,10 @@
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 * * * * * /usr/bin/flock -n /tmp/article-export-queue.lock /var/scripts/run-console.sh app:article-export:process-queue >> /tmp/article-export-cron.log 2>&1
+* * * * * /usr/bin/flock -n /tmp/article-keyword-export-queue.lock /var/scripts/run-console.sh app:article-keyword-export:process-queue >> /tmp/article-keyword-export-cron.log 2>&1
 * * * * * /usr/bin/flock -n /tmp/category-export-queue.lock /var/scripts/run-console.sh app:category-export:process-queue >> /tmp/category-export-cron.log 2>&1
 * * * * * /usr/bin/flock -n /tmp/top-menu-export-queue.lock /var/scripts/run-console.sh app:top-menu-export:process-queue >> /tmp/top-menu-export-cron.log 2>&1
 * * * * * /usr/bin/flock -n /tmp/article-import-queue.lock /var/scripts/run-console.sh app:article-import:process-queue >> /tmp/article-import-cron.log 2>&1
+* * * * * /usr/bin/flock -n /tmp/article-keyword-import-queue.lock /var/scripts/run-console.sh app:article-keyword-import:process-queue >> /tmp/article-keyword-import-cron.log 2>&1
 * * * * * /usr/bin/flock -n /tmp/category-import-queue.lock /var/scripts/run-console.sh app:category-import:process-queue >> /tmp/category-import-cron.log 2>&1
 * * * * * /usr/bin/flock -n /tmp/top-menu-import-queue.lock /var/scripts/run-console.sh app:top-menu-import:process-queue >> /tmp/top-menu-import-cron.log 2>&1

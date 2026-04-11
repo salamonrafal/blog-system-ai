@@ -296,6 +296,7 @@ Notes:
 
 The project includes background export queues for:
 - articles
+- article keywords
 - article categories
 - top menu
 
@@ -357,6 +358,27 @@ Manual run:
 - Direct Symfony command:
   `php bin/console app:category-export:process-queue`
 
+### Article keyword export
+
+Flow overview:
+- In the admin article keyword view, exporting creates a pending record in `article_keyword_export_queue`
+- The console consumer exports the full keyword dictionary to one JSON file
+- The exported keyword payload includes stable identifiers and metadata such as:
+  - keyword `name`
+  - keyword `language`
+  - assigned `article_ids`
+
+Important files:
+- [src/Command/ProcessArticleKeywordExportQueueCommand.php](./src/Command/ProcessArticleKeywordExportQueueCommand.php)
+- [src/Service/ArticleKeywordExportFileWriter.php](./src/Service/ArticleKeywordExportFileWriter.php)
+- [src/Entity/ArticleKeywordExportQueue.php](./src/Entity/ArticleKeywordExportQueue.php)
+
+Manual run:
+- Composer shortcut:
+  `composer article-keyword-export:process-queue`
+- Direct Symfony command:
+  `php bin/console app:article-keyword-export:process-queue`
+
 ### Top menu export
 
 Flow overview:
@@ -387,8 +409,10 @@ The repository includes a ready cron file:
 Current entries process all background queues once per minute:
 - `app:article-export:process-queue`
 - `app:category-export:process-queue`
+- `app:article-keyword-export:process-queue`
 - `app:top-menu-export:process-queue`
 - `app:article-import:process-queue`
+- `app:article-keyword-import:process-queue`
 - `app:category-import:process-queue`
 - `app:top-menu-import:process-queue`
 
@@ -477,6 +501,31 @@ Important files:
 - [src/Entity/CategoryImportQueue.php](./src/Entity/CategoryImportQueue.php)
 - [src/Controller/Admin/CategoryImportController.php](./src/Controller/Admin/CategoryImportController.php)
 
+## Article keyword import queue
+
+The project also includes a dedicated article keyword import queue for restoring keyword data from exported JSON files.
+
+Flow overview:
+- In the admin panel, uploading a file on `/admin/article-keyword-imports` creates a pending record in `article_keyword_import_queue`
+- The console consumer reads the `article-keyword-export` JSON format
+- Existing keywords are matched by `name`
+- If a keyword with the same `name` already exists, it is updated
+- If no keyword with that `name` exists, a new keyword is created
+- Keyword-to-article assignments from the import file are ignored, so current article links stay untouched
+- If validation fails or the file is invalid, the queue item is marked as `failed` and the error reason is stored in `error_message`
+
+Manual run:
+- Composer shortcut:
+  `composer article-keyword-import:process-queue`
+- Direct Symfony command:
+  `php bin/console app:article-keyword-import:process-queue`
+
+Important files:
+- [src/Command/ProcessArticleKeywordImportQueueCommand.php](./src/Command/ProcessArticleKeywordImportQueueCommand.php)
+- [src/Service/ArticleKeywordImportProcessor.php](./src/Service/ArticleKeywordImportProcessor.php)
+- [src/Entity/ArticleKeywordImportQueue.php](./src/Entity/ArticleKeywordImportQueue.php)
+- [src/Controller/Admin/ArticleKeywordImportController.php](./src/Controller/Admin/ArticleKeywordImportController.php)
+
 ## Top menu import queue
 
 The project also includes a dedicated top menu import queue for restoring the menu hierarchy from exported JSON files.
@@ -499,8 +548,10 @@ For a local non-Docker setup you can use equivalent crontab entries, for example
 
 - `* * * * * cd /path/to/project && composer article-export:process-queue`
 - `* * * * * cd /path/to/project && composer category-export:process-queue`
+- `* * * * * cd /path/to/project && composer article-keyword-export:process-queue`
 - `* * * * * cd /path/to/project && composer top-menu-export:process-queue`
 - `* * * * * cd /path/to/project && composer article-import:process-queue`
+- `* * * * * cd /path/to/project && composer article-keyword-import:process-queue`
 - `* * * * * cd /path/to/project && composer category-import:process-queue`
 - `* * * * * cd /path/to/project && composer top-menu-import:process-queue`
 
