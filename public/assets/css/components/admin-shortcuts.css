@@ -90,6 +90,24 @@
   max-height:min(560px, var(--admin-shortcuts-panel-max-height));
 }
 
+.admin-shortcuts-menu > .admin-shortcuts-desktop-bar,
+.admin-shortcuts-menu > .admin-shortcuts-mobile-bar{
+  border-top-left-radius:inherit;
+  border-top-right-radius:inherit;
+}
+
+.admin-shortcuts-menu > .admin-shortcuts-settings:last-child{
+  border-bottom-left-radius:inherit;
+  border-bottom-right-radius:inherit;
+}
+
+.admin-shortcuts-menu > .admin-shortcuts-link:last-child,
+.admin-shortcuts-menu > .admin-shortcuts-section:last-child > .admin-shortcuts-link:last-child,
+.admin-shortcuts-menu > .admin-shortcuts-scroll:last-child .admin-shortcuts-section:last-child > .admin-shortcuts-link:last-child{
+  border-bottom-left-radius:inherit;
+  border-bottom-right-radius:inherit;
+}
+
 .admin-shortcuts-mobile-bar{
   display:none;
 }
@@ -184,6 +202,7 @@
   padding:12px 0 0;
   border-top:1px solid color-mix(in oklab, var(--accent-2) 20%, var(--border));
   background: color-mix(in oklab, var(--panel) 90%, transparent);
+  overflow:hidden;
 }
 
 .admin-shortcuts-section-title{
