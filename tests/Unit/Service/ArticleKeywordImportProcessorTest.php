@@ -204,6 +204,29 @@ final class ArticleKeywordImportProcessorTest extends TestCase
         $processor->process($queueItem);
     }
 
+    public function testProcessThrowsReadableErrorWhenOptionalColorFieldHasInvalidType(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+
+        $processor = $this->createProcessor($entityManager, $this->createRepositoryMock());
+        $queueItem = $this->createQueueItemWithPayload([
+            'format' => 'article-keyword-export',
+            'version' => 1,
+            'keywords' => [[
+                'name' => 'AI',
+                'language' => 'pl',
+                'status' => 'active',
+                'color' => ['#123456'],
+            ]],
+        ]);
+
+        $this->expectException(ArticleKeywordImportException::class);
+        $this->expectExceptionMessage('Field keywords[0].color must be a string or null.');
+
+        $processor->process($queueItem);
+    }
+
     private function createProcessor(
         EntityManagerInterface $entityManager,
         ArticleKeywordRepository $repository,

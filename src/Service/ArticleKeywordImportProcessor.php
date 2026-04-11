@@ -177,7 +177,7 @@ class ArticleKeywordImportProcessor
             ->setName($this->requireString($keywordData, 'name', $index, true))
             ->setLanguage($this->parseLanguage($keywordData['language'] ?? null, $index))
             ->setStatus($this->parseStatus($keywordData['status'] ?? null, $index))
-            ->setColor($this->optionalString($keywordData, 'color'));
+            ->setColor($this->optionalString($keywordData, 'color', $index));
 
         $violations = $this->validator->validate($draftKeyword);
         $messages = [];
@@ -229,7 +229,7 @@ class ArticleKeywordImportProcessor
     /**
      * @param array<string, mixed> $keywordData
      */
-    private function optionalString(array $keywordData, string $field): ?string
+    private function optionalString(array $keywordData, string $field, int $index): ?string
     {
         $value = $keywordData[$field] ?? null;
         if (null === $value) {
@@ -237,7 +237,7 @@ class ArticleKeywordImportProcessor
         }
 
         if (!is_string($value)) {
-            throw new ArticleKeywordImportException(sprintf('Field %s must be a string or null.', $field));
+            throw new ArticleKeywordImportException(sprintf('Field %s[%d].%s must be a string or null.', self::PAYLOAD_KEY, $index, $field));
         }
 
         $value = trim($value);

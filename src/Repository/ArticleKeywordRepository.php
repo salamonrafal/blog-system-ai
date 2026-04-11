@@ -16,6 +16,8 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class ArticleKeywordRepository extends ServiceEntityRepository
 {
+    private const FIND_BY_LANGUAGE_AND_NAME_PAIRS_CHUNK_SIZE = 400;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, ArticleKeyword::class);
@@ -124,6 +126,45 @@ class ArticleKeywordRepository extends ServiceEntityRepository
             return [];
         }
 
+        $keywordsById = [];
+
+        foreach (array_chunk(array_values($pairs), self::FIND_BY_LANGUAGE_AND_NAME_PAIRS_CHUNK_SIZE) as $chunk) {
+            foreach ($this->findByLanguageAndNamePairsChunk($chunk) as $keyword) {
+                $keywordId = $keyword->getId();
+                if (null === $keywordId) {
+                    continue;
+                }
+
+                $keywordsById[$keywordId] = $keyword;
+            }
+        }
+
+        ksort($keywordsById);
+
+        return array_values($keywordsById);
+    }
+
+    public function findOneActiveByLanguageAndName(ArticleKeywordLanguage $language, string $name): ?ArticleKeyword
+    {
+        return $this->createQueryBuilder('keyword')
+            ->andWhere('keyword.language = :language')
+            ->andWhere('keyword.name = :name')
+            ->andWhere('keyword.status = :status')
+            ->setParameter('language', $language)
+            ->setParameter('name', trim($name))
+            ->setParameter('status', ArticleCategoryStatus::ACTIVE)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
+     * @param list<array{language: ArticleKeywordLanguage, name: string}> $pairs
+     *
+     * @return list<ArticleKeyword>
+     */
+    private function findByLanguageAndNamePairsChunk(array $pairs): array
+    {
         $queryBuilder = $this->createQueryBuilder('keyword');
         $orExpression = $queryBuilder->expr()->orX();
 
@@ -150,20 +191,6 @@ class ArticleKeywordRepository extends ServiceEntityRepository
             ->getResult();
 
         return $keywords;
-    }
-
-    public function findOneActiveByLanguageAndName(ArticleKeywordLanguage $language, string $name): ?ArticleKeyword
-    {
-        return $this->createQueryBuilder('keyword')
-            ->andWhere('keyword.language = :language')
-            ->andWhere('keyword.name = :name')
-            ->andWhere('keyword.status = :status')
-            ->setParameter('language', $language)
-            ->setParameter('name', trim($name))
-            ->setParameter('status', ArticleCategoryStatus::ACTIVE)
-            ->setMaxResults(1)
-            ->getQuery()
-            ->getOneOrNullResult();
     }
 
     /**
