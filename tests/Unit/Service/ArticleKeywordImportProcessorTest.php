@@ -150,6 +150,21 @@ final class ArticleKeywordImportProcessorTest extends TestCase
         );
     }
 
+    public function testProcessAllowsEmptyKeywordListAsNoOp(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+
+        $processor = $this->createProcessor($entityManager, $this->createRepositoryMock());
+        $queueItem = $this->createQueueItemWithPayload([
+            'format' => 'article-keyword-export',
+            'version' => 1,
+            'keywords' => [],
+        ]);
+
+        $this->assertSame(0, $processor->process($queueItem));
+    }
+
     public function testProcessThrowsReadableErrorWhenPayloadContainsDuplicateLanguageAndNamePairs(): void
     {
         $entityManager = $this->createMock(EntityManagerInterface::class);

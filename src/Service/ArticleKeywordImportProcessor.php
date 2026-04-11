@@ -107,7 +107,7 @@ class ArticleKeywordImportProcessor
         }
 
         $keywords = $payload[self::PAYLOAD_KEY] ?? null;
-        if (!is_array($keywords) || [] === $keywords) {
+        if (!is_array($keywords)) {
             throw new ArticleKeywordImportException('Import file does not contain any keywords.');
         }
 
