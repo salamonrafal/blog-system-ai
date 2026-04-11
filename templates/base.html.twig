@@ -499,7 +499,10 @@ Fullstack Developer</span>
                                 </span>
                                 <span data-i18n="admin_shortcut_keyword_imports">Import Słów Kluczowych</span>
                                 {% if admin_shortcut_badges.keyword_imports > 0 %}
-                                    <span class="admin-shortcuts-badge" aria-label="{{ admin_shortcut_badges.keyword_imports }} oczekujących importów słów kluczowych">{{ admin_shortcut_badges.keyword_imports }}</span>
+                                    <span
+                                        class="admin-shortcuts-badge"
+                                        aria-label="{{ admin_shortcut_badges.keyword_imports }} {{ ui_translate('oczekujących importów słów kluczowych', 'pending keyword imports') }}"
+                                    >{{ admin_shortcut_badges.keyword_imports }}</span>
                                 {% endif %}
                             </a>
                             <a class="admin-shortcuts-link admin-shortcuts-sublink{{ route_name starts with 'admin_category_import_' ? ' is-active' : '' }}" href="{{ path('admin_category_import_index') }}"{% if route_name == 'admin_category_import_index' %} aria-current="page"{% endif %}>

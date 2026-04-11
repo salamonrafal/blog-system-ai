@@ -21,7 +21,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:article-keyword-import:process-queue',
-    description: 'Imports queued article keyword export files and creates or updates keywords by name.'
+    description: 'Imports queued article keyword export files and creates or updates keywords by language and name.'
 )]
 class ProcessArticleKeywordImportQueueCommand extends Command
 {

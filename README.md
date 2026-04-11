@@ -508,9 +508,9 @@ The project also includes a dedicated article keyword import queue for restoring
 Flow overview:
 - In the admin panel, uploading a file on `/admin/article-keyword-imports` creates a pending record in `article_keyword_import_queue`
 - The console consumer reads the `article-keyword-export` JSON format
-- Existing keywords are matched by `name`
-- If a keyword with the same `name` already exists, it is updated
-- If no keyword with that `name` exists, a new keyword is created
+- Existing keywords are matched by the pair `language + name`
+- If a keyword with the same `language + name` already exists, it is updated
+- If no keyword with that `language + name` exists, a new keyword is created
 - Keyword-to-article assignments from the import file are ignored, so current article links stay untouched
 - If validation fails or the file is invalid, the queue item is marked as `failed` and the error reason is stored in `error_message`
 

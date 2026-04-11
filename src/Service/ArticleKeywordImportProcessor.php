@@ -40,6 +40,7 @@ class ArticleKeywordImportProcessor
         $payload = $this->readPayload($queueItem);
         $keywords = $this->extractKeywords($payload);
         $this->validatePayloadDuplicates($keywords);
+        $existingKeywords = $this->indexExistingKeywords($keywords);
         $processedCount = 0;
 
         foreach ($keywords as $index => $keywordData) {
@@ -49,7 +50,7 @@ class ArticleKeywordImportProcessor
 
             $name = $this->requireString($keywordData, 'name', $index, true);
             $language = $this->parseLanguage($keywordData['language'] ?? null, $index);
-            $keyword = $this->articleKeywordRepository->findOneByLanguageAndName($language, $name) ?? new ArticleKeyword();
+            $keyword = $existingKeywords[$this->buildKeywordMapKey($language, $name)] ?? new ArticleKeyword();
             $this->hydrateKeyword($keyword, $keywordData, $index);
 
             if (null === $keyword->getId()) {
@@ -119,7 +120,7 @@ class ArticleKeywordImportProcessor
 
             $name = $this->requireString($keywordData, 'name', $index, true);
             $language = $this->parseLanguage($keywordData['language'] ?? null, $index);
-            $duplicateKey = $language->value.'|'.$name;
+            $duplicateKey = $this->buildKeywordMapKey($language, $name);
             if (array_key_exists($duplicateKey, $seenKeywords)) {
                 throw new ArticleKeywordImportException(sprintf(
                     'Fields %s[%d].language and %s[%d].name duplicate values from %s[%d].language and %s[%d].name.',
@@ -136,6 +137,34 @@ class ArticleKeywordImportProcessor
 
             $seenKeywords[$duplicateKey] = $index;
         }
+    }
+
+    /**
+     * @param list<mixed> $keywords
+     *
+     * @return array<string, ArticleKeyword>
+     */
+    private function indexExistingKeywords(array $keywords): array
+    {
+        $pairs = [];
+
+        foreach ($keywords as $index => $keywordData) {
+            if (!is_array($keywordData)) {
+                throw new ArticleKeywordImportException(sprintf('%s[%d] must be an array.', self::PAYLOAD_KEY, $index));
+            }
+
+            $pairs[] = [
+                'language' => $this->parseLanguage($keywordData['language'] ?? null, $index),
+                'name' => $this->requireString($keywordData, 'name', $index, true),
+            ];
+        }
+
+        $existingKeywords = [];
+        foreach ($this->articleKeywordRepository->findByLanguageAndNamePairs($pairs) as $keyword) {
+            $existingKeywords[$this->buildKeywordMapKey($keyword->getLanguage(), $keyword->getName())] = $keyword;
+        }
+
+        return $existingKeywords;
     }
 
     /**
@@ -264,5 +293,10 @@ class ArticleKeywordImportProcessor
     private function normalizeViolationMessage(string $message): string
     {
         return trim(str_replace(["\r", "\n"], ' ', $message));
+    }
+
+    private function buildKeywordMapKey(ArticleKeywordLanguage $language, string $name): string
+    {
+        return $language->value.'|'.trim($name);
     }
 }

@@ -45,7 +45,7 @@ final class ArticleKeywordImportProcessorTest extends TestCase
                 $capturedKeyword = $keyword;
             });
 
-        $processor = $this->createProcessor($entityManager, $this->createRepositoryMock(null));
+        $processor = $this->createProcessor($entityManager, $this->createRepositoryMock());
         $queueItem = $this->createQueueItemWithPayload([
             'format' => 'article-keyword-export',
             'version' => 1,
@@ -84,7 +84,9 @@ final class ArticleKeywordImportProcessorTest extends TestCase
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects($this->never())->method('persist');
 
-        $processor = $this->createProcessor($entityManager, $this->createRepositoryMock($existingKeyword, ArticleKeywordLanguage::ALL, 'AI'));
+        $processor = $this->createProcessor($entityManager, $this->createRepositoryMock([
+            'all|AI' => $existingKeyword,
+        ]));
         $queueItem = $this->createQueueItemWithPayload([
             'format' => 'article-keyword-export',
             'version' => 1,
@@ -107,7 +109,7 @@ final class ArticleKeywordImportProcessorTest extends TestCase
         $this->assertTrue($existingKeyword->getArticles()->contains($existingArticle));
     }
 
-    public function testProcessThrowsReadableErrorWhenPayloadContainsDuplicateNames(): void
+    public function testProcessAllowsDuplicateNamesAcrossDifferentLanguages(): void
     {
         $persistedKeywords = [];
         $entityManager = $this->createMock(EntityManagerInterface::class);
@@ -118,7 +120,7 @@ final class ArticleKeywordImportProcessorTest extends TestCase
                 $persistedKeywords[] = $keyword;
             });
 
-        $processor = $this->createProcessor($entityManager, $this->createRepositoryMock(null));
+        $processor = $this->createProcessor($entityManager, $this->createRepositoryMock());
         $queueItem = $this->createQueueItemWithPayload([
             'format' => 'article-keyword-export',
             'version' => 1,
@@ -153,7 +155,7 @@ final class ArticleKeywordImportProcessorTest extends TestCase
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects($this->never())->method('persist');
 
-        $processor = $this->createProcessor($entityManager, $this->createRepositoryMock(null));
+        $processor = $this->createProcessor($entityManager, $this->createRepositoryMock());
         $queueItem = $this->createQueueItemWithPayload([
             'format' => 'article-keyword-export',
             'version' => 1,
@@ -184,7 +186,7 @@ final class ArticleKeywordImportProcessorTest extends TestCase
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects($this->never())->method('persist');
 
-        $processor = $this->createProcessor($entityManager, $this->createRepositoryMock(null));
+        $processor = $this->createProcessor($entityManager, $this->createRepositoryMock());
         $queueItem = $this->createQueueItemWithPayload([
             'format' => 'article-keyword-export',
             'version' => 1,
@@ -229,31 +231,26 @@ final class ArticleKeywordImportProcessorTest extends TestCase
             ->setFilePath('var/imports/'.$filename);
     }
 
-    private function createRepositoryMock(
-        ?ArticleKeyword $keyword,
-        ?ArticleKeywordLanguage $expectedLanguage = null,
-        ?string $expectedName = null,
-    ): ArticleKeywordRepository
+    /**
+     * @param array<string, ArticleKeyword> $keywordsByKey
+     */
+    private function createRepositoryMock(array $keywordsByKey = []): ArticleKeywordRepository
     {
         /** @var ArticleKeywordRepository&MockObject $repository */
         $repository = $this->createMock(ArticleKeywordRepository::class);
-
-        if (null === $expectedLanguage || null === $expectedName) {
-            $repository
-                ->method('findOneByLanguageAndName')
-                ->willReturn(null);
-
-            return $repository;
-        }
-
         $repository
-            ->method('findOneByLanguageAndName')
-            ->willReturnCallback(static function (ArticleKeywordLanguage $language, string $name) use ($keyword, $expectedLanguage, $expectedName): ?ArticleKeyword {
-                if ($language === $expectedLanguage && trim($name) === $expectedName) {
-                    return $keyword;
+            ->method('findByLanguageAndNamePairs')
+            ->willReturnCallback(static function (array $pairs) use ($keywordsByKey): array {
+                $foundKeywords = [];
+
+                foreach ($pairs as $pair) {
+                    $key = $pair['language']->value.'|'.trim($pair['name']);
+                    if (array_key_exists($key, $keywordsByKey)) {
+                        $foundKeywords[] = $keywordsByKey[$key];
+                    }
                 }
 
-                return null;
+                return $foundKeywords;
             });
 
         return $repository;

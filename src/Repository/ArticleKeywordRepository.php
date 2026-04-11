@@ -113,6 +113,45 @@ class ArticleKeywordRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
+    /**
+     * @param list<array{language: ArticleKeywordLanguage, name: string}> $pairs
+     *
+     * @return list<ArticleKeyword>
+     */
+    public function findByLanguageAndNamePairs(array $pairs): array
+    {
+        if ([] === $pairs) {
+            return [];
+        }
+
+        $queryBuilder = $this->createQueryBuilder('keyword');
+        $orExpression = $queryBuilder->expr()->orX();
+
+        foreach (array_values($pairs) as $index => $pair) {
+            $languageParameter = 'language_'.$index;
+            $nameParameter = 'name_'.$index;
+
+            $orExpression->add(sprintf(
+                '(keyword.language = :%s AND keyword.name = :%s)',
+                $languageParameter,
+                $nameParameter,
+            ));
+
+            $queryBuilder
+                ->setParameter($languageParameter, $pair['language'])
+                ->setParameter($nameParameter, trim($pair['name']));
+        }
+
+        /** @var list<ArticleKeyword> $keywords */
+        $keywords = $queryBuilder
+            ->andWhere($orExpression)
+            ->orderBy('keyword.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        return $keywords;
+    }
+
     public function findOneActiveByLanguageAndName(ArticleKeywordLanguage $language, string $name): ?ArticleKeyword
     {
         return $this->createQueryBuilder('keyword')
