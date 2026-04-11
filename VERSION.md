@@ -416,3 +416,7 @@
 - Dopracowano interfejs `Centrum Powiadomień`, dodając akcje ikonowe dla każdego wpisu, przycisk `Odśwież` w nagłówku, akcję `Usuń wszystkie powiadomienia` w stopce, tooltipy dla wszystkich akcji oraz mocniejsze wizualne wyróżnienie elementów nieprzeczytanych.
 - Przebudowano zachowanie submenu powiadomień na desktopie do formy bocznego flyouta zamiast akordeonu, a w wariancie zwiniętego, zadokowanego raila dopasowano popover do pełnego rozmiaru panelu z zachowaniem poprawnego układu dat, treści i akcji.
 - Ustabilizowano interakcje `Centrum Powiadomień`, eliminując skoki layoutu przez delikatny blur i preloader zachowujący wysokość panelu, usuwając podwójne scrollbary w zwiniętym wariancie zadokowanym oraz poprawiając logikę klawisza `Escape`, tak aby zamykał najpierw samo submenu powiadomień bez składania pozostałych sekcji skrótów.
+
+## 2026-04-11
+
+- Ujednolicono ekrany `Import Artykułów`, `Import kategorii` i `Import menu`, zastępując natywne pola `input[type=file]` istniejącym współdzielonym komponentem uploadu plików z podglądem nazwy wybranego pliku, wspólnym wyglądem, tooltipem pomocy oraz uzupełnionymi kluczami i18n dla etykiet dostępności.
