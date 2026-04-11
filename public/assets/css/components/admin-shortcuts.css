@@ -96,9 +96,7 @@
   border-top-right-radius:inherit;
 }
 
-.admin-shortcuts-menu > .admin-shortcuts-section:last-child,
-.admin-shortcuts-menu > .admin-shortcuts-scroll:last-child,
-.admin-shortcuts-menu > .admin-shortcuts-link:last-child{
+.admin-shortcuts-menu > .admin-shortcuts-settings:last-child{
   border-bottom-left-radius:inherit;
   border-bottom-right-radius:inherit;
 }
