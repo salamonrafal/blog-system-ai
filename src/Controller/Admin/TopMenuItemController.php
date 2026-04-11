@@ -31,7 +31,7 @@ class TopMenuItemController extends AbstractController
     public function index(TopMenuItemRepository $topMenuItemRepository): Response
     {
         return $this->render('admin/top_menu/index.html.twig', [
-            'menu_items' => $topMenuItemRepository->findForAdminIndex(),
+            'menu_items' => $topMenuItemRepository->findForAdminIndexView(),
             'menu_stats' => [
                 'all' => $topMenuItemRepository->count([]),
                 'active' => $topMenuItemRepository->countActive(),

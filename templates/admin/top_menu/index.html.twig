@@ -61,7 +61,9 @@
                     </tr>
                     </thead>
                     <tbody>
-                    {% for item in menu_items %}
+                    {% for entry in menu_items %}
+                        {% set item = entry.item %}
+                        {% set has_children = entry.hasChildren %}
                         {% set target_label = item.targetType.label %}
                         <tr>
                             <td class="user-index-email-cell">
@@ -81,7 +83,7 @@
                                     <a class="button secondary article-action-button" href="{{ path('admin_top_menu_edit', {id: item.id}) }}" data-i18n-title="admin_table_edit" data-i18n-tooltip="admin_table_edit" data-i18n-aria="admin_table_edit" data-tooltip="Edytuj" aria-label="Edytuj element menu">
                                         <span class="article-action-icon is-edit" aria-hidden="true"></span>
                                     </a>
-                                    {% if item.children is not empty %}
+                                    {% if has_children %}
                                         <button
                                             class="button secondary button-danger article-action-button is-disabled"
                                             type="button"

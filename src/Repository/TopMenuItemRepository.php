@@ -12,6 +12,8 @@ use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @extends ServiceEntityRepository<TopMenuItem>
+ *
+ * @phpstan-type AdminTreeNode array{item: TopMenuItem, children: list<AdminTreeNode>}
  */
 class TopMenuItemRepository extends ServiceEntityRepository
 {
@@ -34,7 +36,42 @@ class TopMenuItemRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return list<array{item: TopMenuItem, children: list<array{item: TopMenuItem, children: array}>}>
+     * @return list<array{item: TopMenuItem, hasChildren: bool}>
+     */
+    public function findForAdminIndexView(): array
+    {
+        $rows = $this->createQueryBuilder('menu_item')
+            ->leftJoin('menu_item.parent', 'parent')
+            ->addSelect('parent')
+            ->leftJoin('menu_item.articleCategory', 'article_category')
+            ->addSelect('article_category')
+            ->leftJoin('menu_item.article', 'article')
+            ->addSelect('article')
+            ->leftJoin('menu_item.children', 'children')
+            ->addSelect('COUNT(children.id) AS childrenCount')
+            ->groupBy('menu_item.id, parent.id, article_category.id, article.id')
+            ->orderBy('menu_item.position', 'ASC')
+            ->addOrderBy('menu_item.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        return array_values(array_map(
+            static function (mixed $row): array {
+                if (!is_array($row) || !isset($row[0]) || !$row[0] instanceof TopMenuItem) {
+                    throw new \UnexpectedValueException('Expected top menu index row with TopMenuItem entity payload.');
+                }
+
+                return [
+                    'item' => $row[0],
+                    'hasChildren' => (int) ($row['childrenCount'] ?? 0) > 0,
+                ];
+            },
+            $rows,
+        ));
+    }
+
+    /**
+     * @return list<AdminTreeNode>
      */
     public function findTreeForAdmin(): array
     {
@@ -254,7 +291,7 @@ class TopMenuItemRepository extends ServiceEntityRepository
     /**
      * @param list<TopMenuItem> $items
      *
-     * @return list<array{item: TopMenuItem, children: list<array{item: TopMenuItem, children: array}>}>
+     * @return list<AdminTreeNode>
      */
     private function buildAdminTree(array $items): array
     {
@@ -287,7 +324,7 @@ class TopMenuItemRepository extends ServiceEntityRepository
      * @param list<TopMenuItem> $items
      * @param array<int, list<TopMenuItem>> $childrenByParentId
      *
-     * @return list<array{item: TopMenuItem, children: list<array{item: TopMenuItem, children: array}>}>
+     * @return list<AdminTreeNode>
      */
     private function buildAdminBranch(array $items, array $childrenByParentId): array
     {

@@ -40,7 +40,10 @@ final class TopMenuItemControllerTest extends TestCase
 
         /** @var TopMenuItemRepository&MockObject $repository */
         $repository = $this->createMock(TopMenuItemRepository::class);
-        $repository->expects($this->once())->method('findForAdminIndex')->willReturn([$item]);
+        $repository->expects($this->once())->method('findForAdminIndexView')->willReturn([[
+            'item' => $item,
+            'hasChildren' => false,
+        ]]);
         $repository->expects($this->once())->method('count')->with([])->willReturn(1);
         $repository->expects($this->once())->method('countActive')->willReturn(1);
         $repository->expects($this->once())->method('countInactive')->willReturn(0);
