@@ -74,12 +74,20 @@ class ArticleKeywordImportProcessor
         }
 
         try {
-            /** @var array<string, mixed> $payload */
             $payload = json_decode((string) file_get_contents($absolutePath), true, 512, JSON_THROW_ON_ERROR);
         } catch (\JsonException $exception) {
             throw new ArticleKeywordImportException('Import file does not contain valid JSON.', 0, $exception);
         }
 
+        if (!is_array($payload)) {
+            throw new ArticleKeywordImportException('Import file root value must be a JSON object.');
+        }
+
+        if (array_is_list($payload)) {
+            throw new ArticleKeywordImportException('Import file root value must be a JSON object, list given.');
+        }
+
+        /** @var array<string, mixed> $payload */
         return $payload;
     }
 

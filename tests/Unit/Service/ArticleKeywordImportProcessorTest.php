@@ -227,6 +227,20 @@ final class ArticleKeywordImportProcessorTest extends TestCase
         $processor->process($queueItem);
     }
 
+    public function testProcessThrowsReadableErrorWhenRootJsonValueIsScalar(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+
+        $processor = $this->createProcessor($entityManager, $this->createRepositoryMock());
+        $queueItem = $this->createQueueItemWithRawJson('true');
+
+        $this->expectException(ArticleKeywordImportException::class);
+        $this->expectExceptionMessage('Import file root value must be a JSON object.');
+
+        $processor->process($queueItem);
+    }
+
     private function createProcessor(
         EntityManagerInterface $entityManager,
         ArticleKeywordRepository $repository,
@@ -248,6 +262,16 @@ final class ArticleKeywordImportProcessorTest extends TestCase
     {
         $filename = 'keywords-'.bin2hex(random_bytes(4)).'.json';
         file_put_contents($this->projectDir.'/var/imports/'.$filename, json_encode($payload, JSON_THROW_ON_ERROR));
+
+        return (new ArticleKeywordImportQueue())
+            ->setOriginalFilename($filename)
+            ->setFilePath('var/imports/'.$filename);
+    }
+
+    private function createQueueItemWithRawJson(string $json): ArticleKeywordImportQueue
+    {
+        $filename = 'keywords-raw-'.bin2hex(random_bytes(4)).'.json';
+        file_put_contents($this->projectDir.'/var/imports/'.$filename, $json);
 
         return (new ArticleKeywordImportQueue())
             ->setOriginalFilename($filename)

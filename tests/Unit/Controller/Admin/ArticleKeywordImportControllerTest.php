@@ -6,7 +6,6 @@ namespace App\Tests\Unit\Controller\Admin;
 
 use App\Controller\Admin\ArticleKeywordImportController;
 use App\Entity\ArticleKeywordImportQueue;
-use App\Form\ArticleImportType;
 use App\Repository\ArticleKeywordImportQueueRepository;
 use App\Service\ArticleImportStorage;
 use App\Service\ManagedFileDeleter;
@@ -92,6 +91,6 @@ final class TestArticleKeywordImportController extends ArticleKeywordImportContr
             ->addExtension(new HttpFoundationExtension())
             ->addExtension(new ValidatorExtension($validator))
             ->getFormFactory()
-            ->create(ArticleImportType::class, $data, $options);
+            ->create($type, $data, $options);
     }
 }
