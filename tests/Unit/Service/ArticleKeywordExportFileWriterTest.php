@@ -38,7 +38,7 @@ final class ArticleKeywordExportFileWriterTest extends TestCase
             $repository = $this->createMock(ArticleKeywordRepository::class);
             $repository
                 ->expects($this->once())
-                ->method('findForAdminIndex')
+                ->method('findForExport')
                 ->willReturn([$keyword]);
 
             $writer = new ArticleKeywordExportFileWriter($repository, $projectDir, 'var/exports');

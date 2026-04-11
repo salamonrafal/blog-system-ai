@@ -13,6 +13,7 @@ use App\Service\UserTimeZoneResolver;
 use App\Repository\CategoryExportQueueRepository;
 use App\Repository\ArticleExportQueueRepository;
 use App\Repository\ArticleExportRepository;
+use App\Repository\ArticleKeywordExportQueueRepository;
 use App\Repository\ArticleKeywordImportQueueRepository;
 use App\Repository\ArticleImportQueueRepository;
 use App\Repository\CategoryImportQueueRepository;
@@ -43,6 +44,7 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
         private readonly CategoryImportQueueRepository $categoryImportQueueRepository,
         private readonly TopMenuImportQueueRepository $topMenuImportQueueRepository,
         private readonly ArticleExportQueueRepository $articleExportQueueRepository,
+        private readonly ArticleKeywordExportQueueRepository $articleKeywordExportQueueRepository,
         private readonly CategoryExportQueueRepository $categoryExportQueueRepository,
         private readonly TopMenuExportQueueRepository $topMenuExportQueueRepository,
         private readonly ArticleExportRepository $articleExportRepository,
@@ -78,7 +80,10 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
         $pendingCategoryImportCount = $this->categoryImportQueueRepository->countPending();
         $pendingTopMenuImportCount = $this->topMenuImportQueueRepository->countPending();
         $pendingImportCount = $pendingArticleImportCount + $pendingKeywordImportCount + $pendingCategoryImportCount + $pendingTopMenuImportCount;
-        $pendingExportQueueCount = $this->articleExportQueueRepository->countPending() + $this->categoryExportQueueRepository->countPending() + $this->topMenuExportQueueRepository->countPending();
+        $pendingExportQueueCount = $this->articleExportQueueRepository->countPending()
+            + $this->articleKeywordExportQueueRepository->countPending()
+            + $this->categoryExportQueueRepository->countPending()
+            + $this->topMenuExportQueueRepository->countPending();
         $newExportCount = $this->articleExportRepository->countNew();
         $language = $this->userLanguageResolver->getLanguage();
         $mediaUploadLimitBytes = $this->uploadLimitResolver->resolveEffectiveLimit(\App\Service\MediaImageSupport::MAX_FILE_SIZE);

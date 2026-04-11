@@ -48,7 +48,8 @@ class ArticleKeywordImportProcessor
             }
 
             $name = $this->requireString($keywordData, 'name', $index, true);
-            $keyword = $this->articleKeywordRepository->findOneByName($name) ?? new ArticleKeyword();
+            $language = $this->parseLanguage($keywordData['language'] ?? null, $index);
+            $keyword = $this->articleKeywordRepository->findOneByLanguageAndName($language, $name) ?? new ArticleKeyword();
             $this->hydrateKeyword($keyword, $keywordData, $index);
 
             if (null === $keyword->getId()) {
@@ -109,7 +110,7 @@ class ArticleKeywordImportProcessor
      */
     private function validatePayloadDuplicates(array $keywords): void
     {
-        $seenNames = [];
+        $seenKeywords = [];
 
         foreach ($keywords as $index => $keywordData) {
             if (!is_array($keywordData)) {
@@ -117,17 +118,23 @@ class ArticleKeywordImportProcessor
             }
 
             $name = $this->requireString($keywordData, 'name', $index, true);
-            if (array_key_exists($name, $seenNames)) {
+            $language = $this->parseLanguage($keywordData['language'] ?? null, $index);
+            $duplicateKey = $language->value.'|'.$name;
+            if (array_key_exists($duplicateKey, $seenKeywords)) {
                 throw new ArticleKeywordImportException(sprintf(
-                    'Field %s[%d].name duplicates value from %s[%d].name.',
+                    'Fields %s[%d].language and %s[%d].name duplicate values from %s[%d].language and %s[%d].name.',
                     self::PAYLOAD_KEY,
                     $index,
                     self::PAYLOAD_KEY,
-                    $seenNames[$name],
+                    $index,
+                    self::PAYLOAD_KEY,
+                    $seenKeywords[$duplicateKey],
+                    self::PAYLOAD_KEY,
+                    $seenKeywords[$duplicateKey],
                 ));
             }
 
-            $seenNames[$name] = $index;
+            $seenKeywords[$duplicateKey] = $index;
         }
     }
 

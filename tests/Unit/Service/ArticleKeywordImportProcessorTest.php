@@ -68,11 +68,11 @@ final class ArticleKeywordImportProcessorTest extends TestCase
         $this->assertSame('#123456', $capturedKeyword->getColor());
     }
 
-    public function testProcessUpdatesExistingKeywordMatchedByNameAndIgnoresArticles(): void
+    public function testProcessUpdatesExistingKeywordMatchedByLanguageAndNameAndIgnoresArticles(): void
     {
         $existingKeyword = (new ArticleKeyword())
             ->setName('AI')
-            ->setLanguage(ArticleKeywordLanguage::EN)
+            ->setLanguage(ArticleKeywordLanguage::ALL)
             ->setStatus(ArticleCategoryStatus::INACTIVE)
             ->setColor('#abcdef');
         $existingArticle = (new Article())
@@ -84,7 +84,7 @@ final class ArticleKeywordImportProcessorTest extends TestCase
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects($this->never())->method('persist');
 
-        $processor = $this->createProcessor($entityManager, $this->createRepositoryMock($existingKeyword));
+        $processor = $this->createProcessor($entityManager, $this->createRepositoryMock($existingKeyword, ArticleKeywordLanguage::ALL, 'AI'));
         $queueItem = $this->createQueueItemWithPayload([
             'format' => 'article-keyword-export',
             'version' => 1,
@@ -109,8 +109,14 @@ final class ArticleKeywordImportProcessorTest extends TestCase
 
     public function testProcessThrowsReadableErrorWhenPayloadContainsDuplicateNames(): void
     {
+        $persistedKeywords = [];
         $entityManager = $this->createMock(EntityManagerInterface::class);
-        $entityManager->expects($this->never())->method('persist');
+        $entityManager
+            ->expects($this->exactly(2))
+            ->method('persist')
+            ->willReturnCallback(static function (ArticleKeyword $keyword) use (&$persistedKeywords): void {
+                $persistedKeywords[] = $keyword;
+            });
 
         $processor = $this->createProcessor($entityManager, $this->createRepositoryMock(null));
         $queueItem = $this->createQueueItemWithPayload([
@@ -132,8 +138,43 @@ final class ArticleKeywordImportProcessorTest extends TestCase
             ],
         ]);
 
+        $importedCount = $processor->process($queueItem);
+
+        $this->assertSame(2, $importedCount);
+        $this->assertCount(2, $persistedKeywords);
+        $this->assertSame(
+            [ArticleKeywordLanguage::PL, ArticleKeywordLanguage::EN],
+            array_map(static fn (ArticleKeyword $keyword): ArticleKeywordLanguage => $keyword->getLanguage(), $persistedKeywords),
+        );
+    }
+
+    public function testProcessThrowsReadableErrorWhenPayloadContainsDuplicateLanguageAndNamePairs(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+
+        $processor = $this->createProcessor($entityManager, $this->createRepositoryMock(null));
+        $queueItem = $this->createQueueItemWithPayload([
+            'format' => 'article-keyword-export',
+            'version' => 1,
+            'keywords' => [
+                [
+                    'name' => 'AI',
+                    'language' => 'pl',
+                    'status' => 'active',
+                    'color' => null,
+                ],
+                [
+                    'name' => 'AI',
+                    'language' => 'pl',
+                    'status' => 'inactive',
+                    'color' => null,
+                ],
+            ],
+        ]);
+
         $this->expectException(ArticleKeywordImportException::class);
-        $this->expectExceptionMessage('Field keywords[1].name duplicates value from keywords[0].name.');
+        $this->expectExceptionMessage('Fields keywords[1].language and keywords[1].name duplicate values from keywords[0].language and keywords[0].name.');
 
         $processor->process($queueItem);
     }
@@ -188,13 +229,32 @@ final class ArticleKeywordImportProcessorTest extends TestCase
             ->setFilePath('var/imports/'.$filename);
     }
 
-    private function createRepositoryMock(?ArticleKeyword $keyword): ArticleKeywordRepository
+    private function createRepositoryMock(
+        ?ArticleKeyword $keyword,
+        ?ArticleKeywordLanguage $expectedLanguage = null,
+        ?string $expectedName = null,
+    ): ArticleKeywordRepository
     {
         /** @var ArticleKeywordRepository&MockObject $repository */
         $repository = $this->createMock(ArticleKeywordRepository::class);
+
+        if (null === $expectedLanguage || null === $expectedName) {
+            $repository
+                ->method('findOneByLanguageAndName')
+                ->willReturn(null);
+
+            return $repository;
+        }
+
         $repository
-            ->method('findOneByName')
-            ->willReturn($keyword);
+            ->method('findOneByLanguageAndName')
+            ->willReturnCallback(static function (ArticleKeywordLanguage $language, string $name) use ($keyword, $expectedLanguage, $expectedName): ?ArticleKeyword {
+                if ($language === $expectedLanguage && trim($name) === $expectedName) {
+                    return $keyword;
+                }
+
+                return null;
+            });
 
         return $repository;
     }

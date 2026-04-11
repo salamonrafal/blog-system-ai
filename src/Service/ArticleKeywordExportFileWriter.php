@@ -42,7 +42,7 @@ class ArticleKeywordExportFileWriter
         );
         $relativePath = rtrim($this->exportDirectory, '/').'/'.$fileName;
         $absolutePath = $this->projectDir.'/'.$relativePath;
-        $keywords = $this->articleKeywordRepository->findForAdminIndex();
+        $keywords = $this->articleKeywordRepository->findForExport();
 
         $payload = [
             'format' => 'article-keyword-export',

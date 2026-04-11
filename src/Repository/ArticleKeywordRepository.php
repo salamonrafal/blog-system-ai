@@ -40,6 +40,24 @@ class ArticleKeywordRepository extends ServiceEntityRepository
     /**
      * @return list<ArticleKeyword>
      */
+    public function findForExport(): array
+    {
+        /** @var list<ArticleKeyword> $keywords */
+        $keywords = $this->createQueryBuilder('keyword')
+            ->leftJoin('keyword.articles', 'article')
+            ->addSelect('article')
+            ->orderBy('keyword.language', 'ASC')
+            ->addOrderBy('keyword.name', 'ASC')
+            ->addOrderBy('keyword.id', 'DESC')
+            ->getQuery()
+            ->getResult();
+
+        return $keywords;
+    }
+
+    /**
+     * @return list<ArticleKeyword>
+     */
     public function findForArticleAssignment(): array
     {
         /** @var list<ArticleKeyword> $keywords */
@@ -82,10 +100,12 @@ class ArticleKeywordRepository extends ServiceEntityRepository
         return (int) $queryBuilder->getQuery()->getSingleScalarResult() > 0;
     }
 
-    public function findOneByName(string $name): ?ArticleKeyword
+    public function findOneByLanguageAndName(ArticleKeywordLanguage $language, string $name): ?ArticleKeyword
     {
         return $this->createQueryBuilder('keyword')
+            ->andWhere('keyword.language = :language')
             ->andWhere('keyword.name = :name')
+            ->setParameter('language', $language)
             ->setParameter('name', trim($name))
             ->orderBy('keyword.id', 'ASC')
             ->setMaxResults(1)

@@ -8,6 +8,7 @@ use App\Entity\BlogSettings;
 use App\Repository\ArticleExportQueueRepository;
 use App\Repository\ArticleExportRepository;
 use App\Repository\ArticleImportQueueRepository;
+use App\Repository\ArticleKeywordExportQueueRepository;
 use App\Repository\ArticleKeywordImportQueueRepository;
 use App\Repository\CategoryExportQueueRepository;
 use App\Repository\CategoryImportQueueRepository;
@@ -42,6 +43,7 @@ final class AppGlobalsExtensionTest extends TestCase
         $categoryImportQueueRepository = $this->createMock(CategoryImportQueueRepository::class);
         $topMenuImportQueueRepository = $this->createMock(TopMenuImportQueueRepository::class);
         $exportQueueRepository = $this->createMock(ArticleExportQueueRepository::class);
+        $keywordExportQueueRepository = $this->createMock(ArticleKeywordExportQueueRepository::class);
         $categoryExportQueueRepository = $this->createMock(CategoryExportQueueRepository::class);
         $topMenuExportQueueRepository = $this->createMock(TopMenuExportQueueRepository::class);
         $exportRepository = $this->createMock(ArticleExportRepository::class);
@@ -58,6 +60,7 @@ final class AppGlobalsExtensionTest extends TestCase
             $categoryImportQueueRepository,
             $topMenuImportQueueRepository,
             $exportQueueRepository,
+            $keywordExportQueueRepository,
             $categoryExportQueueRepository,
             $topMenuExportQueueRepository,
             $exportRepository,
@@ -94,6 +97,7 @@ final class AppGlobalsExtensionTest extends TestCase
             $this->createMock(CategoryImportQueueRepository::class),
             $this->createMock(TopMenuImportQueueRepository::class),
             $this->createMock(ArticleExportQueueRepository::class),
+            $this->createMock(ArticleKeywordExportQueueRepository::class),
             $this->createMock(CategoryExportQueueRepository::class),
             $this->createMock(TopMenuExportQueueRepository::class),
             $this->createMock(ArticleExportRepository::class),
@@ -175,6 +179,11 @@ final class AppGlobalsExtensionTest extends TestCase
             ->expects($this->once())
             ->method('countPending')
             ->willReturn(3);
+        $keywordExportQueueRepository = $this->createMock(ArticleKeywordExportQueueRepository::class);
+        $keywordExportQueueRepository
+            ->expects($this->once())
+            ->method('countPending')
+            ->willReturn(5);
         $categoryExportQueueRepository = $this->createMock(CategoryExportQueueRepository::class);
         $categoryExportQueueRepository
             ->expects($this->once())
@@ -231,6 +240,7 @@ final class AppGlobalsExtensionTest extends TestCase
             $categoryImportQueueRepository,
             $topMenuImportQueueRepository,
             $exportQueueRepository,
+            $keywordExportQueueRepository,
             $categoryExportQueueRepository,
             $topMenuExportQueueRepository,
             $exportRepository,
@@ -257,13 +267,13 @@ final class AppGlobalsExtensionTest extends TestCase
         $this->assertSame('2.0 MB', $globals['media_upload_limit_formatted']);
         $this->assertJson($globals['validation_i18n_json']);
         $this->assertSame([
-            'queue_status' => 16,
+            'queue_status' => 21,
             'imports' => 2,
             'keyword_imports' => 4,
             'category_imports' => 3,
             'top_menu_imports' => 1,
             'exports' => 4,
-            'import_export' => 20,
+            'import_export' => 25,
         ], $globals['admin_shortcut_badges']);
         $this->assertCount(1, $globals['top_menu_items']);
     }

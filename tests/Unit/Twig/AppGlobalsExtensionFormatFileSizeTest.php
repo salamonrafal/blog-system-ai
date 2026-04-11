@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Twig;
 use App\Repository\ArticleExportQueueRepository;
 use App\Repository\ArticleExportRepository;
 use App\Repository\ArticleImportQueueRepository;
+use App\Repository\ArticleKeywordExportQueueRepository;
 use App\Repository\ArticleKeywordImportQueueRepository;
 use App\Repository\CategoryExportQueueRepository;
 use App\Repository\CategoryImportQueueRepository;
@@ -36,6 +37,7 @@ final class AppGlobalsExtensionFormatFileSizeTest extends TestCase
             $this->createStub(CategoryImportQueueRepository::class),
             $this->createStub(TopMenuImportQueueRepository::class),
             $this->createStub(ArticleExportQueueRepository::class),
+            $this->createStub(ArticleKeywordExportQueueRepository::class),
             $this->createStub(CategoryExportQueueRepository::class),
             $this->createStub(TopMenuExportQueueRepository::class),
             $this->createStub(ArticleExportRepository::class),
