@@ -8,6 +8,7 @@ use App\Controller\Admin\ArticleKeywordController;
 use App\Entity\ArticleKeyword;
 use App\Entity\User;
 use App\Enum\ArticleKeywordLanguage;
+use App\Repository\ArticleKeywordExportQueueRepository;
 use App\Repository\ArticleKeywordRepository;
 use App\Service\ArticleKeywordNameGenerator;
 use App\Tests\Unit\Support\MocksUserLanguageResolver;
@@ -300,6 +301,34 @@ final class ArticleKeywordControllerTest extends TestCase
             $this->createMock(EntityManagerInterface::class),
             $this->createUserLanguageResolverMock('pl'),
         );
+    }
+
+    public function testExportAddsKeywordSnapshotToQueueWhenRepositoryEnqueuesIt(): void
+    {
+        $currentUser = (new User())
+            ->setEmail('exporter@example.com')
+            ->setFullName('Eksporter');
+
+        $queueRepository = $this->createMock(ArticleKeywordExportQueueRepository::class);
+        $queueRepository
+            ->expects($this->once())
+            ->method('enqueuePending')
+            ->with($currentUser)
+            ->willReturn(true);
+
+        $controller = new TestArticleKeywordController();
+        $controller->authenticatedUser = $currentUser;
+        $controller->csrfTokenIsValid = true;
+
+        $response = $controller->export(
+            new Request([], ['_token' => 'valid']),
+            $queueRepository,
+            $this->createUserLanguageResolverMock('pl'),
+        );
+
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertSame('/admin/article-keywords', $response->getTargetUrl());
+        $this->assertSame([['success', 'Eksport słów kluczowych został dodany do kolejki.']], $controller->flashes);
     }
 
     private function setEntityId(object $entity, int $id): void

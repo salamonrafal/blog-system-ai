@@ -1528,6 +1528,27 @@ export function setupImportClearConfirmation(){
   });
 
   setupDangerConfirmation({
+    triggerSelector: '[data-action="confirm-clear-article-keyword-imports"]',
+    modalClass: 'confirm-clear-article-keyword-imports-modal',
+    modalIdPrefix: 'confirm-clear-article-keyword-imports',
+    titleI18n: 'admin_article_keyword_imports_clear_popup_title',
+    titleFallback: 'Usunąć wszystkie importy słów kluczowych?',
+    textI18n: 'admin_article_keyword_imports_clear_popup_text',
+    textFallback: 'Ta operacja usunie wszystkie rekordy importu słów kluczowych oraz powiązane pliki z dysku.',
+    detailsClass: null,
+    detailsText: null,
+    cancelAction: 'cancel-clear-article-keyword-imports',
+    submitAction: 'submit-clear-article-keyword-imports',
+    closeAction: 'close-clear-article-keyword-imports',
+    cancelI18n: 'admin_article_keyword_imports_clear_popup_cancel',
+    cancelFallback: 'Przerwij',
+    submitI18n: 'admin_article_keyword_imports_clear_popup_confirm',
+    submitFallback: 'Usuń wszystko',
+    closeI18n: 'admin_close_alert',
+    closeFallback: 'Zamknij alert',
+  });
+
+  setupDangerConfirmation({
     triggerSelector: '[data-action="confirm-clear-top-menu-imports"]',
     modalClass: 'confirm-clear-top-menu-imports-modal',
     modalIdPrefix: 'confirm-clear-top-menu-imports',

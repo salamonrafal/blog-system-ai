@@ -68,11 +68,17 @@
         "category-export:process-queue": [
             "@php bin/console app:category-export:process-queue"
         ],
+        "article-keyword-export:process-queue": [
+            "@php bin/console app:article-keyword-export:process-queue"
+        ],
         "top-menu-export:process-queue": [
             "@php bin/console app:top-menu-export:process-queue"
         ],
         "article-import:process-queue": [
             "@php bin/console app:article-import:process-queue"
+        ],
+        "article-keyword-import:process-queue": [
+            "@php bin/console app:article-keyword-import:process-queue"
         ],
         "category-import:process-queue": [
             "@php bin/console app:category-import:process-queue"

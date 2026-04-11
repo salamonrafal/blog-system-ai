@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Entity\ArticleExportQueue;
+use App\Entity\ArticleKeywordExportQueue;
+use App\Entity\ArticleKeywordImportQueue;
 use App\Entity\CategoryExportQueue;
 use App\Entity\ArticleImportQueue;
 use App\Entity\CategoryImportQueue;
@@ -14,6 +16,8 @@ use App\Enum\ArticleExportQueueStatus;
 use App\Enum\ArticleExportType;
 use App\Enum\ArticleImportQueueStatus;
 use App\Repository\ArticleExportQueueRepository;
+use App\Repository\ArticleKeywordExportQueueRepository;
+use App\Repository\ArticleKeywordImportQueueRepository;
 use App\Repository\CategoryExportQueueRepository;
 use App\Repository\ArticleImportQueueRepository;
 use App\Repository\CategoryImportQueueRepository;
@@ -40,9 +44,11 @@ class QueueStatusController extends AbstractController
     #[Route('/status', name: 'admin_queue_status', methods: ['GET'])]
     public function index(
         ArticleExportQueueRepository $articleExportQueueRepository,
+        ArticleKeywordExportQueueRepository $articleKeywordExportQueueRepository,
         CategoryExportQueueRepository $categoryExportQueueRepository,
         TopMenuExportQueueRepository $topMenuExportQueueRepository,
         ArticleImportQueueRepository $articleImportQueueRepository,
+        ArticleKeywordImportQueueRepository $articleKeywordImportQueueRepository,
         CategoryImportQueueRepository $categoryImportQueueRepository,
         TopMenuImportQueueRepository $topMenuImportQueueRepository,
     ): Response
@@ -61,6 +67,21 @@ class QueueStatusController extends AbstractController
                     'csrf_token_id' => 'delete_queue_item_'.$queueItem->getId(),
                 ],
                 $articleExportQueueRepository->findPendingOrderedByCreatedAt(),
+            ),
+            ...array_map(
+                static fn (ArticleKeywordExportQueue $queueItem): array => [
+                    'id' => $queueItem->getId(),
+                    'type' => ArticleExportType::KEYWORDS,
+                    'label' => 'Wszystkie słowa kluczowe',
+                    'label_key' => 'admin_article_keyword_export_queue_label',
+                    'edit_route' => 'admin_article_keyword_index',
+                    'edit_route_params' => [],
+                    'requested_by' => $queueItem->getRequestedBy(),
+                    'created_at' => $queueItem->getCreatedAt(),
+                    'delete_route' => 'admin_queue_status_keyword_export_delete',
+                    'csrf_token_id' => 'delete_article_keyword_export_queue_item_'.$queueItem->getId(),
+                ],
+                $articleKeywordExportQueueRepository->findPendingOrderedByCreatedAt(),
             ),
             ...array_map(
                 static fn (CategoryExportQueue $queueItem): array => [
@@ -112,6 +133,20 @@ class QueueStatusController extends AbstractController
                 $articleImportQueueRepository->findPendingOrderedByCreatedAt(),
             ),
             ...array_map(
+                static fn (ArticleKeywordImportQueue $queueItem): array => [
+                    'id' => $queueItem->getId(),
+                    'type_key' => 'admin_queue_type_keyword_import',
+                    'type_label' => 'Import słów kluczowych',
+                    'original_filename' => $queueItem->getOriginalFilename(),
+                    'file_path' => $queueItem->getFilePath(),
+                    'requested_by' => $queueItem->getRequestedBy(),
+                    'created_at' => $queueItem->getCreatedAt(),
+                    'delete_route' => 'admin_queue_status_keyword_import_delete',
+                    'csrf_token_id' => 'delete_article_keyword_import_queue_item_'.$queueItem->getId(),
+                ],
+                $articleKeywordImportQueueRepository->findPendingOrderedByCreatedAt(),
+            ),
+            ...array_map(
                 static fn (CategoryImportQueue $queueItem): array => [
                     'id' => $queueItem->getId(),
                     'type_key' => 'admin_queue_type_category_import',
@@ -148,7 +183,7 @@ class QueueStatusController extends AbstractController
         return $this->render('admin/queue_status/index.html.twig', [
             'pending_export_queue_items' => $pendingExportQueueItems,
             'pending_import_queue_items' => $pendingImportQueueItems,
-            'has_pending_queue_items' => $articleExportQueueRepository->countPending() + $categoryExportQueueRepository->countPending() + $topMenuExportQueueRepository->countPending() + $articleImportQueueRepository->countPending() + $categoryImportQueueRepository->countPending() + $topMenuImportQueueRepository->countPending() > 0,
+            'has_pending_queue_items' => $articleExportQueueRepository->countPending() + $articleKeywordExportQueueRepository->countPending() + $categoryExportQueueRepository->countPending() + $topMenuExportQueueRepository->countPending() + $articleImportQueueRepository->countPending() + $articleKeywordImportQueueRepository->countPending() + $categoryImportQueueRepository->countPending() + $topMenuImportQueueRepository->countPending() > 0,
         ]);
     }
 
@@ -156,9 +191,11 @@ class QueueStatusController extends AbstractController
     public function clear(
         Request $request,
         ArticleExportQueueRepository $articleExportQueueRepository,
+        ArticleKeywordExportQueueRepository $articleKeywordExportQueueRepository,
         CategoryExportQueueRepository $categoryExportQueueRepository,
         TopMenuExportQueueRepository $topMenuExportQueueRepository,
         ArticleImportQueueRepository $articleImportQueueRepository,
+        ArticleKeywordImportQueueRepository $articleKeywordImportQueueRepository,
         CategoryImportQueueRepository $categoryImportQueueRepository,
         TopMenuImportQueueRepository $topMenuImportQueueRepository,
         EntityManagerInterface $entityManager,
@@ -169,6 +206,9 @@ class QueueStatusController extends AbstractController
         }
 
         foreach ($articleExportQueueRepository->findBy(['status' => ArticleExportQueueStatus::PENDING]) as $queueItem) {
+            $entityManager->remove($queueItem);
+        }
+        foreach ($articleKeywordExportQueueRepository->findBy(['status' => ArticleExportQueueStatus::PENDING]) as $queueItem) {
             $entityManager->remove($queueItem);
         }
         foreach ($categoryExportQueueRepository->findBy(['status' => ArticleExportQueueStatus::PENDING]) as $queueItem) {
@@ -189,6 +229,20 @@ class QueueStatusController extends AbstractController
         }
 
         foreach ($pendingImportQueueItems as $queueItem) {
+            $entityManager->remove($queueItem);
+        }
+
+        $pendingKeywordImportQueueItems = $articleKeywordImportQueueRepository->findBy(['status' => ArticleImportQueueStatus::PENDING]);
+        $pathsToDelete = [];
+        foreach ($pendingKeywordImportQueueItems as $queueItem) {
+            $pathsToDelete[] = $this->managedFilePathResolver->resolveImportPath($queueItem->getFilePath());
+        }
+
+        foreach ($pathsToDelete as $path) {
+            $this->managedFileDeleter->delete($path, 'import');
+        }
+
+        foreach ($pendingKeywordImportQueueItems as $queueItem) {
             $entityManager->remove($queueItem);
         }
 
@@ -223,6 +277,25 @@ class QueueStatusController extends AbstractController
         $entityManager->flush();
 
         $this->addFlash('success', $userLanguageResolver->translate('Kolejka oczekujących elementów została wyczyszczona.', 'The pending queue has been cleared.'));
+
+        return $this->redirectToRoute('admin_queue_status');
+    }
+
+    #[Route('/keyword-exports/{id}/delete', name: 'admin_queue_status_keyword_export_delete', methods: ['POST'])]
+    public function deleteKeywordExport(
+        ArticleKeywordExportQueue $queueItem,
+        Request $request,
+        EntityManagerInterface $entityManager,
+        UserLanguageResolver $userLanguageResolver,
+    ): Response {
+        if (!$this->isCsrfTokenValid('delete_article_keyword_export_queue_item_'.$queueItem->getId(), (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        $entityManager->remove($queueItem);
+        $entityManager->flush();
+
+        $this->addFlash('success', $userLanguageResolver->translate('Element został usunięty z kolejki.', 'The item has been removed from the queue.'));
 
         return $this->redirectToRoute('admin_queue_status');
     }
@@ -292,6 +365,27 @@ class QueueStatusController extends AbstractController
         UserLanguageResolver $userLanguageResolver,
     ): Response {
         if (!$this->isCsrfTokenValid('delete_import_queue_item_'.$queueItem->getId(), (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        $absolutePath = $this->managedFilePathResolver->resolveImportPath($queueItem->getFilePath());
+        $this->managedFileDeleter->delete($absolutePath, 'import');
+        $entityManager->remove($queueItem);
+        $entityManager->flush();
+
+        $this->addFlash('success', $userLanguageResolver->translate('Element został usunięty z kolejki.', 'The item has been removed from the queue.'));
+
+        return $this->redirectToRoute('admin_queue_status');
+    }
+
+    #[Route('/keyword-imports/{id}/delete', name: 'admin_queue_status_keyword_import_delete', methods: ['POST'])]
+    public function deleteKeywordImport(
+        ArticleKeywordImportQueue $queueItem,
+        Request $request,
+        EntityManagerInterface $entityManager,
+        UserLanguageResolver $userLanguageResolver,
+    ): Response {
+        if (!$this->isCsrfTokenValid('delete_article_keyword_import_queue_item_'.$queueItem->getId(), (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Invalid CSRF token.');
         }
 

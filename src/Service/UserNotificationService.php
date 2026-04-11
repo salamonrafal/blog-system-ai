@@ -44,6 +44,14 @@ class UserNotificationService
         );
     }
 
+    public function notifyKeywordImportCompleted(?int $userId, bool $success): void
+    {
+        $this->createNotification(
+            $userId,
+            $success ? UserNotificationType::KEYWORD_IMPORT_COMPLETED_SUCCESS : UserNotificationType::KEYWORD_IMPORT_COMPLETED_ERROR,
+        );
+    }
+
     public function notifyExportCompleted(?int $userId, bool $success): void
     {
         $this->createNotification(

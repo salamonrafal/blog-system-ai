@@ -420,3 +420,10 @@
 ## 2026-04-11
 
 - Ujednolicono ekrany `Import Artykułów`, `Import kategorii` i `Import menu`, zastępując natywne pola `input[type=file]` istniejącym współdzielonym komponentem uploadu plików z podglądem nazwy wybranego pliku, wspólnym wyglądem, tooltipem pomocy oraz uzupełnionymi kluczami i18n dla etykiet dostępności.
+- Rozszerzono moduł eksportów o słowa kluczowe artykułów, dodając akcję eksportu na ekranie `Zarządzanie słowami kluczowymi artykułów`, nowy typ eksportu `keywords`, osobną kolejkę `article_keyword_export_queue`, dedykowany command `app:article-keyword-export:process-queue`, writer plików JSON oraz integrację z listą `Eksporty`.
+- Zintegrowano eksport słów kluczowych z ekranem `Stan kolejek`, dashboardem administracyjnym, badge w skrótach oraz cronem, a do `composer.json` i `README.md` dopisano skrót `composer article-keyword-export:process-queue` i opis ręcznego uruchamiania.
+- Dodano nowy moduł `Import słów kluczowych` pod trasą `/admin/article-keyword-imports`, z formularzem uploadu JSON, listą plików w kolejce, pobieraniem i usuwaniem wpisów oraz odnośnikami w skrótach administracyjnych i na ekranie słów kluczowych.
+- Wprowadzono osobną kolejkę `article_keyword_import_queue`, command `app:article-keyword-import:process-queue`, skrót `composer article-keyword-import:process-queue` oraz pełną integrację importu słów kluczowych z `Stanem kolejek`, dashboardem, badge i cronem.
+- Dodano procesor importu słów kluczowych, który odczytuje format `article-keyword-export`, rozpoznaje istniejące rekordy po parze `language + name`, aktualizuje je albo tworzy nowe, ignoruje `article_ids` z pliku JSON i pozostawia bez zmian istniejące powiązania słów kluczowych z artykułami.
+- Rozszerzono powiadomienia użytkownika oraz internacjonalizację `PL/EN` o nowe komunikaty, etykiety i akcje dla eksportu oraz importu słów kluczowych.
+- Uzupełniono dokumentację i testy jednostkowe o obsługę eksportu oraz importu słów kluczowych, a migracje dla obu nowych kolejek połączono w jeden plik `Version20260411113000.php`.

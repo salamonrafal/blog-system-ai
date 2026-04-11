@@ -13,6 +13,8 @@ use App\Enum\ArticleStatus;
 use App\Repository\ArticleCategoryRepository;
 use App\Repository\ArticleExportRepository;
 use App\Repository\ArticleExportQueueRepository;
+use App\Repository\ArticleKeywordExportQueueRepository;
+use App\Repository\ArticleKeywordImportQueueRepository;
 use App\Repository\CategoryExportQueueRepository;
 use App\Repository\ArticleImportQueueRepository;
 use App\Repository\CategoryImportQueueRepository;
@@ -35,10 +37,12 @@ class DashboardController extends AbstractController
         ArticleRepository $articleRepository,
         ArticleCategoryRepository $articleCategoryRepository,
         ArticleImportQueueRepository $articleImportQueueRepository,
+        ArticleKeywordImportQueueRepository $articleKeywordImportQueueRepository,
         CategoryImportQueueRepository $categoryImportQueueRepository,
         TopMenuImportQueueRepository $topMenuImportQueueRepository,
         ArticleExportRepository $articleExportRepository,
         ArticleExportQueueRepository $articleExportQueueRepository,
+        ArticleKeywordExportQueueRepository $articleKeywordExportQueueRepository,
         CategoryExportQueueRepository $categoryExportQueueRepository,
         TopMenuExportQueueRepository $topMenuExportQueueRepository,
         BlogSettingsRepository $blogSettingsRepository,
@@ -52,14 +56,24 @@ class DashboardController extends AbstractController
         $importQueueCounts = $this->mergeQueueCounts(
             $this->mergeQueueCounts(
                 $articleImportQueueRepository->countGroupedByStatus(),
-                $categoryImportQueueRepository->countGroupedByStatus(),
+                $articleKeywordImportQueueRepository->countGroupedByStatus(),
             ),
-            $topMenuImportQueueRepository->countGroupedByStatus(),
+            $this->mergeQueueCounts(
+                $categoryImportQueueRepository->countGroupedByStatus(),
+                $topMenuImportQueueRepository->countGroupedByStatus(),
+            ),
         );
         $articleExportQueueCounts = $articleExportQueueRepository->countGroupedByStatus();
+        $articleKeywordExportQueueCounts = $articleKeywordExportQueueRepository->countGroupedByStatus();
         $categoryExportQueueCounts = $categoryExportQueueRepository->countGroupedByStatus();
         $topMenuExportQueueCounts = $topMenuExportQueueRepository->countGroupedByStatus();
-        $exportQueueCounts = $this->mergeQueueCounts($this->mergeQueueCounts($articleExportQueueCounts, $categoryExportQueueCounts), $topMenuExportQueueCounts);
+        $exportQueueCounts = $this->mergeQueueCounts(
+            $this->mergeQueueCounts(
+                $this->mergeQueueCounts($articleExportQueueCounts, $articleKeywordExportQueueCounts),
+                $categoryExportQueueCounts,
+            ),
+            $topMenuExportQueueCounts,
+        );
         $allQueueCounts = $this->mergeQueueCounts($importQueueCounts, $exportQueueCounts);
 
         return $this->render('admin/dashboard/index.html.twig', [
@@ -128,11 +142,12 @@ class DashboardController extends AbstractController
                     'title_key' => 'admin_dashboard_panel_exports_title',
                     'title' => 'Eksporty',
                     'description_key' => 'admin_dashboard_panel_exports_description',
-                    'description' => 'Gotowe pliki eksportu artykułów, kategorii i top menu dostępne do pobrania oraz późniejszego importu.',
+                    'description' => 'Gotowe pliki eksportu artykułów, kategorii, słów kluczowych i top menu dostępne do pobrania oraz późniejszego importu.',
                     'stats' => [
                         $this->dashboardStat($articleExportRepository->count([]), 'admin_dashboard_stat_all', 'Wszystkie'),
                         $this->dashboardStat($articleExportRepository->count(['type' => ArticleExportType::ARTICLES]), 'admin_dashboard_stat_articles', 'Artykuły'),
                         $this->dashboardStat($articleExportRepository->count(['type' => ArticleExportType::CATEGORIES]), 'admin_dashboard_stat_categories', 'Kategorie'),
+                        $this->dashboardStat($articleExportRepository->count(['type' => ArticleExportType::KEYWORDS]), 'admin_dashboard_stat_keywords', 'Słowa kluczowe'),
                         $this->dashboardStat($articleExportRepository->count(['type' => ArticleExportType::TOP_MENU]), 'admin_dashboard_stat_top_menu', 'Top menu'),
                         $this->dashboardStat($articleExportRepository->count(['status' => ArticleExportStatus::NEW]), 'admin_dashboard_stat_new', 'Nowe'),
                         $this->dashboardStat($articleExportRepository->count(['status' => ArticleExportStatus::DOWNLOADED]), 'admin_dashboard_stat_downloaded', 'Pobrane'),

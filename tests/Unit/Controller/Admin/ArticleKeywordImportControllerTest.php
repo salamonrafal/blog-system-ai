@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Controller\Admin;
 
-use App\Controller\Admin\CategoryImportController;
-use App\Entity\CategoryImportQueue;
-use App\Repository\CategoryImportQueueRepository;
+use App\Controller\Admin\ArticleKeywordImportController;
+use App\Entity\ArticleKeywordImportQueue;
+use App\Repository\ArticleKeywordImportQueueRepository;
 use App\Service\ArticleImportStorage;
 use App\Service\ManagedFileDeleter;
 use App\Service\ManagedFilePathResolver;
@@ -21,20 +21,20 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Validator\Validation;
 
-final class CategoryImportControllerTest extends TestCase
+final class ArticleKeywordImportControllerTest extends TestCase
 {
     public function testIndexUsesDedicatedRepositoryMethodForAdminList(): void
     {
         $imports = [
-            (new CategoryImportQueue())
+            (new ArticleKeywordImportQueue())
                 ->setOriginalFilename('first.json')
                 ->setFilePath('var/imports/first.json'),
-            (new CategoryImportQueue())
+            (new ArticleKeywordImportQueue())
                 ->setOriginalFilename('second.json')
                 ->setFilePath('var/imports/second.json'),
         ];
 
-        $repository = $this->createMock(CategoryImportQueueRepository::class);
+        $repository = $this->createMock(ArticleKeywordImportQueueRepository::class);
         $repository
             ->expects($this->once())
             ->method('findAllForAdminIndex')
@@ -50,7 +50,7 @@ final class CategoryImportControllerTest extends TestCase
         $storage = $this->createMock(ArticleImportStorage::class);
         $storage->expects($this->never())->method('store');
 
-        $controller = new TestCategoryImportController(
+        $controller = new TestArticleKeywordImportController(
             $this->createStub(ManagedFilePathResolver::class),
             $this->createStub(ManagedFileDeleter::class),
         );
@@ -61,12 +61,12 @@ final class CategoryImportControllerTest extends TestCase
         $response = $controller->index(new Request(), $entityManager, $repository, $storage, $userLanguageResolver);
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
-        $this->assertSame('admin/category_import/index.html.twig', $controller->capturedView);
+        $this->assertSame('admin/article_keyword/import.html.twig', $controller->capturedView);
         $this->assertSame($imports, $controller->capturedParameters['imports']);
     }
 }
 
-final class TestCategoryImportController extends CategoryImportController
+final class TestArticleKeywordImportController extends ArticleKeywordImportController
 {
     public string $capturedView = '';
 

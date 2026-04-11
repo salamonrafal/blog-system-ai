@@ -1,0 +1,202 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Command;
+
+use App\Entity\ArticleExport;
+use App\Entity\ArticleKeywordExportQueue;
+use App\Enum\ArticleExportQueueStatus;
+use App\Enum\ArticleExportStatus;
+use App\Enum\ArticleExportType;
+use App\Repository\ArticleKeywordExportQueueRepository;
+use App\Service\ArticleKeywordExportFileWriter;
+use App\Service\UserNotificationService;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
+
+#[AsCommand(
+    name: 'app:article-keyword-export:process-queue',
+    description: 'Exports the full article keyword dictionary into a restorable file and registers the export.'
+)]
+class ProcessArticleKeywordExportQueueCommand extends Command
+{
+    private const STORAGE_TIMEZONE = 'UTC';
+
+    public function __construct(
+        private readonly EntityManagerInterface $entityManager,
+        private readonly ManagerRegistry $managerRegistry,
+        private readonly ArticleKeywordExportQueueRepository $articleKeywordExportQueueRepository,
+        private readonly ArticleKeywordExportFileWriter $articleKeywordExportFileWriter,
+        private readonly UserNotificationService $userNotificationService,
+        private readonly LoggerInterface $logger,
+    ) {
+        parent::__construct();
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        $io = new SymfonyStyle($input, $output);
+        $entityManager = $this->entityManager;
+        $queueRepository = $this->articleKeywordExportQueueRepository;
+        $queueItem = $queueRepository->claimNextPending();
+
+        if (null === $queueItem) {
+            $io->success('No queued article keyword exports to process.');
+
+            return Command::SUCCESS;
+        }
+
+        $processedCount = 0;
+        $failedCount = 0;
+
+        while (null !== $queueItem) {
+            $filePath = null;
+
+            try {
+                $writtenExport = $this->articleKeywordExportFileWriter->write($queueItem);
+                $filePath = $writtenExport['file_path'];
+
+                $articleExport = (new ArticleExport())
+                    ->setStatus(ArticleExportStatus::NEW)
+                    ->setType(ArticleExportType::KEYWORDS)
+                    ->setFilePath($filePath)
+                    ->setItemsCount($writtenExport['items_count'])
+                    ->setRequestedBy($queueItem->getRequestedBy());
+
+                $queueItem
+                    ->setStatus(ArticleExportQueueStatus::COMPLETED)
+                    ->setProcessedAt($this->utcNow());
+
+                $entityManager->persist($articleExport);
+                $entityManager->flush();
+                $this->notifyExportCompletion($queueItem->getRequestedBy()?->getId(), true, $queueItem, $filePath);
+                ++$processedCount;
+            } catch (\Throwable $exception) {
+                if (is_string($filePath)) {
+                    $this->deleteWrittenExportFile($filePath, $queueItem);
+                }
+
+                $this->logger->error('Article keyword export failed while processing queue item.', [
+                    'queue_item_id' => $queueItem->getId(),
+                    'requested_by_user_id' => $queueItem->getRequestedBy()?->getId(),
+                    'file_path' => $filePath,
+                    'exception' => $exception,
+                ]);
+
+                [$entityManager, $queueRepository] = $this->markQueueItemAsFailed(
+                    $queueItem,
+                    $entityManager,
+                    $queueRepository,
+                );
+                $this->notifyExportCompletion($queueItem->getRequestedBy()?->getId(), false, $queueItem, $filePath);
+                ++$failedCount;
+
+                $io->error(sprintf(
+                    'Article keyword export failed for queue item %d: %s',
+                    $queueItem->getId() ?? 0,
+                    $exception->getMessage()
+                ));
+            }
+
+            $queueItem = $queueRepository->claimNextPending();
+        }
+
+        if (0 === $failedCount) {
+            $io->success(sprintf('Exported %d queued article keyword snapshot(s).', $processedCount));
+
+            return Command::SUCCESS;
+        }
+
+        $io->warning(sprintf(
+            'Processed %d queued article keyword export(s), but %d export(s) failed.',
+            $processedCount,
+            $failedCount
+        ));
+
+        return Command::FAILURE;
+    }
+
+    private function utcNow(): \DateTimeImmutable
+    {
+        return new \DateTimeImmutable('now', new \DateTimeZone(self::STORAGE_TIMEZONE));
+    }
+
+    private function markQueueItemAsFailed(
+        ArticleKeywordExportQueue $queueItem,
+        EntityManagerInterface $entityManager,
+        ArticleKeywordExportQueueRepository $queueRepository,
+    ): array {
+        if ($entityManager->isOpen()) {
+            $queueItem->setStatus(ArticleExportQueueStatus::FAILED);
+            $entityManager->flush();
+
+            return [$entityManager, $queueRepository];
+        }
+
+        $this->managerRegistry->resetManager();
+
+        $entityManager = $this->managerRegistry->getManagerForClass(ArticleKeywordExportQueue::class);
+        if (!$entityManager instanceof EntityManagerInterface) {
+            throw new \RuntimeException('Entity manager for article keyword export queue is not available.');
+        }
+
+        $managedQueueItem = $entityManager->find(ArticleKeywordExportQueue::class, $queueItem->getId());
+        if (!$managedQueueItem instanceof ArticleKeywordExportQueue) {
+            throw new \RuntimeException(sprintf(
+                'Unable to reload article keyword export queue item %d after export failure.',
+                $queueItem->getId() ?? 0,
+            ));
+        }
+
+        $managedQueueItem->setStatus(ArticleExportQueueStatus::FAILED);
+        $entityManager->flush();
+
+        return [$entityManager, $this->refreshQueueRepository()];
+    }
+
+    private function refreshQueueRepository(): ArticleKeywordExportQueueRepository
+    {
+        $repository = $this->managerRegistry->getRepository(ArticleKeywordExportQueue::class);
+        if (!$repository instanceof ArticleKeywordExportQueueRepository) {
+            throw new \RuntimeException('Article keyword export queue repository is not available.');
+        }
+
+        return $repository;
+    }
+
+    private function deleteWrittenExportFile(string $filePath, ArticleKeywordExportQueue $queueItem): void
+    {
+        try {
+            $this->articleKeywordExportFileWriter->delete($filePath);
+        } catch (\Throwable $cleanupException) {
+            $this->logger->warning('Failed to delete written article keyword export file after queue processing error.', [
+                'queue_item_id' => $queueItem->getId(),
+                'requested_by_user_id' => $queueItem->getRequestedBy()?->getId(),
+                'file_path' => $filePath,
+                'exception' => $cleanupException,
+            ]);
+        }
+    }
+
+    private function notifyExportCompletion(?int $userId, bool $success, ArticleKeywordExportQueue $queueItem, ?string $filePath): void
+    {
+        try {
+            $this->userNotificationService->notifyExportCompleted($userId, $success);
+        } catch (\Throwable $exception) {
+            $this->logger->warning('Failed to create article keyword export completion notification.', [
+                'queue_item_id' => $queueItem->getId(),
+                'requested_by_user_id' => $userId,
+                'file_path' => $filePath,
+                'success' => $success,
+                'exception' => $exception,
+            ]);
+        }
+    }
+}

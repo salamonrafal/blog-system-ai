@@ -14,6 +14,8 @@ use App\Enum\ArticleImportQueueStatus;
 use App\Enum\ArticleStatus;
 use App\Repository\ArticleCategoryRepository;
 use App\Repository\ArticleExportQueueRepository;
+use App\Repository\ArticleKeywordExportQueueRepository;
+use App\Repository\ArticleKeywordImportQueueRepository;
 use App\Repository\ArticleExportRepository;
 use App\Repository\CategoryExportQueueRepository;
 use App\Repository\ArticleImportQueueRepository;
@@ -56,6 +58,13 @@ final class DashboardControllerTest extends TestCase
             ArticleImportQueueStatus::COMPLETED->value => 4,
             ArticleImportQueueStatus::FAILED->value => 1,
         ]);
+        $articleKeywordImportQueueRepository = $this->createKeywordImportQueueRepositoryMock([
+            'all' => 3,
+            ArticleImportQueueStatus::PENDING->value => 1,
+            ArticleImportQueueStatus::PROCESSING->value => 0,
+            ArticleImportQueueStatus::COMPLETED->value => 2,
+            ArticleImportQueueStatus::FAILED->value => 0,
+        ]);
         $categoryImportQueueRepository = $this->createCategoryImportQueueRepositoryMock([
             'all' => 0,
             ArticleImportQueueStatus::PENDING->value => 0,
@@ -72,8 +81,9 @@ final class DashboardControllerTest extends TestCase
         ]);
         $articleExportRepository = $this->createExportRepositoryMock([
             'all' => 6,
-            'type:'.ArticleExportType::ARTICLES->value => 6,
+            'type:'.ArticleExportType::ARTICLES->value => 4,
             'type:'.ArticleExportType::CATEGORIES->value => 0,
+            'type:'.ArticleExportType::KEYWORDS->value => 2,
             'type:'.ArticleExportType::TOP_MENU->value => 0,
             'status:'.ArticleExportStatus::NEW->value => 4,
             'status:'.ArticleExportStatus::DOWNLOADED->value => 2,
@@ -84,6 +94,13 @@ final class DashboardControllerTest extends TestCase
             ArticleExportQueueStatus::PROCESSING->value => 2,
             ArticleExportQueueStatus::COMPLETED->value => 1,
             ArticleExportQueueStatus::FAILED->value => 1,
+        ]);
+        $articleKeywordExportQueueRepository = $this->createArticleKeywordExportQueueRepositoryMock([
+            'all' => 1,
+            ArticleExportQueueStatus::PENDING->value => 1,
+            ArticleExportQueueStatus::PROCESSING->value => 0,
+            ArticleExportQueueStatus::COMPLETED->value => 0,
+            ArticleExportQueueStatus::FAILED->value => 0,
         ]);
         $categoryExportQueueRepository = $this->createCategoryExportQueueRepositoryMock([
             'all' => 2,
@@ -128,10 +145,12 @@ final class DashboardControllerTest extends TestCase
             $articleRepository,
             $articleCategoryRepository,
             $articleImportQueueRepository,
+            $articleKeywordImportQueueRepository,
             $categoryImportQueueRepository,
             $topMenuImportQueueRepository,
             $articleExportRepository,
             $articleExportQueueRepository,
+            $articleKeywordExportQueueRepository,
             $categoryExportQueueRepository,
             $topMenuExportQueueRepository,
             $blogSettingsRepository,
@@ -168,10 +187,10 @@ final class DashboardControllerTest extends TestCase
         $this->assertSame('Importy', $panels[2]['title']);
         $this->assertSame('admin_dashboard_panel_imports_title', $panels[2]['title_key']);
         $this->assertSame([
-            ['value' => 10, 'label_key' => 'admin_dashboard_stat_all', 'label' => 'Wszystkie'],
-            ['value' => 3, 'label_key' => 'admin_dashboard_stat_pending', 'label' => 'Oczekujące'],
+            ['value' => 13, 'label_key' => 'admin_dashboard_stat_all', 'label' => 'Wszystkie'],
+            ['value' => 4, 'label_key' => 'admin_dashboard_stat_pending', 'label' => 'Oczekujące'],
             ['value' => 1, 'label_key' => 'admin_dashboard_stat_processing', 'label' => 'W trakcie'],
-            ['value' => 5, 'label_key' => 'admin_dashboard_stat_completed', 'label' => 'Zakończone'],
+            ['value' => 7, 'label_key' => 'admin_dashboard_stat_completed', 'label' => 'Zakończone'],
             ['value' => 1, 'label_key' => 'admin_dashboard_stat_errors', 'label' => 'Błędy'],
         ], $panels[2]['stats']);
 
@@ -179,8 +198,9 @@ final class DashboardControllerTest extends TestCase
         $this->assertSame('admin_dashboard_panel_exports_title', $panels[3]['title_key']);
         $this->assertSame([
             ['value' => 6, 'label_key' => 'admin_dashboard_stat_all', 'label' => 'Wszystkie'],
-            ['value' => 6, 'label_key' => 'admin_dashboard_stat_articles', 'label' => 'Artykuły'],
+            ['value' => 4, 'label_key' => 'admin_dashboard_stat_articles', 'label' => 'Artykuły'],
             ['value' => 0, 'label_key' => 'admin_dashboard_stat_categories', 'label' => 'Kategorie'],
+            ['value' => 2, 'label_key' => 'admin_dashboard_stat_keywords', 'label' => 'Słowa kluczowe'],
             ['value' => 0, 'label_key' => 'admin_dashboard_stat_top_menu', 'label' => 'Top menu'],
             ['value' => 4, 'label_key' => 'admin_dashboard_stat_new', 'label' => 'Nowe'],
             ['value' => 2, 'label_key' => 'admin_dashboard_stat_downloaded', 'label' => 'Pobrane'],
@@ -195,10 +215,10 @@ final class DashboardControllerTest extends TestCase
         $this->assertSame('admin_dashboard_queue_import', $panels[4]['sections'][1]['title_key']);
         $this->assertSame('admin_dashboard_queue_export', $panels[4]['sections'][2]['title_key']);
         $this->assertSame([
-            ['value' => 18, 'label_key' => 'admin_dashboard_stat_all', 'label' => 'Wszystkie'],
-            ['value' => 6, 'label_key' => 'admin_dashboard_stat_pending', 'label' => 'Oczekujące'],
+            ['value' => 22, 'label_key' => 'admin_dashboard_stat_all', 'label' => 'Wszystkie'],
+            ['value' => 8, 'label_key' => 'admin_dashboard_stat_pending', 'label' => 'Oczekujące'],
             ['value' => 3, 'label_key' => 'admin_dashboard_stat_processing', 'label' => 'W trakcie'],
-            ['value' => 7, 'label_key' => 'admin_dashboard_stat_completed', 'label' => 'Zakończone'],
+            ['value' => 9, 'label_key' => 'admin_dashboard_stat_completed', 'label' => 'Zakończone'],
             ['value' => 2, 'label_key' => 'admin_dashboard_stat_errors', 'label' => 'Błędy'],
         ], $panels[4]['sections'][0]['stats']);
 
@@ -255,6 +275,13 @@ final class DashboardControllerTest extends TestCase
             ArticleImportQueueStatus::COMPLETED->value => 0,
             ArticleImportQueueStatus::FAILED->value => 0,
         ]);
+        $articleKeywordImportQueueRepository = $this->createKeywordImportQueueRepositoryMock([
+            'all' => 0,
+            ArticleImportQueueStatus::PENDING->value => 0,
+            ArticleImportQueueStatus::PROCESSING->value => 0,
+            ArticleImportQueueStatus::COMPLETED->value => 0,
+            ArticleImportQueueStatus::FAILED->value => 0,
+        ]);
         $categoryImportQueueRepository = $this->createCategoryImportQueueRepositoryMock([
             'all' => 0,
             ArticleImportQueueStatus::PENDING->value => 0,
@@ -273,11 +300,19 @@ final class DashboardControllerTest extends TestCase
             'all' => 0,
             'type:'.ArticleExportType::ARTICLES->value => 0,
             'type:'.ArticleExportType::CATEGORIES->value => 0,
+            'type:'.ArticleExportType::KEYWORDS->value => 0,
             'type:'.ArticleExportType::TOP_MENU->value => 0,
             'status:'.ArticleExportStatus::NEW->value => 0,
             'status:'.ArticleExportStatus::DOWNLOADED->value => 0,
         ]);
         $articleExportQueueRepository = $this->createExportQueueRepositoryMock([
+            'all' => 0,
+            ArticleExportQueueStatus::PENDING->value => 0,
+            ArticleExportQueueStatus::PROCESSING->value => 0,
+            ArticleExportQueueStatus::COMPLETED->value => 0,
+            ArticleExportQueueStatus::FAILED->value => 0,
+        ]);
+        $articleKeywordExportQueueRepository = $this->createArticleKeywordExportQueueRepositoryMock([
             'all' => 0,
             ArticleExportQueueStatus::PENDING->value => 0,
             ArticleExportQueueStatus::PROCESSING->value => 0,
@@ -327,10 +362,12 @@ final class DashboardControllerTest extends TestCase
             $articleRepository,
             $articleCategoryRepository,
             $articleImportQueueRepository,
+            $articleKeywordImportQueueRepository,
             $categoryImportQueueRepository,
             $topMenuImportQueueRepository,
             $articleExportRepository,
             $articleExportQueueRepository,
+            $articleKeywordExportQueueRepository,
             $categoryExportQueueRepository,
             $topMenuExportQueueRepository,
             $blogSettingsRepository,
@@ -445,6 +482,20 @@ final class DashboardControllerTest extends TestCase
     /**
      * @param array<string, int> $counts
      */
+    private function createKeywordImportQueueRepositoryMock(array $counts): ArticleKeywordImportQueueRepository
+    {
+        /** @var ArticleKeywordImportQueueRepository&MockObject $repository */
+        $repository = $this->createMock(ArticleKeywordImportQueueRepository::class);
+        $repository
+            ->method('countGroupedByStatus')
+            ->willReturn($counts);
+
+        return $repository;
+    }
+
+    /**
+     * @param array<string, int> $counts
+     */
     private function createCategoryImportQueueRepositoryMock(array $counts): CategoryImportQueueRepository
     {
         /** @var CategoryImportQueueRepository&MockObject $repository */
@@ -525,6 +576,18 @@ final class DashboardControllerTest extends TestCase
         /** @var CategoryExportQueueRepository&MockObject $repository */
         $repository = $this->createMock(CategoryExportQueueRepository::class);
         $repository
+            ->method('countGroupedByStatus')
+            ->willReturn($counts);
+
+        return $repository;
+    }
+
+    private function createArticleKeywordExportQueueRepositoryMock(array $counts): ArticleKeywordExportQueueRepository
+    {
+        /** @var ArticleKeywordExportQueueRepository&MockObject $repository */
+        $repository = $this->createMock(ArticleKeywordExportQueueRepository::class);
+        $repository
+            ->expects($this->once())
             ->method('countGroupedByStatus')
             ->willReturn($counts);
 
