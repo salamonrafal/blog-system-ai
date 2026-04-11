@@ -144,6 +144,36 @@ export function setupTooltips(){
   });
 }
 
+export function setupAriaDisabledActions(){
+  const isBlockedAction = (element)=> element instanceof HTMLElement
+    && element.getAttribute('aria-disabled') === 'true'
+    && element.hasAttribute('data-disabled-action');
+
+  document.addEventListener('click', (event)=>{
+    const trigger = event.target instanceof Element ? event.target.closest('[data-disabled-action][aria-disabled="true"]') : null;
+    if(!isBlockedAction(trigger)){
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+  });
+
+  document.addEventListener('keydown', (event)=>{
+    if(event.key !== 'Enter' && event.key !== ' '){
+      return;
+    }
+
+    const trigger = event.target instanceof Element ? event.target.closest('[data-disabled-action][aria-disabled="true"]') : null;
+    if(!isBlockedAction(trigger)){
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+  });
+}
+
 export function setupNav(){
   const currentPath = location.pathname.toLowerCase();
   const currentOrigin = window.location.origin.toLowerCase();
