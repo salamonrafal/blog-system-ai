@@ -34,6 +34,14 @@ class TopMenuItemRepository extends ServiceEntityRepository
     }
 
     /**
+     * @return list<array{item: TopMenuItem, children: list<array{item: TopMenuItem, children: array}>}>
+     */
+    public function findTreeForAdmin(): array
+    {
+        return $this->buildAdminTree($this->findForAdminIndex());
+    }
+
+    /**
      * @return list<TopMenuItem>
      */
     public function findActiveOrdered(): array
@@ -110,6 +118,79 @@ class TopMenuItemRepository extends ServiceEntityRepository
         return (int) $queryBuilder->getQuery()->getSingleScalarResult() > 0;
     }
 
+    /**
+     * @param list<int> $orderedIds
+     */
+    public function reorderSiblings(?int $parentId, array $orderedIds): bool
+    {
+        $normalizedIds = array_values(array_unique(array_filter(array_map(
+            static fn (mixed $value): int => (int) $value,
+            $orderedIds,
+        ), static fn (int $value): bool => $value > 0)));
+
+        if ([] === $normalizedIds) {
+            return false;
+        }
+
+        $queryBuilder = $this->createBaseQueryBuilder();
+        if (null === $parentId) {
+            $queryBuilder->andWhere('menu_item.parent IS NULL');
+        } else {
+            $queryBuilder
+                ->andWhere('parent.id = :parentId')
+                ->setParameter('parentId', $parentId);
+        }
+
+        /** @var list<TopMenuItem> $siblings */
+        $siblings = $queryBuilder->getQuery()->getResult();
+        if (count($siblings) !== count($normalizedIds)) {
+            return false;
+        }
+
+        $siblingsById = [];
+        foreach ($siblings as $sibling) {
+            $siblingId = $sibling->getId();
+            if (null === $siblingId) {
+                return false;
+            }
+
+            $siblingsById[$siblingId] = $sibling;
+        }
+
+        $siblingIds = array_keys($siblingsById);
+        sort($siblingIds);
+        $sortedOrderedIds = $normalizedIds;
+        sort($sortedOrderedIds);
+
+        if ($siblingIds !== $sortedOrderedIds) {
+            return false;
+        }
+
+        foreach ($normalizedIds as $position => $id) {
+            $siblingsById[$id]->setPosition($position);
+        }
+
+        return true;
+    }
+
+    public function applySiblingPositioning(TopMenuItem $menuItem, ?int $originalParentId = null, bool $normalizeOriginalBranch = false): void
+    {
+        $menuItemId = $menuItem->getId();
+        if ($normalizeOriginalBranch) {
+            $this->normalizeBranchPositions($originalParentId, $menuItemId);
+        }
+
+        $targetParentId = $menuItem->getParent()?->getId();
+        $siblings = $this->findSiblingsByParentId($targetParentId, $menuItemId);
+        $targetPosition = max(0, min($menuItem->getPosition(), count($siblings)));
+
+        array_splice($siblings, $targetPosition, 0, [$menuItem]);
+
+        foreach ($siblings as $position => $sibling) {
+            $sibling->setPosition($position);
+        }
+    }
+
     private function createBaseQueryBuilder(): QueryBuilder
     {
         return $this->createQueryBuilder('menu_item')
@@ -121,5 +202,91 @@ class TopMenuItemRepository extends ServiceEntityRepository
             ->addSelect('article')
             ->orderBy('menu_item.position', 'ASC')
             ->addOrderBy('menu_item.id', 'ASC');
+    }
+
+    /**
+     * @return list<TopMenuItem>
+     */
+    private function findSiblingsByParentId(?int $parentId, ?int $excludeId = null): array
+    {
+        $queryBuilder = $this->createBaseQueryBuilder();
+        if (null === $parentId) {
+            $queryBuilder->andWhere('menu_item.parent IS NULL');
+        } else {
+            $queryBuilder
+                ->andWhere('parent.id = :parentId')
+                ->setParameter('parentId', $parentId);
+        }
+
+        if (null !== $excludeId) {
+            $queryBuilder
+                ->andWhere('menu_item.id != :excludeId')
+                ->setParameter('excludeId', $excludeId);
+        }
+
+        /** @var list<TopMenuItem> $siblings */
+        $siblings = $queryBuilder->getQuery()->getResult();
+
+        return $siblings;
+    }
+
+    private function normalizeBranchPositions(?int $parentId, ?int $excludeId = null): void
+    {
+        foreach ($this->findSiblingsByParentId($parentId, $excludeId) as $position => $sibling) {
+            $sibling->setPosition($position);
+        }
+    }
+
+    /**
+     * @param list<TopMenuItem> $items
+     *
+     * @return list<array{item: TopMenuItem, children: list<array{item: TopMenuItem, children: array}>}>
+     */
+    private function buildAdminTree(array $items): array
+    {
+        $itemsById = [];
+        $childrenByParentId = [];
+        $roots = [];
+
+        foreach ($items as $item) {
+            $itemId = $item->getId();
+            if (null !== $itemId) {
+                $itemsById[$itemId] = $item;
+            }
+        }
+
+        foreach ($items as $item) {
+            $parentId = $item->getParent()?->getId();
+            if (null === $parentId || !isset($itemsById[$parentId])) {
+                $roots[] = $item;
+
+                continue;
+            }
+
+            $childrenByParentId[$parentId][] = $item;
+        }
+
+        return $this->buildAdminBranch($roots, $childrenByParentId);
+    }
+
+    /**
+     * @param list<TopMenuItem> $items
+     * @param array<int, list<TopMenuItem>> $childrenByParentId
+     *
+     * @return list<array{item: TopMenuItem, children: list<array{item: TopMenuItem, children: array}>}>
+     */
+    private function buildAdminBranch(array $items, array $childrenByParentId): array
+    {
+        $branch = [];
+
+        foreach ($items as $item) {
+            $itemId = $item->getId();
+            $branch[] = [
+                'item' => $item,
+                'children' => null !== $itemId ? $this->buildAdminBranch($childrenByParentId[$itemId] ?? [], $childrenByParentId) : [],
+            ];
+        }
+
+        return $branch;
     }
 }

@@ -19,7 +19,15 @@ export function setupTooltips(){
   tooltip.className = 'app-tooltip';
   tooltip.setAttribute('hidden', '');
   tooltip.setAttribute('aria-hidden', 'true');
+  tooltip.innerHTML = `
+    <span class="app-tooltip-content">
+      <span class="app-tooltip-icon" aria-hidden="true"></span>
+      <span class="app-tooltip-text"></span>
+    </span>
+  `;
   document.body.appendChild(tooltip);
+  const tooltipIcon = qs('.app-tooltip-icon', tooltip);
+  const tooltipText = qs('.app-tooltip-text', tooltip);
 
   let activeTrigger = null;
   let activeTriggerTooltipText = '';
@@ -48,14 +56,20 @@ export function setupTooltips(){
 
   const showTooltip = (trigger)=>{
     const text = trigger.getAttribute('data-tooltip');
-    if(!text) return;
+    if(!text || !(tooltipText instanceof HTMLElement) || !(tooltipIcon instanceof HTMLElement)) return;
 
     activeTrigger = trigger;
     activeTriggerTooltipText = text;
     tooltip.classList.toggle('is-wide', trigger.getAttribute('data-tooltip-wide') === 'true');
     tooltip.classList.toggle('is-wrap', trigger.getAttribute('data-tooltip-wrap') === 'true');
     tooltip.classList.toggle('is-multiline', trigger.getAttribute('data-tooltip-multiline') === 'true');
-    tooltip.textContent = text;
+    const icon = trigger.getAttribute('data-tooltip-icon') || '';
+    tooltipIcon.className = 'app-tooltip-icon';
+    tooltipIcon.hidden = icon === '';
+    if(icon !== ''){
+      tooltipIcon.classList.add(`is-${icon}`);
+    }
+    tooltipText.textContent = text;
     tooltip.removeAttribute('hidden');
     tooltip.setAttribute('aria-hidden', 'false');
     positionTooltip(trigger);
@@ -67,6 +81,13 @@ export function setupTooltips(){
     tooltip.classList.remove('is-wide');
     tooltip.classList.remove('is-wrap');
     tooltip.classList.remove('is-multiline');
+    if(tooltipIcon instanceof HTMLElement){
+      tooltipIcon.className = 'app-tooltip-icon';
+      tooltipIcon.hidden = true;
+    }
+    if(tooltipText instanceof HTMLElement){
+      tooltipText.textContent = '';
+    }
     activeTrigger = null;
     activeTriggerTooltipText = '';
   };

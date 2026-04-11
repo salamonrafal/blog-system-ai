@@ -17,6 +17,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -39,6 +40,14 @@ class TopMenuItemController extends AbstractController
         ]);
     }
 
+    #[Route('/tree', name: 'admin_top_menu_tree', methods: ['GET'])]
+    public function tree(TopMenuItemRepository $topMenuItemRepository): Response
+    {
+        return $this->render('admin/top_menu/tree.html.twig', [
+            'menu_tree' => $topMenuItemRepository->findTreeForAdmin(),
+        ]);
+    }
+
     #[Route('/new', name: 'admin_top_menu_new', methods: ['GET', 'POST'])]
     public function new(
         Request $request,
@@ -51,6 +60,24 @@ class TopMenuItemController extends AbstractController
         TopMenuCacheManager $topMenuCacheManager,
     ): Response {
         $menuItem = new TopMenuItem();
+        $requestedAfterId = $request->query->getInt('after');
+        if ($requestedAfterId > 0) {
+            $requestedAfterItem = $topMenuItemRepository->find($requestedAfterId);
+            if ($requestedAfterItem instanceof TopMenuItem) {
+                $menuItem
+                    ->setParent($requestedAfterItem->getParent())
+                    ->setPosition($requestedAfterItem->getPosition() + 1);
+            }
+        }
+
+        $requestedParentId = $request->query->getInt('parent');
+        if (null === $menuItem->getParent() && $requestedParentId > 0) {
+            $requestedParent = $topMenuItemRepository->find($requestedParentId);
+            if ($requestedParent instanceof TopMenuItem) {
+                $menuItem->setParent($requestedParent);
+            }
+        }
+
         $form = $this->createEditorForm($menuItem, $topMenuItemRepository, $articleCategoryRepository, $articleRepository, $userLanguageResolver);
         $form->handleRequest($request);
 
@@ -62,6 +89,7 @@ class TopMenuItemController extends AbstractController
         }
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $topMenuItemRepository->applySiblingPositioning($menuItem);
             $entityManager->persist($menuItem);
             $entityManager->flush();
             $topMenuCacheManager->refresh();
@@ -88,6 +116,7 @@ class TopMenuItemController extends AbstractController
         TopMenuItemUniqueNameGenerator $topMenuItemUniqueNameGenerator,
         TopMenuCacheManager $topMenuCacheManager,
     ): Response {
+        $originalParentId = $menuItem->getParent()?->getId();
         $form = $this->createEditorForm($menuItem, $topMenuItemRepository, $articleCategoryRepository, $articleRepository, $userLanguageResolver);
         $form->handleRequest($request);
 
@@ -99,6 +128,11 @@ class TopMenuItemController extends AbstractController
         }
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $topMenuItemRepository->applySiblingPositioning(
+                $menuItem,
+                $originalParentId,
+                $originalParentId !== $menuItem->getParent()?->getId(),
+            );
             $entityManager->flush();
             $topMenuCacheManager->refresh();
 
@@ -131,6 +165,10 @@ class TopMenuItemController extends AbstractController
 
         $this->addFlash('success', $userLanguageResolver->translate('Element menu został usunięty.', 'Menu item deleted.'));
 
+        if ('tree' === $request->request->get('redirect_to')) {
+            return $this->redirectToRoute('admin_top_menu_tree');
+        }
+
         return $this->redirectToRoute('admin_top_menu_index');
     }
 
@@ -153,6 +191,41 @@ class TopMenuItemController extends AbstractController
         $this->addFlash('success', $userLanguageResolver->translate('Eksport top menu został dodany do kolejki.', 'Top menu export added to the queue.'));
 
         return $this->redirectToRoute('admin_top_menu_index');
+    }
+
+    #[Route('/tree/reorder', name: 'admin_top_menu_tree_reorder', methods: ['POST'])]
+    public function reorder(
+        Request $request,
+        TopMenuItemRepository $topMenuItemRepository,
+        EntityManagerInterface $entityManager,
+        UserLanguageResolver $userLanguageResolver,
+        TopMenuCacheManager $topMenuCacheManager,
+    ): JsonResponse {
+        if (!$this->isCsrfTokenValid('reorder_top_menu_tree', (string) $request->headers->get('X-CSRF-Token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        $payload = json_decode($request->getContent(), true);
+        if (!is_array($payload)) {
+            return new JsonResponse([
+                'message' => $userLanguageResolver->translate('Nieprawidłowe dane do zmiany kolejności menu.', 'Invalid payload for menu reordering.'),
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        $parentId = isset($payload['parentId']) && is_numeric($payload['parentId']) ? (int) $payload['parentId'] : null;
+        $orderedIds = $payload['orderedIds'] ?? null;
+        if (!is_array($orderedIds) || !$topMenuItemRepository->reorderSiblings($parentId, $orderedIds)) {
+            return new JsonResponse([
+                'message' => $userLanguageResolver->translate('Nie udało się zapisać nowej kolejności elementów menu.', 'The new menu item order could not be saved.'),
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        $entityManager->flush();
+        $topMenuCacheManager->refresh();
+
+        return new JsonResponse([
+            'message' => $userLanguageResolver->translate('Nowa kolejność elementów menu została zapisana.', 'The new menu item order has been saved.'),
+        ]);
     }
 
     private function createEditorForm(

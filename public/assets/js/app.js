@@ -21,6 +21,7 @@ import {
   setupOptionalColorFields,
   setupQueueClearConfirmation,
   setupTopMenuDeleteConfirmation,
+  setupTopMenuTreeSorting,
   setupTopMenuTargetTabs,
   setupTranslationTabs,
   setupUserAvatarPreview,
@@ -61,6 +62,7 @@ function init(){
   setupOptionalColorFields();
   setupTranslationTabs();
   setupTopMenuTargetTabs();
+  setupTopMenuTreeSorting();
   setupCategoryTranslationCopy();
   setupDashboardCarousels();
   setupArticleBulkExport();
