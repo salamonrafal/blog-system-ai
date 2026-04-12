@@ -357,6 +357,12 @@ class TopMenuItem
                 ->atPath('parent')
                 ->addViolation();
         }
+
+        if (null !== $this->parent && !$this->children->isEmpty()) {
+            $context->buildViolation('validation_top_menu_parent_with_children')
+                ->atPath('parent')
+                ->addViolation();
+        }
     }
 
     #[ORM\PrePersist]

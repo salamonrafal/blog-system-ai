@@ -192,6 +192,34 @@ final class TopMenuItemTest extends TestCase
         $this->assertSame(['validation_top_menu_parent_cycle'], $messages);
     }
 
+    public function testAssigningParentToItemWithChildrenTriggersValidationError(): void
+    {
+        $validator = Validation::createValidatorBuilder()
+            ->enableAttributeMapping()
+            ->getValidator();
+
+        $existingChild = (new TopMenuItem())
+            ->setLabels(['pl' => 'PHP', 'en' => 'PHP'])
+            ->setUniqueName('php')
+            ->setTargetType(TopMenuItemTargetType::BLOG_HOME);
+        $menuItem = (new TopMenuItem())
+            ->setLabels(['pl' => 'Blog', 'en' => 'Blog'])
+            ->setUniqueName('blog')
+            ->setTargetType(TopMenuItemTargetType::BLOG_HOME)
+            ->addChild($existingChild);
+        $newParent = (new TopMenuItem())
+            ->setLabels(['pl' => 'Archiwum', 'en' => 'Archive'])
+            ->setUniqueName('archive')
+            ->setTargetType(TopMenuItemTargetType::BLOG_HOME);
+
+        $menuItem->setParent($newParent);
+
+        $violations = $validator->validate($menuItem);
+        $messages = array_map(static fn ($violation): string => $violation->getMessage(), iterator_to_array($violations));
+
+        $this->assertSame(['validation_top_menu_parent_with_children'], $messages);
+    }
+
     public function testNormalizeTargetConfigurationClearsFieldsNotMatchingCurrentTargetType(): void
     {
         $category = (new ArticleCategory())->setName('PHP')->setSlug('php');

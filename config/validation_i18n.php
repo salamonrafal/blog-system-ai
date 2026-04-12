@@ -55,6 +55,7 @@ return [
         'validation_top_menu_parent_self' => 'Element menu nie może być swoim własnym rodzicem.',
         'validation_top_menu_parent_cycle' => 'Wybrany rodzic tworzy zapętloną strukturę menu.',
         'validation_top_menu_parent_depth' => 'Można wybrać tylko rodzica z poziomu głównego menu.',
+        'validation_top_menu_parent_with_children' => 'Element menu, który ma dzieci, nie może zostać przeniesiony do submenu.',
     ],
     'en' => [
         'The file is too large. Allowed maximum size is {{ limit }} {{ suffix }}.' => 'The file is too large. Allowed maximum size is {{ limit }} {{ suffix }}.',
@@ -108,5 +109,6 @@ return [
         'validation_top_menu_parent_self' => 'A menu item cannot be its own parent.',
         'validation_top_menu_parent_cycle' => 'The selected parent creates a circular menu structure.',
         'validation_top_menu_parent_depth' => 'Only a top-level menu item can be selected as a parent.',
+        'validation_top_menu_parent_with_children' => 'A menu item that already has children cannot be moved into a submenu.',
     ],
 ];
