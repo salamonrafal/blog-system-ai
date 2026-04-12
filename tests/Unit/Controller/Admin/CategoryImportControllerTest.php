@@ -6,7 +6,6 @@ namespace App\Tests\Unit\Controller\Admin;
 
 use App\Controller\Admin\CategoryImportController;
 use App\Entity\CategoryImportQueue;
-use App\Form\ArticleImportType;
 use App\Repository\CategoryImportQueueRepository;
 use App\Service\ArticleImportStorage;
 use App\Service\ManagedFileDeleter;
@@ -92,6 +91,6 @@ final class TestCategoryImportController extends CategoryImportController
             ->addExtension(new HttpFoundationExtension())
             ->addExtension(new ValidatorExtension($validator))
             ->getFormFactory()
-            ->create(ArticleImportType::class, $data, $options);
+            ->create($type, $data, $options);
     }
 }

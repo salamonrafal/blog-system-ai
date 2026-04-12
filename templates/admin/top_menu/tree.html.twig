@@ -1,0 +1,176 @@
+{% extends 'base.html.twig' %}
+
+{% import _self as top_menu_tree %}
+
+{% macro render_insert_slot(after_item_id) %}
+    <div class="top-menu-tree-insert-slot">
+        <a
+            class="top-menu-tree-insert-button"
+            href="{{ path('admin_top_menu_new', {after: after_item_id}) }}"
+            data-i18n-title="admin_top_menu_tree_insert_after_action"
+            data-i18n-tooltip="admin_top_menu_tree_insert_after_action"
+            data-i18n-aria="admin_top_menu_tree_insert_after_action"
+            data-tooltip="Dodaj element poniżej"
+            aria-label="Dodaj element poniżej"
+        >
+            <span aria-hidden="true">+</span>
+        </a>
+    </div>
+{% endmacro %}
+
+{% macro render_nodes(nodes, user_language, level) %}
+    <ol class="top-menu-tree-level" data-top-menu-tree-level="{{ level }}">
+        {% for node in nodes %}
+            {% set item = node.item %}
+            {% set item_id = item.id %}
+            {% set parent_id = item.parent ? item.parent.id : '' %}
+            <li class="top-menu-tree-node" data-top-menu-tree-node data-item-id="{{ item_id }}" data-parent-id="{{ parent_id }}">
+                <article class="top-menu-tree-card">
+                    <button
+                        type="button"
+                        class="top-menu-tree-handle"
+                        data-top-menu-tree-handle
+                        data-i18n-aria="admin_top_menu_tree_drag_handle"
+                        aria-label="Przeciągnij, aby zmienić pozycję"
+                    >
+                        <span class="top-menu-tree-handle-icon" aria-hidden="true">
+                            <span></span><span></span>
+                            <span></span><span></span>
+                            <span></span><span></span>
+                        </span>
+                    </button>
+
+                    <div class="top-menu-tree-content">
+                        <div class="top-menu-tree-main">
+                            <strong class="top-menu-tree-label">{{ item.localizedLabel(user_language) }}</strong>
+                        </div>
+
+                        <div class="top-menu-tree-meta">
+                            <span data-i18n="admin_top_menu_tree_position_label">Pozycja</span>
+                            <strong data-top-menu-tree-position-value>{{ item.position }}</strong>
+                        </div>
+                    </div>
+
+                    <div class="actions top-menu-tree-actions">
+                        {% if item.parent %}
+                            <button
+                                class="button secondary article-action-button top-menu-tree-action-disabled"
+                                type="button"
+                                data-disabled-action
+                                aria-disabled="true"
+                                data-i18n-title="admin_top_menu_tree_add_child_blocked"
+                                data-i18n-tooltip="admin_top_menu_tree_add_child_blocked"
+                                data-i18n-aria="admin_top_menu_tree_add_child_blocked"
+                                data-tooltip-icon="warning"
+                                data-tooltip-wrap="true"
+                                data-tooltip="Do tego elementu nie można dodać kolejnego poziomu submenu"
+                                aria-label="Do tego elementu nie można dodać kolejnego poziomu submenu"
+                            >
+                                <span class="article-action-icon is-add" aria-hidden="true"></span>
+                            </button>
+                        {% else %}
+                            <a
+                                class="button secondary article-action-button"
+                                href="{{ path('admin_top_menu_new', {parent: item_id}) }}"
+                                data-i18n-title="admin_top_menu_tree_add_child_action"
+                                data-i18n-tooltip="admin_top_menu_tree_add_child_action"
+                                data-i18n-aria="admin_top_menu_tree_add_child_action"
+                                data-tooltip="Dodaj dziecko"
+                                aria-label="Dodaj dziecko"
+                            >
+                                <span class="article-action-icon is-add" aria-hidden="true"></span>
+                            </a>
+                        {% endif %}
+                        <a class="button secondary article-action-button" href="{{ path('admin_top_menu_edit', {id: item_id}) }}" data-i18n-title="admin_table_edit" data-i18n-tooltip="admin_table_edit" data-i18n-aria="admin_table_edit" data-tooltip="Edytuj" aria-label="Edytuj element menu">
+                            <span class="article-action-icon is-edit" aria-hidden="true"></span>
+                        </a>
+                        {% if node.children is not empty %}
+                            <button
+                                class="button secondary article-action-button top-menu-tree-action-disabled"
+                                type="button"
+                                data-disabled-action
+                                aria-disabled="true"
+                                data-i18n-title="admin_top_menu_tree_delete_blocked"
+                                data-i18n-tooltip="admin_top_menu_tree_delete_blocked"
+                                data-i18n-aria="admin_top_menu_tree_delete_blocked"
+                                data-tooltip-icon="warning"
+                                data-tooltip-wrap="true"
+                                data-tooltip="Nie można usunąć elementu, który ma dzieci"
+                                aria-label="Nie można usunąć elementu, który ma dzieci"
+                            >
+                                <span class="article-action-icon is-delete" aria-hidden="true"></span>
+                            </button>
+                        {% else %}
+                            <form method="post" action="{{ path('admin_top_menu_delete', {id: item_id}) }}" data-delete-form>
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete_top_menu_item_' ~ item_id) }}">
+                                <input type="hidden" name="redirect_to" value="tree">
+                                <button
+                                    class="button secondary button-danger article-action-button"
+                                    type="button"
+                                    data-action="confirm-delete-top-menu-item"
+                                    data-top-menu-item-name="{{ item.localizedLabel(user_language) }}"
+                                    data-i18n-title="admin_table_delete"
+                                    data-i18n-tooltip="admin_table_delete"
+                                    data-i18n-aria="admin_table_delete"
+                                    data-tooltip="Usuń"
+                                    aria-label="Usuń element menu"
+                                >
+                                    <span class="article-action-icon is-delete" aria-hidden="true"></span>
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </article>
+
+                {% if node.children is not empty %}
+                    {{ top_menu_tree.render_insert_slot(item_id) }}
+                    {{ top_menu_tree.render_nodes(node.children, user_language, level + 1) }}
+                {% else %}
+                    {{ top_menu_tree.render_insert_slot(item_id) }}
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ol>
+{% endmacro %}
+
+{% block title %}Hierarchia top menu | {{ app_name }}{% endblock %}
+
+{% block body %}
+    <section class="section">
+        <div class="card">
+            <div class="card-header">
+                <div class="window-dots" aria-hidden="true">
+                    <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                </div>
+                <span class="pill">admin://top-menu/tree</span>
+            </div>
+
+            <div class="dashboard-feed-intro">
+                <h1 data-i18n="admin_top_menu_tree_title">Hierarchia i pozycja top menu</h1>
+                <p class="lede" data-i18n="admin_top_menu_tree_lede">Przeciągaj elementy w górę lub w dół, aby ustawić ich kolejność w obrębie tego samego poziomu drzewa menu.</p>
+
+                <div class="actions">
+                    <a class="button secondary" href="{{ path('admin_top_menu_index') }}" data-i18n="admin_top_menu_tree_back">Wróć do listy top menu</a>
+                    <a class="button" href="{{ path('admin_top_menu_new') }}" data-i18n="top_menu_form_submit_create">Dodaj element menu</a>
+                </div>
+            </div>
+
+            <div
+                class="top-menu-tree-shell"
+                data-top-menu-tree
+                data-reorder-endpoint="{{ path('admin_top_menu_tree_reorder') }}"
+                data-reorder-csrf="{{ csrf_token('reorder_top_menu_tree') }}"
+            >
+                <div class="top-menu-tree-toolbar">
+                    <p class="top-menu-tree-status" data-top-menu-tree-status aria-live="polite"></p>
+                </div>
+
+                {% if menu_tree is not empty %}
+                    {{ top_menu_tree.render_nodes(menu_tree, user_language, 0) }}
+                {% else %}
+                    <p class="top-menu-tree-empty" data-i18n="admin_top_menu_tree_empty">Nie znaleziono elementów menu do ułożenia.</p>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+{% endblock %}

@@ -8,6 +8,8 @@ use App\Entity\BlogSettings;
 use App\Repository\ArticleExportQueueRepository;
 use App\Repository\ArticleExportRepository;
 use App\Repository\ArticleImportQueueRepository;
+use App\Repository\ArticleKeywordExportQueueRepository;
+use App\Repository\ArticleKeywordImportQueueRepository;
 use App\Repository\CategoryExportQueueRepository;
 use App\Repository\CategoryImportQueueRepository;
 use App\Repository\TopMenuImportQueueRepository;
@@ -37,9 +39,11 @@ final class AppGlobalsExtensionTest extends TestCase
 
         $timeZoneResolver = $this->createMock(UserTimeZoneResolver::class);
         $importQueueRepository = $this->createMock(ArticleImportQueueRepository::class);
+        $keywordImportQueueRepository = $this->createMock(ArticleKeywordImportQueueRepository::class);
         $categoryImportQueueRepository = $this->createMock(CategoryImportQueueRepository::class);
         $topMenuImportQueueRepository = $this->createMock(TopMenuImportQueueRepository::class);
         $exportQueueRepository = $this->createMock(ArticleExportQueueRepository::class);
+        $keywordExportQueueRepository = $this->createMock(ArticleKeywordExportQueueRepository::class);
         $categoryExportQueueRepository = $this->createMock(CategoryExportQueueRepository::class);
         $topMenuExportQueueRepository = $this->createMock(TopMenuExportQueueRepository::class);
         $exportRepository = $this->createMock(ArticleExportRepository::class);
@@ -52,9 +56,11 @@ final class AppGlobalsExtensionTest extends TestCase
             $languageResolver,
             $timeZoneResolver,
             $importQueueRepository,
+            $keywordImportQueueRepository,
             $categoryImportQueueRepository,
             $topMenuImportQueueRepository,
             $exportQueueRepository,
+            $keywordExportQueueRepository,
             $categoryExportQueueRepository,
             $topMenuExportQueueRepository,
             $exportRepository,
@@ -68,7 +74,7 @@ final class AppGlobalsExtensionTest extends TestCase
 
         $this->assertSame('Select an import file.', $extension->getI18nFallback('validation_import_file_required'));
         $this->assertSame('The import file cannot be larger than 10 MB.', $extension->getI18nFallback('validation_import_file_too_large'));
-        $this->assertSame('The image cannot be larger than 5 MB.', $extension->getI18nFallback('validation_media_file_too_large'));
+        $this->assertSame('The image cannot be larger than {{ limit }}.', $extension->getI18nFallback('validation_media_file_too_large'));
         $this->assertSame('unknown_key', $extension->getI18nFallback('unknown_key'));
         $this->assertSame('Category import', $extension->translateUi('Import kategorii', 'Category import'));
         $this->assertSame('English (EN)', $extension->getLanguageLabel('en'));
@@ -87,9 +93,11 @@ final class AppGlobalsExtensionTest extends TestCase
             $languageResolver,
             $this->createMock(UserTimeZoneResolver::class),
             $this->createMock(ArticleImportQueueRepository::class),
+            $this->createMock(ArticleKeywordImportQueueRepository::class),
             $this->createMock(CategoryImportQueueRepository::class),
             $this->createMock(TopMenuImportQueueRepository::class),
             $this->createMock(ArticleExportQueueRepository::class),
+            $this->createMock(ArticleKeywordExportQueueRepository::class),
             $this->createMock(CategoryExportQueueRepository::class),
             $this->createMock(TopMenuExportQueueRepository::class),
             $this->createMock(ArticleExportRepository::class),
@@ -150,6 +158,11 @@ final class AppGlobalsExtensionTest extends TestCase
             ->expects($this->once())
             ->method('countPending')
             ->willReturn(2);
+        $keywordImportQueueRepository = $this->createMock(ArticleKeywordImportQueueRepository::class);
+        $keywordImportQueueRepository
+            ->expects($this->once())
+            ->method('countPending')
+            ->willReturn(4);
         $categoryImportQueueRepository = $this->createMock(CategoryImportQueueRepository::class);
         $categoryImportQueueRepository
             ->expects($this->once())
@@ -166,6 +179,11 @@ final class AppGlobalsExtensionTest extends TestCase
             ->expects($this->once())
             ->method('countPending')
             ->willReturn(3);
+        $keywordExportQueueRepository = $this->createMock(ArticleKeywordExportQueueRepository::class);
+        $keywordExportQueueRepository
+            ->expects($this->once())
+            ->method('countPending')
+            ->willReturn(5);
         $categoryExportQueueRepository = $this->createMock(CategoryExportQueueRepository::class);
         $categoryExportQueueRepository
             ->expects($this->once())
@@ -218,9 +236,11 @@ final class AppGlobalsExtensionTest extends TestCase
             $languageResolver,
             $timeZoneResolver,
             $importQueueRepository,
+            $keywordImportQueueRepository,
             $categoryImportQueueRepository,
             $topMenuImportQueueRepository,
             $exportQueueRepository,
+            $keywordExportQueueRepository,
             $categoryExportQueueRepository,
             $topMenuExportQueueRepository,
             $exportRepository,
@@ -247,12 +267,13 @@ final class AppGlobalsExtensionTest extends TestCase
         $this->assertSame('2.0 MB', $globals['media_upload_limit_formatted']);
         $this->assertJson($globals['validation_i18n_json']);
         $this->assertSame([
-            'queue_status' => 12,
+            'queue_status' => 21,
             'imports' => 2,
+            'keyword_imports' => 4,
             'category_imports' => 3,
             'top_menu_imports' => 1,
             'exports' => 4,
-            'import_export' => 16,
+            'import_export' => 25,
         ], $globals['admin_shortcut_badges']);
         $this->assertCount(1, $globals['top_menu_items']);
     }

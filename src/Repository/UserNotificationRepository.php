@@ -31,4 +31,50 @@ class UserNotificationRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * @return list<UserNotification>
+     */
+    public function findLatestForUserId(int $userId, int $limit = 10): array
+    {
+        return $this->createQueryBuilder('notification')
+            ->andWhere('IDENTITY(notification.recipient) = :userId')
+            ->setParameter('userId', $userId)
+            ->orderBy('notification.createdAt', 'DESC')
+            ->addOrderBy('notification.id', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findOneForUserId(int $userId, int $notificationId): ?UserNotification
+    {
+        return $this->createQueryBuilder('notification')
+            ->andWhere('notification.id = :notificationId')
+            ->andWhere('IDENTITY(notification.recipient) = :userId')
+            ->setParameter('notificationId', $notificationId)
+            ->setParameter('userId', $userId)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function countForUserId(int $userId): int
+    {
+        return (int) $this->createQueryBuilder('notification')
+            ->select('COUNT(notification.id)')
+            ->andWhere('IDENTITY(notification.recipient) = :userId')
+            ->setParameter('userId', $userId)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function deleteAllForUserId(int $userId): int
+    {
+        return $this->createQueryBuilder('notification')
+            ->delete()
+            ->andWhere('IDENTITY(notification.recipient) = :userId')
+            ->setParameter('userId', $userId)
+            ->getQuery()
+            ->execute();
+    }
 }

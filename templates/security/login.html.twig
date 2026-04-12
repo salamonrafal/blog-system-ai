@@ -11,7 +11,11 @@
                 <p class="lede" data-i18n="login_lede">Ten ekran logowania korzysta z tego samego języka wizualnego co reszta aplikacji.</p>
 
                 {% if error %}
-                    <div class="flash error">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+                    <div
+                        class="flash error"
+                        {% if error_i18n_key %}data-i18n="{{ error_i18n_key }}"{% endif %}
+                        {% for name, value in error_i18n_params %} data-i18n-param-{{ name }}="{{ value }}"{% endfor %}
+                    >{{ error_message }}</div>
                 {% endif %}
 
                 <form method="post" class="form login-form">

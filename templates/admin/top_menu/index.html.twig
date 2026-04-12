@@ -18,6 +18,7 @@
 
                 <div class="actions">
                     <a class="button" href="{{ path('admin_top_menu_new') }}" data-i18n="top_menu_form_submit_create">Dodaj element menu</a>
+                    <a class="button secondary" href="{{ path('admin_top_menu_tree') }}" data-i18n="admin_top_menu_tree_action">Zarządzaj drzewem i pozycją</a>
                     <a class="button secondary" href="{{ path('admin_top_menu_import_index') }}" data-i18n="admin_top_menu_import_action">Import menu</a>
                     <form method="post" action="{{ path('admin_top_menu_export') }}">
                         <input type="hidden" name="_token" value="{{ csrf_token('export_top_menu') }}">
@@ -60,7 +61,9 @@
                     </tr>
                     </thead>
                     <tbody>
-                    {% for item in menu_items %}
+                    {% for entry in menu_items %}
+                        {% set item = entry.item %}
+                        {% set has_children = entry.hasChildren %}
                         {% set target_label = item.targetType.label %}
                         <tr>
                             <td class="user-index-email-cell">
@@ -80,22 +83,40 @@
                                     <a class="button secondary article-action-button" href="{{ path('admin_top_menu_edit', {id: item.id}) }}" data-i18n-title="admin_table_edit" data-i18n-tooltip="admin_table_edit" data-i18n-aria="admin_table_edit" data-tooltip="Edytuj" aria-label="Edytuj element menu">
                                         <span class="article-action-icon is-edit" aria-hidden="true"></span>
                                     </a>
-                                    <form method="post" action="{{ path('admin_top_menu_delete', {id: item.id}) }}" data-delete-form>
-                                        <input type="hidden" name="_token" value="{{ csrf_token('delete_top_menu_item_' ~ item.id) }}">
+                                    {% if has_children %}
                                         <button
-                                            class="button secondary button-danger article-action-button"
+                                            class="button secondary button-danger article-action-button is-disabled"
                                             type="button"
-                                            data-action="confirm-delete-top-menu-item"
-                                            data-top-menu-item-name="{{ item.localizedLabel(user_language) }}"
-                                            data-i18n-title="admin_table_delete"
-                                            data-i18n-tooltip="admin_table_delete"
-                                            data-i18n-aria="admin_table_delete"
-                                            data-tooltip="Usuń"
-                                            aria-label="Usuń element menu"
+                                            data-disabled-action
+                                            aria-disabled="true"
+                                            data-i18n-title="admin_top_menu_tree_delete_blocked"
+                                            data-i18n-tooltip="admin_top_menu_tree_delete_blocked"
+                                            data-i18n-aria="admin_top_menu_tree_delete_blocked"
+                                            data-tooltip-icon="warning"
+                                            data-tooltip-wrap="true"
+                                            data-tooltip="Nie można usunąć elementu, który ma dzieci"
+                                            aria-label="Nie można usunąć elementu, który ma dzieci"
                                         >
                                             <span class="article-action-icon is-delete" aria-hidden="true"></span>
                                         </button>
-                                    </form>
+                                    {% else %}
+                                        <form method="post" action="{{ path('admin_top_menu_delete', {id: item.id}) }}" data-delete-form>
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete_top_menu_item_' ~ item.id) }}">
+                                            <button
+                                                class="button secondary button-danger article-action-button"
+                                                type="button"
+                                                data-action="confirm-delete-top-menu-item"
+                                                data-top-menu-item-name="{{ item.localizedLabel(user_language) }}"
+                                                data-i18n-title="admin_table_delete"
+                                                data-i18n-tooltip="admin_table_delete"
+                                                data-i18n-aria="admin_table_delete"
+                                                data-tooltip="Usuń"
+                                                aria-label="Usuń element menu"
+                                            >
+                                                <span class="article-action-icon is-delete" aria-hidden="true"></span>
+                                            </button>
+                                        </form>
+                                    {% endif %}
                                 </div>
                             </td>
                         </tr>

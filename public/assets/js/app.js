@@ -21,8 +21,10 @@ import {
   setupOptionalColorFields,
   setupQueueClearConfirmation,
   setupTopMenuDeleteConfirmation,
+  setupTopMenuTreeSorting,
   setupTopMenuTargetTabs,
   setupTranslationTabs,
+  setupUserAvatarPreview,
   setupUserDeleteConfirmation,
 } from './modules/admin.js';
 import { setupCustomSelects } from './modules/custom-select.js';
@@ -31,7 +33,7 @@ import { setupOptionLists } from './modules/option-list.js';
 import { setupArticleMarkupEditor } from './modules/editor.js';
 import { applyI18n } from './modules/i18n.js';
 import { setupActions } from './modules/interactions.js';
-import { setupBackToTop, setupBlogCategoryScroller, setupFlashNotices, setupNav, setupTooltips, syncTopbarHeight } from './modules/layout.js';
+import { setupAriaDisabledActions, setupBackToTop, setupBlogCategoryScroller, setupFlashNotices, setupNav, setupTooltips, syncTopbarHeight } from './modules/layout.js';
 import { getAccent, getLang, getTheme, persistUserLanguage, persistUserTimeZone, setAccent, setTheme } from './modules/preferences.js';
 import { setupImagePreview } from './modules/preview.js';
 import { setupPrivacyNotice } from './modules/privacy.js';
@@ -48,6 +50,7 @@ function init(){
   const lang = getLang();
   applyI18n(lang);
   setupTooltips();
+  setupAriaDisabledActions();
   setupFlashNotices();
   setupAdminShortcuts();
   setupCustomSelects();
@@ -60,6 +63,7 @@ function init(){
   setupOptionalColorFields();
   setupTranslationTabs();
   setupTopMenuTargetTabs();
+  setupTopMenuTreeSorting();
   setupCategoryTranslationCopy();
   setupDashboardCarousels();
   setupArticleBulkExport();
@@ -70,6 +74,7 @@ function init(){
   setupArticleKeywordDeleteConfirmation();
   setupCategoryDeleteConfirmation();
   setupTopMenuDeleteConfirmation();
+  setupUserAvatarPreview();
   setupUserDeleteConfirmation();
   setupExportDeleteConfirmation();
   setupExportClearConfirmation();

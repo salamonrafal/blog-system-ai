@@ -13,7 +13,7 @@ final class ValidationMessagesTranslationTest extends TestCase
         /** @var array<string, string> $messages */
         $messages = require __DIR__.'/../../../translations/validators.pl.php';
 
-        $this->assertSame('Obrazek nie może być większy niż 5 MB.', $messages['validation_media_file_too_large'] ?? null);
+        $this->assertSame('Obrazek nie może być większy niż {{ limit }}.', $messages['validation_media_file_too_large'] ?? null);
     }
 
     public function testEnglishValidatorsCatalogContainsMediaUploadLimitMessage(): void
@@ -21,7 +21,7 @@ final class ValidationMessagesTranslationTest extends TestCase
         /** @var array<string, string> $messages */
         $messages = require __DIR__.'/../../../translations/validators.en.php';
 
-        $this->assertSame('The image cannot be larger than 5 MB.', $messages['validation_media_file_too_large'] ?? null);
+        $this->assertSame('The image cannot be larger than {{ limit }}.', $messages['validation_media_file_too_large'] ?? null);
     }
 
     public function testPolishValidatorsCatalogContainsSymfonyUploadIniLimitMessage(): void
@@ -32,6 +32,17 @@ final class ValidationMessagesTranslationTest extends TestCase
         $this->assertSame(
             'Plik jest za duży. Maksymalny dozwolony rozmiar to {{ limit }} {{ suffix }}.',
             $messages['The file is too large. Allowed maximum size is {{ limit }} {{ suffix }}.'] ?? null,
+        );
+    }
+
+    public function testEnglishValidatorsCatalogContainsTopMenuParentWithChildrenMessage(): void
+    {
+        /** @var array<string, string> $messages */
+        $messages = require __DIR__.'/../../../translations/validators.en.php';
+
+        $this->assertSame(
+            'A menu item that already has children cannot be moved into a submenu.',
+            $messages['validation_top_menu_parent_with_children'] ?? null,
         );
     }
 }

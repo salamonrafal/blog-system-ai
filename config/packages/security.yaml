@@ -17,13 +17,14 @@ security:
             lazy: true
             provider: app_user_provider
             user_checker: App\Security\UserChecker
+            access_denied_url: /access-denied
             form_login:
                 login_path: app_login
                 check_path: app_login
                 enable_csrf: true
                 username_parameter: email
                 password_parameter: password
-                default_target_path: admin_dashboard
+                success_handler: App\Security\LoginSuccessHandler
             logout:
                 path: app_logout
                 target: blog_index
@@ -31,6 +32,7 @@ security:
     access_control:
         - { path: ^/login$, roles: PUBLIC_ACCESS }
         - { path: ^/logout$, roles: PUBLIC_ACCESS }
+        - { path: ^/access-denied$, roles: PUBLIC_ACCESS }
         - { path: ^/admin, roles: ROLE_ADMIN }
 
 when@test:

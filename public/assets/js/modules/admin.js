@@ -1,5 +1,7 @@
 import { applyI18n, getTranslation, registerI18nListener } from './i18n.js';
+import { createAdminNotificationsController } from './admin-notifications.js';
 import { createMediaImagePicker } from './media-image-picker.js';
+import { createSortableTree } from './sortable-tree.js';
 import { getLang, isAdminDeviceRemembered, isAdminShortcutsCollapsed, isAdminShortcutsDocked, setAdminDeviceRemembered, setAdminShortcutsCollapsed, setAdminShortcutsDocked } from './preferences.js';
 import { assignFilesToInput, lockDocumentScroll, normalizeHexColor, qs, qsa, unlockDocumentScroll } from './shared.js';
 
@@ -15,6 +17,10 @@ function shouldUseCollapsedAdminSubmenuPopover(submenu){
     && shortcuts.classList.contains('is-docked')
     && shortcuts.classList.contains('is-collapsed')
     && isDesktopAdminShortcutsViewport();
+}
+
+function isPersistentAdminFlyoutSubmenu(submenu){
+  return submenu instanceof HTMLElement && submenu.hasAttribute('data-admin-shortcuts-flyout');
 }
 
 function syncCollapsedSubmenuAccessibility(shortcuts){
@@ -198,6 +204,34 @@ export function setupAdminShortcuts(){
   syncAdminShortcuts();
   let collapsedSubmenuPopover = null;
   let collapsedSubmenuOwner = null;
+  const notificationsController = createAdminNotificationsController({
+    recentNotificationsEndpoint: document.body.getAttribute('data-user-notifications-recent-endpoint'),
+    notificationsCsrfToken: document.body.getAttribute('data-user-notifications-csrf'),
+    onBadgesUpdated: ()=>{
+      qsa('.admin-shortcuts').forEach((shortcuts)=>{
+        if(!(shortcuts instanceof HTMLElement)) return;
+        syncCollapsedShortcutTooltips(shortcuts);
+      });
+    },
+  });
+
+  const refreshAdminNotificationsViews = ()=>{
+    notificationsController.refreshNotificationsViews(()=>{
+      if(
+        collapsedSubmenuOwner instanceof HTMLElement
+        && collapsedSubmenuOwner.hasAttribute('data-admin-notifications-submenu')
+        && collapsedSubmenuPopover
+        && !collapsedSubmenuPopover.hidden
+      ){
+        openCollapsedSubmenuPopover(collapsedSubmenuOwner);
+      }
+    });
+  };
+  notificationsController.setup();
+
+  document.addEventListener('app:admin-notifications-changed', ()=>{
+    refreshAdminNotificationsViews();
+  });
 
   const resetCollapsedDesktopSubmenus = ()=>{
     qsa('.admin-shortcuts.is-docked.is-collapsed').forEach((shortcuts)=>{
@@ -347,6 +381,24 @@ export function setupAdminShortcuts(){
     }
   };
 
+  const loadNotificationsForSubmenu = (submenu)=>{
+    if(!(submenu instanceof HTMLElement) || !submenu.hasAttribute('data-admin-notifications-submenu')){
+      return;
+    }
+
+    window.requestAnimationFrame(()=>{
+      void notificationsController.loadRecentNotifications(true).then(()=>{
+        if(
+          collapsedSubmenuOwner === submenu
+          && collapsedSubmenuPopover
+          && !collapsedSubmenuPopover.hidden
+        ){
+          openCollapsedSubmenuPopover(submenu);
+        }
+      });
+    });
+  };
+
   qsa('[data-admin-shortcuts-submenu]').forEach((submenu)=>{
     const trigger = qs('[data-action="toggle-admin-submenu"]', submenu);
     if(!trigger) return;
@@ -354,20 +406,33 @@ export function setupAdminShortcuts(){
     trigger.addEventListener('click', (event)=>{
       event.preventDefault();
       event.stopPropagation();
+
       const isOpen = shouldUseCollapsedAdminSubmenuPopover(submenu)
         ? collapsedSubmenuOwner === submenu && !!collapsedSubmenuPopover && !collapsedSubmenuPopover.hidden
         : submenu.classList.contains('is-open');
 
+      const shouldKeepOtherSubmenusOpen = isPersistentAdminFlyoutSubmenu(submenu);
+
       qsa('[data-admin-shortcuts-submenu].is-open').forEach((openSubmenu)=>{
-        if(openSubmenu !== submenu){
-          closeAdminSubmenu(openSubmenu);
+        if(openSubmenu === submenu){
+          return;
         }
+
+        if(shouldKeepOtherSubmenusOpen){
+          if(isPersistentAdminFlyoutSubmenu(openSubmenu)){
+            closeAdminSubmenu(openSubmenu);
+          }
+          return;
+        }
+
+        closeAdminSubmenu(openSubmenu);
       });
 
       if(isOpen){
         closeAdminSubmenu(submenu);
       }else{
         openAdminSubmenu(submenu);
+        loadNotificationsForSubmenu(submenu);
       }
     });
   });
@@ -429,6 +494,18 @@ export function setupAdminShortcuts(){
     menu.addEventListener('click', (event)=>{
       const target = event.target;
       if(!(target instanceof Element)) return;
+      if(notificationsController.handleRefreshClick(target, refreshAdminNotificationsViews)){
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+
+      if(notificationsController.handleActionClick(target, refreshAdminNotificationsViews)){
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+
       if(!target.closest('a[href]')) return;
       if(shortcuts.classList.contains('is-docked') && isDesktopAdminShortcutsViewport()) return;
 
@@ -437,6 +514,18 @@ export function setupAdminShortcuts(){
   });
 
   document.addEventListener('click', (event)=>{
+    if(notificationsController.handleRefreshClick(event.target, refreshAdminNotificationsViews)){
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
+    if(notificationsController.handleActionClick(event.target, refreshAdminNotificationsViews)){
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
     qsa('.admin-shortcuts[open]').forEach((shortcuts)=>{
       if(shortcuts.classList.contains('is-docked')) return;
       if(!shortcuts.contains(event.target)){
@@ -473,14 +562,29 @@ export function setupAdminShortcuts(){
   document.addEventListener('keydown', (event)=>{
     if(event.key !== 'Escape') return;
 
-    closeCollapsedSubmenuPopover();
+    const hasOpenCollapsedPopover = !!(collapsedSubmenuPopover && !collapsedSubmenuPopover.hidden);
+    const openSubmenus = qsa('[data-admin-shortcuts-submenu].is-open');
+    const openNotificationsSubmenu = openSubmenus.find((submenu)=> submenu.hasAttribute('data-admin-notifications-submenu'));
+
+    if(hasOpenCollapsedPopover){
+      closeCollapsedSubmenuPopover();
+      return;
+    }
+
+    if(openNotificationsSubmenu){
+      closeAdminSubmenu(openNotificationsSubmenu);
+      return;
+    }
+
+    if(openSubmenus.length > 0){
+      openSubmenus.forEach((submenu)=>{
+        closeAdminSubmenu(submenu);
+      });
+      return;
+    }
 
     qsa('.admin-shortcuts[open]').forEach((shortcuts)=>{
       closeAdminShortcuts(shortcuts);
-    });
-
-    qsa('[data-admin-shortcuts-submenu].is-open').forEach((submenu)=>{
-      closeAdminSubmenu(submenu);
     });
   });
 
@@ -492,6 +596,60 @@ export function setupAdminShortcuts(){
 
   window.addEventListener('resize', syncAdminShortcutsOnViewportChange, { passive: true });
   window.addEventListener('orientationchange', syncAdminShortcutsOnViewportChange);
+}
+
+export function setupUserAvatarPreview(){
+  qsa('[data-avatar-upload]').forEach((root)=>{
+    const input = qs('[data-avatar-input]', root);
+    const preview = qs('[data-avatar-preview]', root);
+    const previewImage = qs('[data-avatar-preview-image]', root);
+    const previewEmpty = qs('[data-avatar-preview-empty]', root);
+
+    if(!(input instanceof HTMLInputElement) || !(preview instanceof HTMLElement) || !(previewImage instanceof HTMLImageElement) || !(previewEmpty instanceof HTMLElement)){
+      return;
+    }
+
+    let objectUrl = null;
+
+    const syncPreview = ()=>{
+      const selectedFile = input.files && input.files.length > 0 ? input.files[0] : null;
+      const defaultSrc = preview.getAttribute('data-avatar-preview-default-src') || '';
+
+      if(objectUrl){
+        URL.revokeObjectURL(objectUrl);
+        objectUrl = null;
+      }
+
+      const nextSrc = selectedFile ? URL.createObjectURL(selectedFile) : defaultSrc;
+      const hasImage = Boolean(nextSrc);
+
+      if(selectedFile){
+        objectUrl = nextSrc;
+      }
+
+      preview.classList.toggle('has-image', hasImage);
+
+      if(hasImage){
+        previewImage.src = nextSrc;
+        previewImage.hidden = false;
+        previewEmpty.hidden = true;
+      }else{
+        previewImage.removeAttribute('src');
+        previewImage.hidden = true;
+        previewEmpty.hidden = false;
+      }
+
+      preview.setAttribute('data-has-image', hasImage ? 'true' : 'false');
+    };
+
+    input.addEventListener('change', syncPreview);
+    window.addEventListener('beforeunload', ()=>{
+      if(objectUrl){
+        URL.revokeObjectURL(objectUrl);
+      }
+    }, { once: true });
+    syncPreview();
+  });
 }
 
 export function setupCharacterCounters(){
@@ -809,6 +967,92 @@ export function setupTopMenuTargetTabs(){
 
     activateTab(root.getAttribute('data-menu-target-active') || input.value || tabs[0]?.getAttribute('data-menu-target-tab') || '');
   });
+}
+
+export function setupTopMenuTreeSorting(){
+  const root = qs('[data-top-menu-tree]');
+  if(!(root instanceof HTMLElement)){
+    return;
+  }
+
+  const endpoint = root.getAttribute('data-reorder-endpoint') || '';
+  const csrfToken = root.getAttribute('data-reorder-csrf') || '';
+  const status = qs('[data-top-menu-tree-status]', root);
+  const setStatus = ({ translationKey = '', type = 'info' } = {})=>{
+    if(!(status instanceof HTMLElement)){
+      return;
+    }
+
+    status.textContent = translationKey ? getTranslation(translationKey) : '';
+    status.classList.remove('is-info', 'is-success', 'is-error');
+
+    if(!translationKey){
+      status.removeAttribute('data-i18n');
+      return;
+    }
+
+    status.setAttribute('data-i18n', translationKey);
+    status.classList.add(`is-${type}`);
+  };
+
+  createSortableTree(root, {
+    levelSelector: '[data-top-menu-tree-level]',
+    nodeSelector: '[data-top-menu-tree-node]',
+    handleSelector: '[data-top-menu-tree-handle]',
+    nodeIdAttribute: 'data-item-id',
+    onSyncNode: ({ node, index })=>{
+      const value = qs('[data-top-menu-tree-position-value]', node);
+      if(value){
+        value.textContent = String(index);
+      }
+    },
+    onDragStateChange: ({ isActive })=>{
+      root.classList.toggle('is-drag-active', isActive);
+    },
+    onStatusChange: setStatus,
+    onPersistOrder: async ({ level, orderedIds, syncLevel })=>{
+      if(endpoint === '' || csrfToken === ''){
+        setStatus({ translationKey: 'admin_top_menu_tree_save_error', type: 'error' });
+        return false;
+      }
+
+      root.classList.add('is-saving');
+      setStatus({ translationKey: 'admin_top_menu_tree_save_pending' });
+
+      const firstNode = qsa('[data-top-menu-tree-node]', level)[0];
+      const parentIdValue = firstNode?.getAttribute('data-parent-id') || '';
+      const parentId = parentIdValue === '' ? null : Number(parentIdValue);
+
+      try{
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          body: JSON.stringify({
+            parentId,
+            orderedIds,
+          }),
+        });
+
+        if(!response.ok){
+          setStatus({ translationKey: 'admin_top_menu_tree_save_error', type: 'error' });
+          return false;
+        }
+
+        syncLevel(level);
+        setStatus({ translationKey: 'admin_top_menu_tree_save_success', type: 'success' });
+        return true;
+      }catch(error){
+        setStatus({ translationKey: 'admin_top_menu_tree_save_error', type: 'error' });
+        return false;
+      }finally{
+        root.classList.remove('is-saving');
+      }
+    },
+  }).setup();
 }
 
 export function setupCategoryTranslationCopy(){
@@ -1365,6 +1609,27 @@ export function setupImportClearConfirmation(){
     cancelI18n: 'admin_imports_clear_popup_cancel',
     cancelFallback: 'Przerwij',
     submitI18n: 'admin_imports_clear_popup_confirm',
+    submitFallback: 'Usuń wszystko',
+    closeI18n: 'admin_close_alert',
+    closeFallback: 'Zamknij alert',
+  });
+
+  setupDangerConfirmation({
+    triggerSelector: '[data-action="confirm-clear-article-keyword-imports"]',
+    modalClass: 'confirm-clear-article-keyword-imports-modal',
+    modalIdPrefix: 'confirm-clear-article-keyword-imports',
+    titleI18n: 'admin_article_keyword_imports_clear_popup_title',
+    titleFallback: 'Usunąć wszystkie importy słów kluczowych?',
+    textI18n: 'admin_article_keyword_imports_clear_popup_text',
+    textFallback: 'Ta operacja usunie wszystkie rekordy importu słów kluczowych oraz powiązane pliki z dysku.',
+    detailsClass: null,
+    detailsText: null,
+    cancelAction: 'cancel-clear-article-keyword-imports',
+    submitAction: 'submit-clear-article-keyword-imports',
+    closeAction: 'close-clear-article-keyword-imports',
+    cancelI18n: 'admin_article_keyword_imports_clear_popup_cancel',
+    cancelFallback: 'Przerwij',
+    submitI18n: 'admin_article_keyword_imports_clear_popup_confirm',
     submitFallback: 'Usuń wszystko',
     closeI18n: 'admin_close_alert',
     closeFallback: 'Zamknij alert',

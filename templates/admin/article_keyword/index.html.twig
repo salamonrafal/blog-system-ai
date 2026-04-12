@@ -18,6 +18,11 @@
 
                 <div class="actions">
                     <a class="button" href="{{ path('admin_article_keyword_new') }}" data-i18n="article_keyword_form_submit_create">Dodaj słowo kluczowe</a>
+                    <a class="button secondary" href="{{ path('admin_article_keyword_import_index') }}" data-i18n="admin_article_keyword_import_action">Import słów kluczowych</a>
+                    <form method="post" action="{{ path('admin_article_keyword_export') }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('export_article_keywords') }}">
+                        <button class="button secondary" type="submit" data-i18n="admin_article_keyword_export_action">Eksportuj słowa kluczowe</button>
+                    </form>
                 </div>
 
                 <section class="article-edit-meta-panel article-edit-meta-panel-compact" data-i18n-aria="admin_article_keyword_overview_aria" aria-label="Podsumowanie słów kluczowych">

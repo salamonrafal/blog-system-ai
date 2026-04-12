@@ -51,15 +51,47 @@
                     {% set import_file_error_id = form.importFile.vars.id ~ '-error' %}
                     {% set import_file_hint_id = form.importFile.vars.id ~ '-hint' %}
                     {% set import_file_described_by = import_file_hint_id ~ (import_file_has_errors ? ' ' ~ import_file_error_id : '') %}
+                    {% set import_file_label_attr = form.importFile.vars.label_attr|merge({
+                        class: ((form.importFile.vars.label_attr.class|default('') ~ ' sr-only')|trim)
+                    }) %}
                     <div class="field article-editor-field{{ import_file_has_errors ? ' has-error' : '' }}">
-                        {{ form_label(form.importFile) }}
-                        {{ form_widget(form.importFile, { attr: {
-                            class: 'article-editor-input',
-                            'aria-describedby': import_file_described_by
-                        }|merge(import_file_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
-                        <div class="article-editor-field-meta">
-                            <span id="{{ import_file_hint_id }}" class="article-editor-field-hint article-editor-field-hint-help" data-i18n="admin_top_menu_import_form_file_hint">Obsługiwany jest plik JSON wygenerowany przez moduł eksportu menu.</span>
+                        {{ form_label(form.importFile, null, { label_attr: import_file_label_attr }) }}
+                        <div class="file-upload" data-file-upload>
+                            {{ form_widget(form.importFile, { attr: form.importFile.vars.attr|merge({
+                                class: 'sr-only file-upload-input',
+                                'aria-describedby': import_file_described_by,
+                                'data-file-upload-input': ''
+                            }|merge(import_file_has_errors ? {'aria-invalid': 'true'} : {})) }) }}
+                            <div class="file-upload-surface" data-file-upload-surface>
+                                <div class="file-upload-topbar">
+                                    <span class="file-upload-icon" aria-hidden="true"></span>
+                                    <span
+                                        class="file-upload-filename"
+                                        data-file-upload-filename
+                                        data-empty-label-key="file_upload_no_file"
+                                        data-selected-label-key="file_upload_selected"
+                                        data-i18n="file_upload_no_file"
+                                    >{{ i18n_fallback('file_upload_no_file') }}</span>
+                                    <button
+                                        type="button"
+                                        class="button secondary file-upload-trigger"
+                                        data-file-upload-trigger
+                                        data-i18n="file_upload_choose"
+                                    >{{ i18n_fallback('file_upload_choose') }}</button>
+                                    <button
+                                        type="button"
+                                        class="article-keyword-help-trigger"
+                                        data-i18n-tooltip="admin_top_menu_import_form_file_hint"
+                                        data-i18n-aria="admin_top_menu_import_form_file_help_aria"
+                                        data-tooltip="{{ i18n_fallback('admin_top_menu_import_form_file_hint') }}"
+                                        data-tooltip-wide="true"
+                                        data-tooltip-wrap="true"
+                                        aria-label="{{ i18n_fallback('admin_top_menu_import_form_file_help_aria') }}"
+                                    >?</button>
+                                </div>
+                            </div>
                         </div>
+                        <span id="{{ import_file_hint_id }}" class="sr-only" data-i18n="admin_top_menu_import_form_file_hint">{{ i18n_fallback('admin_top_menu_import_form_file_hint') }}</span>
                         {% if import_file_has_errors %}
                             <div id="{{ import_file_error_id }}" class="article-editor-error-message" role="alert">
                                 {% for error in form.importFile.vars.errors %}

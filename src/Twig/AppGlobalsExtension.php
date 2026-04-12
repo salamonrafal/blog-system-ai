@@ -13,6 +13,8 @@ use App\Service\UserTimeZoneResolver;
 use App\Repository\CategoryExportQueueRepository;
 use App\Repository\ArticleExportQueueRepository;
 use App\Repository\ArticleExportRepository;
+use App\Repository\ArticleKeywordExportQueueRepository;
+use App\Repository\ArticleKeywordImportQueueRepository;
 use App\Repository\ArticleImportQueueRepository;
 use App\Repository\CategoryImportQueueRepository;
 use App\Repository\TopMenuImportQueueRepository;
@@ -38,9 +40,11 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
         private readonly UserLanguageResolver $userLanguageResolver,
         private readonly UserTimeZoneResolver $userTimeZoneResolver,
         private readonly ArticleImportQueueRepository $articleImportQueueRepository,
+        private readonly ArticleKeywordImportQueueRepository $articleKeywordImportQueueRepository,
         private readonly CategoryImportQueueRepository $categoryImportQueueRepository,
         private readonly TopMenuImportQueueRepository $topMenuImportQueueRepository,
         private readonly ArticleExportQueueRepository $articleExportQueueRepository,
+        private readonly ArticleKeywordExportQueueRepository $articleKeywordExportQueueRepository,
         private readonly CategoryExportQueueRepository $categoryExportQueueRepository,
         private readonly TopMenuExportQueueRepository $topMenuExportQueueRepository,
         private readonly ArticleExportRepository $articleExportRepository,
@@ -72,10 +76,14 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
     {
         $settings = $this->blogSettingsProvider->getSettings();
         $pendingArticleImportCount = $this->articleImportQueueRepository->countPending();
+        $pendingKeywordImportCount = $this->articleKeywordImportQueueRepository->countPending();
         $pendingCategoryImportCount = $this->categoryImportQueueRepository->countPending();
         $pendingTopMenuImportCount = $this->topMenuImportQueueRepository->countPending();
-        $pendingImportCount = $pendingArticleImportCount + $pendingCategoryImportCount + $pendingTopMenuImportCount;
-        $pendingExportQueueCount = $this->articleExportQueueRepository->countPending() + $this->categoryExportQueueRepository->countPending() + $this->topMenuExportQueueRepository->countPending();
+        $pendingImportCount = $pendingArticleImportCount + $pendingKeywordImportCount + $pendingCategoryImportCount + $pendingTopMenuImportCount;
+        $pendingExportQueueCount = $this->articleExportQueueRepository->countPending()
+            + $this->articleKeywordExportQueueRepository->countPending()
+            + $this->categoryExportQueueRepository->countPending()
+            + $this->topMenuExportQueueRepository->countPending();
         $newExportCount = $this->articleExportRepository->countNew();
         $language = $this->userLanguageResolver->getLanguage();
         $mediaUploadLimitBytes = $this->uploadLimitResolver->resolveEffectiveLimit(\App\Service\MediaImageSupport::MAX_FILE_SIZE);
@@ -104,6 +112,7 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
             'admin_shortcut_badges' => [
                 'queue_status' => $pendingImportCount + $pendingExportQueueCount,
                 'imports' => $pendingArticleImportCount,
+                'keyword_imports' => $pendingKeywordImportCount,
                 'category_imports' => $pendingCategoryImportCount,
                 'top_menu_imports' => $pendingTopMenuImportCount,
                 'exports' => $newExportCount,

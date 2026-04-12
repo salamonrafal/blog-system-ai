@@ -386,3 +386,61 @@
 - Rozszerzono ekran `Galeria mediów` o paginację opartą o globalne ustawienie `Ilość elementów na stronę w panelu administracyjnym`, wyszukiwanie po nazwie niestandardowej lub oryginalnej, sortowanie po dacie od najnowszych i od najstarszych oraz statyczny, uporządkowany panel filtrów z połączonym polem wyszukiwania i ikoną lupy.
 - Ujednolicono komunikaty i podpowiedzi uploadu obrazków w module mediów, tłumacząc również przypadki limitu rozmiaru zwracane przez Symfony/PHP oraz wyliczając hint limitu pliku na podstawie rzeczywiście obowiązującego minimum z konfiguracji aplikacji i ustawień `upload_max_filesize` oraz `post_max_size`.
 - Uzupełniono deployment kontenera o osobny mount katalogu `public/uploads/media`, dzięki czemu pliki biblioteki mediów są zachowywane poza obrazem aplikacji i pozostają dostępne po wdrożeniu.
+
+## 2026-04-08
+
+- Zastąpiono tekstowe pole URL avatara w formularzach dodawania i edycji użytkownika uploadem obrazka, zapisując pliki w konfigurowalnym katalogu `public/uploads/avatars`, dodając walidację typów i rozmiaru, optymalizację przesyłanych zdjęć oraz automatyczne usuwanie podmienianego lokalnego avatara.
+- Rozszerzono formularz użytkownika o podgląd avatara wybranego do uploadu, dopracowując kilka wariantów pustego stanu placeholdera oraz finalnie osadzając podgląd bezpośrednio w górnym rzędzie komponentu uploadu, w miejscu wcześniejszej ikony.
+- Ujednolicono walidację uploadu obrazów przez wydzielenie wspólnego factory constraints, wykorzystywanego zarówno przez moduł mediów, jak i nowy upload avatarów, oraz uzupełniono testy jednostkowe formularzy, storage avatara i kontrolera użytkowników.
+- Naprawiono internacjonalizację błędów logowania, odchodząc od nieaktywnego w projekcie tłumacza domeny `security` i mapując komunikaty uwierzytelnienia bezpośrednio w `SecurityController` zgodnie z językiem użytkownika.
+- Zmieniono obsługę kont bez roli administratora: zwykły użytkownik może się teraz normalnie zalogować, a po sukcesie jest kierowany na stronę główną, podczas gdy administrator po logowaniu trafia do panelu `/admin`.
+- Dodano dedykowaną stronę `403 Access denied` renderowaną w layoucie aplikacji oraz spięto ją z firewallem przez `access_denied_url`, dzięki czemu ręczne wejście na `/admin` bez uprawnień nie pokazuje już debugowego exception page Symfony.
+- Dopracowano pływające skróty administratora dla różnych typów użytkowników: na stronie `403` panel jest ukrywany, dla zapamiętanego urządzenia bez aktywnej sesji nadal pozostaje dostępny pływający przycisk logowania, a dla zwykłego zalogowanego użytkownika menu pokazuje wyłącznie akcję `Wyloguj` bez opcji dokowania i bez sekcji administracyjnych.
+
+## 2026-04-09
+
+- Rozszerzono moduł avatarów użytkowników o pełny przepływ zarządzania zdjęciem profilowym, dopracowując formularz, komunikaty pomocnicze, dostępność uploadu i prezentację wskazówek dla administratora.
+- Ustabilizowano zapis i podmianę avatarów, wzmacniając obsługę błędów przy wymianie pliku, usuwaniu poprzedniego obrazka i optymalizacji JPEG, tak aby nowy upload nie był blokowany przez nieudaną operację czyszczenia starego zasobu.
+- Dodano automatyczne usuwanie avatara z dysku po skasowaniu użytkownika oraz rozszerzono warstwę usług plikowych i testy jednostkowe o scenariusze bezpiecznej wymiany i czyszczenia plików profilowych.
+- Dopracowano `LoginSuccessHandler`, dodając przekierowanie na zapamiętaną ścieżkę docelową po poprawnym logowaniu oraz czyszczenie `target path` po udanym użyciu, wraz z aktualizacją testów jednostkowych.
+- Uzupełniono komunikaty walidacyjne uploadów o dynamicznie wyliczane limity rozmiaru pliku oraz uporządkowano drobne szczegóły layoutu, w tym jawne korzystanie z wcześniej zdefiniowanej wartości `show_admin_shortcuts`.
+
+## 2026-04-10
+
+- Dodano własną stronę błędu `404` w layoucie aplikacji, używaną zarówno dla nieistniejących route'ów, jak i dla zasobów zgłaszających `NotFoundHttpException`, dzięki czemu zamiast domyślnej strony wyjątku Symfony wyświetlany jest spójny widok błędu.
+- Wydzielono współdzielony komponent widoków statusowych dla stron błędów, upraszczając utrzymanie wspólnego markupu dla ekranów `403` i `404`.
+- Rozszerzono internacjonalizację strony `404`, podpinając ją do frontendowego mechanizmu `data-i18n` oraz aktualizacji `document.title`, tak aby przełącznik języka działał również na ekranie błędu bez przeładowania strony.
+- Dodano subscriber obsługujący błędy `404` dla głównego requestu oraz testy jednostkowe potwierdzające poprawne renderowanie dedykowanej strony i ignorowanie pozostałych wyjątków.
+- Rozszerzono skróty administratora o nowe submenu `Centrum Powiadomień`, dostępne w wariancie pływającym, zadokowanym i zwiniętym, z własnym nagłówkiem, stopką, badge pokazującym łączną liczbę powiadomień oraz listą `TOP 10` ostatnich wpisów sortowanych od najnowszego.
+- Dodano read-only endpoint ostatnich powiadomień oraz rozbudowano backend powiadomień użytkownika o liczenie wszystkich wpisów, oznaczanie jako `przeczytane / nieprzeczytane`, usuwanie pojedynczego powiadomienia i czyszczenie całej listy, wydzielając osobne pole `readAt` na stan odczytu oraz dodając migrację przepisującą wcześniejsze wartości z `displayedAt`.
+- Dopracowano interfejs `Centrum Powiadomień`, dodając akcje ikonowe dla każdego wpisu, przycisk `Odśwież` w nagłówku, akcję `Usuń wszystkie powiadomienia` w stopce, tooltipy dla wszystkich akcji oraz mocniejsze wizualne wyróżnienie elementów nieprzeczytanych.
+- Przebudowano zachowanie submenu powiadomień na desktopie do formy bocznego flyouta zamiast akordeonu, a w wariancie zwiniętego, zadokowanego raila dopasowano popover do pełnego rozmiaru panelu z zachowaniem poprawnego układu dat, treści i akcji.
+- Ustabilizowano interakcje `Centrum Powiadomień`, eliminując skoki layoutu przez delikatny blur i preloader zachowujący wysokość panelu, usuwając podwójne scrollbary w zwiniętym wariancie zadokowanym oraz poprawiając logikę klawisza `Escape`, tak aby zamykał najpierw samo submenu powiadomień bez składania pozostałych sekcji skrótów.
+
+## 2026-04-11
+
+- Ujednolicono ekrany `Import Artykułów`, `Import kategorii` i `Import menu`, zastępując natywne pola `input[type=file]` istniejącym współdzielonym komponentem uploadu plików z podglądem nazwy wybranego pliku, wspólnym wyglądem, tooltipem pomocy oraz uzupełnionymi kluczami i18n dla etykiet dostępności.
+- Rozszerzono moduł eksportów o słowa kluczowe artykułów, dodając akcję eksportu na ekranie `Zarządzanie słowami kluczowymi artykułów`, nowy typ eksportu `keywords`, osobną kolejkę `article_keyword_export_queue`, dedykowany command `app:article-keyword-export:process-queue`, writer plików JSON oraz integrację z listą `Eksporty`.
+- Zintegrowano eksport słów kluczowych z ekranem `Stan kolejek`, dashboardem administracyjnym, badge w skrótach oraz cronem, a do `composer.json` i `README.md` dopisano skrót `composer article-keyword-export:process-queue` i opis ręcznego uruchamiania.
+- Dodano nowy moduł `Import słów kluczowych` pod trasą `/admin/article-keyword-imports`, z formularzem uploadu JSON, listą plików w kolejce, pobieraniem i usuwaniem wpisów oraz odnośnikami w skrótach administracyjnych i na ekranie słów kluczowych.
+- Wprowadzono osobną kolejkę `article_keyword_import_queue`, command `app:article-keyword-import:process-queue`, skrót `composer article-keyword-import:process-queue` oraz pełną integrację importu słów kluczowych z `Stanem kolejek`, dashboardem, badge i cronem.
+- Dodano procesor importu słów kluczowych, który odczytuje format `article-keyword-export`, rozpoznaje istniejące rekordy po parze `language + name`, aktualizuje je albo tworzy nowe, ignoruje `article_ids` z pliku JSON i pozostawia bez zmian istniejące powiązania słów kluczowych z artykułami.
+- Rozszerzono powiadomienia użytkownika oraz internacjonalizację `PL/EN` o nowe komunikaty, etykiety i akcje dla eksportu oraz importu słów kluczowych.
+- Uzupełniono dokumentację i testy jednostkowe o obsługę eksportu oraz importu słów kluczowych, a migracje dla obu nowych kolejek połączono w jeden plik `Version20260411113000.php`.
+- Dodano nowy ekran `Hierarchia i pozycja top menu`, prezentujący elementy menu w formie drzewa z możliwością przeciągania w obrębie tego samego poziomu oraz zapisu nowej kolejności przez dedykowany endpoint `admin_top_menu_tree_reorder`.
+- Rozszerzono moduł top menu o akcję przejścia z listy `Zarządzanie górnym menu bloga` do widoku drzewa oraz o przyciski kontekstowe bezpośrednio w drzewie: `Edytuj`, `Dodaj dziecko`, `Dodaj element poniżej` i `Usuń`, wraz z blokadami dla niedozwolonych operacji.
+- Uzupełniono formularz tworzenia elementu top menu o prefill `parent` i `position` na podstawie parametrów `?parent=` oraz `?after=`, dzięki czemu dodawanie dzieci i wstawianie elementów pomiędzy istniejące wpisy działa bez ręcznego ustawiania rodzica i pozycji.
+- Uszczelniono backendowe zarządzanie pozycjami top menu, dodając centralne przeliczanie kolejności rodzeństwa przy tworzeniu, edycji i ręcznym porządkowaniu elementów, tak aby nowe wpisy trafiały dokładnie w wybrane miejsce zamiast spadać na koniec listy.
+- Rozbudowano ekran drzewa o reguły biznesowe dla zagnieżdżeń: elementy będące już dziećmi nie mogą otrzymać kolejnego poziomu submenu, a elementy posiadające dzieci nie mogą zostać usunięte, z odpowiednimi tooltipami ostrzegawczymi i komunikatami `i18n`.
+- Rozszerzono współdzielony komponent tooltipa o obsługę ikon, zawijania wieloliniowego tekstu i poprawne wyśrodkowanie ikony względem treści, a komunikaty blokujące akcje w drzewie top menu wzbogacono o ikonę ostrzeżenia z wykrzyknikiem w trójkącie.
+- Wydzielono logikę przeciągania drzewa do reużywalnego modułu `public/assets/js/modules/sortable-tree.js`, upraszczając `admin.js` do konfiguracji specyficznej dla top menu i przygotowując grunt pod kolejne widoki korzystające z drag & drop.
+- Wydzielono style drzewa top menu do osobnego komponentu `public/assets/css/components/top-menu-tree.css`, dzięki czemu `admin.css` nie rośnie wraz z rozbudową modułu hierarchii menu.
+- Dopracowano wizualnie widok drzewa top menu, upraszczając listę do lekkiej formy, kompaktując spacing i typografię, poprawiając uchwyt przeciągania, markery miejsca upuszczenia oraz zachowanie ikon `+` i akcji z tooltipami.
+- Rozszerzono testy jednostkowe `TopMenuItemController`, obejmując nowy widok drzewa, zapis kolejności, przekierowanie po usunięciu z widoku drzewa oraz prefill formularza dla scenariuszy `parent` i `after`.
+
+## 2026-04-12
+
+- Rozszerzono dokumentację Dockera w `README.md` o nową sekcję `Persistent data in Docker`, opisującą katalogi, które warto montować poza kontenerem, aby po jego odtworzeniu zachować bazę SQLite, bibliotekę mediów, avatary użytkowników oraz opcjonalne katalogi importów, eksportów i archiwów osieroconych plików.
+- Zaktualizowano workflow `deploy-container`, dodając osobne mounty dla `public/uploads/avatars`, `var/exports`, `var/imports` i `var/media-orphans`, dzięki czemu wdrożony kontener zachowuje nie tylko media, ale też avatary oraz pliki generowane i przesyłane przez moduły importu, eksportu i archiwizacji.
+- Poprawiono badge w `Centrum Powiadomień`, tak aby po wyzerowaniu licznika był faktycznie ukrywany zamiast pozostawiać pustą czerwoną kropkę w skrótach administracyjnych.
+- Rozszerzono akcje w `Centrum Powiadomień` o ikonę `Otwórz`, prowadzącą bezpośrednio do strony docelowej danego powiadomienia, oraz uzupełniono brakujące tłumaczenia `PL/EN` i styl linku akcji tak, by był spójny wizualnie z pozostałymi przyciskami.
