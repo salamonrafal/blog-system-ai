@@ -337,14 +337,29 @@ class TopMenuItem
             TopMenuItemTargetType::BLOG_HOME => null,
         };
 
-        if ($this === $this->parent) {
+        $isSelfParent = $this === $this->parent;
+        $createsCycle = !$isSelfParent && null !== $this->parent && $this->parent->hasAncestor($this);
+
+        if ($isSelfParent) {
             $context->buildViolation('validation_top_menu_parent_self')
                 ->atPath('parent')
                 ->addViolation();
         }
 
-        if (null !== $this->parent && $this->parent->hasAncestor($this)) {
+        if ($createsCycle) {
             $context->buildViolation('validation_top_menu_parent_cycle')
+                ->atPath('parent')
+                ->addViolation();
+        }
+
+        if (!$isSelfParent && !$createsCycle && null !== $this->parent && null !== $this->parent->getParent()) {
+            $context->buildViolation('validation_top_menu_parent_depth')
+                ->atPath('parent')
+                ->addViolation();
+        }
+
+        if (null !== $this->parent && !$this->children->isEmpty()) {
+            $context->buildViolation('validation_top_menu_parent_with_children')
                 ->atPath('parent')
                 ->addViolation();
         }

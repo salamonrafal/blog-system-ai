@@ -118,6 +118,108 @@ final class TopMenuItemTest extends TestCase
         $this->assertSame('validation_top_menu_position_non_negative', $violations[0]->getMessage());
     }
 
+    public function testSelectingNestedParentTriggersValidationError(): void
+    {
+        $validator = Validation::createValidatorBuilder()
+            ->enableAttributeMapping()
+            ->getValidator();
+
+        $topLevelParent = (new TopMenuItem())
+            ->setLabels(['pl' => 'Blog', 'en' => 'Blog'])
+            ->setUniqueName('blog')
+            ->setTargetType(TopMenuItemTargetType::BLOG_HOME);
+        $nestedParent = (new TopMenuItem())
+            ->setLabels(['pl' => 'PHP', 'en' => 'PHP'])
+            ->setUniqueName('php')
+            ->setTargetType(TopMenuItemTargetType::BLOG_HOME)
+            ->setParent($topLevelParent);
+        $menuItem = (new TopMenuItem())
+            ->setLabels(['pl' => 'Symfony', 'en' => 'Symfony'])
+            ->setUniqueName('symfony')
+            ->setTargetType(TopMenuItemTargetType::BLOG_HOME)
+            ->setParent($nestedParent);
+
+        $violations = $validator->validate($menuItem);
+
+        $this->assertGreaterThan(0, $violations->count());
+        $this->assertSame('validation_top_menu_parent_depth', $violations[0]->getMessage());
+    }
+
+    public function testSelfParentTriggersOnlySelfValidationError(): void
+    {
+        $validator = Validation::createValidatorBuilder()
+            ->enableAttributeMapping()
+            ->getValidator();
+
+        $menuItem = (new TopMenuItem())
+            ->setLabels(['pl' => 'Blog', 'en' => 'Blog'])
+            ->setUniqueName('blog')
+            ->setTargetType(TopMenuItemTargetType::BLOG_HOME);
+        $menuItem->setParent($menuItem);
+
+        $violations = $validator->validate($menuItem);
+        $messages = array_map(static fn ($violation): string => $violation->getMessage(), iterator_to_array($violations));
+
+        $this->assertSame(['validation_top_menu_parent_self'], $messages);
+    }
+
+    public function testCycleParentTriggersOnlyCycleValidationError(): void
+    {
+        $validator = Validation::createValidatorBuilder()
+            ->enableAttributeMapping()
+            ->getValidator();
+
+        $grandparent = (new TopMenuItem())
+            ->setLabels(['pl' => 'Blog', 'en' => 'Blog'])
+            ->setUniqueName('blog')
+            ->setTargetType(TopMenuItemTargetType::BLOG_HOME);
+        $parent = (new TopMenuItem())
+            ->setLabels(['pl' => 'PHP', 'en' => 'PHP'])
+            ->setUniqueName('php')
+            ->setTargetType(TopMenuItemTargetType::BLOG_HOME)
+            ->setParent($grandparent);
+        $menuItem = (new TopMenuItem())
+            ->setLabels(['pl' => 'Symfony', 'en' => 'Symfony'])
+            ->setUniqueName('symfony')
+            ->setTargetType(TopMenuItemTargetType::BLOG_HOME)
+            ->setParent($parent);
+
+        $grandparent->setParent($menuItem);
+
+        $violations = $validator->validate($menuItem);
+        $messages = array_map(static fn ($violation): string => $violation->getMessage(), iterator_to_array($violations));
+
+        $this->assertSame(['validation_top_menu_parent_cycle'], $messages);
+    }
+
+    public function testAssigningParentToItemWithChildrenTriggersValidationError(): void
+    {
+        $validator = Validation::createValidatorBuilder()
+            ->enableAttributeMapping()
+            ->getValidator();
+
+        $existingChild = (new TopMenuItem())
+            ->setLabels(['pl' => 'PHP', 'en' => 'PHP'])
+            ->setUniqueName('php')
+            ->setTargetType(TopMenuItemTargetType::BLOG_HOME);
+        $menuItem = (new TopMenuItem())
+            ->setLabels(['pl' => 'Blog', 'en' => 'Blog'])
+            ->setUniqueName('blog')
+            ->setTargetType(TopMenuItemTargetType::BLOG_HOME)
+            ->addChild($existingChild);
+        $newParent = (new TopMenuItem())
+            ->setLabels(['pl' => 'Archiwum', 'en' => 'Archive'])
+            ->setUniqueName('archive')
+            ->setTargetType(TopMenuItemTargetType::BLOG_HOME);
+
+        $menuItem->setParent($newParent);
+
+        $violations = $validator->validate($menuItem);
+        $messages = array_map(static fn ($violation): string => $violation->getMessage(), iterator_to_array($violations));
+
+        $this->assertSame(['validation_top_menu_parent_with_children'], $messages);
+    }
+
     public function testNormalizeTargetConfigurationClearsFieldsNotMatchingCurrentTargetType(): void
     {
         $category = (new ArticleCategory())->setName('PHP')->setSlug('php');

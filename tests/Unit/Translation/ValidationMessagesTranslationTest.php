@@ -34,4 +34,15 @@ final class ValidationMessagesTranslationTest extends TestCase
             $messages['The file is too large. Allowed maximum size is {{ limit }} {{ suffix }}.'] ?? null,
         );
     }
+
+    public function testEnglishValidatorsCatalogContainsTopMenuParentWithChildrenMessage(): void
+    {
+        /** @var array<string, string> $messages */
+        $messages = require __DIR__.'/../../../translations/validators.en.php';
+
+        $this->assertSame(
+            'A menu item that already has children cannot be moved into a submenu.',
+            $messages['validation_top_menu_parent_with_children'] ?? null,
+        );
+    }
 }

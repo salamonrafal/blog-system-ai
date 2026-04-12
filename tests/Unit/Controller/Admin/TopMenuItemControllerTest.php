@@ -40,7 +40,10 @@ final class TopMenuItemControllerTest extends TestCase
 
         /** @var TopMenuItemRepository&MockObject $repository */
         $repository = $this->createMock(TopMenuItemRepository::class);
-        $repository->expects($this->once())->method('findForAdminIndex')->willReturn([$item]);
+        $repository->expects($this->once())->method('findForAdminIndexView')->willReturn([[
+            'item' => $item,
+            'hasChildren' => false,
+        ]]);
         $repository->expects($this->once())->method('count')->with([])->willReturn(1);
         $repository->expects($this->once())->method('countActive')->willReturn(1);
         $repository->expects($this->once())->method('countInactive')->willReturn(0);
@@ -85,6 +88,11 @@ final class TopMenuItemControllerTest extends TestCase
             ->expects($this->once())
             ->method('findRecentForTopMenuSelection')
             ->willReturn([]);
+        $topMenuRepository = $this->createTopMenuRepositoryMock([]);
+        $topMenuRepository
+            ->expects($this->once())
+            ->method('applySiblingPositioning')
+            ->with($this->isInstanceOf(TopMenuItem::class));
         $topMenuCacheManager = $this->createMock(TopMenuCacheManager::class);
         $topMenuCacheManager
             ->expects($this->once())
@@ -104,7 +112,7 @@ final class TopMenuItemControllerTest extends TestCase
         $response = $controller->new(
             $request,
             $entityManager,
-            $this->createTopMenuRepositoryMock([]),
+            $topMenuRepository,
             $this->createMock(ArticleCategoryRepository::class),
             $articleRepository,
             $this->createUserLanguageResolverMock('en'),
@@ -115,6 +123,157 @@ final class TopMenuItemControllerTest extends TestCase
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertSame('/admin/top-menu', $response->getTargetUrl());
         $this->assertSame([['success', 'Menu item created.']], $controller->flashes);
+    }
+
+    public function testTreeRendersMenuHierarchyView(): void
+    {
+        $item = (new TopMenuItem())->setLabel('pl', 'Blog');
+
+        /** @var TopMenuItemRepository&MockObject $repository */
+        $repository = $this->createMock(TopMenuItemRepository::class);
+        $repository
+            ->expects($this->once())
+            ->method('findTreeForAdmin')
+            ->willReturn([
+                ['item' => $item, 'children' => []],
+            ]);
+
+        $controller = new TestTopMenuItemController();
+        $response = $controller->tree($repository);
+
+        $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
+        $this->assertSame('admin/top_menu/tree.html.twig', $controller->capturedView);
+        $this->assertCount(1, $controller->capturedParameters['menu_tree']);
+    }
+
+    public function testNewPrefillsParentWhenParentQueryParameterIsProvided(): void
+    {
+        $parent = (new TopMenuItem())->setLabel('pl', 'Blog');
+        $this->setEntityId($parent, 15);
+
+        /** @var TopMenuItemRepository&MockObject $repository */
+        $repository = $this->createMock(TopMenuItemRepository::class);
+        $repository->method('findForAdminIndex')->willReturn([$parent]);
+        $repository->expects($this->once())->method('find')->with(15)->willReturn($parent);
+
+        $articleRepository = $this->createMock(ArticleRepository::class);
+        $articleRepository
+            ->expects($this->once())
+            ->method('findRecentForTopMenuSelection')
+            ->willReturn([]);
+
+        $categoryRepository = $this->createMock(ArticleCategoryRepository::class);
+        $categoryRepository
+            ->expects($this->once())
+            ->method('findActiveOrderedByName')
+            ->willReturn([]);
+
+        $controller = new TestTopMenuItemController();
+        $response = $controller->new(
+            new Request(['parent' => '15']),
+            $this->createMock(EntityManagerInterface::class),
+            $repository,
+            $categoryRepository,
+            $articleRepository,
+            $this->createUserLanguageResolverMock('pl'),
+            $this->createMock(TopMenuItemUniqueNameGenerator::class),
+            $this->createMock(TopMenuCacheManager::class),
+        );
+
+        $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
+        $this->assertSame('admin/top_menu/new.html.twig', $controller->capturedView);
+        $this->assertSame($parent, $controller->capturedParameters['form']->getData()->getParent());
+    }
+
+    public function testNewIgnoresParentPrefillWhenRequestedParentIsAlreadyNested(): void
+    {
+        $topLevelParent = (new TopMenuItem())->setLabel('pl', 'Blog');
+        $this->setEntityId($topLevelParent, 15);
+
+        $nestedParent = (new TopMenuItem())
+            ->setLabel('pl', 'PHP')
+            ->setParent($topLevelParent);
+        $this->setEntityId($nestedParent, 19);
+
+        /** @var TopMenuItemRepository&MockObject $repository */
+        $repository = $this->createMock(TopMenuItemRepository::class);
+        $repository->method('findForAdminIndex')->willReturn([$topLevelParent, $nestedParent]);
+        $repository->expects($this->once())->method('find')->with(19)->willReturn($nestedParent);
+
+        $articleRepository = $this->createMock(ArticleRepository::class);
+        $articleRepository
+            ->expects($this->once())
+            ->method('findRecentForTopMenuSelection')
+            ->willReturn([]);
+
+        $categoryRepository = $this->createMock(ArticleCategoryRepository::class);
+        $categoryRepository
+            ->expects($this->once())
+            ->method('findActiveOrderedByName')
+            ->willReturn([]);
+
+        $controller = new TestTopMenuItemController();
+        $response = $controller->new(
+            new Request(['parent' => '19']),
+            $this->createMock(EntityManagerInterface::class),
+            $repository,
+            $categoryRepository,
+            $articleRepository,
+            $this->createUserLanguageResolverMock('pl'),
+            $this->createMock(TopMenuItemUniqueNameGenerator::class),
+            $this->createMock(TopMenuCacheManager::class),
+        );
+
+        $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
+        $this->assertSame('admin/top_menu/new.html.twig', $controller->capturedView);
+        $this->assertNull($controller->capturedParameters['form']->getData()->getParent());
+        $this->assertSame([$topLevelParent], $controller->capturedParameters['form']->get('parent')->getConfig()->getOption('choices'));
+    }
+
+    public function testNewPrefillsParentAndPositionWhenAfterQueryParameterIsProvided(): void
+    {
+        $parent = (new TopMenuItem())->setLabel('pl', 'Blog');
+        $this->setEntityId($parent, 15);
+
+        $afterItem = (new TopMenuItem())
+            ->setLabel('pl', 'Kontakt')
+            ->setParent($parent)
+            ->setPosition(4);
+        $this->setEntityId($afterItem, 27);
+
+        /** @var TopMenuItemRepository&MockObject $repository */
+        $repository = $this->createMock(TopMenuItemRepository::class);
+        $repository->method('findForAdminIndex')->willReturn([$parent, $afterItem]);
+        $repository->expects($this->once())->method('find')->with(27)->willReturn($afterItem);
+
+        $articleRepository = $this->createMock(ArticleRepository::class);
+        $articleRepository
+            ->expects($this->once())
+            ->method('findRecentForTopMenuSelection')
+            ->willReturn([]);
+
+        $categoryRepository = $this->createMock(ArticleCategoryRepository::class);
+        $categoryRepository
+            ->expects($this->once())
+            ->method('findActiveOrderedByName')
+            ->willReturn([]);
+
+        $controller = new TestTopMenuItemController();
+        $response = $controller->new(
+            new Request(['after' => '27']),
+            $this->createMock(EntityManagerInterface::class),
+            $repository,
+            $categoryRepository,
+            $articleRepository,
+            $this->createUserLanguageResolverMock('pl'),
+            $this->createMock(TopMenuItemUniqueNameGenerator::class),
+            $this->createMock(TopMenuCacheManager::class),
+        );
+
+        $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
+        $this->assertSame('admin/top_menu/new.html.twig', $controller->capturedView);
+        $this->assertSame($parent, $controller->capturedParameters['form']->getData()->getParent());
+        $this->assertSame(5, $controller->capturedParameters['form']->getData()->getPosition());
     }
 
     public function testDeleteThrowsAccessDeniedWhenCsrfTokenIsInvalid(): void
@@ -132,9 +291,114 @@ final class TopMenuItemControllerTest extends TestCase
             $item,
             new Request([], ['_token' => 'invalid']),
             $this->createMock(EntityManagerInterface::class),
+            $this->createMock(TopMenuItemRepository::class),
             $this->createUserLanguageResolverMock('pl'),
             $this->createMock(TopMenuCacheManager::class),
         );
+    }
+
+    public function testDeleteBlocksRemovingMenuItemThatStillHasChildren(): void
+    {
+        $parent = (new TopMenuItem())->setLabel('pl', 'Blog');
+        $this->setEntityId($parent, 12);
+
+        $child = (new TopMenuItem())->setLabel('pl', 'PHP');
+        $parent->addChild($child);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('remove');
+        $entityManager->expects($this->never())->method('flush');
+
+        $topMenuRepository = $this->createMock(TopMenuItemRepository::class);
+        $topMenuRepository->expects($this->never())->method('normalizeSiblingPositions');
+
+        $topMenuCacheManager = $this->createMock(TopMenuCacheManager::class);
+        $topMenuCacheManager->expects($this->never())->method('refresh');
+
+        $controller = new TestTopMenuItemController();
+        $controller->csrfTokenIsValid = true;
+
+        $response = $controller->delete(
+            $parent,
+            new Request([], ['_token' => 'valid']),
+            $entityManager,
+            $topMenuRepository,
+            $this->createUserLanguageResolverMock('en'),
+            $topMenuCacheManager,
+        );
+
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertSame('/admin/top-menu', $response->getTargetUrl());
+        $this->assertSame([['error', 'You cannot delete a menu item that still has children.']], $controller->flashes);
+    }
+
+    public function testDeleteRedirectsBackToTreeWhenRequestedFromTreeView(): void
+    {
+        $item = (new TopMenuItem())->setLabel('pl', 'Blog');
+        $this->setEntityId($item, 12);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->once())->method('remove')->with($item);
+        $entityManager->expects($this->once())->method('flush');
+
+        $topMenuRepository = $this->createMock(TopMenuItemRepository::class);
+        $topMenuRepository
+            ->expects($this->once())
+            ->method('normalizeSiblingPositions')
+            ->with(null, 12);
+
+        $topMenuCacheManager = $this->createMock(TopMenuCacheManager::class);
+        $topMenuCacheManager->expects($this->once())->method('refresh');
+
+        $controller = new TestTopMenuItemController();
+        $controller->csrfTokenIsValid = true;
+
+        $response = $controller->delete(
+            $item,
+            new Request([], ['_token' => 'valid', 'redirect_to' => 'tree']),
+            $entityManager,
+            $topMenuRepository,
+            $this->createUserLanguageResolverMock('pl'),
+            $topMenuCacheManager,
+        );
+
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertSame('/admin/top-menu/tree', $response->getTargetUrl());
+    }
+
+    public function testDeleteBlocksRemovingMenuItemThatStillHasChildrenFromTreeView(): void
+    {
+        $parent = (new TopMenuItem())->setLabel('pl', 'Blog');
+        $this->setEntityId($parent, 18);
+
+        $child = (new TopMenuItem())->setLabel('pl', 'PHP');
+        $parent->addChild($child);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('remove');
+        $entityManager->expects($this->never())->method('flush');
+
+        $topMenuRepository = $this->createMock(TopMenuItemRepository::class);
+        $topMenuRepository->expects($this->never())->method('normalizeSiblingPositions');
+
+        $topMenuCacheManager = $this->createMock(TopMenuCacheManager::class);
+        $topMenuCacheManager->expects($this->never())->method('refresh');
+
+        $controller = new TestTopMenuItemController();
+        $controller->csrfTokenIsValid = true;
+
+        $response = $controller->delete(
+            $parent,
+            new Request([], ['_token' => 'valid', 'redirect_to' => 'tree']),
+            $entityManager,
+            $topMenuRepository,
+            $this->createUserLanguageResolverMock('pl'),
+            $topMenuCacheManager,
+        );
+
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertSame('/admin/top-menu/tree', $response->getTargetUrl());
+        $this->assertSame([['error', 'Nie można usunąć elementu menu, który ma dzieci.']], $controller->flashes);
     }
 
     public function testEditClearsStaleTargetRelationsWhenTargetTypeChanges(): void
@@ -189,11 +453,16 @@ final class TopMenuItemControllerTest extends TestCase
         ], [], [], [], ['REQUEST_METHOD' => 'POST']);
 
         $controller = new TestTopMenuItemController();
+        $topMenuRepository = $this->createTopMenuRepositoryMock([]);
+        $topMenuRepository
+            ->expects($this->once())
+            ->method('applySiblingPositioning')
+            ->with($menuItem, null, false);
         $response = $controller->edit(
             $menuItem,
             $request,
             $entityManager,
-            $this->createTopMenuRepositoryMock([]),
+            $topMenuRepository,
             $categoryRepository,
             $articleRepository,
             $this->createUserLanguageResolverMock('pl'),
@@ -249,6 +518,120 @@ final class TopMenuItemControllerTest extends TestCase
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertSame('/admin/top-menu', $response->getTargetUrl());
         $this->assertSame([['success', 'Eksport top menu został dodany do kolejki.']], $controller->flashes);
+    }
+
+    public function testReorderPersistsNewSiblingOrder(): void
+    {
+        /** @var TopMenuItemRepository&MockObject $repository */
+        $repository = $this->createMock(TopMenuItemRepository::class);
+        $repository
+            ->expects($this->once())
+            ->method('reorderSiblings')
+            ->with(null, [3, 1, 2])
+            ->willReturn(true);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->once())->method('flush');
+
+        $topMenuCacheManager = $this->createMock(TopMenuCacheManager::class);
+        $topMenuCacheManager->expects($this->once())->method('refresh');
+
+        $request = new Request([], [], [], [], [], [], json_encode([
+            'parentId' => null,
+            'orderedIds' => [3, 1, 2],
+        ], \JSON_THROW_ON_ERROR));
+        $request->headers->set('X-CSRF-Token', 'valid');
+
+        $controller = new TestTopMenuItemController();
+        $controller->csrfTokenIsValid = true;
+
+        $response = $controller->reorder(
+            $request,
+            $repository,
+            $entityManager,
+            $this->createUserLanguageResolverMock('pl'),
+            $topMenuCacheManager,
+        );
+
+        $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
+        $payload = json_decode((string) $response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
+        $this->assertSame('Nowa kolejność elementów menu została zapisana.', $payload['message'] ?? null);
+    }
+
+    public function testReorderTreatsZeroParentIdAsTopLevel(): void
+    {
+        /** @var TopMenuItemRepository&MockObject $repository */
+        $repository = $this->createMock(TopMenuItemRepository::class);
+        $repository
+            ->expects($this->once())
+            ->method('reorderSiblings')
+            ->with(null, [3, 1, 2])
+            ->willReturn(true);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->once())->method('flush');
+
+        $topMenuCacheManager = $this->createMock(TopMenuCacheManager::class);
+        $topMenuCacheManager->expects($this->once())->method('refresh');
+
+        $request = new Request([], [], [], [], [], [], json_encode([
+            'parentId' => 0,
+            'orderedIds' => [3, 1, 2],
+        ], \JSON_THROW_ON_ERROR));
+        $request->headers->set('X-CSRF-Token', 'valid');
+
+        $controller = new TestTopMenuItemController();
+        $controller->csrfTokenIsValid = true;
+
+        $response = $controller->reorder(
+            $request,
+            $repository,
+            $entityManager,
+            $this->createUserLanguageResolverMock('en'),
+            $topMenuCacheManager,
+        );
+
+        $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
+        $payload = json_decode((string) $response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
+        $this->assertSame('The new menu item order has been saved.', $payload['message'] ?? null);
+    }
+
+    public function testReorderReturnsBadRequestWhenPayloadDoesNotMatchSiblingBranch(): void
+    {
+        /** @var TopMenuItemRepository&MockObject $repository */
+        $repository = $this->createMock(TopMenuItemRepository::class);
+        $repository
+            ->expects($this->once())
+            ->method('reorderSiblings')
+            ->with(7, [3, 1, 2])
+            ->willReturn(false);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('flush');
+
+        $topMenuCacheManager = $this->createMock(TopMenuCacheManager::class);
+        $topMenuCacheManager->expects($this->never())->method('refresh');
+
+        $request = new Request([], [], [], [], [], [], json_encode([
+            'parentId' => 7,
+            'orderedIds' => [3, 1, 2],
+        ], \JSON_THROW_ON_ERROR));
+        $request->headers->set('X-CSRF-Token', 'valid');
+
+        $controller = new TestTopMenuItemController();
+        $controller->csrfTokenIsValid = true;
+
+        $response = $controller->reorder(
+            $request,
+            $repository,
+            $entityManager,
+            $this->createUserLanguageResolverMock('en'),
+            $topMenuCacheManager,
+        );
+
+        $this->assertSame(Response::HTTP_BAD_REQUEST, $response->getStatusCode());
+        $payload = json_decode((string) $response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
+        $this->assertSame('The new menu item order could not be saved.', $payload['message'] ?? null);
     }
 
     /**
@@ -309,7 +692,10 @@ final class TestTopMenuItemController extends TopMenuItemController
 
     protected function redirectToRoute(string $route, array $parameters = [], int $status = 302): RedirectResponse
     {
-        return new RedirectResponse('/admin/top-menu', $status);
+        return new RedirectResponse(match ($route) {
+            'admin_top_menu_tree' => '/admin/top-menu/tree',
+            default => '/admin/top-menu',
+        }, $status);
     }
 
     protected function createForm(string $type, mixed $data = null, array $options = []): FormInterface

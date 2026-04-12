@@ -289,10 +289,23 @@ button.button {
   color:var(--danger);
 }
 
+.article-action-button.is-disabled,
+.article-action-button[aria-disabled="true"]{
+  opacity:.45;
+  cursor:not-allowed;
+}
+
 .article-action-button:hover,
 .article-action-button:focus-visible{
   background:transparent;
   transform:scale(1.04);
+}
+
+.article-action-button.is-disabled:hover,
+.article-action-button.is-disabled:focus-visible,
+.article-action-button[aria-disabled="true"]:hover,
+.article-action-button[aria-disabled="true"]:focus-visible{
+  transform:none;
 }
 
 .article-action-button.button-danger:hover,

@@ -19,10 +19,24 @@ export function setupTooltips(){
   tooltip.className = 'app-tooltip';
   tooltip.setAttribute('hidden', '');
   tooltip.setAttribute('aria-hidden', 'true');
+  tooltip.innerHTML = `
+    <span class="app-tooltip-content">
+      <span class="app-tooltip-icon" aria-hidden="true"></span>
+      <span class="app-tooltip-text"></span>
+    </span>
+  `;
   document.body.appendChild(tooltip);
+  const tooltipIcon = qs('.app-tooltip-icon', tooltip);
+  const tooltipText = qs('.app-tooltip-text', tooltip);
 
   let activeTrigger = null;
   let activeTriggerTooltipText = '';
+
+  const normalizeTooltipIconToken = (value)=>{
+    const normalizedValue = typeof value === 'string' ? value.trim().toLowerCase() : '';
+
+    return /^[a-z0-9_-]+$/.test(normalizedValue) ? normalizedValue : '';
+  };
 
   const positionTooltip = (trigger)=>{
     if(!trigger || tooltip.hasAttribute('hidden')) return;
@@ -48,14 +62,20 @@ export function setupTooltips(){
 
   const showTooltip = (trigger)=>{
     const text = trigger.getAttribute('data-tooltip');
-    if(!text) return;
+    if(!text || !(tooltipText instanceof HTMLElement) || !(tooltipIcon instanceof HTMLElement)) return;
 
     activeTrigger = trigger;
     activeTriggerTooltipText = text;
     tooltip.classList.toggle('is-wide', trigger.getAttribute('data-tooltip-wide') === 'true');
     tooltip.classList.toggle('is-wrap', trigger.getAttribute('data-tooltip-wrap') === 'true');
     tooltip.classList.toggle('is-multiline', trigger.getAttribute('data-tooltip-multiline') === 'true');
-    tooltip.textContent = text;
+    const icon = normalizeTooltipIconToken(trigger.getAttribute('data-tooltip-icon'));
+    tooltipIcon.className = 'app-tooltip-icon';
+    tooltipIcon.hidden = icon === '';
+    if(icon !== ''){
+      tooltipIcon.classList.add(`is-${icon}`);
+    }
+    tooltipText.textContent = text;
     tooltip.removeAttribute('hidden');
     tooltip.setAttribute('aria-hidden', 'false');
     positionTooltip(trigger);
@@ -67,6 +87,13 @@ export function setupTooltips(){
     tooltip.classList.remove('is-wide');
     tooltip.classList.remove('is-wrap');
     tooltip.classList.remove('is-multiline');
+    if(tooltipIcon instanceof HTMLElement){
+      tooltipIcon.className = 'app-tooltip-icon';
+      tooltipIcon.hidden = true;
+    }
+    if(tooltipText instanceof HTMLElement){
+      tooltipText.textContent = '';
+    }
     activeTrigger = null;
     activeTriggerTooltipText = '';
   };
@@ -114,6 +141,36 @@ export function setupTooltips(){
 
   window.addEventListener('resize', ()=>{
     if(activeTrigger) positionTooltip(activeTrigger);
+  });
+}
+
+export function setupAriaDisabledActions(){
+  const isBlockedAction = (element)=> element instanceof HTMLElement
+    && element.getAttribute('aria-disabled') === 'true'
+    && element.hasAttribute('data-disabled-action');
+
+  document.addEventListener('click', (event)=>{
+    const trigger = event.target instanceof Element ? event.target.closest('[data-disabled-action][aria-disabled="true"]') : null;
+    if(!isBlockedAction(trigger)){
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+  });
+
+  document.addEventListener('keydown', (event)=>{
+    if(event.key !== 'Enter' && event.key !== ' '){
+      return;
+    }
+
+    const trigger = event.target instanceof Element ? event.target.closest('[data-disabled-action][aria-disabled="true"]') : null;
+    if(!isBlockedAction(trigger)){
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
   });
 }
 

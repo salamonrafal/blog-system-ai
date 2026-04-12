@@ -1,6 +1,7 @@
 import { applyI18n, getTranslation, registerI18nListener } from './i18n.js';
 import { createAdminNotificationsController } from './admin-notifications.js';
 import { createMediaImagePicker } from './media-image-picker.js';
+import { createSortableTree } from './sortable-tree.js';
 import { getLang, isAdminDeviceRemembered, isAdminShortcutsCollapsed, isAdminShortcutsDocked, setAdminDeviceRemembered, setAdminShortcutsCollapsed, setAdminShortcutsDocked } from './preferences.js';
 import { assignFilesToInput, lockDocumentScroll, normalizeHexColor, qs, qsa, unlockDocumentScroll } from './shared.js';
 
@@ -966,6 +967,92 @@ export function setupTopMenuTargetTabs(){
 
     activateTab(root.getAttribute('data-menu-target-active') || input.value || tabs[0]?.getAttribute('data-menu-target-tab') || '');
   });
+}
+
+export function setupTopMenuTreeSorting(){
+  const root = qs('[data-top-menu-tree]');
+  if(!(root instanceof HTMLElement)){
+    return;
+  }
+
+  const endpoint = root.getAttribute('data-reorder-endpoint') || '';
+  const csrfToken = root.getAttribute('data-reorder-csrf') || '';
+  const status = qs('[data-top-menu-tree-status]', root);
+  const setStatus = ({ translationKey = '', type = 'info' } = {})=>{
+    if(!(status instanceof HTMLElement)){
+      return;
+    }
+
+    status.textContent = translationKey ? getTranslation(translationKey) : '';
+    status.classList.remove('is-info', 'is-success', 'is-error');
+
+    if(!translationKey){
+      status.removeAttribute('data-i18n');
+      return;
+    }
+
+    status.setAttribute('data-i18n', translationKey);
+    status.classList.add(`is-${type}`);
+  };
+
+  createSortableTree(root, {
+    levelSelector: '[data-top-menu-tree-level]',
+    nodeSelector: '[data-top-menu-tree-node]',
+    handleSelector: '[data-top-menu-tree-handle]',
+    nodeIdAttribute: 'data-item-id',
+    onSyncNode: ({ node, index })=>{
+      const value = qs('[data-top-menu-tree-position-value]', node);
+      if(value){
+        value.textContent = String(index);
+      }
+    },
+    onDragStateChange: ({ isActive })=>{
+      root.classList.toggle('is-drag-active', isActive);
+    },
+    onStatusChange: setStatus,
+    onPersistOrder: async ({ level, orderedIds, syncLevel })=>{
+      if(endpoint === '' || csrfToken === ''){
+        setStatus({ translationKey: 'admin_top_menu_tree_save_error', type: 'error' });
+        return false;
+      }
+
+      root.classList.add('is-saving');
+      setStatus({ translationKey: 'admin_top_menu_tree_save_pending' });
+
+      const firstNode = qsa('[data-top-menu-tree-node]', level)[0];
+      const parentIdValue = firstNode?.getAttribute('data-parent-id') || '';
+      const parentId = parentIdValue === '' ? null : Number(parentIdValue);
+
+      try{
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          body: JSON.stringify({
+            parentId,
+            orderedIds,
+          }),
+        });
+
+        if(!response.ok){
+          setStatus({ translationKey: 'admin_top_menu_tree_save_error', type: 'error' });
+          return false;
+        }
+
+        syncLevel(level);
+        setStatus({ translationKey: 'admin_top_menu_tree_save_success', type: 'success' });
+        return true;
+      }catch(error){
+        setStatus({ translationKey: 'admin_top_menu_tree_save_error', type: 'error' });
+        return false;
+      }finally{
+        root.classList.remove('is-saving');
+      }
+    },
+  }).setup();
 }
 
 export function setupCategoryTranslationCopy(){

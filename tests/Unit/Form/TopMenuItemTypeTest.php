@@ -82,6 +82,30 @@ final class TopMenuItemTypeTest extends TestCase
         $this->assertSame('Contact', $choiceLabel($parent));
     }
 
+    public function testParentChoicesMatchProvidedParentItemsOption(): void
+    {
+        $validator = Validation::createValidator();
+        $factory = Forms::createFormFactoryBuilder()
+            ->addExtension(new ValidatorExtension($validator))
+            ->getFormFactory();
+
+        $topLevelParent = (new TopMenuItem())
+            ->setLabel('pl', 'Blog')
+            ->setLabel('en', 'Blog');
+        $nestedParent = (new TopMenuItem())
+            ->setLabel('pl', 'PHP')
+            ->setLabel('en', 'PHP')
+            ->setParent($topLevelParent);
+
+        $form = $factory->create(TopMenuItemType::class, new TopMenuItem(), [
+            'parent_items' => [$topLevelParent, $nestedParent],
+        ]);
+
+        $choices = $form->get('parent')->getConfig()->getOption('choices');
+
+        $this->assertSame([$topLevelParent, $nestedParent], $choices);
+    }
+
     public function testChoicePlaceholdersUseConfiguredAdminLanguage(): void
     {
         $validator = Validation::createValidator();
