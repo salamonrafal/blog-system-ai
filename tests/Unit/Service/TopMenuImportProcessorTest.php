@@ -495,6 +495,88 @@ final class TopMenuImportProcessorTest extends TestCase
         }
     }
 
+    public function testProcessNormalizesParentWithChildrenValidationMessages(): void
+    {
+        $projectDir = sys_get_temp_dir().'/top-menu-import-processor-'.bin2hex(random_bytes(4));
+        mkdir($projectDir, 0775, true);
+        mkdir($projectDir.'/var/imports', 0775, true);
+
+        try {
+            $relativePath = 'var/imports/top-menu-import.json';
+            file_put_contents($projectDir.'/'.$relativePath, json_encode([
+                'format' => 'top-menu-export',
+                'version' => 1,
+                'menu_items' => [
+                    [
+                        'unique_name' => 'blog',
+                        'parent_unique_name' => 'archive',
+                        'labels' => ['pl' => 'Blog'],
+                        'target_type' => 'blog_home',
+                        'position' => 1,
+                        'status' => 'active',
+                    ],
+                ],
+            ], JSON_THROW_ON_ERROR));
+
+            $queueItem = (new TopMenuImportQueue())
+                ->setOriginalFilename('top-menu-import.json')
+                ->setFilePath($relativePath);
+
+            $existingBlog = (new TopMenuItem())
+                ->setUniqueName('blog')
+                ->setLabels(['pl' => 'Blog'])
+                ->addChild((new TopMenuItem())
+                    ->setUniqueName('php')
+                    ->setLabels(['pl' => 'PHP']));
+            $archiveParent = (new TopMenuItem())
+                ->setUniqueName('archive')
+                ->setLabels(['pl' => 'Archive']);
+
+            $repository = $this->createMock(TopMenuItemRepository::class);
+            $repository
+                ->expects($this->exactly(2))
+                ->method('findByUniqueNames')
+                ->willReturnCallback(static function (array $uniqueNames) use ($existingBlog, $archiveParent): array {
+                    sort($uniqueNames);
+
+                    return match ($uniqueNames) {
+                        ['archive'] => ['archive' => $archiveParent],
+                        ['blog'] => ['blog' => $existingBlog],
+                        default => throw new \RuntimeException('Unexpected unique names lookup.'),
+                    };
+                });
+
+            $violation = $this->createMock(ConstraintViolationInterface::class);
+            $violation
+                ->method('getPropertyPath')
+                ->willReturn('parent');
+            $violation
+                ->method('getMessage')
+                ->willReturn('validation_top_menu_parent_with_children');
+
+            $validator = $this->createMock(ValidatorInterface::class);
+            $validator
+                ->method('validate')
+                ->willReturn(new ConstraintViolationList([$violation]));
+
+            $processor = new TopMenuImportProcessor(
+                $repository,
+                $this->createMock(ArticleCategoryRepository::class),
+                $this->createMock(ArticleRepository::class),
+                $validator,
+                $this->createMock(EntityManagerInterface::class),
+                new ManagedFilePathResolver($projectDir, 'var/exports', 'var/imports'),
+            );
+
+            $this->expectException(TopMenuImportException::class);
+            $this->expectExceptionMessage('menu_items[0] (blog): parent: item with children cannot be moved into a submenu.');
+
+            $processor->process($queueItem);
+        } finally {
+            $this->removeDirectory($projectDir);
+        }
+    }
+
     private function removeDirectory(string $directory): void
     {
         if (!is_dir($directory)) {
