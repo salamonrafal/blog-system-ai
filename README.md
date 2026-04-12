@@ -565,6 +565,38 @@ For a local non-Docker setup you can use equivalent crontab entries, for example
 
 ## Docker Manual Command
 
+### Persistent data in Docker
+
+If you recreate the container and want to keep application data, mount the directories that store runtime files and uploads outside the container.
+
+Required mounts:
+
+- directory containing the SQLite `*.db` file - mount the folder where the database file configured in `DATABASE_URL` is stored
+- `public/uploads/media/` - keeps uploaded media library files
+- `public/uploads/avatars/` - keeps uploaded user avatars
+
+Optional mounts, if you also want to keep generated or uploaded helper files:
+
+- `var/imports/` - queued import files uploaded in the admin panel
+- `var/exports/` - generated export files
+- `var/media-orphans/` - ZIP archives created by `app:media:archive-orphans`
+
+Example with bind mounts:
+
+```bash
+docker container run -d -p 8888:8888 -p 8080:80 \
+   -e APP_ENV=dev \
+   -e APP_DEBUG=1 \
+   -e APP_SECRET="test12345_deko1" \
+   -e DATABASE_URL="sqlite:///%kernel.project_dir%/var/data.db" \
+   -v "$(pwd)/var:/var/www/app/var" \
+   -v "$(pwd)/public/uploads/media:/var/www/app/public/uploads/media" \
+   -v "$(pwd)/public/uploads/avatars:/var/www/app/public/uploads/avatars" \
+   --name blog-system-ai salamonrafal/blog-system-ai:dev
+```
+
+If you use SQLite, make sure the mounted directory matches the current `DATABASE_URL` setting and points to the folder that contains the `*.db` file. In the default configuration this is `var/`, because the database file is stored as `var/data.db`. The upload directories should still be mounted separately so media files and avatars are not lost.
+
 ### Build image
 ```bash
 docker image build -t salamonrafal/blog-system-ai:dev .

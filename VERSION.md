@@ -437,3 +437,10 @@
 - Wydzielono style drzewa top menu do osobnego komponentu `public/assets/css/components/top-menu-tree.css`, dzięki czemu `admin.css` nie rośnie wraz z rozbudową modułu hierarchii menu.
 - Dopracowano wizualnie widok drzewa top menu, upraszczając listę do lekkiej formy, kompaktując spacing i typografię, poprawiając uchwyt przeciągania, markery miejsca upuszczenia oraz zachowanie ikon `+` i akcji z tooltipami.
 - Rozszerzono testy jednostkowe `TopMenuItemController`, obejmując nowy widok drzewa, zapis kolejności, przekierowanie po usunięciu z widoku drzewa oraz prefill formularza dla scenariuszy `parent` i `after`.
+
+## 2026-04-12
+
+- Rozszerzono dokumentację Dockera w `README.md` o nową sekcję `Persistent data in Docker`, opisującą katalogi, które warto montować poza kontenerem, aby po jego odtworzeniu zachować bazę SQLite, bibliotekę mediów, avatary użytkowników oraz opcjonalne katalogi importów, eksportów i archiwów osieroconych plików.
+- Zaktualizowano workflow `deploy-container`, dodając osobne mounty dla `public/uploads/avatars`, `var/exports`, `var/imports` i `var/media-orphans`, dzięki czemu wdrożony kontener zachowuje nie tylko media, ale też avatary oraz pliki generowane i przesyłane przez moduły importu, eksportu i archiwizacji.
+- Poprawiono badge w `Centrum Powiadomień`, tak aby po wyzerowaniu licznika był faktycznie ukrywany zamiast pozostawiać pustą czerwoną kropkę w skrótach administracyjnych.
+- Rozszerzono akcje w `Centrum Powiadomień` o ikonę `Otwórz`, prowadzącą bezpośrednio do strony docelowej danego powiadomienia, oraz uzupełniono brakujące tłumaczenia `PL/EN` i styl linku akcji tak, by był spójny wizualnie z pozostałymi przyciskami.

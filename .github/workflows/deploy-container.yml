@@ -66,6 +66,10 @@ jobs:
             docker container run -d -p 8888:8888 -p 8080:80 \
                 -v /var/data/blog-system-ai/:/var/www/app/var/data/ \
                 -v /var/files/blog-system-ai/uploads/media/:/var/www/app/public/uploads/media/ \
+                -v /var/files/blog-system-ai/uploads/avatars/:/var/www/app/public/uploads/avatars/ \
+                -v /var/files/blog-system-ai/uploads/var/exports/:/var/www/app/var/exports/ \
+                -v /var/files/blog-system-ai/uploads/var/imports/:/var/www/app/var/imports/ \
+                -v /var/files/blog-system-ai/uploads/var/media-orphans/:/var/www/app/var/media-orphans/ \
                 -e APP_ENV=$ENV_NAME \
                 -e APP_DEBUG=$DEBUG_ENABLED \
                 -e APP_SECRET="${{ secrets.APPLICATION_SECRET_WORD }}" \

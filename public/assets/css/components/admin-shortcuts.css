@@ -284,6 +284,10 @@
   box-shadow:0 0 0 1px color-mix(in oklab, var(--accent) 28%, transparent);
 }
 
+.admin-shortcuts-badge[hidden]{
+  display:none;
+}
+
 .admin-shortcuts-link .admin-shortcuts-badge + .admin-shortcuts-submenu-caret{
   margin-left:10px;
 }
