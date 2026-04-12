@@ -293,7 +293,6 @@ button.button {
 .article-action-button[aria-disabled="true"]{
   opacity:.45;
   cursor:not-allowed;
-  pointer-events:none;
 }
 
 .article-action-button:hover,

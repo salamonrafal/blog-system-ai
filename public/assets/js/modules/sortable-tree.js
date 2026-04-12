@@ -162,7 +162,8 @@ export function createSortableTree(root, {
 
         const referenceNode = getDropReferenceNode(level, event.clientY);
         if(referenceNode === null){
-          const lastNode = collectLevelNodes(level).filter((node)=> node !== draggedNode).at(-1);
+          const siblingNodes = collectLevelNodes(level).filter((node)=> node !== draggedNode);
+          const lastNode = siblingNodes.length > 0 ? siblingNodes[siblingNodes.length - 1] : null;
           if(lastNode instanceof HTMLElement){
             lastNode.classList.add('is-drop-target-after');
           }
