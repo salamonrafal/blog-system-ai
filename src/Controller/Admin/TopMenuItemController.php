@@ -218,6 +218,10 @@ class TopMenuItemController extends AbstractController
         }
 
         $parentId = isset($payload['parentId']) && is_numeric($payload['parentId']) ? (int) $payload['parentId'] : null;
+        if (null !== $parentId && $parentId <= 0) {
+            $parentId = null;
+        }
+
         $orderedIds = $payload['orderedIds'] ?? null;
         if (!is_array($orderedIds) || !$topMenuItemRepository->reorderSiblings($parentId, $orderedIds)) {
             return new JsonResponse([

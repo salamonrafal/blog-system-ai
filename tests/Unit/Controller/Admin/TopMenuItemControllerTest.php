@@ -558,6 +558,44 @@ final class TopMenuItemControllerTest extends TestCase
         $this->assertSame('Nowa kolejność elementów menu została zapisana.', $payload['message'] ?? null);
     }
 
+    public function testReorderTreatsZeroParentIdAsTopLevel(): void
+    {
+        /** @var TopMenuItemRepository&MockObject $repository */
+        $repository = $this->createMock(TopMenuItemRepository::class);
+        $repository
+            ->expects($this->once())
+            ->method('reorderSiblings')
+            ->with(null, [3, 1, 2])
+            ->willReturn(true);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->once())->method('flush');
+
+        $topMenuCacheManager = $this->createMock(TopMenuCacheManager::class);
+        $topMenuCacheManager->expects($this->once())->method('refresh');
+
+        $request = new Request([], [], [], [], [], [], json_encode([
+            'parentId' => 0,
+            'orderedIds' => [3, 1, 2],
+        ], \JSON_THROW_ON_ERROR));
+        $request->headers->set('X-CSRF-Token', 'valid');
+
+        $controller = new TestTopMenuItemController();
+        $controller->csrfTokenIsValid = true;
+
+        $response = $controller->reorder(
+            $request,
+            $repository,
+            $entityManager,
+            $this->createUserLanguageResolverMock('en'),
+            $topMenuCacheManager,
+        );
+
+        $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
+        $payload = json_decode((string) $response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
+        $this->assertSame('The new menu item order has been saved.', $payload['message'] ?? null);
+    }
+
     public function testReorderReturnsBadRequestWhenPayloadDoesNotMatchSiblingBranch(): void
     {
         /** @var TopMenuItemRepository&MockObject $repository */
