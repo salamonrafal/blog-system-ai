@@ -255,6 +255,7 @@
   background:color-mix(in oklab, var(--panel) 88%, transparent);
   color:var(--text);
   cursor:pointer;
+  text-decoration:none;
   transition:background-color .18s ease, border-color .18s ease, color .18s ease, transform .18s ease;
 }
 

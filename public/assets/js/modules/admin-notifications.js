@@ -143,6 +143,18 @@ export function createAdminNotificationsController({
       const actions = document.createElement('div');
       actions.className = 'admin-shortcuts-notification-actions';
 
+      if(notification.action_url){
+        const openLink = document.createElement('a');
+        openLink.className = 'admin-shortcuts-notification-action';
+        openLink.href = notification.action_url;
+        openLink.setAttribute('data-i18n-aria', 'admin_shortcut_notifications_open');
+        openLink.setAttribute('data-i18n-tooltip', 'admin_shortcut_notifications_open');
+        openLink.setAttribute('data-tooltip', getTranslation('admin_shortcut_notifications_open'));
+        openLink.setAttribute('aria-label', getTranslation('admin_shortcut_notifications_open'));
+        openLink.innerHTML = '<span class="admin-shortcuts-link-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M13 9h10v10"></path><path d="M11 21 23 9"></path><path d="M9 13v10h10"></path></svg></span>';
+        actions.appendChild(openLink);
+      }
+
       const toggleReadButton = document.createElement('button');
       toggleReadButton.type = 'button';
       toggleReadButton.className = 'admin-shortcuts-notification-action';
