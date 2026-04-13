@@ -457,3 +457,4 @@
 - Dodano offset przewijania dla nagłówków z kotwicami, tak aby wejście na adres z `#fragment` nie chowało nagłówka pod górnym menu.
 - Zmniejszono odstęp między panelem `Spisu treści` a pierwszym nagłówkiem treści artykułu, redukując dolny margines TOC i zerując górny margines pierwszego bloku nagłówkowego.
 - Rozbudowano bloki kodu na `blog_show` o numerację linii generowaną przez `ArticleMarkupRenderer`, własny wewnętrzny kontener przewijania poziomego z dopracowanym scrollbarem oraz mocniejszy efekt hover, który podświetla numer linii po najechaniu na treść danego wiersza.
+- Dodano na publicznym widoku artykułu przycisk kopiowania całej zawartości bloku kodu, wyświetlany po najechaniu w prawym górnym rogu z tooltipami `PL/EN` i animacją potwierdzenia po skopiowaniu.

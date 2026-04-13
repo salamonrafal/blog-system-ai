@@ -2,6 +2,13 @@ import { getTranslation } from './i18n.js';
 import { getLang, getTheme, setAccent, setLangPreference, setTheme } from './preferences.js';
 import { copyTextToClipboard, qs, qsa } from './shared.js';
 
+function refreshTooltip(button){
+  if(!(button instanceof HTMLElement)) return;
+  document.dispatchEvent(new CustomEvent('app:refresh-tooltip', {
+    detail: { trigger: button },
+  }));
+}
+
 function decorateArticleHeadingAnchors(){
   const articleBody = qs('.article-body');
   if(!articleBody) return;
@@ -30,23 +37,49 @@ function decorateArticleHeadingAnchors(){
   });
 }
 
-function bindCopyAction(selector, defaultTooltipKey, copiedTooltipKey){
+function decorateArticleCodeBlocks(){
+  const articleBody = qs('.article-body');
+  if(!articleBody) return;
+
+  qsa('.article-code-block', articleBody).forEach((block)=>{
+    if(block.querySelector('[data-action="copy-code-block"]')) return;
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'article-code-copy';
+    button.setAttribute('data-action', 'copy-code-block');
+    button.setAttribute('data-i18n-tooltip', 'blog_copy_code');
+    button.setAttribute('data-i18n-aria', 'blog_copy_code');
+    button.setAttribute('data-tooltip', getTranslation('blog_copy_code'));
+    button.setAttribute('aria-label', getTranslation('blog_copy_code'));
+
+    const icon = document.createElement('span');
+    icon.className = 'article-action-icon is-copy';
+    icon.setAttribute('aria-hidden', 'true');
+    button.appendChild(icon);
+
+    block.appendChild(button);
+  });
+}
+
+function bindCopyAction(selector, defaultTooltipKey, copiedTooltipKey, resolveText = (button)=> button.getAttribute('data-link')){
   qsa(selector).forEach((button)=>{
     button.addEventListener('click', async ()=>{
-      const link = button.getAttribute('data-link');
+      const text = resolveText(button);
       const defaultHint = getTranslation(defaultTooltipKey);
       const icon = button.querySelector('.article-action-icon');
       const defaultIconClass = icon
         ? Array.from(icon.classList).find((className)=> className.startsWith('is-') && className !== 'is-check')
         : null;
 
-      if(!link){
+      if(!text){
         button.setAttribute('data-tooltip', defaultHint);
         return;
       }
 
-      const copied = await copyTextToClipboard(link);
+      const copied = await copyTextToClipboard(text);
       button.setAttribute('data-tooltip', copied ? getTranslation(copiedTooltipKey) : defaultHint);
+      refreshTooltip(button);
 
       if(!copied || !icon) return;
 
@@ -62,6 +95,7 @@ function bindCopyAction(selector, defaultTooltipKey, copiedTooltipKey){
       button.classList.add('is-confirmed');
       setTimeout(()=>{
         button.setAttribute('data-tooltip', getTranslation(defaultTooltipKey));
+        refreshTooltip(button);
         button.classList.add('is-icon-transitioning');
         setTimeout(()=>{
           icon.classList.remove('is-check');
@@ -114,19 +148,31 @@ export function setupActions({ applyI18n }){
 
       if(copied){
         copyEmailButton.setAttribute('data-tooltip', getTranslation('contact_copied'));
+        refreshTooltip(copyEmailButton);
         setTimeout(()=>{
           copyEmailButton.setAttribute('data-tooltip', getTranslation('contact_copy_hint'));
+          refreshTooltip(copyEmailButton);
         }, 1200);
         return;
       }
 
       copyEmailButton.setAttribute('data-tooltip', getTranslation('contact_copy_hint'));
+      refreshTooltip(copyEmailButton);
     });
   }
 
   decorateArticleHeadingAnchors();
+  decorateArticleCodeBlocks();
   bindCopyAction('[data-action="copy-article-link"]', 'blog_copy_link', 'blog_link_copied');
   bindCopyAction('[data-action="copy-heading-link"]', 'blog_copy_heading_link', 'blog_heading_link_copied');
+  bindCopyAction(
+    '[data-action="copy-code-block"]',
+    'blog_copy_code',
+    'blog_code_copied',
+    (button)=> qsa('.article-code-line-content', button.closest('.article-code-block'))
+      .map((line)=> line.textContent ?? '')
+      .join('\n'),
+  );
   bindCopyAction('[data-action="copy-media-public-url"]', 'admin_media_copy_public_url', 'admin_media_public_url_copied');
 
   qsa('[data-action="accent-color"]').forEach((input)=>{

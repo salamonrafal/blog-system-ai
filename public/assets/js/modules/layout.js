@@ -135,6 +135,13 @@ export function setupTooltips(){
     hideTooltip();
   });
 
+  document.addEventListener('app:refresh-tooltip', (event)=>{
+    const trigger = event instanceof CustomEvent ? event.detail?.trigger : null;
+    if(!(trigger instanceof HTMLElement)) return;
+    if(trigger !== activeTrigger) return;
+    showTooltip(trigger);
+  });
+
   window.addEventListener('scroll', ()=>{
     if(activeTrigger) positionTooltip(activeTrigger);
   }, { passive: true });
