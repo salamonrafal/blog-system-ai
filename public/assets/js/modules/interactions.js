@@ -30,22 +30,47 @@ function decorateArticleHeadingAnchors(){
   });
 }
 
-function bindCopyAction(selector, defaultTooltipKey, copiedTooltipKey){
+function decorateArticleCodeBlocks(){
+  const articleBody = qs('.article-body');
+  if(!articleBody) return;
+
+  qsa('.article-code-block', articleBody).forEach((block)=>{
+    if(block.querySelector('[data-action="copy-code-block"]')) return;
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'article-code-copy';
+    button.setAttribute('data-action', 'copy-code-block');
+    button.setAttribute('data-i18n-tooltip', 'blog_copy_code');
+    button.setAttribute('data-i18n-aria', 'blog_copy_code');
+    button.setAttribute('data-tooltip', getTranslation('blog_copy_code'));
+    button.setAttribute('aria-label', getTranslation('blog_copy_code'));
+
+    const icon = document.createElement('span');
+    icon.className = 'article-action-icon is-copy';
+    icon.setAttribute('aria-hidden', 'true');
+    button.appendChild(icon);
+
+    block.appendChild(button);
+  });
+}
+
+function bindCopyAction(selector, defaultTooltipKey, copiedTooltipKey, resolveText = (button)=> button.getAttribute('data-link')){
   qsa(selector).forEach((button)=>{
     button.addEventListener('click', async ()=>{
-      const link = button.getAttribute('data-link');
+      const text = resolveText(button);
       const defaultHint = getTranslation(defaultTooltipKey);
       const icon = button.querySelector('.article-action-icon');
       const defaultIconClass = icon
         ? Array.from(icon.classList).find((className)=> className.startsWith('is-') && className !== 'is-check')
         : null;
 
-      if(!link){
+      if(!text){
         button.setAttribute('data-tooltip', defaultHint);
         return;
       }
 
-      const copied = await copyTextToClipboard(link);
+      const copied = await copyTextToClipboard(text);
       button.setAttribute('data-tooltip', copied ? getTranslation(copiedTooltipKey) : defaultHint);
 
       if(!copied || !icon) return;
@@ -125,8 +150,17 @@ export function setupActions({ applyI18n }){
   }
 
   decorateArticleHeadingAnchors();
+  decorateArticleCodeBlocks();
   bindCopyAction('[data-action="copy-article-link"]', 'blog_copy_link', 'blog_link_copied');
   bindCopyAction('[data-action="copy-heading-link"]', 'blog_copy_heading_link', 'blog_heading_link_copied');
+  bindCopyAction(
+    '[data-action="copy-code-block"]',
+    'blog_copy_code',
+    'blog_code_copied',
+    (button)=> qsa('.article-code-line-content', button.closest('.article-code-block'))
+      .map((line)=> line.textContent ?? '')
+      .join('\n'),
+  );
   bindCopyAction('[data-action="copy-media-public-url"]', 'admin_media_copy_public_url', 'admin_media_public_url_copied');
 
   qsa('[data-action="accent-color"]').forEach((input)=>{
