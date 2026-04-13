@@ -924,6 +924,7 @@
 .article-body .article-code-block{
   position:relative;
   padding:.9rem 0 .2rem;
+  overflow:visible;
 }
 
 .article-code-copy{
@@ -939,7 +940,7 @@
   padding:0;
   border:1px solid color-mix(in oklab, var(--accent-2) 22%, var(--border));
   border-radius:10px;
-  background:color-mix(in oklab, var(--panel) 92%, transparent);
+  background-color:color-mix(in oklab, var(--panel) 92%, transparent);
   color:color-mix(in oklab, var(--text) 58%, var(--accent) 42%);
   box-shadow:0 10px 22px color-mix(in oklab, var(--shadow) 18%, transparent);
   opacity:0;
@@ -964,7 +965,7 @@
 .article-code-copy:focus-visible{
   color:var(--accent);
   border-color:color-mix(in oklab, var(--accent) 44%, var(--border));
-  background:color-mix(in oklab, var(--panel) 80%, var(--accent) 20%);
+  background-color:color-mix(in oklab, var(--panel) 80%, var(--accent) 20%);
 }
 
 .article-code-copy .article-action-icon{
@@ -996,7 +997,8 @@
 .article-body .article-code-scroll{
   width:calc(100% - .6rem);
   margin:0 auto;
-  padding-bottom:.1rem;
+  padding:.15rem 3.35rem .1rem 0;
+  box-sizing:border-box;
   overflow-x:auto;
   scrollbar-gutter:stable;
   scrollbar-width:thin;
