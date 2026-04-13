@@ -2,6 +2,13 @@ import { getTranslation } from './i18n.js';
 import { getLang, getTheme, setAccent, setLangPreference, setTheme } from './preferences.js';
 import { copyTextToClipboard, qs, qsa } from './shared.js';
 
+function refreshTooltip(button){
+  if(!(button instanceof HTMLElement)) return;
+  document.dispatchEvent(new CustomEvent('app:refresh-tooltip', {
+    detail: { trigger: button },
+  }));
+}
+
 function decorateArticleHeadingAnchors(){
   const articleBody = qs('.article-body');
   if(!articleBody) return;
@@ -72,6 +79,7 @@ function bindCopyAction(selector, defaultTooltipKey, copiedTooltipKey, resolveTe
 
       const copied = await copyTextToClipboard(text);
       button.setAttribute('data-tooltip', copied ? getTranslation(copiedTooltipKey) : defaultHint);
+      refreshTooltip(button);
 
       if(!copied || !icon) return;
 
@@ -87,6 +95,7 @@ function bindCopyAction(selector, defaultTooltipKey, copiedTooltipKey, resolveTe
       button.classList.add('is-confirmed');
       setTimeout(()=>{
         button.setAttribute('data-tooltip', getTranslation(defaultTooltipKey));
+        refreshTooltip(button);
         button.classList.add('is-icon-transitioning');
         setTimeout(()=>{
           icon.classList.remove('is-check');
@@ -139,13 +148,16 @@ export function setupActions({ applyI18n }){
 
       if(copied){
         copyEmailButton.setAttribute('data-tooltip', getTranslation('contact_copied'));
+        refreshTooltip(copyEmailButton);
         setTimeout(()=>{
           copyEmailButton.setAttribute('data-tooltip', getTranslation('contact_copy_hint'));
+          refreshTooltip(copyEmailButton);
         }, 1200);
         return;
       }
 
       copyEmailButton.setAttribute('data-tooltip', getTranslation('contact_copy_hint'));
+      refreshTooltip(copyEmailButton);
     });
   }
 
