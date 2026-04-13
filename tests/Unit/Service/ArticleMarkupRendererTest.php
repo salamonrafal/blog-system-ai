@@ -195,6 +195,25 @@ TEXT);
         $this->assertStringContainsString('<p>Po tabeli<br>Druga linia</p>', $html);
     }
 
+    public function testKeepsTableBeforeParagraphWithoutBlankLineAfterTable(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+
+        $html = $renderer->render(<<<'TEXT'
+| Kolumna A | Kolumna B |
+| --- | --- |
+| Wartosc 1 | Wartosc 2 |
+Po tabeli bez pustej linii
+TEXT);
+
+        $table = '<div class="article-table-wrap"><table><thead><tr><th>Kolumna A</th><th>Kolumna B</th></tr></thead><tbody><tr><td>Wartosc 1</td><td>Wartosc 2</td></tr></tbody></table></div>';
+        $paragraph = '<p>Po tabeli bez pustej linii</p>';
+
+        $this->assertStringContainsString($table, $html);
+        $this->assertStringContainsString($paragraph, $html);
+        $this->assertLessThan(strpos($html, $paragraph), strpos($html, $table));
+    }
+
     public function testPreservesLeadingForcedLineBreaksAfterTable(): void
     {
         $renderer = new ArticleMarkupRenderer();

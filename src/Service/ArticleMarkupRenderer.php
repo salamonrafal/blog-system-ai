@@ -330,6 +330,7 @@ final class ArticleMarkupRenderer
             if (preg_match('/^\s*>\s?(.*)$/', $line, $matches)) {
                 $flushParagraph();
                 $flushList();
+                $flushTable();
                 $quote[] = trim($matches[1]);
 
                 continue;
@@ -345,17 +346,18 @@ final class ArticleMarkupRenderer
             }
 
             $flushList();
+            $flushTable();
             $flushQuote();
             $paragraph[] = trim($line);
         }
 
-        $flushParagraph();
+        $flushTable();
         $flushList();
+        $flushParagraph();
         $flushQuote();
         $flushAlign();
         $flushCode();
         $flushPreformatted();
-        $flushTable();
 
         return $this->documentCache[$normalized] = [
             'html' => implode("\n", $blocks),

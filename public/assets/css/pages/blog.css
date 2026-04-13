@@ -238,8 +238,9 @@
 }
 
 .article-body .article-heading-anchor {
-  display: inline-flex;
-  align-items: center;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
   gap: .5rem;
   padding-right: 0;
 }
