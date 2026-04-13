@@ -10,6 +10,15 @@
   flex:0 0 auto;
   width:var(--app-switch-width);
   height:var(--app-switch-height);
+  padding:0;
+  border:0;
+  background:transparent;
+  color:inherit;
+  font:inherit;
+  line-height:inherit;
+  text-align:inherit;
+  appearance:none;
+  -webkit-appearance:none;
   cursor:pointer;
 }
 
@@ -58,14 +67,14 @@
 
 .app-switch-input:checked + .app-switch-slider,
 .article-editor-switch-input:checked + .article-editor-switch-slider,
-.app-switch[aria-pressed="true"] .app-switch-slider{
+.app-switch[aria-checked="true"] .app-switch-slider{
   border-color:color-mix(in oklab, var(--accent) 48%, var(--border));
   background:color-mix(in oklab, var(--accent) 52%, var(--panel) 48%);
 }
 
 .app-switch-input:checked + .app-switch-slider::after,
 .article-editor-switch-input:checked + .article-editor-switch-slider::after,
-.app-switch[aria-pressed="true"] .app-switch-slider::after{
+.app-switch[aria-checked="true"] .app-switch-slider::after{
   transform:translate(var(--app-switch-translate), -50%);
   background:color-mix(in oklab, white 94%, var(--accent) 6%);
 }

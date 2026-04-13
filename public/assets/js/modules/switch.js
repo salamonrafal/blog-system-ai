@@ -4,7 +4,7 @@ export function createSwitchButton({
   action,
   className,
   tooltipKey,
-  pressed = false,
+  checked = false,
   compact = false,
 }){
   const button = document.createElement('button');
@@ -16,7 +16,7 @@ export function createSwitchButton({
   button.setAttribute('data-i18n-aria', tooltipKey);
   button.setAttribute('data-tooltip', getTranslation(tooltipKey));
   button.setAttribute('aria-label', getTranslation(tooltipKey));
-  button.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+  button.setAttribute('aria-checked', checked ? 'true' : 'false');
 
   const slider = document.createElement('span');
   slider.className = 'app-switch-slider';
@@ -41,6 +41,6 @@ export function syncSwitchButtonState(button, enabled, {
     button.setAttribute('aria-label', label);
   }
 
-  button.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+  button.setAttribute('aria-checked', enabled ? 'true' : 'false');
   button.classList.toggle('is-active', enabled);
 }

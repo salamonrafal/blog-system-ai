@@ -43,26 +43,28 @@ function decorateArticleCodeBlocks(){
   if(!articleBody) return;
 
   qsa('.article-code-block', articleBody).forEach((block)=>{
-    if(block.querySelector('[data-action="copy-code-block"]')) return;
+    if(!block.querySelector('[data-action="toggle-code-wrap"]')){
+      const wrapButton = createCodeActionButton({
+        action: 'toggle-code-wrap',
+        className: 'article-code-wrap-toggle',
+        tooltipKey: 'blog_code_wrap_on',
+        ariaPressed: false,
+      });
+      wrapButton.setAttribute('data-tooltip-enabled', 'blog_code_wrap_off');
+      wrapButton.setAttribute('data-tooltip-disabled', 'blog_code_wrap_on');
+      wrapButton.setAttribute('role', 'switch');
+      block.appendChild(wrapButton);
+    }
 
-    const wrapButton = createCodeActionButton({
-      action: 'toggle-code-wrap',
-      className: 'article-code-wrap-toggle',
-      tooltipKey: 'blog_code_wrap_on',
-      ariaPressed: false,
-    });
-    wrapButton.setAttribute('data-tooltip-enabled', 'blog_code_wrap_off');
-    wrapButton.setAttribute('data-tooltip-disabled', 'blog_code_wrap_on');
-    wrapButton.setAttribute('role', 'switch');
-
-    const copyButton = createCodeActionButton({
-      action: 'copy-code-block',
-      className: 'article-code-copy',
-      iconClassName: 'is-copy',
-      tooltipKey: 'blog_copy_code',
-    });
-
-    block.append(wrapButton, copyButton);
+    if(!block.querySelector('[data-action="copy-code-block"]')){
+      const copyButton = createCodeActionButton({
+        action: 'copy-code-block',
+        className: 'article-code-copy',
+        iconClassName: 'is-copy',
+        tooltipKey: 'blog_copy_code',
+      });
+      block.appendChild(copyButton);
+    }
   });
 }
 
@@ -78,7 +80,7 @@ function createCodeActionButton({
       action,
       className: `article-code-action ${className}`,
       tooltipKey,
-      pressed: ariaPressed ?? false,
+      checked: ariaPressed ?? false,
       compact: true,
     });
   }
