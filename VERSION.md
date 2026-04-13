@@ -456,3 +456,4 @@
 - Rozszerzono renderer artykułów o prawdziwie zagnieżdżone listy oparte na wcięciach oraz dopasowano style `ul/ol` na `blog_show`, aby dzieci list miały poprawne wcięcia i zróżnicowane markery.
 - Dodano offset przewijania dla nagłówków z kotwicami, tak aby wejście na adres z `#fragment` nie chowało nagłówka pod górnym menu.
 - Zmniejszono odstęp między panelem `Spisu treści` a pierwszym nagłówkiem treści artykułu, redukując dolny margines TOC i zerując górny margines pierwszego bloku nagłówkowego.
+- Rozbudowano bloki kodu na `blog_show` o numerację linii generowaną przez `ArticleMarkupRenderer`, własny wewnętrzny kontener przewijania poziomego z dopracowanym scrollbarem oraz mocniejszy efekt hover, który podświetla numer linii po najechaniu na treść danego wiersza.
