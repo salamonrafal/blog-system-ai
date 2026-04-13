@@ -318,6 +318,27 @@
             </div>
         </div>
 
+        {% set table_of_contents_has_errors = form.tableOfContentsEnabled.vars.errors|length > 0 %}
+        <div class="field article-editor-field{{ table_of_contents_has_errors ? ' has-error' : '' }}">
+            <div class="article-editor-switch-row">
+                <div class="article-editor-switch-copy">
+                    {{ form_label(form.tableOfContentsEnabled, null, { label_attr: { class: 'article-editor-switch-label', 'data-i18n': 'form_table_of_contents_enabled' } }) }}
+                    <span class="article-editor-switch-hint" data-i18n="form_hint_table_of_contents_enabled">Na początku widoku artykułu pojawi się spis treści z nagłówków H1-H4.</span>
+                </div>
+                <label class="article-editor-switch" for="{{ form.tableOfContentsEnabled.vars.id }}">
+                    {{ form_widget(form.tableOfContentsEnabled, { attr: { class: 'article-editor-switch-input' } }) }}
+                    <span class="article-editor-switch-slider" aria-hidden="true"></span>
+                </label>
+            </div>
+            {% if table_of_contents_has_errors %}
+                <div id="{{ form.tableOfContentsEnabled.vars.id }}-error" class="article-editor-error-message" role="alert">
+                    {% for error in form.tableOfContentsEnabled.vars.errors %}
+                        {% include 'admin/_validation_error.html.twig' with { error: error } %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
         {% set content_has_errors = form.content.vars.errors|length > 0 %}
         {% set content_image_picker_modal_id = form.content.vars.id ~ '-image-picker-modal' %}
         {% set content_image_picker_title_id = form.content.vars.id ~ '-image-picker-title' %}

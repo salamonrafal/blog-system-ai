@@ -444,3 +444,15 @@
 - Zaktualizowano workflow `deploy-container`, dodając osobne mounty dla `public/uploads/avatars`, `var/exports`, `var/imports` i `var/media-orphans`, dzięki czemu wdrożony kontener zachowuje nie tylko media, ale też avatary oraz pliki generowane i przesyłane przez moduły importu, eksportu i archiwizacji.
 - Poprawiono badge w `Centrum Powiadomień`, tak aby po wyzerowaniu licznika był faktycznie ukrywany zamiast pozostawiać pustą czerwoną kropkę w skrótach administracyjnych.
 - Rozszerzono akcje w `Centrum Powiadomień` o ikonę `Otwórz`, prowadzącą bezpośrednio do strony docelowej danego powiadomienia, oraz uzupełniono brakujące tłumaczenia `PL/EN` i styl linku akcji tak, by był spójny wizualnie z pozostałymi przyciskami.
+
+## 2026-04-13
+
+- Dodano do artykułów opcję generowania `Spisu treści`, zapisując nowe ustawienie w encji `Article`, formularzu administracyjnym, migracji bazy danych oraz testach jednostkowych.
+- Rozszerzono `ArticleMarkupRenderer` o generowanie stabilnych kotwic `id` dla nagłówków oraz ekstrakcję danych `H1-H4` do publicznego `Spisu treści`, a `blog_show` uzupełniono o renderowanie tego bloku nad treścią artykułu.
+- Zmieniono `Spis treści` na `blog_show` na listę punktowaną i dopracowano jego panel wizualny w stylach strony artykułu.
+- Dodano przy nagłówkach treści artykułu ikonkę łącza pozwalającą kopiować pełny adres URL z kotwicą do konkretnej sekcji wraz z tłumaczeniami, animacją potwierdzenia i obsługą po stronie JavaScript.
+- Dopracowano pozycję i czytelność ikonki łącza przy nagłówkach, usuwając obramowanie, zwiększając jej rozmiar oraz ustawiając ją bezpośrednio za tekstem nagłówka.
+- Poprawiono `Spis treści`, nadając poziomom `H1-H4` rzeczywiste wcięcia markerów, różne typy bulletów i zróżnicowane kolory znaczników zależnie od poziomu zagłębienia.
+- Rozszerzono renderer artykułów o prawdziwie zagnieżdżone listy oparte na wcięciach oraz dopasowano style `ul/ol` na `blog_show`, aby dzieci list miały poprawne wcięcia i zróżnicowane markery.
+- Dodano offset przewijania dla nagłówków z kotwicami, tak aby wejście na adres z `#fragment` nie chowało nagłówka pod górnym menu.
+- Zmniejszono odstęp między panelem `Spisu treści` a pierwszym nagłówkiem treści artykułu, redukując dolny margines TOC i zerując górny margines pierwszego bloku nagłówkowego.

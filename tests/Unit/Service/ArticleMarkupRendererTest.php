@@ -15,7 +15,7 @@ final class ArticleMarkupRendererTest extends TestCase
 
         $html = $renderer->render("# Tytul\n\nTo jest **pogrubienie**, *kursywa*, ++podkreslenie++ i `kod`.");
 
-        $this->assertStringContainsString('<h1>Tytul</h1>', $html);
+        $this->assertStringContainsString('<h1 id="tytul">Tytul</h1>', $html);
         $this->assertStringContainsString('<strong>pogrubienie</strong>', $html);
         $this->assertStringContainsString('<em>kursywa</em>', $html);
         $this->assertStringContainsString('<u>podkreslenie</u>', $html);
@@ -51,6 +51,22 @@ TEXT);
         $this->assertStringContainsString('<a href="https://openai.com" target="_blank" rel="noopener noreferrer">OpenAI</a>', $html);
         $this->assertStringContainsString('<img src="https://example.com/test.png" alt="Alt" loading="lazy">', $html);
         $this->assertStringContainsString('<pre><code class="language-php">echo &#039;hi&#039;;</code></pre>', $html);
+    }
+
+    public function testRendersNestedListsWithChildren(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+
+        $html = $renderer->render(<<<'TEXT'
+- Backend
+  - PHP
+  - Symfony
+- Frontend
+  1. HTML
+  2. CSS
+TEXT);
+
+        $this->assertStringContainsString('<ul><li>Backend<ul><li>PHP</li><li>Symfony</li></ul></li><li>Frontend<ol><li>HTML</li><li>CSS</li></ol></li></ul>', $html);
     }
 
     public function testRendersImageWithRootRelativePath(): void
@@ -210,5 +226,29 @@ TEXT);
         $this->assertStringContainsString('&lt;script&gt;alert(&#039;x&#039;)&lt;/script&gt;', $html);
         $this->assertStringNotContainsString('<script>', $html);
         $this->assertStringContainsString('<strong>bezpieczne</strong>', $html);
+    }
+
+    public function testExtractsTableOfContentsUpToHeadingLevelFourWithUniqueAnchors(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+
+        $toc = $renderer->extractTableOfContents(<<<'TEXT'
+# Start
+## Rozdzial
+#### Detal
+##### Pomijany
+## Rozdzial
+
+```md
+## Ignorowany
+```
+TEXT);
+
+        $this->assertSame([
+            ['id' => 'start', 'level' => 1, 'title' => 'Start'],
+            ['id' => 'rozdzial', 'level' => 2, 'title' => 'Rozdzial'],
+            ['id' => 'detal', 'level' => 4, 'title' => 'Detal'],
+            ['id' => 'rozdzial-2', 'level' => 2, 'title' => 'Rozdzial'],
+        ], $toc);
     }
 }

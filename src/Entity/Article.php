@@ -57,6 +57,9 @@ class Article
     #[ORM\Column(type: Types::TEXT)]
     private string $content = '';
 
+    #[ORM\Column(options: ['default' => false])]
+    private bool $tableOfContentsEnabled = false;
+
     #[ORM\Column(enumType: ArticleStatus::class)]
     private ArticleStatus $status = ArticleStatus::DRAFT;
 
@@ -196,6 +199,18 @@ class Article
     public function setContent(string $content): self
     {
         $this->content = $content;
+
+        return $this;
+    }
+
+    public function isTableOfContentsEnabled(): bool
+    {
+        return $this->tableOfContentsEnabled;
+    }
+
+    public function setTableOfContentsEnabled(bool $tableOfContentsEnabled): self
+    {
+        $this->tableOfContentsEnabled = $tableOfContentsEnabled;
 
         return $this;
     }
