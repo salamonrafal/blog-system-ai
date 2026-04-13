@@ -50,7 +50,7 @@ TEXT);
         $this->assertStringContainsString('<blockquote><p>Cytat testowy</p></blockquote>', $html);
         $this->assertStringContainsString('<a href="https://openai.com" target="_blank" rel="noopener noreferrer">OpenAI</a>', $html);
         $this->assertStringContainsString('<img src="https://example.com/test.png" alt="Alt" loading="lazy">', $html);
-        $this->assertStringContainsString('<pre><code class="language-php">echo &#039;hi&#039;;</code></pre>', $html);
+        $this->assertStringContainsString('<pre class="article-code-block"><div class="article-code-scroll"><code class="language-php"><span class="article-code-line"><span class="article-code-line-number" aria-hidden="true">1</span><span class="article-code-line-content">echo &#039;hi&#039;;</span></span></code></div></pre>', $html);
     }
 
     public function testRendersNestedListsWithChildren(): void
@@ -157,6 +157,24 @@ linia 1
 TEXT);
 
         $this->assertStringContainsString("<pre class=\"article-preformatted\">linia 1\n  linia 2\n&lt;b&gt;bez html&lt;/b&gt;</pre>", $html);
+    }
+
+    public function testRendersCodeBlockWithLineNumbersForEachLine(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+
+        $html = $renderer->render(<<<'TEXT'
+```js
+const value = 1;
+
+console.log(value);
+```
+TEXT);
+
+        $this->assertStringContainsString('<pre class="article-code-block"><div class="article-code-scroll"><code class="language-js">', $html);
+        $this->assertStringContainsString('<span class="article-code-line"><span class="article-code-line-number" aria-hidden="true">1</span><span class="article-code-line-content">const value = 1;</span></span>', $html);
+        $this->assertStringContainsString('<span class="article-code-line"><span class="article-code-line-number" aria-hidden="true">2</span><span class="article-code-line-content"></span></span>', $html);
+        $this->assertStringContainsString('<span class="article-code-line"><span class="article-code-line-number" aria-hidden="true">3</span><span class="article-code-line-content">console.log(value);</span></span>', $html);
     }
 
     public function testRendersForcedLineBreakSeparatorAndTable(): void
@@ -324,7 +342,7 @@ TEXT;
         $html = $renderer->render($input);
         $toc = $renderer->extractTableOfContents($input);
 
-        $this->assertStringContainsString('<pre><code class="language-php">echo &#039;one&#039;;</code></pre>', $html);
+        $this->assertStringContainsString('<pre class="article-code-block"><div class="article-code-scroll"><code class="language-php"><span class="article-code-line"><span class="article-code-line-number" aria-hidden="true">1</span><span class="article-code-line-content">echo &#039;one&#039;;</span></span></code></div></pre>', $html);
         $this->assertStringContainsString('<h2 id="dalej">Dalej</h2>', $html);
         $this->assertSame([
             ['id' => 'dalej', 'level' => 2, 'title' => 'Dalej'],

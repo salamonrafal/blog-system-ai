@@ -151,12 +151,7 @@ final class ArticleMarkupRenderer
                 return;
             }
 
-            $languageClass = '' !== $code ? ' class="language-'.htmlspecialchars($code, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'"' : '';
-            $blocks[] = sprintf(
-                '<pre><code%s>%s</code></pre>',
-                $languageClass,
-                htmlspecialchars(implode("\n", $codeLines), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
-            );
+            $blocks[] = self::renderCodeBlock($code, $codeLines);
 
             $code = null;
             $codeLines = [];
@@ -393,6 +388,29 @@ final class ArticleMarkupRenderer
         }
 
         return self::renderInline($result);
+    }
+
+    /**
+     * @param list<string> $lines
+     */
+    private static function renderCodeBlock(?string $language, array $lines): string
+    {
+        $languageClass = '' !== (string) $language ? ' class="language-'.htmlspecialchars((string) $language, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'"' : '';
+        $renderedLines = [];
+
+        foreach ($lines as $index => $line) {
+            $renderedLines[] = sprintf(
+                '<span class="article-code-line"><span class="article-code-line-number" aria-hidden="true">%d</span><span class="article-code-line-content">%s</span></span>',
+                $index + 1,
+                htmlspecialchars($line, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
+            );
+        }
+
+        return sprintf(
+            '<pre class="article-code-block"><div class="article-code-scroll"><code%s>%s</code></div></pre>',
+            $languageClass,
+            implode('', $renderedLines),
+        );
     }
 
     private static function normalizeHeadingTitleForTableOfContents(string $title): string
