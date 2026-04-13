@@ -2,12 +2,43 @@ import { getTranslation } from './i18n.js';
 import { getLang, getTheme, setAccent, setLangPreference, setTheme } from './preferences.js';
 import { copyTextToClipboard, qs, qsa } from './shared.js';
 
+function decorateArticleHeadingAnchors(){
+  const articleBody = qs('.article-body');
+  if(!articleBody) return;
+
+  qsa('h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]', articleBody).forEach((heading)=>{
+    if(heading.querySelector('[data-action="copy-heading-link"]')) return;
+
+    heading.classList.add('article-heading-anchor');
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'article-heading-copy';
+    button.setAttribute('data-action', 'copy-heading-link');
+    button.setAttribute('data-i18n-tooltip', 'blog_copy_heading_link');
+    button.setAttribute('data-i18n-aria', 'blog_copy_heading_link');
+    button.setAttribute('data-tooltip', getTranslation('blog_copy_heading_link'));
+    button.setAttribute('aria-label', getTranslation('blog_copy_heading_link'));
+    button.setAttribute('data-link', `${window.location.origin}${window.location.pathname}${window.location.search}#${heading.id}`);
+
+    const icon = document.createElement('span');
+    icon.className = 'article-action-icon is-link';
+    icon.setAttribute('aria-hidden', 'true');
+    button.appendChild(icon);
+
+    heading.appendChild(button);
+  });
+}
+
 function bindCopyAction(selector, defaultTooltipKey, copiedTooltipKey){
   qsa(selector).forEach((button)=>{
     button.addEventListener('click', async ()=>{
       const link = button.getAttribute('data-link');
       const defaultHint = getTranslation(defaultTooltipKey);
       const icon = button.querySelector('.article-action-icon');
+      const defaultIconClass = icon
+        ? Array.from(icon.classList).find((className)=> className.startsWith('is-') && className !== 'is-check')
+        : null;
 
       if(!link){
         button.setAttribute('data-tooltip', defaultHint);
@@ -21,7 +52,9 @@ function bindCopyAction(selector, defaultTooltipKey, copiedTooltipKey){
 
       button.classList.add('is-icon-transitioning');
       setTimeout(()=>{
-        icon.classList.remove('is-copy');
+        if(defaultIconClass){
+          icon.classList.remove(defaultIconClass);
+        }
         icon.classList.add('is-check');
         button.classList.remove('is-icon-transitioning');
       }, 110);
@@ -32,7 +65,9 @@ function bindCopyAction(selector, defaultTooltipKey, copiedTooltipKey){
         button.classList.add('is-icon-transitioning');
         setTimeout(()=>{
           icon.classList.remove('is-check');
-          icon.classList.add('is-copy');
+          if(defaultIconClass){
+            icon.classList.add(defaultIconClass);
+          }
           button.classList.remove('is-icon-transitioning');
         }, 110);
         button.classList.remove('is-confirmed');
@@ -89,7 +124,9 @@ export function setupActions({ applyI18n }){
     });
   }
 
+  decorateArticleHeadingAnchors();
   bindCopyAction('[data-action="copy-article-link"]', 'blog_copy_link', 'blog_link_copied');
+  bindCopyAction('[data-action="copy-heading-link"]', 'blog_copy_heading_link', 'blog_heading_link_copied');
   bindCopyAction('[data-action="copy-media-public-url"]', 'admin_media_copy_public_url', 'admin_media_public_url_copied');
 
   qsa('[data-action="accent-color"]').forEach((input)=>{

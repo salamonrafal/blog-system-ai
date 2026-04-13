@@ -29,6 +29,7 @@ final class ArticleTest extends TestCase
             ->setExcerpt('Krotki opis')
             ->setHeadlineImage('/assets/img/article-cover.jpg')
             ->setContent('Pelna tresc')
+            ->setTableOfContentsEnabled(true)
             ->setStatus(ArticleStatus::REVIEW)
             ->setPublishedAt($publishedAt)
             ->setCategory($category)
@@ -44,6 +45,7 @@ final class ArticleTest extends TestCase
         $this->assertSame('/assets/img/article-cover.jpg', $article->getHeadlineImage());
         $this->assertSame('/assets/img/article-cover.jpg', $article->getResolvedHeadlineImage());
         $this->assertSame('Pelna tresc', $article->getContent());
+        $this->assertTrue($article->isTableOfContentsEnabled());
         $this->assertSame(ArticleStatus::REVIEW, $article->getStatus());
         $this->assertSame('2026-03-16 09:00:00', $article->getPublishedAt()?->format('Y-m-d H:i:s'));
         $this->assertSame('UTC', $article->getPublishedAt()?->getTimezone()->getName());
@@ -79,6 +81,13 @@ final class ArticleTest extends TestCase
         $article->setHeadlineImageEnabled(false);
 
         $this->assertNull($article->getResolvedHeadlineImage());
+    }
+
+    public function testTableOfContentsIsDisabledByDefault(): void
+    {
+        $article = new Article();
+
+        $this->assertFalse($article->isTableOfContentsEnabled());
     }
 
     public function testIsPublishedReturnsTrueOnlyForPublishedStatus(): void

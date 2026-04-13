@@ -54,6 +54,23 @@
                         </div>
                     </div>
                 {% endif %}
+                {% if table_of_contents is not empty %}
+                    <nav class="article-table-of-contents" aria-labelledby="article-table-of-contents-title">
+                        <div class="article-table-of-contents-header">
+                            <div id="article-table-of-contents-title" class="article-table-of-contents-eyebrow">
+                                <span data-lang="pl">Spis treści</span>
+                                <span data-lang="en">Table of contents</span>
+                            </div>
+                        </div>
+                        <ul class="article-table-of-contents-list">
+                            {% for item in table_of_contents %}
+                                <li class="article-table-of-contents-item level-{{ item.level }}">
+                                    <a href="#{{ item.id }}" class="article-table-of-contents-link">{{ item.title }}</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </nav>
+                {% endif %}
                 <div class="article-body">
                     {{ article.content|article_markup }}
                 </div>

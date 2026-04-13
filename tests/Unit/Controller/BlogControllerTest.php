@@ -15,6 +15,7 @@ use App\Enum\ArticleStatus;
 use App\Repository\ArticleCategoryRepository;
 use App\Repository\ArticleKeywordRepository;
 use App\Repository\ArticleRepository;
+use App\Service\ArticleMarkupRenderer;
 use App\Service\BlogSettingsProvider;
 use App\Service\PaginationBuilder;
 use App\Service\UserLanguageResolver;
@@ -251,7 +252,7 @@ final class BlogControllerTest extends TestCase
             ->willReturn('en');
 
         $controller = new TestBlogController();
-        $response = $controller->show('article', $articleRepository, $userLanguageResolver);
+        $response = $controller->show('article', $articleRepository, $userLanguageResolver, new ArticleMarkupRenderer());
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
         $this->assertSame('blog/show.html.twig', $controller->capturedView);
@@ -262,6 +263,7 @@ final class BlogControllerTest extends TestCase
         ], $controller->capturedParameters['article_category_route_params']);
         $this->assertSame([], $controller->capturedParameters['article_keywords']);
         $this->assertSame([], $controller->capturedParameters['recommended_articles']);
+        $this->assertSame([], $controller->capturedParameters['table_of_contents']);
     }
 
     public function testShowDoesNotExposeCategoryRouteParamsForInactiveCategory(): void
@@ -294,12 +296,13 @@ final class BlogControllerTest extends TestCase
             ->method('getLanguage');
 
         $controller = new TestBlogController();
-        $response = $controller->show('article', $articleRepository, $userLanguageResolver);
+        $response = $controller->show('article', $articleRepository, $userLanguageResolver, new ArticleMarkupRenderer());
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
         $this->assertNull($controller->capturedParameters['article_category_route_params']);
         $this->assertSame([], $controller->capturedParameters['article_keywords']);
         $this->assertSame([], $controller->capturedParameters['recommended_articles']);
+        $this->assertSame([], $controller->capturedParameters['table_of_contents']);
     }
 
     public function testShowExposesRecommendedArticles(): void
@@ -331,7 +334,7 @@ final class BlogControllerTest extends TestCase
             ->method('getLanguage');
 
         $controller = new TestBlogController();
-        $controller->show('article', $articleRepository, $userLanguageResolver);
+        $controller->show('article', $articleRepository, $userLanguageResolver, new ArticleMarkupRenderer());
 
         $this->assertSame([$recommendedArticle], $controller->capturedParameters['recommended_articles']);
     }
@@ -494,7 +497,7 @@ final class BlogControllerTest extends TestCase
             ->willReturn('en');
 
         $controller = new TestBlogController();
-        $controller->show('article', $articleRepository, $userLanguageResolver);
+        $controller->show('article', $articleRepository, $userLanguageResolver, new ArticleMarkupRenderer());
 
         $this->assertSame([
             [
@@ -505,6 +508,41 @@ final class BlogControllerTest extends TestCase
                 ],
             ],
         ], $controller->capturedParameters['article_keywords']);
+    }
+
+    public function testShowExposesTableOfContentsWhenEnabledForArticle(): void
+    {
+        $article = (new Article())
+            ->setTitle('Article')
+            ->setSlug('article')
+            ->setStatus(ArticleStatus::PUBLISHED)
+            ->setContent("# Wstep\n## Sekcja\n##### Pomijana")
+            ->setTableOfContentsEnabled(true);
+
+        $articleRepository = $this->createMock(ArticleRepository::class);
+        $articleRepository
+            ->expects($this->once())
+            ->method('findOneBySlug')
+            ->with('article')
+            ->willReturn($article);
+        $articleRepository
+            ->expects($this->once())
+            ->method('findRecommendedPublished')
+            ->with($article)
+            ->willReturn([]);
+
+        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
+        $userLanguageResolver
+            ->expects($this->never())
+            ->method('getLanguage');
+
+        $controller = new TestBlogController();
+        $controller->show('article', $articleRepository, $userLanguageResolver, new ArticleMarkupRenderer());
+
+        $this->assertSame([
+            ['id' => 'wstep', 'level' => 1, 'title' => 'Wstep'],
+            ['id' => 'sekcja', 'level' => 2, 'title' => 'Sekcja'],
+        ], $controller->capturedParameters['table_of_contents']);
     }
 }
 

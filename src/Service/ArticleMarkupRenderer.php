@@ -7,17 +7,58 @@ namespace App\Service;
 final class ArticleMarkupRenderer
 {
     private const LINE_BREAK_TOKEN = '@@ARTICLE_LINE_BREAK@@';
+    /**
+     * Keep only the last parsed document to avoid unbounded growth on shared service instances.
+     *
+     * @var array{input: string, document: array{html: string, headings: list<array{id: string, level: int, title: string}>}}|null
+     */
+    private ?array $documentCache = null;
+
+    /**
+     * @return list<array{id: string, level: int, title: string}>
+     */
+    public function extractTableOfContents(string $input, int $maxLevel = 4): array
+    {
+        $normalized = self::normalizeInput($input);
+
+        if ('' === $normalized) {
+            return [];
+        }
+
+        return array_values(array_filter(
+            $this->getParsedDocument($normalized)['headings'],
+            static fn (array $heading): bool => $heading['level'] <= $maxLevel,
+        ));
+    }
 
     public function render(string $input): string
     {
-        $normalized = str_replace(["\r\n", "\r"], "\n", trim($input));
+        $normalized = self::normalizeInput($input);
 
         if ('' === $normalized) {
             return '';
         }
 
+        return $this->getParsedDocument($normalized)['html'];
+    }
+
+    private static function normalizeInput(string $input): string
+    {
+        return str_replace(["\r\n", "\r"], "\n", trim($input));
+    }
+
+    /**
+     * @return array{html: string, headings: list<array{id: string, level: int, title: string}>}
+     */
+    private function getParsedDocument(string $normalized): array
+    {
+        if (null !== $this->documentCache && $this->documentCache['input'] === $normalized) {
+            return $this->documentCache['document'];
+        }
+
         $lines = explode("\n", $normalized);
         $blocks = [];
+        $headings = [];
         $paragraph = [];
         $list = null;
         $quote = [];
@@ -28,6 +69,7 @@ final class ArticleMarkupRenderer
         $code = null;
         $codeLines = [];
         $table = [];
+        $usedHeadingAnchors = [];
 
         $flushParagraph = static function () use (&$paragraph, &$blocks): void {
             if ([] === $paragraph) {
@@ -39,19 +81,16 @@ final class ArticleMarkupRenderer
         };
 
         $flushList = static function () use (&$list, &$blocks): void {
-            if (null === $list || [] === $list['items']) {
+            if (null === $list || [] === $list) {
                 $list = null;
 
                 return;
             }
 
-            $tag = $list['type'];
-            $items = array_map(
-                static fn (string $item): string => '<li>'.self::renderInline($item).'</li>',
-                $list['items'],
-            );
-
-            $blocks[] = sprintf('<%1$s>%2$s</%1$s>', $tag, implode('', $items));
+            $blocks[] = implode('', array_map(
+                static fn (\stdClass $listNode): string => self::renderListNode($listNode),
+                $list,
+            ));
             $list = null;
         };
 
@@ -169,7 +208,7 @@ final class ArticleMarkupRenderer
             $line = $lines[$index];
 
             if (null !== $code) {
-                if (preg_match('/^```/', $line)) {
+                if (preg_match('/^```/', trim($line))) {
                     $flushCode();
                 } else {
                     $codeLines[] = $line;
@@ -266,18 +305,25 @@ final class ArticleMarkupRenderer
                 continue;
             }
 
-            if (preg_match('/^(#{1,7})\s+(.*)$/', ltrim($line), $matches)) {
+            $heading = self::parseHeading($line);
+            if (null !== $heading) {
                 $flushParagraph();
                 $flushList();
                 $flushQuote();
                 $flushTable();
-                $level = strlen($matches[1]);
-                $content = self::renderInline(trim($matches[2]));
+                $level = $heading['level'];
+                $content = self::renderInline($heading['title']);
 
                 if (7 === $level) {
                     $blocks[] = '<p class="article-heading-7">'.$content.'</p>';
                 } else {
-                    $blocks[] = sprintf('<h%d>%s</h%d>', $level, $content, $level);
+                    $anchor = self::createUniqueHeadingAnchor($heading['title'], $usedHeadingAnchors);
+                    $headings[] = [
+                        'id' => $anchor,
+                        'level' => $level,
+                        'title' => self::normalizeHeadingTitleForTableOfContents($heading['title']),
+                    ];
+                    $blocks[] = sprintf('<h%d id="%s">%s</h%d>', $level, $anchor, $content, $level);
                 }
 
                 continue;
@@ -286,53 +332,46 @@ final class ArticleMarkupRenderer
             if (preg_match('/^\s*>\s?(.*)$/', $line, $matches)) {
                 $flushParagraph();
                 $flushList();
+                $flushTable();
                 $quote[] = trim($matches[1]);
 
                 continue;
             }
 
-            if (preg_match('/^\s*([-*])\s+(.*)$/', $line, $matches)) {
+            if (null !== self::parseListLine($line)) {
                 $flushParagraph();
                 $flushQuote();
-
-                if (null === $list || 'ul' !== $list['type']) {
-                    $flushList();
-                    $list = ['type' => 'ul', 'items' => []];
-                }
-
-                $list['items'][] = trim($matches[2]);
-
-                continue;
-            }
-
-            if (preg_match('/^\s*\d+\.\s+(.*)$/', $line, $matches)) {
-                $flushParagraph();
-                $flushQuote();
-
-                if (null === $list || 'ol' !== $list['type']) {
-                    $flushList();
-                    $list = ['type' => 'ol', 'items' => []];
-                }
-
-                $list['items'][] = trim($matches[1]);
+                $flushTable();
+                $list = self::consumeListBlock($lines, $index);
 
                 continue;
             }
 
             $flushList();
+            $flushTable();
             $flushQuote();
             $paragraph[] = trim($line);
         }
 
-        $flushParagraph();
+        $flushTable();
         $flushList();
+        $flushParagraph();
         $flushQuote();
         $flushAlign();
         $flushCode();
         $flushPreformatted();
-        $flushTable();
 
-        return implode("\n", $blocks);
+        $document = [
+            'html' => implode("\n", $blocks),
+            'headings' => $headings,
+        ];
+
+        $this->documentCache = [
+            'input' => $normalized,
+            'document' => $document,
+        ];
+
+        return $document;
     }
 
     private static function renderParagraphLines(array $lines): string
@@ -354,6 +393,219 @@ final class ArticleMarkupRenderer
         }
 
         return self::renderInline($result);
+    }
+
+    private static function normalizeHeadingTitleForTableOfContents(string $title): string
+    {
+        $rendered = self::renderInline($title);
+        $plainText = strip_tags($rendered);
+        $decoded = html_entity_decode($plainText, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $normalizedWhitespace = preg_replace('/\s+/u', ' ', $decoded) ?? $decoded;
+
+        return trim($normalizedWhitespace);
+    }
+
+    /**
+     * @param list<string> $lines
+     * @return list<\stdClass>
+     */
+    private static function consumeListBlock(array $lines, int &$index): array
+    {
+        $rootLists = [];
+        $stack = [];
+        $lineCount = count($lines);
+
+        for ($cursor = $index; $cursor < $lineCount; ++$cursor) {
+            $item = self::parseListLine($lines[$cursor]);
+            if (null === $item) {
+                break;
+            }
+
+            self::pushListItem($rootLists, $stack, $item);
+        }
+
+        $index = $cursor - 1;
+
+        return $rootLists;
+    }
+
+    /**
+     * @return array{type: string, indent: int, content: string}|null
+     */
+    private static function parseListLine(string $line): ?array
+    {
+        if (preg_match('/^(?<indent>\s*)(?<marker>[-*])\s+(?<content>.+)$/', $line, $matches) === 1) {
+            return [
+                'type' => 'ul',
+                'indent' => self::measureIndent($matches['indent']),
+                'content' => trim($matches['content']),
+            ];
+        }
+
+        if (preg_match('/^(?<indent>\s*)\d+\.\s+(?<content>.+)$/', $line, $matches) === 1) {
+            return [
+                'type' => 'ol',
+                'indent' => self::measureIndent($matches['indent']),
+                'content' => trim($matches['content']),
+            ];
+        }
+
+        return null;
+    }
+
+    /**
+     * @param list<\stdClass> $rootLists
+     * @param list<\stdClass> $stack
+     * @param array{type: string, indent: int, content: string} $item
+     */
+    private static function pushListItem(array &$rootLists, array &$stack, array $item): void
+    {
+        while ([] !== $stack && $item['indent'] < end($stack)->indent) {
+            array_pop($stack);
+        }
+
+        $current = [] !== $stack ? end($stack) : null;
+
+        if (null !== $current && $item['indent'] > $current->indent) {
+            $parentItem = self::getLastListItem($current);
+            if (null !== $parentItem) {
+                $nestedList = self::createListNode($item['type'], $item['indent'], $parentItem);
+                $parentItem->children[] = $nestedList;
+                $stack[] = $nestedList;
+                self::appendListItem($nestedList, $item['content']);
+
+                return;
+            }
+        }
+
+        if (null !== $current && $item['indent'] === $current->indent && $item['type'] === $current->type) {
+            self::appendListItem($current, $item['content']);
+
+            return;
+        }
+
+        if (null !== $current && $item['indent'] === $current->indent && $item['type'] !== $current->type) {
+            array_pop($stack);
+            $current = [] !== $stack ? end($stack) : null;
+        }
+
+        if (null !== $current && $item['indent'] > $current->indent) {
+            $parentItem = self::getLastListItem($current);
+            if (null !== $parentItem) {
+                $nestedList = self::createListNode($item['type'], $item['indent'], $parentItem);
+                $parentItem->children[] = $nestedList;
+                $stack[] = $nestedList;
+                self::appendListItem($nestedList, $item['content']);
+
+                return;
+            }
+        }
+
+        $parentItem = null;
+        if (null !== $current) {
+            $parentItem = $current->parentItem instanceof \stdClass ? $current->parentItem : null;
+        }
+
+        $newList = self::createListNode($item['type'], $item['indent'], $parentItem);
+        if (null === $parentItem) {
+            $rootLists[] = $newList;
+        } else {
+            $parentItem->children[] = $newList;
+        }
+
+        $stack[] = $newList;
+        self::appendListItem($newList, $item['content']);
+    }
+
+    private static function createListNode(string $type, int $indent, ?\stdClass $parentItem): \stdClass
+    {
+        $node = new \stdClass();
+        $node->type = $type;
+        $node->indent = $indent;
+        $node->parentItem = $parentItem;
+        $node->items = [];
+
+        return $node;
+    }
+
+    private static function appendListItem(\stdClass $listNode, string $content): void
+    {
+        $item = new \stdClass();
+        $item->content = $content;
+        $item->children = [];
+        $listNode->items[] = $item;
+    }
+
+    private static function getLastListItem(\stdClass $listNode): ?\stdClass
+    {
+        if ([] === $listNode->items) {
+            return null;
+        }
+
+        return $listNode->items[array_key_last($listNode->items)];
+    }
+
+    private static function renderListNode(\stdClass $listNode): string
+    {
+        $items = array_map(static function (\stdClass $item): string {
+            $children = array_map(
+                static fn (\stdClass $childList): string => self::renderListNode($childList),
+                $item->children,
+            );
+
+            return '<li>'.self::renderInline($item->content).implode('', $children).'</li>';
+        }, $listNode->items);
+
+        return sprintf('<%1$s>%2$s</%1$s>', $listNode->type, implode('', $items));
+    }
+
+    private static function measureIndent(string $indent): int
+    {
+        return strlen(str_replace("\t", '    ', $indent));
+    }
+
+    /**
+     * @return array{level: int, title: string}|null
+     */
+    private static function parseHeading(string $line): ?array
+    {
+        if (preg_match('/^(#{1,7})\s+(.*)$/', ltrim($line), $matches) !== 1) {
+            return null;
+        }
+
+        $title = trim($matches[2]);
+        if ('' === $title) {
+            return null;
+        }
+
+        return [
+            'level' => strlen($matches[1]),
+            'title' => $title,
+        ];
+    }
+
+    /**
+     * @param array<string, int> $usedAnchors
+     */
+    private static function createUniqueHeadingAnchor(string $title, array &$usedAnchors): string
+    {
+        $base = self::slugifyHeading($title);
+        $count = $usedAnchors[$base] ?? 0;
+        $usedAnchors[$base] = $count + 1;
+
+        return 0 === $count ? $base : sprintf('%s-%d', $base, $count + 1);
+    }
+
+    private static function slugifyHeading(string $title): string
+    {
+        $normalized = trim($title);
+        $transliterated = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $normalized);
+        $ascii = is_string($transliterated) ? $transliterated : $normalized;
+        $ascii = strtolower($ascii);
+        $ascii = preg_replace('/[^a-z0-9]+/', '-', $ascii) ?? '';
+        $ascii = trim($ascii, '-');
+
+        return '' !== $ascii ? $ascii : 'section';
     }
 
     private static function renderInline(string $text): string
