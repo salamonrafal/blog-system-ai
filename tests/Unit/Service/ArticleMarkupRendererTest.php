@@ -251,4 +251,85 @@ TEXT);
             ['id' => 'rozdzial-2', 'level' => 2, 'title' => 'Rozdzial'],
         ], $toc);
     }
+
+    public function testKeepsTableOfContentsAnchorsInSyncWithRenderedHeadingsWhenSkippedLevelsReuseTitle(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+        $input = <<<'TEXT'
+##### Intro
+## Intro
+####### Intro
+## Intro
+TEXT;
+
+        $toc = $renderer->extractTableOfContents($input);
+        $html = $renderer->render($input);
+
+        $this->assertSame([
+            ['id' => 'intro-2', 'level' => 2, 'title' => 'Intro'],
+            ['id' => 'intro-3', 'level' => 2, 'title' => 'Intro'],
+        ], $toc);
+        $this->assertStringContainsString('<h5 id="intro">Intro</h5>', $html);
+        $this->assertStringContainsString('<h2 id="intro-2">Intro</h2>', $html);
+        $this->assertStringContainsString('<h2 id="intro-3">Intro</h2>', $html);
+        $this->assertStringContainsString('<p class="article-heading-7">Intro</p>', $html);
+    }
+
+    public function testNormalizesInlineFormattingInTableOfContentsTitles(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+
+        $toc = $renderer->extractTableOfContents(<<<'TEXT'
+## **Bold** *Italic* `code` ++Underline++
+TEXT);
+
+        $this->assertSame([
+            [
+                'id' => 'bold-italic-code-underline',
+                'level' => 2,
+                'title' => 'Bold Italic code Underline',
+            ],
+        ], $toc);
+    }
+
+    public function testClosesIndentedCodeFenceAndContinuesParsingFollowingHeadings(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+        $input = <<<'TEXT'
+```php
+echo 'one';
+  ```
+## Dalej
+TEXT;
+
+        $html = $renderer->render($input);
+        $toc = $renderer->extractTableOfContents($input);
+
+        $this->assertStringContainsString('<pre><code class="language-php">echo &#039;one&#039;;</code></pre>', $html);
+        $this->assertStringContainsString('<h2 id="dalej">Dalej</h2>', $html);
+        $this->assertSame([
+            ['id' => 'dalej', 'level' => 2, 'title' => 'Dalej'],
+        ], $toc);
+    }
+
+    public function testLevelSevenHeadingDoesNotConsumeAnchorNumbering(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+        $input = <<<'TEXT'
+####### Intro
+## Intro
+## Intro
+TEXT;
+
+        $html = $renderer->render($input);
+        $toc = $renderer->extractTableOfContents($input);
+
+        $this->assertStringContainsString('<p class="article-heading-7">Intro</p>', $html);
+        $this->assertStringContainsString('<h2 id="intro">Intro</h2>', $html);
+        $this->assertStringContainsString('<h2 id="intro-2">Intro</h2>', $html);
+        $this->assertSame([
+            ['id' => 'intro', 'level' => 2, 'title' => 'Intro'],
+            ['id' => 'intro-2', 'level' => 2, 'title' => 'Intro'],
+        ], $toc);
+    }
 }

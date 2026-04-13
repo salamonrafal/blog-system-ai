@@ -16,6 +16,7 @@ function decorateArticleHeadingAnchors(){
     button.className = 'article-heading-copy';
     button.setAttribute('data-action', 'copy-heading-link');
     button.setAttribute('data-i18n-tooltip', 'blog_copy_heading_link');
+    button.setAttribute('data-i18n-aria', 'blog_copy_heading_link');
     button.setAttribute('data-tooltip', getTranslation('blog_copy_heading_link'));
     button.setAttribute('aria-label', getTranslation('blog_copy_heading_link'));
     button.setAttribute('data-link', `${window.location.origin}${window.location.pathname}${window.location.search}#${heading.id}`);

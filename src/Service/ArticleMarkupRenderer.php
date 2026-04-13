@@ -7,92 +7,56 @@ namespace App\Service;
 final class ArticleMarkupRenderer
 {
     private const LINE_BREAK_TOKEN = '@@ARTICLE_LINE_BREAK@@';
+    /**
+     * @var array<string, array{html: string, headings: list<array{id: string, level: int, title: string}>}>
+     */
+    private array $documentCache = [];
 
     /**
      * @return list<array{id: string, level: int, title: string}>
      */
     public function extractTableOfContents(string $input, int $maxLevel = 4): array
     {
-        $normalized = str_replace(["\r\n", "\r"], "\n", trim($input));
+        $normalized = self::normalizeInput($input);
 
         if ('' === $normalized) {
             return [];
         }
 
-        $entries = [];
-        $usedAnchors = [];
-        $code = null;
-        $align = null;
-        $preformatted = false;
-
-        foreach (explode("\n", $normalized) as $line) {
-            if (null !== $code) {
-                if (preg_match('/^```/', $line)) {
-                    $code = null;
-                }
-
-                continue;
-            }
-
-            if ($preformatted) {
-                if (':::' === trim($line)) {
-                    $preformatted = false;
-                }
-
-                continue;
-            }
-
-            if (null !== $align) {
-                if (':::' === trim($line)) {
-                    $align = null;
-                }
-
-                continue;
-            }
-
-            if (preg_match('/^```([a-z0-9_-]+)?\s*$/i', trim($line), $matches)) {
-                $code = isset($matches[1]) ? strtolower($matches[1]) : '';
-
-                continue;
-            }
-
-            if (':::pre' === strtolower(trim($line))) {
-                $preformatted = true;
-
-                continue;
-            }
-
-            if (preg_match('/^:::(left|center|right|justify)\s*$/i', trim($line), $matches)) {
-                $align = strtolower($matches[1]);
-
-                continue;
-            }
-
-            $heading = self::parseHeading($line);
-            if (null === $heading || $heading['level'] > $maxLevel) {
-                continue;
-            }
-
-            $entries[] = [
-                'id' => self::createUniqueHeadingAnchor($heading['title'], $usedAnchors),
-                'level' => $heading['level'],
-                'title' => $heading['title'],
-            ];
-        }
-
-        return $entries;
+        return array_values(array_filter(
+            $this->getParsedDocument($normalized)['headings'],
+            static fn (array $heading): bool => $heading['level'] <= $maxLevel,
+        ));
     }
 
     public function render(string $input): string
     {
-        $normalized = str_replace(["\r\n", "\r"], "\n", trim($input));
+        $normalized = self::normalizeInput($input);
 
         if ('' === $normalized) {
             return '';
         }
 
+        return $this->getParsedDocument($normalized)['html'];
+    }
+
+    private static function normalizeInput(string $input): string
+    {
+        return str_replace(["\r\n", "\r"], "\n", trim($input));
+    }
+
+    /**
+     * @return array{html: string, headings: list<array{id: string, level: int, title: string}>}
+     */
+    private function getParsedDocument(string $normalized): array
+    {
+        if (isset($this->documentCache[$normalized])) {
+            return $this->documentCache[$normalized];
+        }
+
         $lines = explode("\n", $normalized);
         $blocks = [];
+        $headings = [];
         $paragraph = [];
         $list = null;
         $quote = [];
@@ -242,7 +206,7 @@ final class ArticleMarkupRenderer
             $line = $lines[$index];
 
             if (null !== $code) {
-                if (preg_match('/^```/', $line)) {
+                if (preg_match('/^```/', trim($line))) {
                     $flushCode();
                 } else {
                     $codeLines[] = $line;
@@ -347,11 +311,16 @@ final class ArticleMarkupRenderer
                 $flushTable();
                 $level = $heading['level'];
                 $content = self::renderInline($heading['title']);
-                $anchor = self::createUniqueHeadingAnchor($heading['title'], $usedHeadingAnchors);
 
                 if (7 === $level) {
                     $blocks[] = '<p class="article-heading-7">'.$content.'</p>';
                 } else {
+                    $anchor = self::createUniqueHeadingAnchor($heading['title'], $usedHeadingAnchors);
+                    $headings[] = [
+                        'id' => $anchor,
+                        'level' => $level,
+                        'title' => self::normalizeHeadingTitleForTableOfContents($heading['title']),
+                    ];
                     $blocks[] = sprintf('<h%d id="%s">%s</h%d>', $level, $anchor, $content, $level);
                 }
 
@@ -388,7 +357,10 @@ final class ArticleMarkupRenderer
         $flushPreformatted();
         $flushTable();
 
-        return implode("\n", $blocks);
+        return $this->documentCache[$normalized] = [
+            'html' => implode("\n", $blocks),
+            'headings' => $headings,
+        ];
     }
 
     private static function renderParagraphLines(array $lines): string
@@ -410,6 +382,16 @@ final class ArticleMarkupRenderer
         }
 
         return self::renderInline($result);
+    }
+
+    private static function normalizeHeadingTitleForTableOfContents(string $title): string
+    {
+        $rendered = self::renderInline($title);
+        $plainText = strip_tags($rendered);
+        $decoded = html_entity_decode($plainText, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $normalizedWhitespace = preg_replace('/\s+/u', ' ', $decoded) ?? $decoded;
+
+        return trim($normalizedWhitespace);
     }
 
     /**

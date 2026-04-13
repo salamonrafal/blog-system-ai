@@ -930,7 +930,7 @@ export const i18n = {
     blog_copy_link: "Copy link",
     blog_link_copied: "Link copied!",
     blog_copy_heading_link: "Copy heading link",
-    blog_heading_link_copied: "Copied heading link!",
+    blog_heading_link_copied: "Heading link copied!",
     error_not_found_page_title: "Page not found | {{ app_name }}",
     error_not_found_prompt: "Resource not found",
     error_not_found_message: "The address appears to be invalid, or the article was removed, hidden, or has not been published yet.",
