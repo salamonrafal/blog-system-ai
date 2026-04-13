@@ -1,6 +1,7 @@
 import { getTranslation } from './i18n.js';
 import { getLang, getTheme, setAccent, setLangPreference, setTheme } from './preferences.js';
 import { copyTextToClipboard, qs, qsa } from './shared.js';
+import { createSwitchButton, syncSwitchButtonState } from './switch.js';
 
 function refreshTooltip(button){
   if(!(button instanceof HTMLElement)) return;
@@ -44,21 +45,84 @@ function decorateArticleCodeBlocks(){
   qsa('.article-code-block', articleBody).forEach((block)=>{
     if(block.querySelector('[data-action="copy-code-block"]')) return;
 
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'article-code-copy';
-    button.setAttribute('data-action', 'copy-code-block');
-    button.setAttribute('data-i18n-tooltip', 'blog_copy_code');
-    button.setAttribute('data-i18n-aria', 'blog_copy_code');
-    button.setAttribute('data-tooltip', getTranslation('blog_copy_code'));
-    button.setAttribute('aria-label', getTranslation('blog_copy_code'));
+    const wrapButton = createCodeActionButton({
+      action: 'toggle-code-wrap',
+      className: 'article-code-wrap-toggle',
+      tooltipKey: 'blog_code_wrap_on',
+      ariaPressed: false,
+    });
+    wrapButton.setAttribute('data-tooltip-enabled', 'blog_code_wrap_off');
+    wrapButton.setAttribute('data-tooltip-disabled', 'blog_code_wrap_on');
+    wrapButton.setAttribute('role', 'switch');
 
-    const icon = document.createElement('span');
-    icon.className = 'article-action-icon is-copy';
-    icon.setAttribute('aria-hidden', 'true');
-    button.appendChild(icon);
+    const copyButton = createCodeActionButton({
+      action: 'copy-code-block',
+      className: 'article-code-copy',
+      iconClassName: 'is-copy',
+      tooltipKey: 'blog_copy_code',
+    });
 
-    block.appendChild(button);
+    block.append(wrapButton, copyButton);
+  });
+}
+
+function createCodeActionButton({
+  action,
+  className,
+  iconClassName = null,
+  tooltipKey,
+  ariaPressed = null,
+}){
+  if(!iconClassName){
+    return createSwitchButton({
+      action,
+      className: `article-code-action ${className}`,
+      tooltipKey,
+      pressed: ariaPressed ?? false,
+      compact: true,
+    });
+  }
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = `article-code-action ${className}`;
+  button.setAttribute('data-action', action);
+  button.setAttribute('data-i18n-tooltip', tooltipKey);
+  button.setAttribute('data-i18n-aria', tooltipKey);
+  button.setAttribute('data-tooltip', getTranslation(tooltipKey));
+  button.setAttribute('aria-label', getTranslation(tooltipKey));
+
+  if(ariaPressed !== null){
+    button.setAttribute('aria-pressed', ariaPressed ? 'true' : 'false');
+  }
+
+  const icon = document.createElement('span');
+  icon.className = `article-action-icon ${iconClassName}`;
+  icon.setAttribute('aria-hidden', 'true');
+  button.appendChild(icon);
+
+  return button;
+}
+
+function syncCodeWrapButtonState(button, enabled){
+  syncSwitchButtonState(button, enabled, {
+    enabledTooltipKey: button.getAttribute('data-tooltip-enabled'),
+    disabledTooltipKey: button.getAttribute('data-tooltip-disabled'),
+  });
+}
+
+function bindCodeWrapToggle(){
+  qsa('[data-action="toggle-code-wrap"]').forEach((button)=>{
+    syncCodeWrapButtonState(button, button.closest('.article-code-block')?.classList.contains('is-wrap-enabled') ?? false);
+
+    button.addEventListener('click', ()=>{
+      const codeBlock = button.closest('.article-code-block');
+      if(!(codeBlock instanceof HTMLElement)) return;
+
+      const enabled = codeBlock.classList.toggle('is-wrap-enabled');
+      syncCodeWrapButtonState(button, enabled);
+      refreshTooltip(button);
+    });
   });
 }
 
@@ -173,6 +237,7 @@ export function setupActions({ applyI18n }){
       .map((line)=> line.textContent ?? '')
       .join('\n'),
   );
+  bindCodeWrapToggle();
   bindCopyAction('[data-action="copy-media-public-url"]', 'admin_media_copy_public_url', 'admin_media_public_url_copied');
 
   qsa('[data-action="accent-color"]').forEach((input)=>{

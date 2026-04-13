@@ -1,0 +1,78 @@
+.app-switch,
+.article-editor-switch{
+  --app-switch-width:52px;
+  --app-switch-height:32px;
+  --app-switch-padding:3px;
+  --app-switch-knob-size:24px;
+  --app-switch-translate:20px;
+  position:relative;
+  display:inline-flex;
+  flex:0 0 auto;
+  width:var(--app-switch-width);
+  height:var(--app-switch-height);
+  cursor:pointer;
+}
+
+.app-switch.app-switch-compact{
+  --app-switch-width:1.7rem;
+  --app-switch-height:1rem;
+  --app-switch-padding:1px;
+  --app-switch-knob-size:.62rem;
+  --app-switch-translate:.72rem;
+}
+
+.app-switch-input,
+.article-editor-switch-input{
+  position:absolute;
+  inset:0;
+  opacity:0;
+  cursor:pointer;
+}
+
+.app-switch-slider,
+.article-editor-switch-slider{
+  position:relative;
+  display:block;
+  width:100%;
+  height:100%;
+  border:1px solid color-mix(in oklab, var(--accent-2) 22%, var(--border));
+  border-radius:999px;
+  background:color-mix(in oklab, var(--panel) 88%, transparent);
+  transition:background-color .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+
+.app-switch-slider::after,
+.article-editor-switch-slider::after{
+  content:"";
+  position:absolute;
+  top:50%;
+  left:var(--app-switch-padding);
+  width:var(--app-switch-knob-size);
+  height:var(--app-switch-knob-size);
+  border-radius:50%;
+  background:color-mix(in oklab, white 90%, var(--panel) 10%);
+  box-shadow:0 6px 14px rgba(0, 0, 0, .22);
+  transform:translateY(-50%);
+  transition:transform .18s ease, background-color .18s ease;
+}
+
+.app-switch-input:checked + .app-switch-slider,
+.article-editor-switch-input:checked + .article-editor-switch-slider,
+.app-switch[aria-pressed="true"] .app-switch-slider{
+  border-color:color-mix(in oklab, var(--accent) 48%, var(--border));
+  background:color-mix(in oklab, var(--accent) 52%, var(--panel) 48%);
+}
+
+.app-switch-input:checked + .app-switch-slider::after,
+.article-editor-switch-input:checked + .article-editor-switch-slider::after,
+.app-switch[aria-pressed="true"] .app-switch-slider::after{
+  transform:translate(var(--app-switch-translate), -50%);
+  background:color-mix(in oklab, white 94%, var(--accent) 6%);
+}
+
+.app-switch-input:focus-visible + .app-switch-slider,
+.article-editor-switch-input:focus-visible + .article-editor-switch-slider,
+.app-switch:focus-visible .app-switch-slider{
+  outline:3px solid var(--focus);
+  outline-offset:2px;
+}
