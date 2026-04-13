@@ -407,9 +407,9 @@ final class ArticleMarkupRenderer
         }
 
         return sprintf(
-            '<pre class="article-code-block"><div class="article-code-scroll"><code%s>%s</code></div></pre>',
+            '<div class="article-code-block"><div class="article-code-scroll"><pre><code%s>%s</code></pre></div></div>',
             $languageClass,
-            implode('', $renderedLines),
+            implode("\n", $renderedLines),
         );
     }
 
