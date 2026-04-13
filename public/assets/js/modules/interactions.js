@@ -6,7 +6,7 @@ function decorateArticleHeadingAnchors(){
   const articleBody = qs('.article-body');
   if(!articleBody) return;
 
-  qsa('h1[id], h2[id], h3[id], h4[id]', articleBody).forEach((heading)=>{
+  qsa('h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]', articleBody).forEach((heading)=>{
     if(heading.querySelector('[data-action="copy-heading-link"]')) return;
 
     heading.classList.add('article-heading-anchor');
