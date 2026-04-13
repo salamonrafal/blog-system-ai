@@ -8,9 +8,11 @@ final class ArticleMarkupRenderer
 {
     private const LINE_BREAK_TOKEN = '@@ARTICLE_LINE_BREAK@@';
     /**
-     * @var array<string, array{html: string, headings: list<array{id: string, level: int, title: string}>}>
+     * Keep only the last parsed document to avoid unbounded growth on shared service instances.
+     *
+     * @var array{input: string, document: array{html: string, headings: list<array{id: string, level: int, title: string}>}}|null
      */
-    private array $documentCache = [];
+    private ?array $documentCache = null;
 
     /**
      * @return list<array{id: string, level: int, title: string}>
@@ -50,8 +52,8 @@ final class ArticleMarkupRenderer
      */
     private function getParsedDocument(string $normalized): array
     {
-        if (isset($this->documentCache[$normalized])) {
-            return $this->documentCache[$normalized];
+        if (null !== $this->documentCache && $this->documentCache['input'] === $normalized) {
+            return $this->documentCache['document'];
         }
 
         $lines = explode("\n", $normalized);
@@ -359,10 +361,17 @@ final class ArticleMarkupRenderer
         $flushCode();
         $flushPreformatted();
 
-        return $this->documentCache[$normalized] = [
+        $document = [
             'html' => implode("\n", $blocks),
             'headings' => $headings,
         ];
+
+        $this->documentCache = [
+            'input' => $normalized,
+            'document' => $document,
+        ];
+
+        return $document;
     }
 
     private static function renderParagraphLines(array $lines): string
