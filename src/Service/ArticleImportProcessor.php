@@ -110,7 +110,9 @@ class ArticleImportProcessor
         $excerpt = $this->optionalString($articleData, 'excerpt');
         $headlineImage = $this->optionalString($articleData, 'headline_image');
         $headlineImageEnabled = $this->parseBoolean($articleData['headline_image_enabled'] ?? null, 'headline_image_enabled', $index);
-        $tableOfContentsEnabled = $this->parseBoolean($articleData['table_of_contents_enabled'] ?? false, 'table_of_contents_enabled', $index);
+        $tableOfContentsEnabled = array_key_exists('table_of_contents_enabled', $articleData)
+            ? $this->parseBoolean($articleData['table_of_contents_enabled'], 'table_of_contents_enabled', $index)
+            : false;
         $publishedAt = $this->parseNullableDateTime($articleData['published_at'] ?? null, 'published_at', $index);
 
         $draftArticle
