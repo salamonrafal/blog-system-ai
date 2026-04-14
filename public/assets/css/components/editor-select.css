@@ -112,6 +112,12 @@
   scrollbar-color:color-mix(in oklab, var(--accent-2) 34%, var(--border)) transparent;
 }
 
+.app-select-panel.is-floating {
+  position:absolute;
+  right:auto;
+  z-index:260;
+}
+
 .app-select-panel[hidden] {
   display:none;
 }
