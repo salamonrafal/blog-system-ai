@@ -29,6 +29,7 @@ final class ArticleExportFileWriterTest extends TestCase
                 ->setExcerpt('Skrot')
                 ->setHeadlineImage('/assets/img/example.png')
                 ->setHeadlineImageEnabled(false)
+                ->setTableOfContentsEnabled(true)
                 ->setContent('Pelna tresc')
                 ->setStatus(ArticleStatus::PUBLISHED)
                 ->setPublishedAt(new \DateTimeImmutable('2026-03-22 12:00:00', new \DateTimeZone('Europe/Warsaw')));
@@ -63,6 +64,7 @@ final class ArticleExportFileWriterTest extends TestCase
             $this->assertSame('ai', $payload['article'][0]['category_slug']);
             $this->assertSame('published', $payload['article'][0]['status']);
             $this->assertSame('Pelna tresc', $payload['article'][0]['content']);
+            $this->assertTrue($payload['article'][0]['table_of_contents_enabled']);
             $this->assertSame(
                 basename($relativePath, '.json'),
                 sprintf(

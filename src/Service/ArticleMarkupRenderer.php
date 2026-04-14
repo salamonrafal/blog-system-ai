@@ -203,7 +203,7 @@ final class ArticleMarkupRenderer
             $line = $lines[$index];
 
             if (null !== $code) {
-                if (preg_match('/^```/', trim($line))) {
+                if (null !== self::parseCodeFence($line)) {
                     $flushCode();
                 } else {
                     $codeLines[] = $line;
@@ -232,13 +232,14 @@ final class ArticleMarkupRenderer
                 continue;
             }
 
-            if (preg_match('/^```([a-z0-9_-]+)?\s*$/i', trim($line), $matches)) {
+            $codeFenceLanguage = self::parseCodeFence($line);
+            if (null !== $codeFenceLanguage) {
                 $flushParagraph();
                 $flushList();
                 $flushQuote();
                 $flushTable();
                 $flushPreformatted();
-                $code = isset($matches[1]) ? strtolower($matches[1]) : '';
+                $code = $codeFenceLanguage;
 
                 continue;
             }
@@ -388,6 +389,15 @@ final class ArticleMarkupRenderer
         }
 
         return self::renderInline($result);
+    }
+
+    private static function parseCodeFence(string $line): ?string
+    {
+        if (1 !== preg_match('/^ {0,3}```([a-z0-9_-]+)?\s*$/i', $line, $matches)) {
+            return null;
+        }
+
+        return isset($matches[1]) ? strtolower($matches[1]) : '';
     }
 
     /**

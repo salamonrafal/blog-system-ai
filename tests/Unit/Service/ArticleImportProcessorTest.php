@@ -58,6 +58,7 @@ final class ArticleImportProcessorTest extends TestCase
                 'excerpt' => 'Krotki opis',
                 'headline_image' => '/assets/img/example.png',
                 'headline_image_enabled' => true,
+                'table_of_contents_enabled' => true,
                 'content' => 'Pelna tresc',
                 'status' => 'published',
                 'published_at' => '2026-03-23T10:00:00+00:00',
@@ -71,6 +72,7 @@ final class ArticleImportProcessorTest extends TestCase
         $this->assertSame('Importowany artykul', $capturedArticle->getTitle());
         $this->assertSame(ArticleLanguage::EN, $capturedArticle->getLanguage());
         $this->assertSame('importowany-artykul', $capturedArticle->getSlug());
+        $this->assertTrue($capturedArticle->isTableOfContentsEnabled());
         $this->assertSame(ArticleStatus::PUBLISHED, $capturedArticle->getStatus());
         $this->assertSame('2026-03-23 10:00:00', $capturedArticle->getPublishedAt()?->format('Y-m-d H:i:s'));
     }
@@ -101,6 +103,7 @@ final class ArticleImportProcessorTest extends TestCase
                 'excerpt' => null,
                 'headline_image' => null,
                 'headline_image_enabled' => false,
+                'table_of_contents_enabled' => true,
                 'content' => 'Nowa tresc',
                 'status' => 'review',
                 'published_at' => null,
@@ -113,12 +116,48 @@ final class ArticleImportProcessorTest extends TestCase
         $this->assertSame('Nowy tytul', $existingArticle->getTitle());
         $this->assertSame(ArticleLanguage::PL, $existingArticle->getLanguage());
         $this->assertSame('Nowa tresc', $existingArticle->getContent());
+        $this->assertTrue($existingArticle->isTableOfContentsEnabled());
         $this->assertSame(ArticleStatus::REVIEW, $existingArticle->getStatus());
         $this->assertNull($existingArticle->getPublishedAt());
         $this->assertSame(
             $originalCreatedAt->format(\DateTimeInterface::ATOM),
             $existingArticle->getCreatedAt()->format(\DateTimeInterface::ATOM)
         );
+    }
+
+    public function testProcessDefaultsTableOfContentsToFalseWhenFieldIsMissing(): void
+    {
+        $capturedArticle = null;
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager
+            ->expects($this->once())
+            ->method('persist')
+            ->willReturnCallback(static function (Article $article) use (&$capturedArticle): void {
+                $capturedArticle = $article;
+            });
+
+        $repository = $this->createRepositoryMock(null, []);
+        $processor = $this->createProcessor($entityManager, $repository);
+        $queueItem = $this->createQueueItemWithPayload([
+            'format' => 'article-export',
+            'version' => 1,
+            'article' => [[
+                'title' => 'Importowany artykul',
+                'language' => 'en',
+                'slug' => 'importowany-artykul',
+                'excerpt' => 'Krotki opis',
+                'headline_image' => '/assets/img/example.png',
+                'headline_image_enabled' => true,
+                'content' => 'Pelna tresc',
+                'status' => 'published',
+                'published_at' => '2026-03-23T10:00:00+00:00',
+            ]],
+        ]);
+
+        $processor->process($queueItem);
+
+        $this->assertInstanceOf(Article::class, $capturedArticle);
+        $this->assertFalse($capturedArticle->isTableOfContentsEnabled());
     }
 
     public function testProcessThrowsReadableErrorWhenPayloadIsInvalid(): void
@@ -500,6 +539,36 @@ final class ArticleImportProcessorTest extends TestCase
         $processor->process($queueItem);
     }
 
+    public function testProcessThrowsReadableErrorWhenTableOfContentsEnabledIsNotBoolean(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+
+        $repository = $this->createRepositoryMock(null, []);
+        $processor = $this->createProcessor($entityManager, $repository);
+        $queueItem = $this->createQueueItemWithPayload([
+            'format' => 'article-export',
+            'version' => 1,
+            'article' => [[
+                'title' => 'Tytul',
+                'language' => 'pl',
+                'slug' => 'testowy-slug',
+                'excerpt' => null,
+                'headline_image' => null,
+                'headline_image_enabled' => true,
+                'table_of_contents_enabled' => 'yes',
+                'content' => 'Tresc',
+                'status' => 'draft',
+                'published_at' => null,
+            ]],
+        ]);
+
+        $this->expectException(ArticleImportException::class);
+        $this->expectExceptionMessage('Field article[0].table_of_contents_enabled must be true or false.');
+
+        $processor->process($queueItem);
+    }
+
     public function testProcessThrowsReadableErrorWhenPublishedAtHasInvalidType(): void
     {
         $entityManager = $this->createMock(EntityManagerInterface::class);
@@ -596,6 +665,7 @@ final class ArticleImportProcessorTest extends TestCase
             ->setExcerpt('Stary opis')
             ->setHeadlineImage('/assets/img/old.png')
             ->setHeadlineImageEnabled(true)
+            ->setTableOfContentsEnabled(true)
             ->setContent('Stara tresc')
             ->setStatus(ArticleStatus::DRAFT)
             ->setPublishedAt(null);
@@ -616,6 +686,7 @@ final class ArticleImportProcessorTest extends TestCase
                 'excerpt' => 'Nowy opis',
                 'headline_image' => 'ftp://example.com/image.png',
                 'headline_image_enabled' => false,
+                'table_of_contents_enabled' => false,
                 'content' => 'Nowa tresc',
                 'status' => 'published',
                 'published_at' => '2026-03-23T10:00:00+00:00',
@@ -634,6 +705,7 @@ final class ArticleImportProcessorTest extends TestCase
         $this->assertSame('Stary opis', $existingArticle->getExcerpt());
         $this->assertSame('/assets/img/old.png', $existingArticle->getHeadlineImage());
         $this->assertTrue($existingArticle->isHeadlineImageEnabled());
+        $this->assertTrue($existingArticle->isTableOfContentsEnabled());
         $this->assertSame('Stara tresc', $existingArticle->getContent());
         $this->assertSame(ArticleStatus::DRAFT, $existingArticle->getStatus());
         $this->assertNull($existingArticle->getPublishedAt());
