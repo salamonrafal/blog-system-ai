@@ -15,7 +15,7 @@ final class ArticleMarkupRendererTest extends TestCase
 
         $html = $renderer->render("# Tytul\n\nTo jest **pogrubienie**, *kursywa*, ++podkreslenie++ i `kod`.");
 
-        $this->assertStringContainsString('<h1>Tytul</h1>', $html);
+        $this->assertStringContainsString('<h1 id="tytul">Tytul</h1>', $html);
         $this->assertStringContainsString('<strong>pogrubienie</strong>', $html);
         $this->assertStringContainsString('<em>kursywa</em>', $html);
         $this->assertStringContainsString('<u>podkreslenie</u>', $html);
@@ -50,7 +50,27 @@ TEXT);
         $this->assertStringContainsString('<blockquote><p>Cytat testowy</p></blockquote>', $html);
         $this->assertStringContainsString('<a href="https://openai.com" target="_blank" rel="noopener noreferrer">OpenAI</a>', $html);
         $this->assertStringContainsString('<img src="https://example.com/test.png" alt="Alt" loading="lazy">', $html);
-        $this->assertStringContainsString('<pre><code class="language-php">echo &#039;hi&#039;;</code></pre>', $html);
+        $this->assertStringContainsString('<div class="article-code-block">', $html);
+        $this->assertStringContainsString('<div class="article-code-scroll">', $html);
+        $this->assertStringContainsString('<code class="language-php">', $html);
+        $this->assertStringContainsString('<span class="article-code-line-number" aria-hidden="true">1</span>', $html);
+        $this->assertStringContainsString('<span class="article-code-line-content">echo &#039;hi&#039;;</span>', $html);
+    }
+
+    public function testRendersNestedListsWithChildren(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+
+        $html = $renderer->render(<<<'TEXT'
+- Backend
+  - PHP
+  - Symfony
+- Frontend
+  1. HTML
+  2. CSS
+TEXT);
+
+        $this->assertStringContainsString('<ul><li>Backend<ul><li>PHP</li><li>Symfony</li></ul></li><li>Frontend<ol><li>HTML</li><li>CSS</li></ol></li></ul>', $html);
     }
 
     public function testRendersImageWithRootRelativePath(): void
@@ -143,6 +163,30 @@ TEXT);
         $this->assertStringContainsString("<pre class=\"article-preformatted\">linia 1\n  linia 2\n&lt;b&gt;bez html&lt;/b&gt;</pre>", $html);
     }
 
+    public function testRendersCodeBlockWithLineNumbersForEachLine(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+
+        $html = $renderer->render(<<<'TEXT'
+```js
+const value = 1;
+
+console.log(value);
+```
+TEXT);
+
+        $this->assertStringContainsString('<div class="article-code-block">', $html);
+        $this->assertStringContainsString('<div class="article-code-scroll">', $html);
+        $this->assertStringContainsString('<code class="language-js">', $html);
+        $this->assertStringContainsString('<span class="article-code-line-number" aria-hidden="true">1</span>', $html);
+        $this->assertStringContainsString('<span class="article-code-line-content">const value = 1;</span>', $html);
+        $this->assertStringContainsString('<span class="article-code-line-number" aria-hidden="true">2</span>', $html);
+        $this->assertStringContainsString('<span class="article-code-line-content"></span>', $html);
+        $this->assertStringContainsString('<span class="article-code-line-number" aria-hidden="true">3</span>', $html);
+        $this->assertStringContainsString('<span class="article-code-line-content">console.log(value);</span>', $html);
+        $this->assertStringContainsString("</span>\n<span class=\"article-code-line\">", $html);
+    }
+
     public function testRendersForcedLineBreakSeparatorAndTable(): void
     {
         $renderer = new ArticleMarkupRenderer();
@@ -179,6 +223,25 @@ TEXT);
         $this->assertStringContainsString('<p>Po tabeli<br>Druga linia</p>', $html);
     }
 
+    public function testKeepsTableBeforeParagraphWithoutBlankLineAfterTable(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+
+        $html = $renderer->render(<<<'TEXT'
+| Kolumna A | Kolumna B |
+| --- | --- |
+| Wartosc 1 | Wartosc 2 |
+Po tabeli bez pustej linii
+TEXT);
+
+        $table = '<div class="article-table-wrap"><table><thead><tr><th>Kolumna A</th><th>Kolumna B</th></tr></thead><tbody><tr><td>Wartosc 1</td><td>Wartosc 2</td></tr></tbody></table></div>';
+        $paragraph = '<p>Po tabeli bez pustej linii</p>';
+
+        $this->assertStringContainsString($table, $html);
+        $this->assertStringContainsString($paragraph, $html);
+        $this->assertLessThan(strpos($html, $paragraph), strpos($html, $table));
+    }
+
     public function testPreservesLeadingForcedLineBreaksAfterTable(): void
     {
         $renderer = new ArticleMarkupRenderer();
@@ -210,5 +273,156 @@ TEXT);
         $this->assertStringContainsString('&lt;script&gt;alert(&#039;x&#039;)&lt;/script&gt;', $html);
         $this->assertStringNotContainsString('<script>', $html);
         $this->assertStringContainsString('<strong>bezpieczne</strong>', $html);
+    }
+
+    public function testExtractsTableOfContentsUpToHeadingLevelFourWithUniqueAnchors(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+
+        $toc = $renderer->extractTableOfContents(<<<'TEXT'
+# Start
+## Rozdzial
+#### Detal
+##### Pomijany
+## Rozdzial
+
+```md
+## Ignorowany
+```
+TEXT);
+
+        $this->assertSame([
+            ['id' => 'start', 'level' => 1, 'title' => 'Start'],
+            ['id' => 'rozdzial', 'level' => 2, 'title' => 'Rozdzial'],
+            ['id' => 'detal', 'level' => 4, 'title' => 'Detal'],
+            ['id' => 'rozdzial-2', 'level' => 2, 'title' => 'Rozdzial'],
+        ], $toc);
+    }
+
+    public function testKeepsTableOfContentsAnchorsInSyncWithRenderedHeadingsWhenSkippedLevelsReuseTitle(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+        $input = <<<'TEXT'
+##### Intro
+## Intro
+####### Intro
+## Intro
+TEXT;
+
+        $toc = $renderer->extractTableOfContents($input);
+        $html = $renderer->render($input);
+
+        $this->assertSame([
+            ['id' => 'intro-2', 'level' => 2, 'title' => 'Intro'],
+            ['id' => 'intro-3', 'level' => 2, 'title' => 'Intro'],
+        ], $toc);
+        $this->assertStringContainsString('<h5 id="intro">Intro</h5>', $html);
+        $this->assertStringContainsString('<h2 id="intro-2">Intro</h2>', $html);
+        $this->assertStringContainsString('<h2 id="intro-3">Intro</h2>', $html);
+        $this->assertStringContainsString('<p class="article-heading-7">Intro</p>', $html);
+    }
+
+    public function testNormalizesInlineFormattingInTableOfContentsTitles(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+
+        $toc = $renderer->extractTableOfContents(<<<'TEXT'
+## **Bold** *Italic* `code` ++Underline++
+TEXT);
+
+        $this->assertSame([
+            [
+                'id' => 'bold-italic-code-underline',
+                'level' => 2,
+                'title' => 'Bold Italic code Underline',
+            ],
+        ], $toc);
+    }
+
+    public function testGeneratesStableHeadingAnchorFromVisibleLinkTextInsteadOfLinkUrl(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+
+        $firstInput = '## [API](https://docs.example.com/v1)';
+        $secondInput = '## [API](https://docs.example.com/v2)';
+
+        $firstHtml = $renderer->render($firstInput);
+        $secondHtml = $renderer->render($secondInput);
+        $firstToc = $renderer->extractTableOfContents($firstInput);
+        $secondToc = $renderer->extractTableOfContents($secondInput);
+
+        $this->assertStringContainsString('<h2 id="api"><a href="https://docs.example.com/v1" target="_blank" rel="noopener noreferrer">API</a></h2>', $firstHtml);
+        $this->assertStringContainsString('<h2 id="api"><a href="https://docs.example.com/v2" target="_blank" rel="noopener noreferrer">API</a></h2>', $secondHtml);
+        $this->assertSame([
+            ['id' => 'api', 'level' => 2, 'title' => 'API'],
+        ], $firstToc);
+        $this->assertSame([
+            ['id' => 'api', 'level' => 2, 'title' => 'API'],
+        ], $secondToc);
+    }
+
+    public function testClosesIndentedCodeFenceAndContinuesParsingFollowingHeadings(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+        $input = <<<'TEXT'
+```php
+echo 'one';
+  ```
+## Dalej
+TEXT;
+
+        $html = $renderer->render($input);
+        $toc = $renderer->extractTableOfContents($input);
+
+        $this->assertStringContainsString('<div class="article-code-block">', $html);
+        $this->assertStringContainsString('<div class="article-code-scroll">', $html);
+        $this->assertStringContainsString('<code class="language-php">', $html);
+        $this->assertStringContainsString('<span class="article-code-line-content">echo &#039;one&#039;;</span>', $html);
+        $this->assertStringContainsString('<h2 id="dalej">Dalej</h2>', $html);
+        $this->assertSame([
+            ['id' => 'dalej', 'level' => 2, 'title' => 'Dalej'],
+        ], $toc);
+    }
+
+    public function testKeepsDeeplyIndentedTripleBackticksLiteralInsideCodeBlock(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+        $input = <<<'TEXT'
+```md
+Przed
+    ```
+Po
+```
+
+Tekst po bloku
+TEXT;
+
+        $html = $renderer->render($input);
+
+        $this->assertStringContainsString('<span class="article-code-line-content">Przed</span>', $html);
+        $this->assertStringContainsString('<span class="article-code-line-content">    ```</span>', $html);
+        $this->assertStringContainsString('<span class="article-code-line-content">Po</span>', $html);
+        $this->assertStringContainsString('<p>Tekst po bloku</p>', $html);
+    }
+
+    public function testLevelSevenHeadingDoesNotConsumeAnchorNumbering(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+        $input = <<<'TEXT'
+####### Intro
+## Intro
+## Intro
+TEXT;
+
+        $html = $renderer->render($input);
+        $toc = $renderer->extractTableOfContents($input);
+
+        $this->assertStringContainsString('<p class="article-heading-7">Intro</p>', $html);
+        $this->assertStringContainsString('<h2 id="intro">Intro</h2>', $html);
+        $this->assertStringContainsString('<h2 id="intro-2">Intro</h2>', $html);
+        $this->assertSame([
+            ['id' => 'intro', 'level' => 2, 'title' => 'Intro'],
+            ['id' => 'intro-2', 'level' => 2, 'title' => 'Intro'],
+        ], $toc);
     }
 }

@@ -4,6 +4,52 @@ import { qs, qsa } from './shared.js';
 const customSelectRegistry = new WeakMap();
 let documentClickHandlerRegistered = false;
 let customSelectInstanceCounter = 0;
+let floatingPanelSyncFrame = 0;
+let floatingPanelListenersRegistered = false;
+
+function getOpenCustomSelectInstances(){
+  return qsa('.app-select.is-open')
+    .map((openSelect)=> {
+      const select = qs('select.article-editor-select', openSelect);
+      return select instanceof HTMLSelectElement ? customSelectRegistry.get(select) : null;
+    })
+    .filter(Boolean);
+}
+
+function syncFloatingCustomSelectPanels(){
+  floatingPanelSyncFrame = 0;
+  getOpenCustomSelectInstances().forEach((instance)=> instance.updateFloatingPanelPosition());
+}
+
+function scheduleFloatingCustomSelectPanelsSync(){
+  if(0 !== floatingPanelSyncFrame) return;
+  floatingPanelSyncFrame = window.requestAnimationFrame(syncFloatingCustomSelectPanels);
+}
+
+function handleFloatingPanelViewportChange(){
+  scheduleFloatingCustomSelectPanelsSync();
+}
+
+function updateFloatingPanelListeners(){
+  const hasOpenPanels = getOpenCustomSelectInstances().some((instance)=> instance.isFloatingPanelActive());
+
+  if(hasOpenPanels && !floatingPanelListenersRegistered){
+    window.addEventListener('resize', handleFloatingPanelViewportChange);
+    window.addEventListener('scroll', handleFloatingPanelViewportChange, true);
+    floatingPanelListenersRegistered = true;
+    return;
+  }
+
+  if(!hasOpenPanels && floatingPanelListenersRegistered){
+    window.removeEventListener('resize', handleFloatingPanelViewportChange);
+    window.removeEventListener('scroll', handleFloatingPanelViewportChange, true);
+    if(0 !== floatingPanelSyncFrame){
+      window.cancelAnimationFrame(floatingPanelSyncFrame);
+      floatingPanelSyncFrame = 0;
+    }
+    floatingPanelListenersRegistered = false;
+  }
+}
 
 function isEnhanceableSelect(select){
   return select instanceof HTMLSelectElement
@@ -130,12 +176,68 @@ function createCustomSelect(select){
     trigger.removeAttribute('aria-activedescendant');
   };
 
+  let floatingPanelOriginalParent = null;
+  let floatingPanelOriginalNextSibling = null;
+
+  const isFloatingPanelActive = ()=> panel.classList.contains('is-floating');
+
+  const updateFloatingPanelPosition = ()=>{
+    if(!isFloatingPanelActive()) return;
+
+    const triggerRect = trigger.getBoundingClientRect();
+    const panelRect = panel.getBoundingClientRect();
+    const viewportPadding = 12;
+    const minimumWidth = triggerRect.width;
+    const preferredWidth = Math.max(panelRect.width, minimumWidth);
+    const maxWidth = Math.max(minimumWidth, window.innerWidth - (viewportPadding * 2));
+    const width = Math.min(preferredWidth, maxWidth);
+    const maxLeft = window.scrollX + window.innerWidth - width - viewportPadding;
+    const left = Math.max(window.scrollX + viewportPadding, Math.min(window.scrollX + triggerRect.left, maxLeft));
+    const availableHeight = Math.max(160, window.innerHeight - triggerRect.bottom - 20);
+
+    panel.style.width = `${width}px`;
+    panel.style.left = `${left}px`;
+    panel.style.top = `${window.scrollY + triggerRect.bottom + 8}px`;
+    panel.style.maxHeight = `${Math.min(320, availableHeight)}px`;
+  };
+
+  const floatPanel = ()=>{
+    if(isFloatingPanelActive()) return;
+
+    floatingPanelOriginalParent = panel.parentElement;
+    floatingPanelOriginalNextSibling = panel.nextSibling;
+    panel.classList.add('is-floating');
+    document.body.appendChild(panel);
+    updateFloatingPanelListeners();
+    updateFloatingPanelPosition();
+  };
+
+  const restorePanel = ()=>{
+    if(!isFloatingPanelActive() || !floatingPanelOriginalParent) return;
+
+    if(floatingPanelOriginalNextSibling && floatingPanelOriginalNextSibling.parentNode === floatingPanelOriginalParent){
+      floatingPanelOriginalParent.insertBefore(panel, floatingPanelOriginalNextSibling);
+    }else{
+      floatingPanelOriginalParent.appendChild(panel);
+    }
+
+    panel.classList.remove('is-floating');
+    panel.style.removeProperty('width');
+    panel.style.removeProperty('left');
+    panel.style.removeProperty('top');
+    panel.style.removeProperty('max-height');
+    floatingPanelOriginalParent = null;
+    floatingPanelOriginalNextSibling = null;
+    updateFloatingPanelListeners();
+  };
+
   const close = ()=>{
     wrapper.classList.remove('is-open');
     panel.hidden = true;
     trigger.setAttribute('aria-expanded', 'false');
     qsa('.app-select-option.is-active', panel).forEach((option)=> option.classList.remove('is-active'));
     syncActiveDescendant();
+    restorePanel();
   };
 
   const open = ()=>{
@@ -143,6 +245,7 @@ function createCustomSelect(select){
     wrapper.classList.add('is-open');
     panel.hidden = false;
     trigger.setAttribute('aria-expanded', 'true');
+    floatPanel();
   };
 
   const sync = ()=>{
@@ -281,7 +384,14 @@ function createCustomSelect(select){
   select.addEventListener('change', sync);
   select.addEventListener('custom-select:sync', sync);
 
-  const instance = { sync, close };
+  const instance = {
+    close,
+    isFloatingPanelActive,
+    panel,
+    sync,
+    updateFloatingPanelPosition,
+    wrapper,
+  };
   customSelectRegistry.set(select, instance);
   sync();
 
@@ -298,7 +408,9 @@ function registerDocumentClickHandler(){
       const select = qs('select.article-editor-select', openSelect);
       if(!(select instanceof HTMLSelectElement)) return;
 
-      customSelectRegistry.get(select)?.close();
+      const instance = customSelectRegistry.get(select);
+      if(instance?.panel?.contains(event.target)) return;
+      instance?.close();
     });
   });
 

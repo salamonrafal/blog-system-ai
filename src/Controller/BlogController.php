@@ -13,6 +13,7 @@ use App\Enum\ArticleStatus;
 use App\Repository\ArticleCategoryRepository;
 use App\Repository\ArticleKeywordRepository;
 use App\Repository\ArticleRepository;
+use App\Service\ArticleMarkupRenderer;
 use App\Service\BlogSettingsProvider;
 use App\Service\PaginationBuilder;
 use App\Service\UserLanguageResolver;
@@ -100,6 +101,7 @@ class BlogController extends AbstractController
         string $slug,
         ArticleRepository $articleRepository,
         UserLanguageResolver $userLanguageResolver,
+        ArticleMarkupRenderer $articleMarkupRenderer,
     ): Response
     {
         $article = $articleRepository->findOneBySlug($slug);
@@ -129,12 +131,16 @@ class BlogController extends AbstractController
         }
 
         $recommendedArticles = $articleRepository->findRecommendedPublished($article);
+        $tableOfContents = $article->isTableOfContentsEnabled()
+            ? $articleMarkupRenderer->extractTableOfContents($article->getContent())
+            : [];
 
         return $this->render('blog/show.html.twig', [
             'article' => $article,
             'article_category_route_params' => $articleCategoryRouteParams,
             'article_keywords' => $articleKeywordLinks,
             'recommended_articles' => $recommendedArticles,
+            'table_of_contents' => $tableOfContents,
         ]);
     }
 

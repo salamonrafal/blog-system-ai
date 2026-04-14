@@ -72,6 +72,9 @@ final class ArticleTypeTest extends TestCase
         $this->assertSame(16, $form->get('content')->getConfig()->getOption('attr')['rows']);
         $this->assertSame('', $form->get('content')->getConfig()->getOption('empty_data'));
 
+        $this->assertInstanceOf(CheckboxType::class, $form->get('tableOfContentsEnabled')->getConfig()->getType()->getInnerType());
+        $this->assertFalse($form->get('tableOfContentsEnabled')->getConfig()->getOption('required'));
+
         $this->assertInstanceOf(EnumType::class, $form->get('status')->getConfig()->getType()->getInnerType());
         $this->assertSame(ArticleStatus::class, $form->get('status')->getConfig()->getOption('class'));
 

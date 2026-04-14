@@ -88,6 +88,11 @@ class ArticleType extends AbstractType
                 'empty_data' => '',
                 'attr' => ['rows' => 16],
             ])
+            ->add('tableOfContentsEnabled', CheckboxType::class, [
+                'label' => 'Generate table of contents',
+                'label_attr' => ['data-i18n' => 'form_table_of_contents_enabled'],
+                'required' => false,
+            ])
             ->add('status', EnumType::class, [
                 'class' => ArticleStatus::class,
                 'choice_label' => static fn (ArticleStatus $status): string => $status->label(),

@@ -78,6 +78,7 @@ class ArticleExportFileWriter
             'excerpt' => $article->getExcerpt(),
             'headline_image' => $article->getHeadlineImage(),
             'headline_image_enabled' => $article->isHeadlineImageEnabled(),
+            'table_of_contents_enabled' => $article->isTableOfContentsEnabled(),
             'content' => $article->getContent(),
             'status' => $article->getStatus()->value,
             'published_at' => $article->getPublishedAt()?->format(\DateTimeInterface::ATOM),

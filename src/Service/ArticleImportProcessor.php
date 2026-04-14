@@ -110,6 +110,9 @@ class ArticleImportProcessor
         $excerpt = $this->optionalString($articleData, 'excerpt');
         $headlineImage = $this->optionalString($articleData, 'headline_image');
         $headlineImageEnabled = $this->parseBoolean($articleData['headline_image_enabled'] ?? null, 'headline_image_enabled', $index);
+        $tableOfContentsEnabled = array_key_exists('table_of_contents_enabled', $articleData)
+            ? $this->parseBoolean($articleData['table_of_contents_enabled'], 'table_of_contents_enabled', $index)
+            : $draftArticle->isTableOfContentsEnabled();
         $publishedAt = $this->parseNullableDateTime($articleData['published_at'] ?? null, 'published_at', $index);
 
         $draftArticle
@@ -119,6 +122,7 @@ class ArticleImportProcessor
             ->setExcerpt($excerpt)
             ->setHeadlineImage($headlineImage)
             ->setHeadlineImageEnabled($headlineImageEnabled)
+            ->setTableOfContentsEnabled($tableOfContentsEnabled)
             ->setContent($content)
             ->setStatus($status)
             ->setPublishedAt($publishedAt);
@@ -147,6 +151,7 @@ class ArticleImportProcessor
             ->setExcerpt($draftArticle->getExcerpt())
             ->setHeadlineImage($draftArticle->getHeadlineImage())
             ->setHeadlineImageEnabled($draftArticle->isHeadlineImageEnabled())
+            ->setTableOfContentsEnabled($draftArticle->isTableOfContentsEnabled())
             ->setContent($draftArticle->getContent())
             ->setStatus($draftArticle->getStatus())
             ->setPublishedAt($draftArticle->getPublishedAt());
