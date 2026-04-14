@@ -160,6 +160,49 @@ final class ArticleImportProcessorTest extends TestCase
         $this->assertFalse($capturedArticle->isTableOfContentsEnabled());
     }
 
+    public function testProcessPreservesExistingTableOfContentsSettingWhenFieldIsMissing(): void
+    {
+        $existingArticle = (new Article())
+            ->setTitle('Stary tytul')
+            ->setLanguage(ArticleLanguage::PL)
+            ->setSlug('importowany-artykul')
+            ->setExcerpt('Stary opis')
+            ->setHeadlineImage('/assets/img/old.png')
+            ->setHeadlineImageEnabled(true)
+            ->setTableOfContentsEnabled(true)
+            ->setContent('Stara tresc')
+            ->setStatus(ArticleStatus::DRAFT)
+            ->setPublishedAt(null);
+        $this->setEntityId($existingArticle, 10);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+
+        $repository = $this->createRepositoryMock($existingArticle, []);
+        $processor = $this->createProcessor($entityManager, $repository);
+        $queueItem = $this->createQueueItemWithPayload([
+            'format' => 'article-export',
+            'version' => 1,
+            'article' => [[
+                'title' => 'Nowy tytul',
+                'language' => 'pl',
+                'slug' => 'importowany-artykul',
+                'excerpt' => null,
+                'headline_image' => null,
+                'headline_image_enabled' => false,
+                'content' => 'Nowa tresc',
+                'status' => 'review',
+                'published_at' => null,
+            ]],
+        ]);
+
+        $processor->process($queueItem);
+
+        $this->assertTrue($existingArticle->isTableOfContentsEnabled());
+        $this->assertSame('Nowy tytul', $existingArticle->getTitle());
+        $this->assertSame(ArticleStatus::REVIEW, $existingArticle->getStatus());
+    }
+
     public function testProcessThrowsReadableErrorWhenPayloadIsInvalid(): void
     {
         $entityManager = $this->createMock(EntityManagerInterface::class);
