@@ -362,6 +362,27 @@ TEXT;
         ], $toc);
     }
 
+    public function testKeepsDeeplyIndentedTripleBackticksLiteralInsideCodeBlock(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+        $input = <<<'TEXT'
+```md
+Przed
+    ```
+Po
+```
+
+Tekst po bloku
+TEXT;
+
+        $html = $renderer->render($input);
+
+        $this->assertStringContainsString('<span class="article-code-line-content">Przed</span>', $html);
+        $this->assertStringContainsString('<span class="article-code-line-content">    ```</span>', $html);
+        $this->assertStringContainsString('<span class="article-code-line-content">Po</span>', $html);
+        $this->assertStringContainsString('<p>Tekst po bloku</p>', $html);
+    }
+
     public function testLevelSevenHeadingDoesNotConsumeAnchorNumbering(): void
     {
         $renderer = new ArticleMarkupRenderer();
