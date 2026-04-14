@@ -17,6 +17,7 @@ export function createSwitchButton({
   button.setAttribute('data-tooltip', getTranslation(tooltipKey));
   button.setAttribute('aria-label', getTranslation(tooltipKey));
   button.setAttribute('aria-checked', checked ? 'true' : 'false');
+  button.classList.toggle('is-active', checked);
 
   const slider = document.createElement('span');
   slider.className = 'app-switch-slider';
