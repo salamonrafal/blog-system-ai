@@ -569,6 +569,36 @@ final class ArticleImportProcessorTest extends TestCase
         $processor->process($queueItem);
     }
 
+    public function testProcessThrowsReadableErrorWhenTableOfContentsEnabledIsNull(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('persist');
+
+        $repository = $this->createRepositoryMock(null, []);
+        $processor = $this->createProcessor($entityManager, $repository);
+        $queueItem = $this->createQueueItemWithPayload([
+            'format' => 'article-export',
+            'version' => 1,
+            'article' => [[
+                'title' => 'Tytul',
+                'language' => 'pl',
+                'slug' => 'testowy-slug',
+                'excerpt' => null,
+                'headline_image' => null,
+                'headline_image_enabled' => true,
+                'table_of_contents_enabled' => null,
+                'content' => 'Tresc',
+                'status' => 'draft',
+                'published_at' => null,
+            ]],
+        ]);
+
+        $this->expectException(ArticleImportException::class);
+        $this->expectExceptionMessage('Field article[0].table_of_contents_enabled must be true or false.');
+
+        $processor->process($queueItem);
+    }
+
     public function testProcessThrowsReadableErrorWhenPublishedAtHasInvalidType(): void
     {
         $entityManager = $this->createMock(EntityManagerInterface::class);
