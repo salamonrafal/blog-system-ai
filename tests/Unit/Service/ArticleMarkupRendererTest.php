@@ -339,6 +339,28 @@ TEXT);
         ], $toc);
     }
 
+    public function testGeneratesStableHeadingAnchorFromVisibleLinkTextInsteadOfLinkUrl(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+
+        $firstInput = '## [API](https://docs.example.com/v1)';
+        $secondInput = '## [API](https://docs.example.com/v2)';
+
+        $firstHtml = $renderer->render($firstInput);
+        $secondHtml = $renderer->render($secondInput);
+        $firstToc = $renderer->extractTableOfContents($firstInput);
+        $secondToc = $renderer->extractTableOfContents($secondInput);
+
+        $this->assertStringContainsString('<h2 id="api"><a href="https://docs.example.com/v1" target="_blank" rel="noopener noreferrer">API</a></h2>', $firstHtml);
+        $this->assertStringContainsString('<h2 id="api"><a href="https://docs.example.com/v2" target="_blank" rel="noopener noreferrer">API</a></h2>', $secondHtml);
+        $this->assertSame([
+            ['id' => 'api', 'level' => 2, 'title' => 'API'],
+        ], $firstToc);
+        $this->assertSame([
+            ['id' => 'api', 'level' => 2, 'title' => 'API'],
+        ], $secondToc);
+    }
+
     public function testClosesIndentedCodeFenceAndContinuesParsingFollowingHeadings(): void
     {
         $renderer = new ArticleMarkupRenderer();
