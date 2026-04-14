@@ -313,11 +313,12 @@ final class ArticleMarkupRenderer
                 if (7 === $level) {
                     $blocks[] = '<p class="article-heading-7">'.$content.'</p>';
                 } else {
-                    $anchor = self::createUniqueHeadingAnchor($heading['title'], $usedHeadingAnchors);
+                    $normalizedHeadingTitle = self::normalizeHeadingTitleForTableOfContents($heading['title']);
+                    $anchor = self::createUniqueHeadingAnchor($normalizedHeadingTitle, $usedHeadingAnchors);
                     $headings[] = [
                         'id' => $anchor,
                         'level' => $level,
-                        'title' => self::normalizeHeadingTitleForTableOfContents($heading['title']),
+                        'title' => $normalizedHeadingTitle,
                     ];
                     $blocks[] = sprintf('<h%d id="%s">%s</h%d>', $level, $anchor, $content, $level);
                 }
