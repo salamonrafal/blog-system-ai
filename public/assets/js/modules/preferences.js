@@ -70,10 +70,16 @@ function buildCookieString(name, value, { domain = null } = {}){
   return `${name}=${encodeURIComponent(value)}; Max-Age=${COOKIE_MAX_AGE}; Path=/; SameSite=Lax${domainAttribute}${secure}`;
 }
 
+function clearCookie(name, { domain = null } = {}){
+  document.cookie = buildCookieString(name, '', { domain }).replace(`Max-Age=${COOKIE_MAX_AGE}`, 'Max-Age=0');
+}
+
 function persistCookie(name, value, { shareAcrossSubdomains = false } = {}){
   const domain = shareAcrossSubdomains ? getPreferenceCookieDomain() : null;
   if(domain){
     document.cookie = buildCookieString(name, value, { domain });
+    clearCookie(name);
+    return;
   }
 
   document.cookie = buildCookieString(name, value);
