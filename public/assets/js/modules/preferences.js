@@ -7,6 +7,7 @@ const USER_LANGUAGE_COOKIE_NAME = 'user_language';
 const USER_THEME_COOKIE_NAME = 'user_theme';
 const USER_ACCENT_COOKIE_NAME = 'user_accent';
 const USER_TIMEZONE_COOKIE_NAME = 'user_timezone';
+const SHARED_COOKIE_DOMAIN_STORAGE_KEY_PREFIX = 'shared_cookie_domain:';
 const COOKIE_MAX_AGE = 31536000;
 const DEFAULT_THEME = 'dark';
 const DEFAULT_ACCENT = '#39ff14';
@@ -74,12 +75,50 @@ function clearCookie(name, { domain = null } = {}){
   document.cookie = buildCookieString(name, '', { domain, maxAge: 0 });
 }
 
+function getSharedCookieDomainStorageKey(name){
+  return `${SHARED_COOKIE_DOMAIN_STORAGE_KEY_PREFIX}${name}`;
+}
+
+function readLastSharedCookieDomain(name){
+  try{
+    const storedDomain = localStorage.getItem(getSharedCookieDomainStorageKey(name));
+    return typeof storedDomain === 'string' && storedDomain.trim() !== '' ? storedDomain.trim() : null;
+  }catch(err){
+    return null;
+  }
+}
+
+function writeLastSharedCookieDomain(name, domain){
+  try{
+    const storageKey = getSharedCookieDomainStorageKey(name);
+    if(typeof domain === 'string' && domain.trim() !== ''){
+      localStorage.setItem(storageKey, domain.trim());
+      return;
+    }
+
+    localStorage.removeItem(storageKey);
+  }catch(err){
+  }
+}
+
 function persistCookie(name, value, { shareAcrossSubdomains = false } = {}){
   const domain = shareAcrossSubdomains ? getPreferenceCookieDomain() : null;
+  const lastKnownDomain = shareAcrossSubdomains ? readLastSharedCookieDomain(name) : null;
+
   if(domain){
+    if(lastKnownDomain && lastKnownDomain !== domain){
+      clearCookie(name, { domain: lastKnownDomain });
+    }
+
     document.cookie = buildCookieString(name, value, { domain });
+    writeLastSharedCookieDomain(name, domain);
     clearCookie(name);
     return;
+  }
+
+  if(lastKnownDomain){
+    clearCookie(name, { domain: lastKnownDomain });
+    writeLastSharedCookieDomain(name, null);
   }
 
   document.cookie = buildCookieString(name, value);
