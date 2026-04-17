@@ -88,6 +88,50 @@
                 {% endif %}
             </div>
 
+            {% set cookie_domain_has_errors = form.preferenceCookieDomainOverride.vars.errors|length > 0 %}
+            {% set cookie_domain_counter_id = form.preferenceCookieDomainOverride.vars.id ~ '-char-count' %}
+            {% set cookie_domain_hint_id = form.preferenceCookieDomainOverride.vars.id ~ '-hint' %}
+            {% set cookie_domain_described_by = cookie_domain_hint_id ~ ' ' ~ cookie_domain_counter_id ~ (cookie_domain_has_errors ? ' ' ~ form.preferenceCookieDomainOverride.vars.id ~ '-error' : '') %}
+            <div class="field article-editor-field blog-settings-inline-field blog-settings-inline-field-with-counter{{ cookie_domain_has_errors ? ' has-error' : '' }}">
+                <div class="blog-settings-inline-field-copy">
+                    <div class="blog-settings-label-row">
+                        {{ form_label(form.preferenceCookieDomainOverride) }}
+                        <button
+                            type="button"
+                            class="article-keyword-help-trigger"
+                            data-i18n-tooltip="blog_settings_preference_cookie_domain_hint"
+                            data-i18n-aria="blog_settings_preference_cookie_domain_hint_aria"
+                            data-tooltip="Opcjonalnie podaj domenę cookie współdzieloną między subdomenami, np. .example.com. Zostaw puste, aby użyć bezpiecznego fallbacku host-only."
+                            data-tooltip-wide="true"
+                            data-tooltip-wrap="true"
+                            aria-label="Pomoc do pola domeny cookie preferencji"
+                        >?</button>
+                    </div>
+                    <span id="{{ cookie_domain_hint_id }}" class="sr-only" data-i18n="blog_settings_preference_cookie_domain_hint">Opcjonalnie podaj domenę cookie współdzieloną między subdomenami, np. .example.com. Zostaw puste, aby użyć bezpiecznego fallbacku host-only.</span>
+                </div>
+                <div class="blog-settings-input-stack">
+                    <div class="blog-settings-input-row">
+                        {{ form_widget(form.preferenceCookieDomainOverride, { attr: {
+                            class: 'article-editor-input',
+                            placeholder: '.example.com',
+                            'data-i18n-placeholder': 'blog_settings_preference_cookie_domain_placeholder',
+                            'data-character-count-input': 'true',
+                            'aria-describedby': cookie_domain_described_by
+                        }|merge(cookie_domain_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
+                        <div class="article-editor-field-meta">
+                            <span id="{{ cookie_domain_counter_id }}" class="article-editor-character-count" data-character-count-target>{{ form.preferenceCookieDomainOverride.vars.value|default('')|length }} / {{ form.preferenceCookieDomainOverride.vars.attr.maxlength }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% if cookie_domain_has_errors %}
+                    <div id="{{ form.preferenceCookieDomainOverride.vars.id }}-error" class="article-editor-error-message" role="alert">
+                        {% for error in form.preferenceCookieDomainOverride.vars.errors %}
+                            {% include 'admin/_validation_error.html.twig' with { error: error } %}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
             {% set description_has_errors = form.homepageSeoDescription.vars.errors|length > 0 %}
             {% set description_counter_id = form.homepageSeoDescription.vars.id ~ '-char-count' %}
             {% set description_described_by = description_counter_id ~ (description_has_errors ? ' ' ~ form.homepageSeoDescription.vars.id ~ '-error' : '') %}

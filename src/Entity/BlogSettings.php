@@ -19,6 +19,7 @@ class BlogSettings
     public const DEFAULT_SEO_DESCRIPTION = 'Blog o programowaniu, technologii i praktyce tworzenia produktów. Artykuły o PHP, web developmencie, architekturze aplikacji i jakości kodu.';
     public const DEFAULT_SOCIAL_IMAGE = 'https://www.salamonrafal.pl/assets/img/profile.jpg';
     public const DEFAULT_SEO_KEYWORDS = 'blog, programowanie, php, web development, architektura aplikacji, seo, jakość kodu';
+    public const DEFAULT_PREFERENCE_COOKIE_DOMAIN = '.salamonrafal.pl';
     public const DEFAULT_ARTICLES_PER_PAGE = 5;
     public const DEFAULT_ADMIN_LISTING_ITEMS_PER_PAGE = 25;
     public const DEFAULT_RECOMMENDED_ARTICLES_LIMIT = 5;
@@ -42,6 +43,10 @@ class BlogSettings
     #[Assert\Length(max: 255, maxMessage: 'validation_blog_settings_blog_title_too_long')]
     #[ORM\Column(length: 255)]
     private string $blogTitle = self::DEFAULT_BLOG_TITLE;
+
+    #[Assert\Length(max: 255, maxMessage: 'validation_blog_settings_preference_cookie_domain_too_long')]
+    #[ORM\Column(name: 'preference_cookie_domain', length: 255, nullable: true)]
+    private ?string $preferenceCookieDomainOverride = null;
 
     #[Assert\NotBlank(message: 'validation_blog_settings_homepage_seo_description_required')]
     #[Assert\Length(max: 320, maxMessage: 'validation_blog_settings_homepage_seo_description_too_long')]
@@ -147,6 +152,41 @@ class BlogSettings
         return $this->appUrl.$this->homepageSocialImage;
     }
 
+    public function getPreferenceCookieDomain(): ?string
+    {
+        if (null !== $this->preferenceCookieDomainOverride) {
+            return $this->preferenceCookieDomainOverride;
+        }
+
+        if (self::DEFAULT_APP_URL === $this->appUrl) {
+            return self::DEFAULT_PREFERENCE_COOKIE_DOMAIN;
+        }
+
+        $host = $this->getAppHost();
+        if (null === $host || self::isLocalHost($host) || false !== filter_var($host, \FILTER_VALIDATE_IP)) {
+            return null;
+        }
+
+        $segments = array_values(array_filter(explode('.', $host), static fn (string $segment): bool => '' !== trim($segment)));
+        if (2 !== count($segments)) {
+            return null;
+        }
+
+        return '.'.implode('.', $segments);
+    }
+
+    public function getPreferenceCookieDomainOverride(): ?string
+    {
+        return $this->preferenceCookieDomainOverride;
+    }
+
+    public function setPreferenceCookieDomainOverride(?string $preferenceCookieDomain): self
+    {
+        $this->preferenceCookieDomainOverride = self::normalizeCookieDomain($preferenceCookieDomain);
+
+        return $this;
+    }
+
     public function getHomepageSeoKeywords(): string
     {
         return $this->homepageSeoKeywords;
@@ -237,5 +277,81 @@ class BlogSettings
                 ->atPath('appUrl')
                 ->addViolation();
         }
+    }
+
+    #[Assert\Callback]
+    public function validatePreferenceCookieDomain(ExecutionContextInterface $context): void
+    {
+        if (null === $this->preferenceCookieDomainOverride) {
+            return;
+        }
+
+        $domain = ltrim($this->preferenceCookieDomainOverride, '.');
+        if (
+            '' === $domain
+            || !str_contains($domain, '.')
+            || str_contains($domain, '..')
+            || self::isLocalHost($domain)
+            || false !== filter_var($domain, \FILTER_VALIDATE_IP)
+            || !self::hasValidCookieDomainSyntax($domain)
+        ) {
+            $context
+                ->buildViolation('validation_blog_settings_preference_cookie_domain_invalid')
+                ->atPath('preferenceCookieDomainOverride')
+                ->addViolation();
+        }
+    }
+
+    private function getAppHost(): ?string
+    {
+        $host = parse_url($this->appUrl, \PHP_URL_HOST);
+
+        if (!is_string($host) || '' === trim($host)) {
+            return null;
+        }
+
+        $normalizedHost = rtrim(strtolower(trim($host)), '.');
+        if ('' === $normalizedHost || !str_contains($normalizedHost, '.')) {
+            return null;
+        }
+
+        return $normalizedHost;
+    }
+
+    private static function normalizeCookieDomain(?string $domain): ?string
+    {
+        if (null === $domain) {
+            return null;
+        }
+
+        $normalizedDomain = rtrim(strtolower(trim($domain)), '.');
+        if ('' === $normalizedDomain) {
+            return null;
+        }
+
+        return '.'.ltrim($normalizedDomain, '.');
+    }
+
+    private static function hasValidCookieDomainSyntax(string $domain): bool
+    {
+        if (!preg_match('/^[a-z0-9.-]+$/', $domain)) {
+            return false;
+        }
+
+        $labels = explode('.', $domain);
+        foreach ($labels as $label) {
+            if ('' === $label || !preg_match('/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/', $label)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static function isLocalHost(string $host): bool
+    {
+        $normalizedHost = strtolower(trim($host));
+
+        return str_ends_with($normalizedHost, '.localhost');
     }
 }

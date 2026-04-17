@@ -462,3 +462,11 @@
 - Dopracowano tryb zawijania bloków kodu, zachowując poprawne wyrównanie przełącznika względem ikony kopiowania oraz ciągłość pionowego separatora między kolumną numerów linii a treścią także dla zawiniętych wierszy.
 - Wydzielono frontendowy komponent przełącznika do osobnych plików `public/assets/css/components/switch.css` i `public/assets/js/modules/switch.js`, a następnie podłączono go jako reużywalny element używany również przez mikro-switch `wrap-text` w widoku artykułu.
 - Naprawiono customowe listy rozwijane formularzy administracyjnych, wynosząc rozwinięty panel opcji poza kontener formularza i pozycjonując go względem triggera, dzięki czemu elementy selecta nie są już obcinane przez granice paneli m.in. na ekranie edycji kategorii.
+
+## 2026-04-17
+
+- Zmieniono mechanizm zapamiętywania preferencji użytkownika `język`, `motyw` i `kolor akcentu`, przenosząc ich odczyt i zapis z `localStorage` do cookie.
+- Rozszerzono `BlogSettings` o logikę wyliczania domeny dla cookie preferencji na podstawie `appUrl`, dzięki czemu ustawienia są współdzielone między subdomenami wskazanej domeny bloga.
+- Dodano obsługę środowiska lokalnego `localhost` oraz adresów IP, zapisując cookie bez atrybutu `Domain`, aby preferencje nadal poprawnie zapamiętywały się lokalnie.
+- Zaktualizowano layout aplikacji i globalne dane Twiga, przekazując domenę cookie do frontendu oraz ustawiając początkowy motyw strony na podstawie cookie już na etapie renderowania dokumentu.
+- Uzupełniono testy jednostkowe `BlogSettings` i `AppGlobalsExtension` o przypadki związane z wyliczaniem domeny cookie i eksportem tej wartości do warstwy widoków.
