@@ -274,7 +274,12 @@ class BlogSettings
             return null;
         }
 
-        return strtolower(trim($host));
+        $normalizedHost = rtrim(strtolower(trim($host)), '.');
+        if ('' === $normalizedHost || !str_contains($normalizedHost, '.')) {
+            return null;
+        }
+
+        return $normalizedHost;
     }
 
     private static function isLocalHost(string $host): bool

@@ -35,7 +35,8 @@
         <link rel="stylesheet" href="/assets/css/styles.css">
     {% endif %}
 
-    <meta property="og:locale" content="pl_PL">
+    {% set og_locale = user_language == 'en' ? 'en_US' : 'pl_PL' %}
+    <meta property="og:locale" content="{{ og_locale }}">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="{{ app_name }}">
     <meta property="og:title" content="{% block og_title %}{% block title %}{{ app_name }}{% endblock %}{% endblock %}">

@@ -52,7 +52,10 @@ final class BlogSettingsTest extends TestCase
         $this->assertSame('.example.com', (new BlogSettings())->setAppUrl('https://blog.example.com')->getPreferenceCookieDomain());
         $this->assertSame('.example.co.uk', (new BlogSettings())->setAppUrl('https://admin.blog.example.co.uk')->getPreferenceCookieDomain());
         $this->assertNull((new BlogSettings())->setAppUrl('http://localhost:8080')->getPreferenceCookieDomain());
+        $this->assertNull((new BlogSettings())->setAppUrl('http://localhost.:8080')->getPreferenceCookieDomain());
+        $this->assertNull((new BlogSettings())->setAppUrl('http://intranet')->getPreferenceCookieDomain());
         $this->assertNull((new BlogSettings())->setAppUrl('http://127.0.0.1:8080')->getPreferenceCookieDomain());
+        $this->assertSame('.example.com', (new BlogSettings())->setAppUrl('https://blog.example.com.')->getPreferenceCookieDomain());
     }
 
     public function testLifecycleCallbacksRefreshTimestamps(): void

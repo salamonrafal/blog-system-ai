@@ -31,9 +31,9 @@ function readCookie(name){
   return match ? decodeURIComponent(match[1]) : null;
 }
 
-function persistCookie(name, value){
+function persistCookie(name, value, { shareAcrossSubdomains = false } = {}){
   const secure = window.location.protocol === 'https:' ? '; Secure' : '';
-  const domain = getPreferenceCookieDomain();
+  const domain = shareAcrossSubdomains ? getPreferenceCookieDomain() : null;
   const domainAttribute = domain ? `; Domain=${domain}` : '';
 
   document.cookie = `${name}=${encodeURIComponent(value)}; Max-Age=${COOKIE_MAX_AGE}; Path=/; SameSite=Lax${domainAttribute}${secure}`;
@@ -52,7 +52,7 @@ export function getLang(){
 
 export function persistUserLanguage(lang){
   const normalizedLang = normalizeLanguage(lang);
-  persistCookie(USER_LANGUAGE_COOKIE_NAME, normalizedLang);
+  persistCookie(USER_LANGUAGE_COOKIE_NAME, normalizedLang, { shareAcrossSubdomains: true });
 }
 
 export function setLangPreference(lang){
@@ -71,7 +71,7 @@ export function getAccent(){
 export function setTheme(theme){
   const normalizedTheme = normalizeTheme(theme);
 
-  persistCookie(USER_THEME_COOKIE_NAME, normalizedTheme);
+  persistCookie(USER_THEME_COOKIE_NAME, normalizedTheme, { shareAcrossSubdomains: true });
   document.documentElement.setAttribute('data-theme', normalizedTheme);
 
   qsa('[data-action="toggle-theme"]').forEach((button)=>{
@@ -84,7 +84,7 @@ export function setAccent(color){
   const rgb = hexToRgb(accent);
   const accentContrast = getContrastColor(rgb);
 
-  persistCookie(USER_ACCENT_COOKIE_NAME, accent);
+  persistCookie(USER_ACCENT_COOKIE_NAME, accent, { shareAcrossSubdomains: true });
   document.documentElement.style.setProperty('--accent', accent);
   document.documentElement.style.setProperty('--accent-contrast', accentContrast);
   document.documentElement.style.setProperty('--link', accent);
