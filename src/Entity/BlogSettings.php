@@ -286,6 +286,6 @@ class BlogSettings
     {
         $normalizedHost = strtolower(trim($host));
 
-        return 'localhost' === $normalizedHost || str_ends_with($normalizedHost, '.localhost');
+        return str_ends_with($normalizedHost, '.localhost');
     }
 }
