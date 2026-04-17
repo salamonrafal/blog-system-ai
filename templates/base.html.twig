@@ -11,17 +11,21 @@
     <script>
         (function() {
             var readCookie = function(name) {
-                var escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                var match = document.cookie.match(new RegExp('(?:^|; )' + escapedName + '=([^;]*)'));
+                var cookies = document.cookie
+                    .split(';')
+                    .map(function(part) { return part.trim(); })
+                    .filter(function(part) { return part.indexOf(name + '=') === 0; });
 
-                if (!match) {
+                if (cookies.length === 0) {
                     return null;
                 }
 
+                var value = cookies[0].slice(name.length + 1);
+
                 try {
-                    return decodeURIComponent(match[1]);
+                    return decodeURIComponent(value);
                 } catch (error) {
-                    return match[1] || null;
+                    return value || null;
                 }
             };
 

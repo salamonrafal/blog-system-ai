@@ -7,6 +7,7 @@ const USER_LANGUAGE_COOKIE_NAME = 'user_language';
 const USER_THEME_COOKIE_NAME = 'user_theme';
 const USER_ACCENT_COOKIE_NAME = 'user_accent';
 const USER_TIMEZONE_COOKIE_NAME = 'user_timezone';
+const SHARED_COOKIE_DOMAIN_STORAGE_KEY_PREFIX = 'shared_cookie_domain:';
 const COOKIE_MAX_AGE = 31536000;
 const DEFAULT_THEME = 'dark';
 const DEFAULT_ACCENT = '#39ff14';
@@ -19,8 +20,7 @@ function normalizeTheme(theme){
   return theme === 'light' ? 'light' : 'dark';
 }
 
-function getPreferenceCookieDomain(){
-  const domain = document.documentElement?.dataset?.preferenceCookieDomain;
+function normalizeSharedCookieDomain(domain){
   if(typeof domain !== 'string' || domain.trim() === ''){
     return null;
   }
@@ -44,27 +44,97 @@ function getPreferenceCookieDomain(){
   return normalizedCookieDomain;
 }
 
-function readCookie(name){
-  const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const match = document.cookie.match(new RegExp(`(?:^|; )${escapedName}=([^;]*)`));
+function getPreferenceCookieDomain(){
+  return normalizeSharedCookieDomain(document.documentElement?.dataset?.preferenceCookieDomain ?? null);
+}
 
-  if(!match){
+function readCookie(name){
+  const cookies = document.cookie
+    .split(';')
+    .map((part)=> part.trim())
+    .filter((part)=> part.startsWith(`${name}=`));
+
+  if(cookies.length === 0){
     return null;
   }
 
+  const value = cookies[0].slice(name.length + 1);
+
   try{
-    return decodeURIComponent(match[1]);
+    return decodeURIComponent(value);
   }catch(err){
-    return match[1] || null;
+    return value || null;
+  }
+}
+
+function buildCookieString(name, value, { domain = null, maxAge = COOKIE_MAX_AGE } = {}){
+  const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+  const domainAttribute = domain ? `; Domain=${domain}` : '';
+
+  return `${name}=${encodeURIComponent(value)}; Max-Age=${maxAge}; Path=/; SameSite=Lax${domainAttribute}${secure}`;
+}
+
+function clearCookie(name, { domain = null } = {}){
+  document.cookie = buildCookieString(name, '', { domain, maxAge: 0 });
+}
+
+function getSharedCookieDomainStorageKey(name){
+  return `${SHARED_COOKIE_DOMAIN_STORAGE_KEY_PREFIX}${name}`;
+}
+
+function readLastSharedCookieDomain(name){
+  try{
+    const storedDomain = localStorage.getItem(getSharedCookieDomainStorageKey(name));
+    const normalizedDomain = normalizeSharedCookieDomain(storedDomain);
+    if(normalizedDomain){
+      return normalizedDomain;
+    }
+
+    if(typeof storedDomain === 'string' && storedDomain.trim() !== ''){
+      localStorage.removeItem(getSharedCookieDomainStorageKey(name));
+    }
+
+    return null;
+  }catch(err){
+    return null;
+  }
+}
+
+function writeLastSharedCookieDomain(name, domain){
+  try{
+    const storageKey = getSharedCookieDomainStorageKey(name);
+    const normalizedDomain = normalizeSharedCookieDomain(domain);
+    if(normalizedDomain){
+      localStorage.setItem(storageKey, normalizedDomain);
+      return;
+    }
+
+    localStorage.removeItem(storageKey);
+  }catch(err){
   }
 }
 
 function persistCookie(name, value, { shareAcrossSubdomains = false } = {}){
-  const secure = window.location.protocol === 'https:' ? '; Secure' : '';
   const domain = shareAcrossSubdomains ? getPreferenceCookieDomain() : null;
-  const domainAttribute = domain ? `; Domain=${domain}` : '';
+  const lastKnownDomain = shareAcrossSubdomains ? readLastSharedCookieDomain(name) : null;
 
-  document.cookie = `${name}=${encodeURIComponent(value)}; Max-Age=${COOKIE_MAX_AGE}; Path=/; SameSite=Lax${domainAttribute}${secure}`;
+  if(domain){
+    if(lastKnownDomain && lastKnownDomain !== domain){
+      clearCookie(name, { domain: lastKnownDomain });
+    }
+
+    document.cookie = buildCookieString(name, value, { domain });
+    writeLastSharedCookieDomain(name, domain);
+    clearCookie(name);
+    return;
+  }
+
+  if(lastKnownDomain){
+    clearCookie(name, { domain: lastKnownDomain });
+    writeLastSharedCookieDomain(name, null);
+  }
+
+  document.cookie = buildCookieString(name, value);
 }
 
 export function getLang(){
