@@ -19,7 +19,7 @@ class BlogSettings
     public const DEFAULT_SEO_DESCRIPTION = 'Blog o programowaniu, technologii i praktyce tworzenia produktów. Artykuły o PHP, web developmencie, architekturze aplikacji i jakości kodu.';
     public const DEFAULT_SOCIAL_IMAGE = 'https://www.salamonrafal.pl/assets/img/profile.jpg';
     public const DEFAULT_SEO_KEYWORDS = 'blog, programowanie, php, web development, architektura aplikacji, seo, jakość kodu';
-    public const DEFAULT_PREFERENCE_COOKIE_DOMAIN_OVERRIDE = '.salamonrafal.pl';
+    public const DEFAULT_PREFERENCE_COOKIE_DOMAIN = '.salamonrafal.pl';
     public const DEFAULT_ARTICLES_PER_PAGE = 5;
     public const DEFAULT_ADMIN_LISTING_ITEMS_PER_PAGE = 25;
     public const DEFAULT_RECOMMENDED_ARTICLES_LIMIT = 5;
@@ -159,7 +159,7 @@ class BlogSettings
         }
 
         if (self::DEFAULT_APP_URL === $this->appUrl) {
-            return self::DEFAULT_PREFERENCE_COOKIE_DOMAIN_OVERRIDE;
+            return self::DEFAULT_PREFERENCE_COOKIE_DOMAIN;
         }
 
         $host = $this->getAppHost();
