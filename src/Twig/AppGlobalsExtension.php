@@ -99,6 +99,7 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
         return [
             'app_name' => $settings->getBlogTitle(),
             'app_url' => $settings->getAppUrl(),
+            'preference_cookie_domain' => $settings->getPreferenceCookieDomain() ?? '',
             'blog_settings' => $settings,
             'app_env' => $this->appEnv,
             'user_language' => $language,

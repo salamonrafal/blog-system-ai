@@ -133,6 +133,7 @@ final class AppGlobalsExtensionTest extends TestCase
     {
         $settings = (new BlogSettings())
             ->setAppUrl('https://blog.example.com')
+            ->setPreferenceCookieDomainOverride('.example.com')
             ->setBlogTitle('Blog testowy');
 
         $provider = $this->createMock(BlogSettingsProvider::class);
@@ -259,6 +260,7 @@ final class AppGlobalsExtensionTest extends TestCase
 
         $this->assertSame('Blog testowy', $globals['app_name']);
         $this->assertSame('https://blog.example.com', $globals['app_url']);
+        $this->assertSame('.example.com', $globals['preference_cookie_domain']);
         $this->assertSame($settings, $globals['blog_settings']);
         $this->assertSame('test', $globals['app_env']);
         $this->assertSame('en', $globals['user_language']);

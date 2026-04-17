@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pl" data-theme="dark">
+<html lang="{{ user_language }}" data-theme="dark" data-preference-cookie-domain="{{ preference_cookie_domain }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,12 +10,24 @@
     <meta name="theme-color" content="#0b0f12">
     <script>
         (function() {
-            try {
-                var storedTheme = window.localStorage.getItem('theme');
-                var theme = storedTheme === 'light' ? 'light' : 'dark';
-                if (storedTheme !== theme) {
-                    window.localStorage.setItem('theme', theme);
+            var readCookie = function(name) {
+                var escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                var match = document.cookie.match(new RegExp('(?:^|; )' + escapedName + '=([^;]*)'));
+
+                if (!match) {
+                    return null;
                 }
+
+                try {
+                    return decodeURIComponent(match[1]);
+                } catch (error) {
+                    return match[1] || null;
+                }
+            };
+
+            try {
+                var storedTheme = readCookie('user_theme');
+                var theme = storedTheme === 'light' ? 'light' : 'dark';
                 document.documentElement.setAttribute('data-theme', theme);
             } catch (error) {
                 document.documentElement.setAttribute('data-theme', 'dark');
@@ -31,7 +43,8 @@
         <link rel="stylesheet" href="/assets/css/styles.css">
     {% endif %}
 
-    <meta property="og:locale" content="pl_PL">
+    {% set og_locale = user_language == 'en' ? 'en_US' : 'pl_PL' %}
+    <meta property="og:locale" content="{{ og_locale }}">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="{{ app_name }}">
     <meta property="og:title" content="{% block og_title %}{% block title %}{{ app_name }}{% endblock %}{% endblock %}">
