@@ -20,8 +20,7 @@ function normalizeTheme(theme){
   return theme === 'light' ? 'light' : 'dark';
 }
 
-function getPreferenceCookieDomain(){
-  const domain = document.documentElement?.dataset?.preferenceCookieDomain;
+function normalizeSharedCookieDomain(domain){
   if(typeof domain !== 'string' || domain.trim() === ''){
     return null;
   }
@@ -43,6 +42,10 @@ function getPreferenceCookieDomain(){
   }
 
   return normalizedCookieDomain;
+}
+
+function getPreferenceCookieDomain(){
+  return normalizeSharedCookieDomain(document.documentElement?.dataset?.preferenceCookieDomain ?? null);
 }
 
 function readCookie(name){
@@ -82,7 +85,16 @@ function getSharedCookieDomainStorageKey(name){
 function readLastSharedCookieDomain(name){
   try{
     const storedDomain = localStorage.getItem(getSharedCookieDomainStorageKey(name));
-    return typeof storedDomain === 'string' && storedDomain.trim() !== '' ? storedDomain.trim() : null;
+    const normalizedDomain = normalizeSharedCookieDomain(storedDomain);
+    if(normalizedDomain){
+      return normalizedDomain;
+    }
+
+    if(typeof storedDomain === 'string' && storedDomain.trim() !== ''){
+      localStorage.removeItem(getSharedCookieDomainStorageKey(name));
+    }
+
+    return null;
   }catch(err){
     return null;
   }
@@ -91,8 +103,9 @@ function readLastSharedCookieDomain(name){
 function writeLastSharedCookieDomain(name, domain){
   try{
     const storageKey = getSharedCookieDomainStorageKey(name);
-    if(typeof domain === 'string' && domain.trim() !== ''){
-      localStorage.setItem(storageKey, domain.trim());
+    const normalizedDomain = normalizeSharedCookieDomain(domain);
+    if(normalizedDomain){
+      localStorage.setItem(storageKey, normalizedDomain);
       return;
     }
 
