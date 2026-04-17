@@ -21,7 +21,27 @@ function normalizeTheme(theme){
 
 function getPreferenceCookieDomain(){
   const domain = document.documentElement?.dataset?.preferenceCookieDomain;
-  return typeof domain === 'string' && domain.trim() !== '' ? domain.trim() : null;
+  if(typeof domain !== 'string' || domain.trim() === ''){
+    return null;
+  }
+
+  const normalizedDomain = domain.trim().toLowerCase().replace(/\.+$/, '');
+  const normalizedHostname = window.location.hostname.trim().toLowerCase().replace(/\.+$/, '');
+  if(normalizedDomain === '' || normalizedHostname === ''){
+    return null;
+  }
+
+  const bareDomain = normalizedDomain.replace(/^\./, '');
+  if(!/^[a-z0-9.-]+$/.test(bareDomain) || bareDomain.includes('..') || !bareDomain.includes('.')){
+    return null;
+  }
+
+  const normalizedCookieDomain = `.${bareDomain}`;
+  if(normalizedHostname !== bareDomain && !normalizedHostname.endsWith(normalizedCookieDomain)){
+    return null;
+  }
+
+  return normalizedCookieDomain;
 }
 
 function readCookie(name){

@@ -50,7 +50,7 @@ final class BlogSettingsTest extends TestCase
         $this->assertSame('.salamonrafal.pl', $settings->getPreferenceCookieDomain());
     }
 
-    public function testPreferenceCookieDomainUsesRegistrableDomainAndSkipsLocalHosts(): void
+    public function testPreferenceCookieDomainReturnsSharedDomainOnlyForSimpleHostsUnlessOverrideIsSet(): void
     {
         $this->assertSame('.example.com', (new BlogSettings())->setAppUrl('https://example.com')->getPreferenceCookieDomain());
         $this->assertNull((new BlogSettings())->setAppUrl('https://blog.example.com')->getPreferenceCookieDomain());
@@ -112,6 +112,10 @@ final class BlogSettingsTest extends TestCase
         $pathViolations = $validator->validate((new BlogSettings())->setAppUrl('https://example.com/blog'));
         $emptyTitleViolations = $validator->validate((new BlogSettings())->setBlogTitle(''));
         $invalidCookieDomainViolations = $validator->validate((new BlogSettings())->setPreferenceCookieDomainOverride('.localhost'));
+        $invalidCookieDomainWithSemicolonViolations = $validator->validate((new BlogSettings())->setPreferenceCookieDomainOverride('.example.com;secure'));
+        $invalidCookieDomainWithUnderscoreViolations = $validator->validate((new BlogSettings())->setPreferenceCookieDomainOverride('.exa_mple.com'));
+        $invalidCookieDomainWithHyphenViolations = $validator->validate((new BlogSettings())->setPreferenceCookieDomainOverride('.-example.com'));
+        $invalidCookieDomainWithWhitespaceViolations = $validator->validate((new BlogSettings())->setPreferenceCookieDomainOverride('.example .com'));
 
         $missingHostMessages = array_map(
             static fn (mixed $violation): string => $violation->getMessage(),
@@ -129,10 +133,30 @@ final class BlogSettingsTest extends TestCase
             static fn (mixed $violation): string => $violation->getMessage(),
             iterator_to_array($invalidCookieDomainViolations)
         );
+        $invalidCookieDomainWithSemicolonMessages = array_map(
+            static fn (mixed $violation): string => $violation->getMessage(),
+            iterator_to_array($invalidCookieDomainWithSemicolonViolations)
+        );
+        $invalidCookieDomainWithUnderscoreMessages = array_map(
+            static fn (mixed $violation): string => $violation->getMessage(),
+            iterator_to_array($invalidCookieDomainWithUnderscoreViolations)
+        );
+        $invalidCookieDomainWithHyphenMessages = array_map(
+            static fn (mixed $violation): string => $violation->getMessage(),
+            iterator_to_array($invalidCookieDomainWithHyphenViolations)
+        );
+        $invalidCookieDomainWithWhitespaceMessages = array_map(
+            static fn (mixed $violation): string => $violation->getMessage(),
+            iterator_to_array($invalidCookieDomainWithWhitespaceViolations)
+        );
 
         $this->assertContains('validation_blog_settings_app_url_origin_invalid', $missingHostMessages);
         $this->assertContains('validation_blog_settings_app_url_origin_only', $pathMessages);
         $this->assertContains('validation_blog_settings_blog_title_required', $emptyTitleMessages);
         $this->assertContains('validation_blog_settings_preference_cookie_domain_invalid', $invalidCookieDomainMessages);
+        $this->assertContains('validation_blog_settings_preference_cookie_domain_invalid', $invalidCookieDomainWithSemicolonMessages);
+        $this->assertContains('validation_blog_settings_preference_cookie_domain_invalid', $invalidCookieDomainWithUnderscoreMessages);
+        $this->assertContains('validation_blog_settings_preference_cookie_domain_invalid', $invalidCookieDomainWithHyphenMessages);
+        $this->assertContains('validation_blog_settings_preference_cookie_domain_invalid', $invalidCookieDomainWithWhitespaceMessages);
     }
 }

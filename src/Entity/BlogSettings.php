@@ -287,7 +287,14 @@ class BlogSettings
         }
 
         $domain = ltrim($this->preferenceCookieDomainOverride, '.');
-        if ('' === $domain || !str_contains($domain, '.') || str_contains($domain, '..') || self::isLocalHost($domain) || false !== filter_var($domain, \FILTER_VALIDATE_IP)) {
+        if (
+            '' === $domain
+            || !str_contains($domain, '.')
+            || str_contains($domain, '..')
+            || self::isLocalHost($domain)
+            || false !== filter_var($domain, \FILTER_VALIDATE_IP)
+            || !self::hasValidCookieDomainSyntax($domain)
+        ) {
             $context
                 ->buildViolation('validation_blog_settings_preference_cookie_domain_invalid')
                 ->atPath('preferenceCookieDomainOverride')
@@ -323,6 +330,22 @@ class BlogSettings
         }
 
         return '.'.ltrim($normalizedDomain, '.');
+    }
+
+    private static function hasValidCookieDomainSyntax(string $domain): bool
+    {
+        if (!preg_match('/^[a-z0-9.-]+$/', $domain)) {
+            return false;
+        }
+
+        $labels = explode('.', $domain);
+        foreach ($labels as $label) {
+            if ('' === $label || !preg_match('/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/', $label)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private static function isLocalHost(string $host): bool
