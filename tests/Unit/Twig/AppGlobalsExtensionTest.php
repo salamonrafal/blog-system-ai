@@ -133,6 +133,7 @@ final class AppGlobalsExtensionTest extends TestCase
     {
         $settings = (new BlogSettings())
             ->setAppUrl('https://blog.example.com')
+            ->setPreferenceCookieDomainOverride('.example.com')
             ->setBlogTitle('Blog testowy');
 
         $provider = $this->createMock(BlogSettingsProvider::class);

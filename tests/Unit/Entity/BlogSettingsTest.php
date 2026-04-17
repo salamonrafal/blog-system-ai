@@ -15,6 +15,7 @@ final class BlogSettingsTest extends TestCase
         $settings = (new BlogSettings())
             ->setAppUrl('  https://example.com/  ')
             ->setBlogTitle('  Moj Blog AI  ')
+            ->setPreferenceCookieDomainOverride(' Example.com. ')
             ->setHomepageSeoDescription('  Opis strony glownej  ')
             ->setHomepageSocialImage('  /assets/img/blog-share.png  ')
             ->setHomepageSeoKeywords('  php, symfony, ai  ')
@@ -29,6 +30,8 @@ final class BlogSettingsTest extends TestCase
         $this->assertSame('php, symfony, ai', $settings->getHomepageSeoKeywords());
         $this->assertSame(9, $settings->getArticlesPerPage());
         $this->assertSame(25, $settings->getAdminListingItemsPerPage());
+        $this->assertSame('.example.com', $settings->getPreferenceCookieDomainOverride());
+        $this->assertSame('.example.com', $settings->getPreferenceCookieDomain());
     }
 
     public function testBlogSettingsProvideDefaultValues(): void
@@ -49,13 +52,15 @@ final class BlogSettingsTest extends TestCase
 
     public function testPreferenceCookieDomainUsesRegistrableDomainAndSkipsLocalHosts(): void
     {
-        $this->assertSame('.example.com', (new BlogSettings())->setAppUrl('https://blog.example.com')->getPreferenceCookieDomain());
-        $this->assertSame('.example.co.uk', (new BlogSettings())->setAppUrl('https://admin.blog.example.co.uk')->getPreferenceCookieDomain());
+        $this->assertSame('.example.com', (new BlogSettings())->setAppUrl('https://example.com')->getPreferenceCookieDomain());
+        $this->assertNull((new BlogSettings())->setAppUrl('https://blog.example.com')->getPreferenceCookieDomain());
+        $this->assertNull((new BlogSettings())->setAppUrl('https://admin.blog.example.co.uk')->getPreferenceCookieDomain());
         $this->assertNull((new BlogSettings())->setAppUrl('http://localhost:8080')->getPreferenceCookieDomain());
         $this->assertNull((new BlogSettings())->setAppUrl('http://localhost.:8080')->getPreferenceCookieDomain());
         $this->assertNull((new BlogSettings())->setAppUrl('http://intranet')->getPreferenceCookieDomain());
         $this->assertNull((new BlogSettings())->setAppUrl('http://127.0.0.1:8080')->getPreferenceCookieDomain());
-        $this->assertSame('.example.com', (new BlogSettings())->setAppUrl('https://blog.example.com.')->getPreferenceCookieDomain());
+        $this->assertSame('.example.com', (new BlogSettings())->setAppUrl('https://example.com.')->getPreferenceCookieDomain());
+        $this->assertSame('.example.com', (new BlogSettings())->setAppUrl('https://blog.example.com')->setPreferenceCookieDomainOverride('example.com')->getPreferenceCookieDomain());
     }
 
     public function testLifecycleCallbacksRefreshTimestamps(): void
@@ -106,6 +111,7 @@ final class BlogSettingsTest extends TestCase
         $missingHostViolations = $validator->validate((new BlogSettings())->setAppUrl('https:///'));
         $pathViolations = $validator->validate((new BlogSettings())->setAppUrl('https://example.com/blog'));
         $emptyTitleViolations = $validator->validate((new BlogSettings())->setBlogTitle(''));
+        $invalidCookieDomainViolations = $validator->validate((new BlogSettings())->setPreferenceCookieDomainOverride('.localhost'));
 
         $missingHostMessages = array_map(
             static fn (mixed $violation): string => $violation->getMessage(),
@@ -119,9 +125,14 @@ final class BlogSettingsTest extends TestCase
             static fn (mixed $violation): string => $violation->getMessage(),
             iterator_to_array($emptyTitleViolations)
         );
+        $invalidCookieDomainMessages = array_map(
+            static fn (mixed $violation): string => $violation->getMessage(),
+            iterator_to_array($invalidCookieDomainViolations)
+        );
 
         $this->assertContains('validation_blog_settings_app_url_origin_invalid', $missingHostMessages);
         $this->assertContains('validation_blog_settings_app_url_origin_only', $pathMessages);
         $this->assertContains('validation_blog_settings_blog_title_required', $emptyTitleMessages);
+        $this->assertContains('validation_blog_settings_preference_cookie_domain_invalid', $invalidCookieDomainMessages);
     }
 }

@@ -33,6 +33,16 @@ class BlogSettingsType extends AbstractType
                     'data-i18n-placeholder' => 'blog_settings_blog_title_placeholder',
                 ],
             ])
+            ->add('preferenceCookieDomainOverride', TextType::class, [
+                'label' => 'Domena cookie preferencji',
+                'required' => false,
+                'empty_data' => '',
+                'label_attr' => ['data-i18n' => 'blog_settings_preference_cookie_domain'],
+                'attr' => [
+                    'maxlength' => 255,
+                    'data-i18n-placeholder' => 'blog_settings_preference_cookie_domain_placeholder',
+                ],
+            ])
             ->add('homepageSeoDescription', TextareaType::class, [
                 'label' => 'Opis strony głównej dla SEO',
                 'label_attr' => ['data-i18n' => 'blog_settings_homepage_seo_description'],
