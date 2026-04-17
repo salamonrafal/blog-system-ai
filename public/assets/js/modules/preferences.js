@@ -59,12 +59,20 @@ function readCookie(name){
   }
 }
 
-function persistCookie(name, value, { shareAcrossSubdomains = false } = {}){
+function buildCookieString(name, value, { domain = null } = {}){
   const secure = window.location.protocol === 'https:' ? '; Secure' : '';
-  const domain = shareAcrossSubdomains ? getPreferenceCookieDomain() : null;
   const domainAttribute = domain ? `; Domain=${domain}` : '';
 
-  document.cookie = `${name}=${encodeURIComponent(value)}; Max-Age=${COOKIE_MAX_AGE}; Path=/; SameSite=Lax${domainAttribute}${secure}`;
+  return `${name}=${encodeURIComponent(value)}; Max-Age=${COOKIE_MAX_AGE}; Path=/; SameSite=Lax${domainAttribute}${secure}`;
+}
+
+function persistCookie(name, value, { shareAcrossSubdomains = false } = {}){
+  const domain = shareAcrossSubdomains ? getPreferenceCookieDomain() : null;
+  if(domain){
+    document.cookie = buildCookieString(name, value, { domain });
+  }
+
+  document.cookie = buildCookieString(name, value);
 }
 
 export function getLang(){
