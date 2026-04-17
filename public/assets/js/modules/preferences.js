@@ -45,17 +45,21 @@ function getPreferenceCookieDomain(){
 }
 
 function readCookie(name){
-  const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const match = document.cookie.match(new RegExp(`(?:^|; )${escapedName}=([^;]*)`));
+  const cookies = document.cookie
+    .split(';')
+    .map((part)=> part.trim())
+    .filter((part)=> part.startsWith(`${name}=`));
 
-  if(!match){
+  if(cookies.length === 0){
     return null;
   }
 
+  const value = cookies[cookies.length - 1].slice(name.length + 1);
+
   try{
-    return decodeURIComponent(match[1]);
+    return decodeURIComponent(value);
   }catch(err){
-    return match[1] || null;
+    return value || null;
   }
 }
 
