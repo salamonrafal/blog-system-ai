@@ -14,7 +14,15 @@
                 var escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                 var match = document.cookie.match(new RegExp('(?:^|; )' + escapedName + '=([^;]*)'));
 
-                return match ? decodeURIComponent(match[1]) : null;
+                if (!match) {
+                    return null;
+                }
+
+                try {
+                    return decodeURIComponent(match[1]);
+                } catch (error) {
+                    return match[1] || null;
+                }
             };
 
             try {
