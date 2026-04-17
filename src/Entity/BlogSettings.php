@@ -147,6 +147,33 @@ class BlogSettings
         return $this->appUrl.$this->homepageSocialImage;
     }
 
+    public function getPreferenceCookieDomain(): ?string
+    {
+        $host = $this->getAppHost();
+        if (null === $host || self::isLocalHost($host) || false !== filter_var($host, \FILTER_VALIDATE_IP)) {
+            return null;
+        }
+
+        $segments = array_values(array_filter(explode('.', $host), static fn (string $segment): bool => '' !== trim($segment)));
+        if ([] === $segments) {
+            return null;
+        }
+
+        $segmentCount = count($segments);
+        if ($segmentCount <= 2) {
+            return '.'.implode('.', $segments);
+        }
+
+        $topLevelDomain = $segments[$segmentCount - 1];
+        $secondLevelDomain = $segments[$segmentCount - 2];
+        $usesSecondLevelCountryDomain = 2 === strlen($topLevelDomain) && strlen($secondLevelDomain) <= 3;
+        $domainParts = $usesSecondLevelCountryDomain
+            ? array_slice($segments, -3)
+            : array_slice($segments, -2);
+
+        return '.'.implode('.', $domainParts);
+    }
+
     public function getHomepageSeoKeywords(): string
     {
         return $this->homepageSeoKeywords;
@@ -237,5 +264,23 @@ class BlogSettings
                 ->atPath('appUrl')
                 ->addViolation();
         }
+    }
+
+    private function getAppHost(): ?string
+    {
+        $host = parse_url($this->appUrl, \PHP_URL_HOST);
+
+        if (!is_string($host) || '' === trim($host)) {
+            return null;
+        }
+
+        return strtolower(trim($host));
+    }
+
+    private static function isLocalHost(string $host): bool
+    {
+        $normalizedHost = strtolower(trim($host));
+
+        return 'localhost' === $normalizedHost || str_ends_with($normalizedHost, '.localhost');
     }
 }

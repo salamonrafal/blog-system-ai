@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pl" data-theme="dark">
+<html lang="{{ user_language }}" data-theme="dark" data-preference-cookie-domain="{{ preference_cookie_domain }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,12 +10,16 @@
     <meta name="theme-color" content="#0b0f12">
     <script>
         (function() {
+            var readCookie = function(name) {
+                var escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                var match = document.cookie.match(new RegExp('(?:^|; )' + escapedName + '=([^;]*)'));
+
+                return match ? decodeURIComponent(match[1]) : null;
+            };
+
             try {
-                var storedTheme = window.localStorage.getItem('theme');
+                var storedTheme = readCookie('user_theme');
                 var theme = storedTheme === 'light' ? 'light' : 'dark';
-                if (storedTheme !== theme) {
-                    window.localStorage.setItem('theme', theme);
-                }
                 document.documentElement.setAttribute('data-theme', theme);
             } catch (error) {
                 document.documentElement.setAttribute('data-theme', 'dark');

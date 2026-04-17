@@ -44,6 +44,15 @@ final class BlogSettingsTest extends TestCase
         $this->assertSame(BlogSettings::DEFAULT_ARTICLES_PER_PAGE, $settings->getArticlesPerPage());
         $this->assertSame(BlogSettings::DEFAULT_ADMIN_LISTING_ITEMS_PER_PAGE, $settings->getAdminListingItemsPerPage());
         $this->assertSame(5, BlogSettings::DEFAULT_RECOMMENDED_ARTICLES_LIMIT);
+        $this->assertSame('.salamonrafal.pl', $settings->getPreferenceCookieDomain());
+    }
+
+    public function testPreferenceCookieDomainUsesRegistrableDomainAndSkipsLocalHosts(): void
+    {
+        $this->assertSame('.example.com', (new BlogSettings())->setAppUrl('https://blog.example.com')->getPreferenceCookieDomain());
+        $this->assertSame('.example.co.uk', (new BlogSettings())->setAppUrl('https://admin.blog.example.co.uk')->getPreferenceCookieDomain());
+        $this->assertNull((new BlogSettings())->setAppUrl('http://localhost:8080')->getPreferenceCookieDomain());
+        $this->assertNull((new BlogSettings())->setAppUrl('http://127.0.0.1:8080')->getPreferenceCookieDomain());
     }
 
     public function testLifecycleCallbacksRefreshTimestamps(): void
