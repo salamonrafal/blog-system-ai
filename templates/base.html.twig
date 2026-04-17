@@ -20,7 +20,7 @@
                     return null;
                 }
 
-                var value = cookies[cookies.length - 1].slice(name.length + 1);
+                var value = cookies[0].slice(name.length + 1);
 
                 try {
                     return decodeURIComponent(value);

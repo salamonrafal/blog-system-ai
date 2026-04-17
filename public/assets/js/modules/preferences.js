@@ -55,7 +55,7 @@ function readCookie(name){
     return null;
   }
 
-  const value = cookies[cookies.length - 1].slice(name.length + 1);
+  const value = cookies[0].slice(name.length + 1);
 
   try{
     return decodeURIComponent(value);
