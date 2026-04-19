@@ -103,11 +103,12 @@ class TranslationCatalogLoader
 
         foreach ($normalizedDomains as $domain) {
             foreach (self::TRANSLATION_FILES[$domain] ?? [] as $language => $path) {
+                [$mtime, $size] = $this->readCatalogFileMetadata($path);
                 $fingerprintParts[] = implode(':', [
                     $domain,
                     $language,
-                    (string) @filemtime($path),
-                    (string) @filesize($path),
+                    (string) $mtime,
+                    (string) $size,
                 ]);
             }
         }
@@ -124,5 +125,24 @@ class TranslationCatalogLoader
         $messages = require $path;
 
         return $messages;
+    }
+
+    /**
+     * @return array{0:int, 1:int}
+     */
+    private function readCatalogFileMetadata(string $path): array
+    {
+        if (!is_file($path)) {
+            throw new \RuntimeException(sprintf('Translation catalog file "%s" was not found.', $path));
+        }
+
+        $mtime = filemtime($path);
+        $size = filesize($path);
+
+        if (false === $mtime || false === $size) {
+            throw new \RuntimeException(sprintf('Translation catalog file metadata for "%s" could not be read.', $path));
+        }
+
+        return [$mtime, $size];
     }
 }

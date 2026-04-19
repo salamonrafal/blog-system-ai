@@ -46,8 +46,7 @@ export async function ensureTranslations(lang){
       return i18n[normalizedLang];
     })
     .catch(()=>{
-      i18n[normalizedLang] = {};
-      return i18n[normalizedLang];
+      return null;
     })
     .finally(()=>{
       pendingLoads.delete(normalizedLang);
