@@ -7,6 +7,7 @@ namespace App\Form;
 use App\Service\FileSizeFormatter;
 use App\Service\UploadLimitResolver;
 use App\Service\UserLanguageResolver;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -24,6 +25,7 @@ class ArticleImportType extends AbstractType
         private readonly ?UploadLimitResolver $uploadLimitResolver = null,
         private readonly ?FileSizeFormatter $fileSizeFormatter = null,
         private readonly ?UserLanguageResolver $userLanguageResolver = null,
+        private readonly ?TranslatorInterface $translator = null,
     ) {
     }
 
@@ -87,15 +89,20 @@ class ArticleImportType extends AbstractType
     private function buildTooLargeMessage(int $limitBytes): string
     {
         $formattedLimit = ($this->fileSizeFormatter ?? new FileSizeFormatter())->format($limitBytes);
+        $parameters = ['{{ limit }}' => $formattedLimit];
 
-        return $this->translate(
-            sprintf('Plik importu nie może być większy niż %s.', $formattedLimit),
-            sprintf('The import file cannot be larger than %s.', $formattedLimit),
-        );
-    }
+        if (null !== $this->translator) {
+            return $this->translator->trans(
+                'validation_import_file_too_large_dynamic',
+                $parameters,
+                'app',
+                $this->userLanguageResolver?->getLanguage(),
+            );
+        }
 
-    private function translate(string $polish, string $english): string
-    {
-        return $this->userLanguageResolver?->translate($polish, $english) ?? $polish;
+        /** @var array<string, string> $messages */
+        $messages = require __DIR__.'/../../translations/app.pl.php';
+
+        return strtr($messages['validation_import_file_too_large_dynamic'] ?? '', $parameters);
     }
 }

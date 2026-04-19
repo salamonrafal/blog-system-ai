@@ -30,9 +30,19 @@ use Twig\TwigFunction;
 
 class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
 {
-    private const VALIDATION_I18N_FILE = __DIR__ . '/../../config/validation_i18n.php';
+    private const TRANSLATION_FILES = [
+        'app' => [
+            'pl' => __DIR__ . '/../../translations/app.pl.php',
+            'en' => __DIR__ . '/../../translations/app.en.php',
+        ],
+        'validators' => [
+            'pl' => __DIR__ . '/../../translations/validators.pl.php',
+            'en' => __DIR__ . '/../../translations/validators.en.php',
+        ],
+    ];
     private const TOP_MENU_CACHE_KEY_PREFIX = 'twig.top_menu_items.';
 
+    private ?array $appMessageFallbacks = null;
     private ?array $validationMessageFallbacks = null;
 
     public function __construct(
@@ -110,6 +120,10 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
                 $this->getValidationMessageFallbacks(),
                 \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT | \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES
             ) ?: '{"pl":{},"en":{}}',
+            'app_i18n_json' => json_encode(
+                $this->getAppMessageFallbacks(),
+                \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT | \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES
+            ) ?: '{"pl":{},"en":{}}',
             'admin_shortcut_badges' => [
                 'queue_status' => $pendingImportCount + $pendingExportQueueCount,
                 'imports' => $pendingArticleImportCount,
@@ -147,8 +161,8 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
     public function getI18nFallback(string $key): string
     {
         $language = $this->userLanguageResolver->getLanguage();
-        $fallbacks = $this->getValidationMessageFallbacks();
-        $messages = $fallbacks[$language] ?? $fallbacks['en'] ?? [];
+        $messages = ($this->getAppMessageFallbacks()[$language] ?? [])
+            + ($this->getValidationMessageFallbacks()[$language] ?? []);
 
         return $messages[$key] ?? $key;
     }
@@ -231,9 +245,33 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
             return $this->validationMessageFallbacks;
         }
 
-        /** @var array<string, array<string, string>> $messages */
-        $messages = require self::VALIDATION_I18N_FILE;
+        return $this->validationMessageFallbacks = $this->loadDomainMessages('validators');
+    }
 
-        return $this->validationMessageFallbacks = $messages;
+    private function getAppMessageFallbacks(): array
+    {
+        if (null !== $this->appMessageFallbacks) {
+            return $this->appMessageFallbacks;
+        }
+
+        return $this->appMessageFallbacks = $this->loadDomainMessages('app');
+    }
+
+    /**
+     * @return array<string, array<string, string>>
+     */
+    private function loadDomainMessages(string $domain): array
+    {
+        $domainFiles = self::TRANSLATION_FILES[$domain] ?? [];
+
+        $messages = [];
+
+        foreach ($domainFiles as $language => $path) {
+            /** @var array<string, string> $languageMessages */
+            $languageMessages = require $path;
+            $messages[$language] = $languageMessages;
+        }
+
+        return $messages;
     }
 }

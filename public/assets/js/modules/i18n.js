@@ -17,6 +17,23 @@ export function getTranslation(key, lang = getLang()){
   return (i18n[lang] && i18n[lang][key]) || i18n.pl[key] || '';
 }
 
+function parseStructuredTranslation(template){
+  if(typeof template !== 'string'){
+    return template;
+  }
+
+  const normalized = template.trim();
+  if(normalized === '' || (!normalized.startsWith('[') && !normalized.startsWith('{'))){
+    return template;
+  }
+
+  try{
+    return JSON.parse(normalized);
+  }catch(_error){
+    return template;
+  }
+}
+
 function interpolateTranslation(template, element){
   if(typeof template !== 'string' || !(element instanceof Element)){
     return template;
@@ -140,7 +157,10 @@ export function applyI18n(lang){
   if(terminal){
     terminal.innerHTML = '';
     terminalRenderId += 1;
-    typeTerminal(terminal, translations.term_lines, terminalRenderId);
+    const terminalLines = parseStructuredTranslation(translations.term_lines);
+    if(Array.isArray(terminalLines)){
+      typeTerminal(terminal, terminalLines, terminalRenderId);
+    }
   }
 
   qsa('[data-action="toggle-lang"]').forEach((button)=>{

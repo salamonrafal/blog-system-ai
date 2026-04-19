@@ -2,6 +2,9 @@ framework:
     secret: '%env(APP_SECRET)%'
     csrf_protection: true
     http_method_override: false
+    default_locale: 'pl'
+    enabled_locales: ['pl', 'en']
+    set_content_language_from_locale: true
 
     session:
         handler_id: null
@@ -10,6 +13,11 @@ framework:
 
     router:
         utf8: true
+
+    translator:
+        default_path: '%kernel.project_dir%/translations'
+        fallbacks:
+            - 'pl'
 
 when@test:
     framework:

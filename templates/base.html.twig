@@ -518,7 +518,7 @@ Fullstack Developer</span>
                                 {% if admin_shortcut_badges.keyword_imports > 0 %}
                                     <span
                                         class="admin-shortcuts-badge"
-                                        aria-label="{{ admin_shortcut_badges.keyword_imports }} {{ ui_translate('oczekujących importów słów kluczowych', 'pending keyword imports') }}"
+                                        aria-label="{{ admin_shortcut_badges.keyword_imports }} {{ i18n_fallback('admin_shortcut_keyword_imports_badge') }}"
                                     >{{ admin_shortcut_badges.keyword_imports }}</span>
                                 {% endif %}
                             </a>
@@ -539,7 +539,7 @@ Fullstack Developer</span>
                                 {% if admin_shortcut_badges.category_imports > 0 %}
                                     <span
                                         class="admin-shortcuts-badge"
-                                        aria-label="{{ admin_shortcut_badges.category_imports }} {{ ui_translate('oczekujących importów kategorii', 'pending category imports') }}"
+                                        aria-label="{{ admin_shortcut_badges.category_imports }} {{ i18n_fallback('admin_shortcut_category_imports_badge') }}"
                                     >{{ admin_shortcut_badges.category_imports }}</span>
                                 {% endif %}
                             </a>
@@ -723,6 +723,7 @@ Fullstack Developer</span>
 </footer>
 
 <script>
+    globalThis.__APP_I18N__ = {{ app_i18n_json|raw }};
     globalThis.__APP_VALIDATION_I18N__ = {{ validation_i18n_json|raw }};
 </script>
 

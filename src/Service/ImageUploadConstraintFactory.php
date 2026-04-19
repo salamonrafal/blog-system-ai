@@ -9,6 +9,7 @@ use Symfony\Component\Validator\Constraints\Callback;
 use Symfony\Component\Validator\Constraints\NotNull;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class ImageUploadConstraintFactory
 {
@@ -18,6 +19,7 @@ class ImageUploadConstraintFactory
         private readonly ?UploadLimitResolver $uploadLimitResolver = null,
         private readonly ?FileSizeFormatter $fileSizeFormatter = null,
         private readonly ?UserLanguageResolver $userLanguageResolver = null,
+        private readonly ?TranslatorInterface $translator = null,
     ) {
     }
 
@@ -46,13 +48,21 @@ class ImageUploadConstraintFactory
 
     public function buildPostMaxSizeMessage(int $applicationLimit = MediaImageSupport::MAX_FILE_SIZE): string
     {
-        return strtr(
-            $this->translate(
-                'Obrazek nie może być większy niż {{ limit }}.',
-                'The image cannot be larger than {{ limit }}.',
-            ),
-            $this->buildTooLargeMessageParameters($this->resolveEffectiveLimit($applicationLimit)),
-        );
+        $parameters = $this->buildTooLargeMessageParameters($this->resolveEffectiveLimit($applicationLimit));
+
+        if (null !== $this->translator) {
+            return $this->translator->trans(
+                self::TOO_LARGE_MESSAGE_KEY,
+                $parameters,
+                'validators',
+                $this->userLanguageResolver?->getLanguage(),
+            );
+        }
+
+        /** @var array<string, string> $messages */
+        $messages = require __DIR__.'/../../translations/validators.pl.php';
+
+        return strtr($messages[self::TOO_LARGE_MESSAGE_KEY] ?? '', $parameters);
     }
 
     private function createImageConstraint(int $applicationLimit): Constraint
@@ -105,10 +115,5 @@ class ImageUploadConstraintFactory
         return [
             '{{ limit }}' => $formattedLimit,
         ];
-    }
-
-    private function translate(string $polish, string $english): string
-    {
-        return $this->userLanguageResolver?->translate($polish, $english) ?? $polish;
     }
 }

@@ -470,3 +470,13 @@
 - Dodano obsługę środowiska lokalnego `localhost` oraz adresów IP, zapisując cookie bez atrybutu `Domain`, aby preferencje nadal poprawnie zapamiętywały się lokalnie.
 - Zaktualizowano layout aplikacji i globalne dane Twiga, przekazując domenę cookie do frontendu oraz ustawiając początkowy motyw strony na podstawie cookie już na etapie renderowania dokumentu.
 - Uzupełniono testy jednostkowe `BlogSettings` i `AppGlobalsExtension` o przypadki związane z wyliczaniem domeny cookie i eksportem tej wartości do warstwy widoków.
+
+## 2026-04-19
+
+- Zainstalowano paczkę `symfony/translation` i rozpoczęto standaryzację warstwy internacjonalizacji, konfigurując translator Symfony w `framework.yaml` oraz porządkując zależności projektu.
+- Przebudowano backendową obsługę tłumaczeń, tak aby komunikaty aplikacyjne, fallbacki oraz komunikaty bezpieczeństwa i formularzy korzystały z katalogów translacji Symfony zamiast rozproszonych własnych mechanizmów `PL/EN`.
+- Dodano nowe katalogi `translations/app.pl.php` i `translations/app.en.php`, centralizując wspólne komunikaty interfejsu i backendu w jednym źródle prawdy wykorzystywanym przez PHP oraz JavaScript.
+- Uproszczono frontendowy moduł i18n, usuwając duży statyczny słownik z `public/assets/js/modules/i18n-data.js` i zastępując go danymi wstrzykiwanymi z backendu przez `globalThis.__APP_I18N__` oraz katalogi translacji Symfony.
+- Przebudowano `AppGlobalsExtension`, aby eksportował do widoków i przeglądarki dane i18n wyłącznie z plików `translations/`, a nie z osobnych plików konfiguracyjnych.
+- Przeniesiono komunikaty walidacyjne do pełnych katalogów `translations/validators.pl.php` i `translations/validators.en.php`, a następnie usunięto legacy plik `config/validation_i18n.php`, dzięki czemu także walidacje korzystają już tylko z `symfony/translation`.
+- Dostosowano formularze uploadu, wybrane kontrolery administracyjne, strony błędów `403/404` oraz testy jednostkowe do nowego modelu tłumaczeń opartego o klucze i domeny Symfony, zachowując zgodność istniejących scenariuszy.
