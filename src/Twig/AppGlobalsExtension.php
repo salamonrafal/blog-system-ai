@@ -111,6 +111,7 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
             'media_upload_limit_bytes' => $mediaUploadLimitBytes,
             'media_upload_limit_formatted' => null !== $mediaUploadLimitBytes ? $this->formatFileSize($mediaUploadLimitBytes) : '',
             'active_i18n_json' => $this->getMergedLanguageMessagesJson($language),
+            'i18n_catalog_version' => $this->translationCatalogLoader()->getCatalogVersion(['app', 'validators']),
             'admin_shortcut_badges' => [
                 'queue_status' => $pendingImportCount + $pendingExportQueueCount,
                 'imports' => $pendingArticleImportCount,

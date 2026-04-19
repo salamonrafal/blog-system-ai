@@ -18,6 +18,7 @@ class TranslationCatalogLoader
     ];
     private array $domainMessagesCache = [];
     private array $languageMessagesCache = [];
+    private array $catalogVersionCache = [];
 
     /**
      * @return array<string, array<string, string>>
@@ -80,6 +81,38 @@ class TranslationCatalogLoader
         }
 
         return $messages;
+    }
+
+    /**
+     * @param list<string> $domains
+     */
+    public function getCatalogVersion(array $domains): string
+    {
+        $normalizedDomains = array_values(array_unique(array_map(
+            static fn (string $domain): string => strtolower(trim($domain)),
+            $domains,
+        )));
+        sort($normalizedDomains);
+        $cacheKey = implode('|', $normalizedDomains);
+
+        if (isset($this->catalogVersionCache[$cacheKey])) {
+            return $this->catalogVersionCache[$cacheKey];
+        }
+
+        $fingerprintParts = [];
+
+        foreach ($normalizedDomains as $domain) {
+            foreach (self::TRANSLATION_FILES[$domain] ?? [] as $language => $path) {
+                $fingerprintParts[] = implode(':', [
+                    $domain,
+                    $language,
+                    (string) @filemtime($path),
+                    (string) @filesize($path),
+                ]);
+            }
+        }
+
+        return $this->catalogVersionCache[$cacheKey] = sha1(implode('|', $fingerprintParts));
     }
 
     /**

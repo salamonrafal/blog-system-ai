@@ -16,6 +16,7 @@ final class I18nController extends AbstractController
     #[Route('/i18n/{language}.json', name: 'app_i18n_catalog', methods: ['GET'], requirements: ['language' => 'pl|en'])]
     public function show(string $language, Request $request, TranslationCatalogLoader $translationCatalogLoader): Response
     {
+        $request->setLocale($language);
         $messages = $translationCatalogLoader->loadMergedLanguageMessages(['app', 'validators'], $language);
         $response = new JsonResponse($messages);
         $responseContent = $response->getContent() ?: '{}';
@@ -24,6 +25,7 @@ final class I18nController extends AbstractController
         $response->setMaxAge(3600);
         $response->setSharedMaxAge(3600);
         $response->setEtag($etag);
+        $response->headers->set('Content-Language', $language);
 
         if ($response->isNotModified($request)) {
             return $response;

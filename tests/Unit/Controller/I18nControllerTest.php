@@ -19,6 +19,7 @@ final class I18nControllerTest extends TestCase
         $response = $controller->show('en', new Request(), new TranslationCatalogLoader());
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
+        $this->assertSame('en', $response->headers->get('Content-Language'));
         $this->assertTrue($response->headers->hasCacheControlDirective('public'));
         $this->assertSame('3600', $response->headers->getCacheControlDirective('max-age'));
         $this->assertSame('3600', $response->headers->getCacheControlDirective('s-maxage'));

@@ -293,6 +293,7 @@ final class AppGlobalsExtensionTest extends TestCase
         $activeI18n = json_decode($globals['active_i18n_json'], true, 512, \JSON_THROW_ON_ERROR);
         $this->assertSame('Select an import file.', $activeI18n['validation_import_file_required'] ?? null);
         $this->assertSame('{{count}} powiadomienia', $activeI18n['admin_shortcut_notifications_badge_few'] ?? null);
+        $this->assertMatchesRegularExpression('/^[a-f0-9]{40}$/', $globals['i18n_catalog_version']);
         $this->assertSame([
             'queue_status' => 21,
             'imports' => 2,

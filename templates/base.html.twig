@@ -725,7 +725,7 @@ Fullstack Developer</span>
 <script>
     globalThis.__APP_I18N_ACTIVE_LOCALE__ = {{ user_language|json_encode|raw }};
     globalThis.__APP_I18N_INITIAL__ = {{ active_i18n_json|raw }};
-    globalThis.__APP_I18N_URL_TEMPLATE__ = {{ path('app_i18n_catalog', { language: 'pl' })|replace({'pl.json': '__LANG__.json'})|json_encode|raw }};
+    globalThis.__APP_I18N_URL_TEMPLATE__ = {{ path('app_i18n_catalog', { language: 'pl', v: i18n_catalog_version })|replace({'pl.json': '__LANG__.json'})|json_encode|raw }};
 </script>
 
 {% if app_env == 'prod' %}
