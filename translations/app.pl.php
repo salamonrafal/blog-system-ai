@@ -911,6 +911,6 @@ Fullstack Developer',
     'flash_keyword_import_download_unavailable' => 'Plik importu słów kluczowych nie jest dostępny do pobrania.',
     'flash_keyword_import_deleted' => 'Import słów kluczowych został usunięty.',
     'flash_keyword_imports_deleted_all' => 'Wszystkie importy słów kluczowych zostały usunięte.',
-    'flash_blog_settings_saved' => 'Ustawienia bloga zostały zapisane.'
-    ,'validation_import_file_too_large_dynamic' => 'Plik importu nie może być większy niż {{ limit }}.'
+    'flash_blog_settings_saved' => 'Ustawienia bloga zostały zapisane.',
+    'validation_import_file_too_large_dynamic' => 'Plik importu nie może być większy niż {{ limit }}.'
 ];

@@ -14,6 +14,10 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 class ImageUploadConstraintFactory
 {
     private const TOO_LARGE_MESSAGE_KEY = 'validation_media_file_too_large';
+    private const VALIDATOR_TRANSLATION_FILES = [
+        'pl' => __DIR__.'/../../translations/validators.pl.php',
+        'en' => __DIR__.'/../../translations/validators.en.php',
+    ];
 
     public function __construct(
         private readonly ?UploadLimitResolver $uploadLimitResolver = null,
@@ -60,7 +64,7 @@ class ImageUploadConstraintFactory
         }
 
         /** @var array<string, string> $messages */
-        $messages = require __DIR__.'/../../translations/validators.pl.php';
+        $messages = require $this->resolveValidatorTranslationFile();
 
         return strtr($messages[self::TOO_LARGE_MESSAGE_KEY] ?? '', $parameters);
     }
@@ -115,5 +119,12 @@ class ImageUploadConstraintFactory
         return [
             '{{ limit }}' => $formattedLimit,
         ];
+    }
+
+    private function resolveValidatorTranslationFile(): string
+    {
+        $language = strtolower(trim((string) $this->userLanguageResolver?->getLanguage()));
+
+        return self::VALIDATOR_TRANSLATION_FILES[$language] ?? self::VALIDATOR_TRANSLATION_FILES['pl'];
     }
 }

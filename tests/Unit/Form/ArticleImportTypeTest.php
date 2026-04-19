@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Form;
 use App\Form\ArticleImportType;
 use App\Service\FileSizeFormatter;
 use App\Service\UploadLimitResolver;
+use App\Service\UserLanguageResolver;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Forms;
@@ -46,6 +47,28 @@ final class ArticleImportTypeTest extends TestCase
 
         $this->assertArrayNotHasKey('data_class', $options);
         $this->assertSame('Plik importu nie może być większy niż 2.0 MB.', $options['post_max_size_message']);
+    }
+
+    public function testConfigureOptionsUsesEnglishFallbackWhenTranslatorIsUnavailable(): void
+    {
+        $resolver = new OptionsResolver();
+        $userLanguageResolver = $this->createMock(UserLanguageResolver::class);
+        $userLanguageResolver
+            ->method('getLanguage')
+            ->willReturn('en');
+
+        (new ArticleImportType(
+            new UploadLimitResolver(static fn (string $key): string|false => match ($key) {
+                'upload_max_filesize' => '2M',
+                'post_max_size' => '8M',
+                default => false,
+            }),
+            new FileSizeFormatter(),
+            $userLanguageResolver,
+        ))->configureOptions($resolver);
+        $options = $resolver->resolve();
+
+        $this->assertSame('The import file cannot be larger than 2.0 MB.', $options['post_max_size_message']);
     }
 
     public function testBuildFormRegistersImportFileField(): void

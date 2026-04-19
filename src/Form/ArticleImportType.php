@@ -20,6 +20,10 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 class ArticleImportType extends AbstractType
 {
     private const MAX_FILE_SIZE = 10 * 1024 * 1024;
+    private const APP_TRANSLATION_FILES = [
+        'pl' => __DIR__.'/../../translations/app.pl.php',
+        'en' => __DIR__.'/../../translations/app.en.php',
+    ];
 
     public function __construct(
         private readonly ?UploadLimitResolver $uploadLimitResolver = null,
@@ -101,8 +105,15 @@ class ArticleImportType extends AbstractType
         }
 
         /** @var array<string, string> $messages */
-        $messages = require __DIR__.'/../../translations/app.pl.php';
+        $messages = require $this->resolveAppTranslationFile();
 
         return strtr($messages['validation_import_file_too_large_dynamic'] ?? '', $parameters);
+    }
+
+    private function resolveAppTranslationFile(): string
+    {
+        $language = strtolower(trim((string) $this->userLanguageResolver?->getLanguage()));
+
+        return self::APP_TRANSLATION_FILES[$language] ?? self::APP_TRANSLATION_FILES['pl'];
     }
 }
