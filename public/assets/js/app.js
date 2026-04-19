@@ -38,7 +38,7 @@ import { getAccent, getLang, getTheme, persistUserLanguage, persistUserTimeZone,
 import { setupImagePreview } from './modules/preview.js';
 import { setupPrivacyNotice } from './modules/privacy.js';
 
-function init(){
+async function init(){
   persistUserLanguage(getLang());
   persistUserTimeZone();
   setupNav();
@@ -48,7 +48,7 @@ function init(){
   setAccent(getAccent());
   setupPrivacyNotice();
   const lang = getLang();
-  applyI18n(lang);
+  await applyI18n(lang);
   setupTooltips();
   setupAriaDisabledActions();
   setupFlashNotices();
@@ -94,4 +94,6 @@ function init(){
   }
 }
 
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', ()=>{
+  void init();
+});

@@ -289,7 +289,10 @@ final class AppGlobalsExtensionTest extends TestCase
         $this->assertSame('Europe/Warsaw', $globals['user_timezone']);
         $this->assertSame(2 * 1024 * 1024, $globals['media_upload_limit_bytes']);
         $this->assertSame('2.0 MB', $globals['media_upload_limit_formatted']);
-        $this->assertJson($globals['validation_i18n_json']);
+        $this->assertJson($globals['active_i18n_json']);
+        $activeI18n = json_decode($globals['active_i18n_json'], true, 512, \JSON_THROW_ON_ERROR);
+        $this->assertSame('Select an import file.', $activeI18n['validation_import_file_required'] ?? null);
+        $this->assertSame('{{count}} powiadomienia', $activeI18n['admin_shortcut_notifications_badge_few'] ?? null);
         $this->assertSame([
             'queue_status' => 21,
             'imports' => 2,

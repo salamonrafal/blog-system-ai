@@ -1,4 +1,4 @@
-import { i18n } from './i18n-data.js';
+import { ensureTranslations, i18n } from './i18n-data.js';
 import { getLang } from './preferences.js';
 import { qs, qsa, sleep } from './shared.js';
 
@@ -14,7 +14,10 @@ export function registerI18nListener(listener){
 }
 
 export function getTranslation(key, lang = getLang()){
-  return (i18n[lang] && i18n[lang][key]) || i18n.pl[key] || '';
+  const normalizedLang = lang === 'en' ? 'en' : 'pl';
+  return (i18n[normalizedLang] && i18n[normalizedLang][key])
+    || (i18n.pl && i18n.pl[key])
+    || '';
 }
 
 function parseStructuredTranslation(template){
@@ -96,10 +99,12 @@ function resolveTerminalLines(lang){
   return Array.isArray(structuredLines) ? structuredLines : [];
 }
 
-export function applyI18n(lang){
-  const translations = i18n[lang] || i18n.pl;
-  document.documentElement.lang = lang;
-  applyLangVisibility(lang);
+export async function applyI18n(lang){
+  const normalizedLang = lang === 'en' ? 'en' : 'pl';
+  await ensureTranslations(normalizedLang);
+  const translations = i18n[normalizedLang] || i18n.pl || {};
+  document.documentElement.lang = normalizedLang;
+  applyLangVisibility(normalizedLang);
 
   const pageTitleKey = document.body?.getAttribute('data-page-title-i18n');
   if(pageTitleKey && translations[pageTitleKey] !== undefined){
@@ -163,12 +168,12 @@ export function applyI18n(lang){
   if(terminal){
     terminal.innerHTML = '';
     terminalRenderId += 1;
-    typeTerminal(terminal, resolveTerminalLines(lang), terminalRenderId);
+    typeTerminal(terminal, resolveTerminalLines(normalizedLang), terminalRenderId);
   }
 
   qsa('[data-action="toggle-lang"]').forEach((button)=>{
-    button.textContent = lang === 'pl' ? 'PL' : 'EN';
+    button.textContent = normalizedLang === 'pl' ? 'PL' : 'EN';
   });
 
-  i18nApplyListeners.forEach((listener)=> listener(lang));
+  i18nApplyListeners.forEach((listener)=> listener(normalizedLang));
 }

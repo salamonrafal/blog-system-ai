@@ -43,8 +43,27 @@ class TranslationCatalogLoader
         $normalizedFallbackLanguage = strtolower(trim($fallbackLanguage));
         $messagesByLanguage = $this->loadDomainMessages($domain);
 
-        return $messagesByLanguage[$normalizedLanguage]
-            ?? $messagesByLanguage[$normalizedFallbackLanguage]
-            ?? [];
+        $messages = $messagesByLanguage[$normalizedLanguage] ?? [];
+
+        if ($normalizedLanguage !== $normalizedFallbackLanguage) {
+            $messages += $messagesByLanguage[$normalizedFallbackLanguage] ?? [];
+        }
+
+        return [] !== $messages ? $messages : ($messagesByLanguage[$normalizedFallbackLanguage] ?? []);
+    }
+
+    /**
+     * @param list<string> $domains
+     * @return array<string, string>
+     */
+    public function loadMergedLanguageMessages(array $domains, string $language, string $fallbackLanguage = 'pl'): array
+    {
+        $messages = [];
+
+        foreach ($domains as $domain) {
+            $messages += $this->loadLanguageMessages($domain, $language, $fallbackLanguage);
+        }
+
+        return $messages;
     }
 }

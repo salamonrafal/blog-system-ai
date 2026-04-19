@@ -35,8 +35,7 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
 
     private ?array $appMessageFallbacks = null;
     private ?array $validationMessageFallbacks = null;
-    private ?string $appMessageFallbacksJson = null;
-    private ?string $validationMessageFallbacksJson = null;
+    private array $mergedLanguageMessagesJson = [];
     private array $resolvedI18nFallbackMessages = [];
 
     public function __construct(
@@ -111,8 +110,7 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
             'user_timezone' => $this->userTimeZoneResolver->getTimeZone(),
             'media_upload_limit_bytes' => $mediaUploadLimitBytes,
             'media_upload_limit_formatted' => null !== $mediaUploadLimitBytes ? $this->formatFileSize($mediaUploadLimitBytes) : '',
-            'validation_i18n_json' => $this->getValidationMessageFallbacksJson(),
-            'app_i18n_json' => $this->getAppMessageFallbacksJson(),
+            'active_i18n_json' => $this->getMergedLanguageMessagesJson($language),
             'admin_shortcut_badges' => [
                 'queue_status' => $pendingImportCount + $pendingExportQueueCount,
                 'imports' => $pendingArticleImportCount,
@@ -244,39 +242,20 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
         return $this->appMessageFallbacks = $this->loadDomainMessages('app');
     }
 
-    private function getValidationMessageFallbacksJson(): string
+    private function getMergedLanguageMessagesJson(string $language): string
     {
-        if (null !== $this->validationMessageFallbacksJson) {
-            return $this->validationMessageFallbacksJson;
+        $normalizedLanguage = strtolower(trim($language));
+
+        if (isset($this->mergedLanguageMessagesJson[$normalizedLanguage])) {
+            return $this->mergedLanguageMessagesJson[$normalizedLanguage];
         }
 
-        return $this->validationMessageFallbacksJson = $this->encodeMessageFallbacks(
-            $this->getValidationMessageFallbacks(),
-            '{"pl":{},"en":{}}',
-        );
-    }
+        $messages = $this->translationCatalogLoader()->loadMergedLanguageMessages(['app', 'validators'], $normalizedLanguage);
 
-    private function getAppMessageFallbacksJson(): string
-    {
-        if (null !== $this->appMessageFallbacksJson) {
-            return $this->appMessageFallbacksJson;
-        }
-
-        return $this->appMessageFallbacksJson = $this->encodeMessageFallbacks(
-            $this->getAppMessageFallbacks(),
-            '{"pl":{},"en":{}}',
-        );
-    }
-
-    /**
-     * @param array<string, array<string, string>> $messages
-     */
-    private function encodeMessageFallbacks(array $messages, string $fallbackJson): string
-    {
-        return json_encode(
+        return $this->mergedLanguageMessagesJson[$normalizedLanguage] = json_encode(
             $messages,
             \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT | \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES
-        ) ?: $fallbackJson;
+        ) ?: '{}';
     }
 
     /**
