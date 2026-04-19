@@ -107,7 +107,7 @@ class ArticleImportType extends AbstractType
         /** @var array<string, string> $messages */
         $messages = require $this->resolveAppTranslationFile();
 
-        return strtr($messages['validation_import_file_too_large_dynamic'] ?? '', $parameters);
+        return strtr($messages['validation_import_file_too_large_dynamic'] ?? 'validation_import_file_too_large_dynamic', $parameters);
     }
 
     private function resolveAppTranslationFile(): string

@@ -66,7 +66,7 @@ class ImageUploadConstraintFactory
         /** @var array<string, string> $messages */
         $messages = require $this->resolveValidatorTranslationFile();
 
-        return strtr($messages[self::TOO_LARGE_MESSAGE_KEY] ?? '', $parameters);
+        return strtr($messages[self::TOO_LARGE_MESSAGE_KEY] ?? self::TOO_LARGE_MESSAGE_KEY, $parameters);
     }
 
     private function createImageConstraint(int $applicationLimit): Constraint
