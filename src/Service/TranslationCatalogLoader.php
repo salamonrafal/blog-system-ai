@@ -121,6 +121,14 @@ class TranslationCatalogLoader
      */
     private function loadCatalogFile(string $path): array
     {
+        if (!is_file($path)) {
+            throw new \RuntimeException(sprintf('Translation catalog file "%s" was not found.', $path));
+        }
+
+        if (!is_readable($path)) {
+            throw new \RuntimeException(sprintf('Translation catalog file "%s" is not readable.', $path));
+        }
+
         /** @var array<string, string> $messages */
         $messages = require $path;
 

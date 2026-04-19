@@ -15,14 +15,19 @@ final class I18nControllerTest extends TestCase
     public function testShowReturnsJsonCatalogForRequestedLanguage(): void
     {
         $controller = new I18nController();
+        $translationCatalogLoader = new TranslationCatalogLoader();
 
-        $response = $controller->show('en', new Request(), new TranslationCatalogLoader());
+        $response = $controller->show('en', new Request(), $translationCatalogLoader);
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
         $this->assertSame('en', $response->headers->get('Content-Language'));
         $this->assertTrue($response->headers->hasCacheControlDirective('public'));
         $this->assertSame('3600', $response->headers->getCacheControlDirective('max-age'));
         $this->assertSame('3600', $response->headers->getCacheControlDirective('s-maxage'));
+        $this->assertSame(
+            hash('sha256', 'en:'.$translationCatalogLoader->getCatalogVersion(['app', 'validators'])),
+            trim((string) $response->getEtag(), '"'),
+        );
 
         $payload = json_decode($response->getContent() ?: '{}', true, 512, \JSON_THROW_ON_ERROR);
 
@@ -37,5 +42,18 @@ final class I18nControllerTest extends TestCase
         $payload = json_decode($response->getContent() ?: '{}', true, 512, \JSON_THROW_ON_ERROR);
 
         $this->assertSame('{{count}} powiadomienia', $payload['admin_shortcut_notifications_badge_few'] ?? null);
+    }
+
+    public function testShowUsesImmutableCachingForVersionedCatalogRequests(): void
+    {
+        $controller = new I18nController();
+        $translationCatalogLoader = new TranslationCatalogLoader();
+        $catalogVersion = $translationCatalogLoader->getCatalogVersion(['app', 'validators']);
+
+        $response = $controller->show('en', new Request(['v' => $catalogVersion]), $translationCatalogLoader);
+
+        $this->assertSame('31536000', $response->headers->getCacheControlDirective('max-age'));
+        $this->assertSame('31536000', $response->headers->getCacheControlDirective('s-maxage'));
+        $this->assertTrue($response->headers->hasCacheControlDirective('immutable'));
     }
 }

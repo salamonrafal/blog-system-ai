@@ -17,15 +17,22 @@ final class I18nController extends AbstractController
     public function show(string $language, Request $request, TranslationCatalogLoader $translationCatalogLoader): Response
     {
         $request->setLocale($language);
+        $catalogVersion = $translationCatalogLoader->getCatalogVersion(['app', 'validators']);
         $messages = $translationCatalogLoader->loadMergedLanguageMessages(['app', 'validators'], $language);
         $response = new JsonResponse($messages);
-        $responseContent = $response->getContent() ?: '{}';
-        $etag = hash('sha256', $language.':'.$responseContent);
+        $etag = hash('sha256', $language.':'.$catalogVersion);
         $response->setPublic();
-        $response->setMaxAge(3600);
-        $response->setSharedMaxAge(3600);
         $response->setEtag($etag);
         $response->headers->set('Content-Language', $language);
+
+        if ($request->query->getString('v') === $catalogVersion) {
+            $response->setMaxAge(31536000);
+            $response->setSharedMaxAge(31536000);
+            $response->setImmutable();
+        } else {
+            $response->setMaxAge(3600);
+            $response->setSharedMaxAge(3600);
+        }
 
         if ($response->isNotModified($request)) {
             return $response;

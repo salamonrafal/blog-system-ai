@@ -31,6 +31,7 @@ use Twig\TwigFunction;
 
 class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
 {
+    private const I18N_CATALOG_VERSION_CACHE_KEY = 'twig.i18n_catalog_version';
     private const TOP_MENU_CACHE_KEY_PREFIX = 'twig.top_menu_items.';
 
     private ?array $appMessageFallbacks = null;
@@ -111,7 +112,7 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
             'media_upload_limit_bytes' => $mediaUploadLimitBytes,
             'media_upload_limit_formatted' => null !== $mediaUploadLimitBytes ? $this->formatFileSize($mediaUploadLimitBytes) : '',
             'active_i18n_json' => $this->getMergedLanguageMessagesJson($language),
-            'i18n_catalog_version' => $this->translationCatalogLoader()->getCatalogVersion(['app', 'validators']),
+            'i18n_catalog_version' => $this->getI18nCatalogVersion(),
             'admin_shortcut_badges' => [
                 'queue_status' => $pendingImportCount + $pendingExportQueueCount,
                 'imports' => $pendingArticleImportCount,
@@ -257,6 +258,22 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
             $messages,
             \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT | \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES
         ) ?: '{}';
+    }
+
+    private function getI18nCatalogVersion(): string
+    {
+        if ('dev' === $this->appEnv) {
+            return $this->translationCatalogLoader()->getCatalogVersion(['app', 'validators']);
+        }
+
+        return $this->appCache->get(
+            self::I18N_CATALOG_VERSION_CACHE_KEY,
+            function (ItemInterface $item): string {
+                $item->expiresAfter(300);
+
+                return $this->translationCatalogLoader()->getCatalogVersion(['app', 'validators']);
+            }
+        );
     }
 
     /**

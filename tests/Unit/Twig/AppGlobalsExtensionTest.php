@@ -240,19 +240,23 @@ final class AppGlobalsExtensionTest extends TestCase
             ->method('expiresAfter')
             ->with(3600)
             ->willReturnSelf();
+        $i18nCatalogVersionCacheItem = $this->createMock(ItemInterface::class);
+        $i18nCatalogVersionCacheItem
+            ->expects($this->once())
+            ->method('expiresAfter')
+            ->with(300)
+            ->willReturnSelf();
         $appCache = $this->createMock(CacheInterface::class);
         $appCache
-            ->expects($this->once())
+            ->expects($this->exactly(2))
             ->method('get')
-            ->with(
-                'twig.top_menu_items.en',
-                $this->callback(function (callable $callback) use ($cacheItem): bool {
-                    $result = $callback($cacheItem);
-
-                    return [['label' => 'Blog', 'url' => '/', 'children' => [], 'has_children' => false, 'external' => false]] === $result;
-                })
-            )
-            ->willReturn([['label' => 'Blog', 'url' => '/', 'children' => [], 'has_children' => false, 'external' => false]]);
+            ->willReturnCallback(function (string $key, callable $callback) use ($cacheItem, $i18nCatalogVersionCacheItem): mixed {
+                return match ($key) {
+                    'twig.top_menu_items.en' => $callback($cacheItem),
+                    'twig.i18n_catalog_version' => $callback($i18nCatalogVersionCacheItem),
+                    default => throw new \RuntimeException(sprintf('Unexpected cache key "%s".', $key)),
+                };
+            });
 
         $extension = new AppGlobalsExtension(
             $provider,
@@ -276,7 +280,7 @@ final class AppGlobalsExtensionTest extends TestCase
                 default => false,
             }),
             $appCache,
-            'test',
+            'prod',
         );
         $globals = $extension->getGlobals();
 
@@ -284,7 +288,7 @@ final class AppGlobalsExtensionTest extends TestCase
         $this->assertSame('https://blog.example.com', $globals['app_url']);
         $this->assertSame('.example.com', $globals['preference_cookie_domain']);
         $this->assertSame($settings, $globals['blog_settings']);
-        $this->assertSame('test', $globals['app_env']);
+        $this->assertSame('prod', $globals['app_env']);
         $this->assertSame('en', $globals['user_language']);
         $this->assertSame('Europe/Warsaw', $globals['user_timezone']);
         $this->assertSame(2 * 1024 * 1024, $globals['media_upload_limit_bytes']);
