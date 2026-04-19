@@ -6,16 +6,7 @@ namespace App\Service;
 
 class TranslationCatalogLoader
 {
-    private const TRANSLATION_FILES = [
-        'app' => [
-            'pl' => __DIR__.'/../../translations/app.pl.php',
-            'en' => __DIR__.'/../../translations/app.en.php',
-        ],
-        'validators' => [
-            'pl' => __DIR__.'/../../translations/validators.pl.php',
-            'en' => __DIR__.'/../../translations/validators.en.php',
-        ],
-    ];
+    private const SUPPORTED_DOMAINS = ['app', 'validators'];
     private array $domainMessagesCache = [];
     private array $languageMessagesCache = [];
     private array $catalogVersionCache = [];
@@ -29,7 +20,7 @@ class TranslationCatalogLoader
             return $this->domainMessagesCache[$domain];
         }
 
-        $domainFiles = self::TRANSLATION_FILES[$domain] ?? [];
+        $domainFiles = $this->translationFilesForDomain($domain);
         $messages = [];
 
         foreach ($domainFiles as $language => $path) {
@@ -52,7 +43,7 @@ class TranslationCatalogLoader
             return $this->languageMessagesCache[$cacheKey];
         }
 
-        $domainFiles = self::TRANSLATION_FILES[$domain] ?? [];
+        $domainFiles = $this->translationFilesForDomain($domain);
         $messages = isset($domainFiles[$normalizedLanguage])
             ? $this->loadCatalogFile($domainFiles[$normalizedLanguage])
             : [];
@@ -102,7 +93,7 @@ class TranslationCatalogLoader
         $fingerprintParts = [];
 
         foreach ($normalizedDomains as $domain) {
-            foreach (self::TRANSLATION_FILES[$domain] ?? [] as $language => $path) {
+            foreach ($this->translationFilesForDomain($domain) as $language => $path) {
                 [$mtime, $size] = $this->readCatalogFileMetadata($path);
                 $fingerprintParts[] = implode(':', [
                     $domain,
@@ -114,6 +105,30 @@ class TranslationCatalogLoader
         }
 
         return $this->catalogVersionCache[$cacheKey] = sha1(implode('|', $fingerprintParts));
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function translationFilesForDomain(string $domain): array
+    {
+        $normalizedDomain = strtolower(trim($domain));
+        if (!in_array($normalizedDomain, self::SUPPORTED_DOMAINS, true)) {
+            return [];
+        }
+
+        $files = [];
+
+        foreach (UserLanguageResolver::supportedLanguages() as $language) {
+            $files[$language] = $this->translationFilePath($normalizedDomain, $language);
+        }
+
+        return $files;
+    }
+
+    private function translationFilePath(string $domain, string $language): string
+    {
+        return __DIR__.'/../../translations/'.$domain.'.'.$language.'.php';
     }
 
     /**

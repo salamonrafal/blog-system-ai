@@ -9,6 +9,7 @@ use App\Service\TranslationCatalogLoader;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 final class I18nControllerTest extends TestCase
 {
@@ -55,5 +56,15 @@ final class I18nControllerTest extends TestCase
         $this->assertSame('31536000', $response->headers->getCacheControlDirective('max-age'));
         $this->assertSame('31536000', $response->headers->getCacheControlDirective('s-maxage'));
         $this->assertTrue($response->headers->hasCacheControlDirective('immutable'));
+    }
+
+    public function testShowRejectsUnsupportedLanguage(): void
+    {
+        $controller = new I18nController();
+
+        $this->expectException(NotFoundHttpException::class);
+        $this->expectExceptionMessage('Unsupported i18n catalog language.');
+
+        $controller->show('de', new Request(), new TranslationCatalogLoader());
     }
 }

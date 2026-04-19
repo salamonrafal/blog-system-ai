@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Service\TranslationCatalogLoader;
+use App\Service\UserLanguageResolver;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,9 +14,13 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class I18nController extends AbstractController
 {
-    #[Route('/i18n/{language}.json', name: 'app_i18n_catalog', methods: ['GET'], requirements: ['language' => 'pl|en'])]
+    #[Route('/i18n/{language}.json', name: 'app_i18n_catalog', methods: ['GET'])]
     public function show(string $language, Request $request, TranslationCatalogLoader $translationCatalogLoader): Response
     {
+        if (!UserLanguageResolver::isSupportedLanguage($language)) {
+            throw $this->createNotFoundException('Unsupported i18n catalog language.');
+        }
+
         $request->setLocale($language);
         $catalogVersion = $translationCatalogLoader->getCatalogVersion(['app', 'validators']);
         $messages = $translationCatalogLoader->loadMergedLanguageMessages(['app', 'validators'], $language);

@@ -38,6 +38,7 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
     private ?array $validationMessageFallbacks = null;
     private array $mergedLanguageMessagesJson = [];
     private array $resolvedI18nFallbackMessages = [];
+    private ?TranslationCatalogLoader $resolvedTranslationCatalogLoader = null;
 
     public function __construct(
         private readonly BlogSettingsProvider $blogSettingsProvider,
@@ -341,6 +342,10 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
 
     private function translationCatalogLoader(): TranslationCatalogLoader
     {
-        return $this->translationCatalogLoader ?? new TranslationCatalogLoader();
+        if (null !== $this->translationCatalogLoader) {
+            return $this->translationCatalogLoader;
+        }
+
+        return $this->resolvedTranslationCatalogLoader ??= new TranslationCatalogLoader();
     }
 }

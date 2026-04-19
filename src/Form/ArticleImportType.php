@@ -22,6 +22,7 @@ class ArticleImportType extends AbstractType
 {
     private const MAX_FILE_SIZE = 10 * 1024 * 1024;
     private const TOO_LARGE_MESSAGE_KEY = 'validation_import_file_too_large_dynamic';
+    private ?TranslationCatalogLoader $resolvedTranslationCatalogLoader = null;
 
     public function __construct(
         private readonly ?UploadLimitResolver $uploadLimitResolver = null,
@@ -123,6 +124,10 @@ class ArticleImportType extends AbstractType
 
     private function translationCatalogLoader(): TranslationCatalogLoader
     {
-        return $this->translationCatalogLoader ?? new TranslationCatalogLoader();
+        if (null !== $this->translationCatalogLoader) {
+            return $this->translationCatalogLoader;
+        }
+
+        return $this->resolvedTranslationCatalogLoader ??= new TranslationCatalogLoader();
     }
 }

@@ -14,6 +14,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 class ImageUploadConstraintFactory
 {
     private const TOO_LARGE_MESSAGE_KEY = 'validation_media_file_too_large';
+    private ?TranslationCatalogLoader $resolvedTranslationCatalogLoader = null;
 
     public function __construct(
         private readonly ?UploadLimitResolver $uploadLimitResolver = null,
@@ -122,6 +123,10 @@ class ImageUploadConstraintFactory
 
     private function translationCatalogLoader(): TranslationCatalogLoader
     {
-        return $this->translationCatalogLoader ?? new TranslationCatalogLoader();
+        if (null !== $this->translationCatalogLoader) {
+            return $this->translationCatalogLoader;
+        }
+
+        return $this->resolvedTranslationCatalogLoader ??= new TranslationCatalogLoader();
     }
 }

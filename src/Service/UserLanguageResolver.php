@@ -122,6 +122,24 @@ class UserLanguageResolver
         return $this->resolveLanguage($this->requestStack->getCurrentRequest());
     }
 
+    public static function defaultLanguage(): string
+    {
+        return self::DEFAULT_LANGUAGE;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function supportedLanguages(): array
+    {
+        return self::SUPPORTED_LANGUAGES;
+    }
+
+    public static function isSupportedLanguage(string $language): bool
+    {
+        return in_array(strtolower(trim($language)), self::SUPPORTED_LANGUAGES, true);
+    }
+
     public function resolveLanguage(?Request $request): string
     {
         $language = $request?->cookies->get(self::COOKIE_NAME);
@@ -132,7 +150,7 @@ class UserLanguageResolver
 
         $language = strtolower(trim($language));
 
-        return in_array($language, self::SUPPORTED_LANGUAGES, true)
+        return self::isSupportedLanguage($language)
             ? $language
             : self::DEFAULT_LANGUAGE;
     }
