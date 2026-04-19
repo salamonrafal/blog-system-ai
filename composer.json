@@ -28,7 +28,7 @@
         "symfony/security-bundle": "^7.0",
         "symfony/security-csrf": "^7.0",
         "symfony/string": "^7.0",
-        "symfony/translation": "^8.0",
+        "symfony/translation": "^7.4",
         "symfony/twig-bundle": "^7.0",
         "symfony/validator": "^7.0",
         "symfony/var-exporter": "^7.0",
@@ -131,9 +131,17 @@
         ]
     },
     "config": {
+        "platform": {
+            "php": "8.2.0"
+        },
         "sort-packages": true,
         "allow-plugins": {
             "symfony/flex": true
+        }
+    },
+    "extra": {
+        "symfony": {
+            "require": "7.4.*"
         }
     }
 }
