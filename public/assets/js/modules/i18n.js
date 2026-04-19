@@ -3,6 +3,7 @@ import { getLang } from './preferences.js';
 import { qs, qsa, sleep } from './shared.js';
 
 const i18nApplyListeners = [];
+let i18nApplyId = 0;
 let terminalRenderId = 0;
 
 export { i18n };
@@ -99,9 +100,7 @@ function resolveTerminalLines(lang){
   return Array.isArray(structuredLines) ? structuredLines : [];
 }
 
-export async function applyI18n(lang){
-  const normalizedLang = lang === 'en' ? 'en' : 'pl';
-  await ensureTranslations(normalizedLang);
+function renderI18n(normalizedLang){
   const translations = i18n[normalizedLang] || i18n.pl || {};
   document.documentElement.lang = normalizedLang;
   applyLangVisibility(normalizedLang);
@@ -155,7 +154,7 @@ export async function applyI18n(lang){
   });
 
   qsa('[data-menu-label-pl][data-menu-label-en]').forEach((element)=>{
-    const nextLabel = lang === 'en'
+    const nextLabel = normalizedLang === 'en'
       ? element.getAttribute('data-menu-label-en')
       : element.getAttribute('data-menu-label-pl');
 
@@ -176,4 +175,24 @@ export async function applyI18n(lang){
   });
 
   i18nApplyListeners.forEach((listener)=> listener(normalizedLang));
+}
+
+export async function applyI18n(lang){
+  const normalizedLang = lang === 'en' ? 'en' : 'pl';
+  const applyId = ++i18nApplyId;
+  const hadTranslations = Boolean(i18n[normalizedLang]);
+
+  renderI18n(normalizedLang);
+
+  if(hadTranslations){
+    return;
+  }
+
+  await ensureTranslations(normalizedLang);
+
+  if(applyId !== i18nApplyId){
+    return;
+  }
+
+  renderI18n(normalizedLang);
 }
