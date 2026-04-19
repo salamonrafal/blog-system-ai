@@ -115,6 +115,28 @@ final class ArticleImportTypeTest extends TestCase
         $this->assertCount(0, $violations);
     }
 
+    public function testValidationUsesStableTranslationKeyAndParametersForTooLargeImport(): void
+    {
+        $validator = Validation::createValidator();
+        $factory = Forms::createFormFactoryBuilder()
+            ->addType(new ArticleImportType())
+            ->addExtension(new ValidatorExtension($validator))
+            ->getFormFactory();
+        $form = $factory->create(ArticleImportType::class);
+
+        $sourcePath = $this->projectDir.'/large.json';
+        file_put_contents($sourcePath, str_repeat('a', 10 * 1024 * 1024 + 1));
+
+        $uploadedFile = new UploadedFile($sourcePath, 'large.json', 'application/json', null, true);
+
+        $constraints = $form->get('importFile')->getConfig()->getOption('constraints');
+        $violations = $validator->validate($uploadedFile, $constraints);
+
+        $this->assertCount(1, $violations);
+        $this->assertSame('validation_import_file_too_large_dynamic', $violations[0]->getMessageTemplate());
+        $this->assertSame(['{{ limit }}' => '10.0 MB'], $violations[0]->getParameters());
+    }
+
     private function removeDirectory(string $path): void
     {
         if (!is_dir($path)) {

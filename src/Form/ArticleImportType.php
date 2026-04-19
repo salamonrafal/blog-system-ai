@@ -20,6 +20,7 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 class ArticleImportType extends AbstractType
 {
     private const MAX_FILE_SIZE = 10 * 1024 * 1024;
+    private const TOO_LARGE_MESSAGE_KEY = 'validation_import_file_too_large_dynamic';
     private const APP_TRANSLATION_FILES = [
         'pl' => __DIR__.'/../../translations/app.pl.php',
         'en' => __DIR__.'/../../translations/app.en.php',
@@ -35,7 +36,7 @@ class ArticleImportType extends AbstractType
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        $applicationLimitMessage = $this->buildTooLargeMessage(self::MAX_FILE_SIZE);
+        $applicationLimitMessageParameters = $this->buildTooLargeMessageParameters(self::MAX_FILE_SIZE);
 
         $builder->add('importFile', FileType::class, [
             'label' => 'Plik importu',
@@ -46,7 +47,7 @@ class ArticleImportType extends AbstractType
                     'message' => 'validation_import_file_required',
                 ]),
                 new Callback([
-                    'callback' => function (mixed $value, ExecutionContextInterface $context) use ($applicationLimitMessage): void {
+                    'callback' => function (mixed $value, ExecutionContextInterface $context) use ($applicationLimitMessageParameters): void {
                         if (!$value instanceof UploadedFile) {
                             return;
                         }
@@ -56,7 +57,8 @@ class ArticleImportType extends AbstractType
                         }
 
                         if ($value->getSize() > self::MAX_FILE_SIZE) {
-                            $context->buildViolation($applicationLimitMessage)
+                            $context->buildViolation(self::TOO_LARGE_MESSAGE_KEY)
+                                ->setParameters($applicationLimitMessageParameters)
                                 ->addViolation();
 
                             return;
@@ -92,12 +94,11 @@ class ArticleImportType extends AbstractType
 
     private function buildTooLargeMessage(int $limitBytes): string
     {
-        $formattedLimit = ($this->fileSizeFormatter ?? new FileSizeFormatter())->format($limitBytes);
-        $parameters = ['{{ limit }}' => $formattedLimit];
+        $parameters = $this->buildTooLargeMessageParameters($limitBytes);
 
         if (null !== $this->translator) {
             return $this->translator->trans(
-                'validation_import_file_too_large_dynamic',
+                self::TOO_LARGE_MESSAGE_KEY,
                 $parameters,
                 'app',
                 $this->userLanguageResolver?->getLanguage(),
@@ -107,7 +108,17 @@ class ArticleImportType extends AbstractType
         /** @var array<string, string> $messages */
         $messages = require $this->resolveAppTranslationFile();
 
-        return strtr($messages['validation_import_file_too_large_dynamic'] ?? 'validation_import_file_too_large_dynamic', $parameters);
+        return strtr($messages[self::TOO_LARGE_MESSAGE_KEY] ?? self::TOO_LARGE_MESSAGE_KEY, $parameters);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function buildTooLargeMessageParameters(int $limitBytes): array
+    {
+        $formattedLimit = ($this->fileSizeFormatter ?? new FileSizeFormatter())->format($limitBytes);
+
+        return ['{{ limit }}' => $formattedLimit];
     }
 
     private function resolveAppTranslationFile(): string
