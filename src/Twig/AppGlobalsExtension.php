@@ -44,6 +44,7 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
 
     private ?array $appMessageFallbacks = null;
     private ?array $validationMessageFallbacks = null;
+    private array $resolvedI18nFallbackMessages = [];
 
     public function __construct(
         private readonly BlogSettingsProvider $blogSettingsProvider,
@@ -160,12 +161,7 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
 
     public function getI18nFallback(string $key): string
     {
-        $messages = [];
-
-        foreach ($this->resolveFallbackLanguages() as $language) {
-            $messages += ($this->getAppMessageFallbacks()[$language] ?? [])
-                + ($this->getValidationMessageFallbacks()[$language] ?? []);
-        }
+        $messages = $this->getResolvedI18nFallbackMessages();
 
         return $messages[$key] ?? $key;
     }
@@ -258,6 +254,28 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
         }
 
         return $this->appMessageFallbacks = $this->loadDomainMessages('app');
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function getResolvedI18nFallbackMessages(): array
+    {
+        $languages = $this->resolveFallbackLanguages();
+        $cacheKey = implode('|', $languages);
+
+        if (isset($this->resolvedI18nFallbackMessages[$cacheKey])) {
+            return $this->resolvedI18nFallbackMessages[$cacheKey];
+        }
+
+        $messages = [];
+
+        foreach ($languages as $language) {
+            $messages += ($this->getAppMessageFallbacks()[$language] ?? [])
+                + ($this->getValidationMessageFallbacks()[$language] ?? []);
+        }
+
+        return $this->resolvedI18nFallbackMessages[$cacheKey] = $messages;
     }
 
     /**
