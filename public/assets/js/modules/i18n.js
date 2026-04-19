@@ -90,6 +90,12 @@ async function typeTerminal(root, lines, renderId){
   root.scrollTop = root.scrollHeight;
 }
 
+function resolveTerminalLines(lang){
+  const structuredLines = parseStructuredTranslation(getTranslation('term_lines', lang));
+
+  return Array.isArray(structuredLines) ? structuredLines : [];
+}
+
 export function applyI18n(lang){
   const translations = i18n[lang] || i18n.pl;
   document.documentElement.lang = lang;
@@ -157,10 +163,7 @@ export function applyI18n(lang){
   if(terminal){
     terminal.innerHTML = '';
     terminalRenderId += 1;
-    const terminalLines = parseStructuredTranslation(translations.term_lines);
-    if(Array.isArray(terminalLines)){
-      typeTerminal(terminal, terminalLines, terminalRenderId);
-    }
+    typeTerminal(terminal, resolveTerminalLines(lang), terminalRenderId);
   }
 
   qsa('[data-action="toggle-lang"]').forEach((button)=>{
