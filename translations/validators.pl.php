@@ -7,6 +7,7 @@ return array (
   'The uploaded file was too large. Please try to upload a smaller file.' => 'Przesłany plik jest za duży. Spróbuj przesłać mniejszy plik.',
   'validation_import_file_required' => 'Wybierz plik importu.',
   'validation_import_file_too_large' => 'Plik importu nie może być większy niż 10 MB.',
+  'validation_import_file_too_large_dynamic' => 'Plik importu nie może być większy niż {{ limit }}.',
   'validation_import_file_invalid' => 'Prześlij poprawny plik JSON z eksportem.',
   'validation_media_file_required' => 'Wybierz obrazek do przesłania.',
   'validation_media_file_too_large' => 'Obrazek nie może być większy niż {{ limit }}.',

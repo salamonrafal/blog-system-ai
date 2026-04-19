@@ -7,6 +7,7 @@ return array (
   'The uploaded file was too large. Please try to upload a smaller file.' => 'The uploaded file was too large. Please try to upload a smaller file.',
   'validation_import_file_required' => 'Select an import file.',
   'validation_import_file_too_large' => 'The import file cannot be larger than 10 MB.',
+  'validation_import_file_too_large_dynamic' => 'The import file cannot be larger than {{ limit }}.',
   'validation_import_file_invalid' => 'Upload a valid JSON export file.',
   'validation_media_file_required' => 'Select an image to upload.',
   'validation_media_file_too_large' => 'The image cannot be larger than {{ limit }}.',

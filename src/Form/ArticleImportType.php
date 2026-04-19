@@ -21,9 +21,9 @@ class ArticleImportType extends AbstractType
 {
     private const MAX_FILE_SIZE = 10 * 1024 * 1024;
     private const TOO_LARGE_MESSAGE_KEY = 'validation_import_file_too_large_dynamic';
-    private const APP_TRANSLATION_FILES = [
-        'pl' => __DIR__.'/../../translations/app.pl.php',
-        'en' => __DIR__.'/../../translations/app.en.php',
+    private const VALIDATOR_TRANSLATION_FILES = [
+        'pl' => __DIR__.'/../../translations/validators.pl.php',
+        'en' => __DIR__.'/../../translations/validators.en.php',
     ];
 
     public function __construct(
@@ -100,13 +100,13 @@ class ArticleImportType extends AbstractType
             return $this->translator->trans(
                 self::TOO_LARGE_MESSAGE_KEY,
                 $parameters,
-                'app',
+                'validators',
                 $this->userLanguageResolver?->getLanguage(),
             );
         }
 
         /** @var array<string, string> $messages */
-        $messages = require $this->resolveAppTranslationFile();
+        $messages = require $this->resolveValidatorTranslationFile();
 
         return strtr($messages[self::TOO_LARGE_MESSAGE_KEY] ?? self::TOO_LARGE_MESSAGE_KEY, $parameters);
     }
@@ -121,10 +121,10 @@ class ArticleImportType extends AbstractType
         return ['{{ limit }}' => $formattedLimit];
     }
 
-    private function resolveAppTranslationFile(): string
+    private function resolveValidatorTranslationFile(): string
     {
         $language = strtolower(trim((string) $this->userLanguageResolver?->getLanguage()));
 
-        return self::APP_TRANSLATION_FILES[$language] ?? self::APP_TRANSLATION_FILES['pl'];
+        return self::VALIDATOR_TRANSLATION_FILES[$language] ?? self::VALIDATOR_TRANSLATION_FILES['pl'];
     }
 }
