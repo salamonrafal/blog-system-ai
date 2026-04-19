@@ -26,6 +26,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Form\FormError;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 final class AppGlobalsExtensionTest extends TestCase
 {
@@ -50,6 +51,25 @@ final class AppGlobalsExtensionTest extends TestCase
         $topMenuRepository = $this->createMock(TopMenuItemRepository::class);
         $topMenuBuilder = $this->createMock(TopMenuBuilder::class);
         $appCache = $this->createMock(CacheInterface::class);
+        $translator = new class implements TranslatorInterface {
+            public function trans(?string $id, array $parameters = [], ?string $domain = null, ?string $locale = null): string
+            {
+                return $id ?? '';
+            }
+
+            public function getLocale(): string
+            {
+                return 'en';
+            }
+
+            /**
+             * @return list<string>
+             */
+            public function getFallbackLocales(): array
+            {
+                return ['pl'];
+            }
+        };
 
         $extension = new AppGlobalsExtension(
             $provider,
@@ -70,11 +90,13 @@ final class AppGlobalsExtensionTest extends TestCase
             new UploadLimitResolver(static fn (string $key): string|false => false),
             $appCache,
             'test',
+            $translator,
         );
 
         $this->assertSame('Select an import file.', $extension->getI18nFallback('validation_import_file_required'));
         $this->assertSame('The import file cannot be larger than 10 MB.', $extension->getI18nFallback('validation_import_file_too_large'));
         $this->assertSame('The image cannot be larger than {{ limit }}.', $extension->getI18nFallback('validation_media_file_too_large'));
+        $this->assertSame('{{count}} powiadomienia', $extension->getI18nFallback('admin_shortcut_notifications_badge_few'));
         $this->assertSame('unknown_key', $extension->getI18nFallback('unknown_key'));
         $this->assertSame('Category import', $extension->translateUi('Import kategorii', 'Category import'));
         $this->assertSame('English (EN)', $extension->getLanguageLabel('en'));

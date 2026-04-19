@@ -160,9 +160,12 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
 
     public function getI18nFallback(string $key): string
     {
-        $language = $this->userLanguageResolver->getLanguage();
-        $messages = ($this->getAppMessageFallbacks()[$language] ?? [])
-            + ($this->getValidationMessageFallbacks()[$language] ?? []);
+        $messages = [];
+
+        foreach ($this->resolveFallbackLanguages() as $language) {
+            $messages += ($this->getAppMessageFallbacks()[$language] ?? [])
+                + ($this->getValidationMessageFallbacks()[$language] ?? []);
+        }
 
         return $messages[$key] ?? $key;
     }
@@ -255,6 +258,39 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
         }
 
         return $this->appMessageFallbacks = $this->loadDomainMessages('app');
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function resolveFallbackLanguages(): array
+    {
+        $languages = [$this->userLanguageResolver->getLanguage()];
+
+        if (null !== $this->translator && method_exists($this->translator, 'getFallbackLocales')) {
+            /** @var mixed $fallbackLocales */
+            $fallbackLocales = $this->translator->getFallbackLocales();
+            if (is_array($fallbackLocales)) {
+                foreach ($fallbackLocales as $fallbackLocale) {
+                    if (is_string($fallbackLocale) && '' !== trim($fallbackLocale)) {
+                        $languages[] = $fallbackLocale;
+                    }
+                }
+            }
+        }
+
+        $normalizedLanguages = [];
+
+        foreach ($languages as $language) {
+            $normalizedLanguage = strtolower(trim($language));
+            if ('' === $normalizedLanguage || in_array($normalizedLanguage, $normalizedLanguages, true)) {
+                continue;
+            }
+
+            $normalizedLanguages[] = $normalizedLanguage;
+        }
+
+        return $normalizedLanguages;
     }
 
     /**
