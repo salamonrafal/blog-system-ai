@@ -5,7 +5,9 @@ const urlTemplate = typeof globalThis.__APP_I18N_URL_TEMPLATE__ === 'string'
   : '/i18n/__LANG__.json';
 
 export const i18n = {
-  [initialLocale]: initialMessages,
+  pl: {},
+  en: {},
+  [initialLocale]: initialMessages && typeof initialMessages === 'object' ? initialMessages : {},
 };
 
 const pendingLoads = new Map();
