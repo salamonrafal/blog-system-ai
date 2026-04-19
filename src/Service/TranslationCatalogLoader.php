@@ -16,22 +16,26 @@ class TranslationCatalogLoader
             'en' => __DIR__.'/../../translations/validators.en.php',
         ],
     ];
+    private array $domainMessagesCache = [];
+    private array $languageMessagesCache = [];
 
     /**
      * @return array<string, array<string, string>>
      */
     public function loadDomainMessages(string $domain): array
     {
+        if (isset($this->domainMessagesCache[$domain])) {
+            return $this->domainMessagesCache[$domain];
+        }
+
         $domainFiles = self::TRANSLATION_FILES[$domain] ?? [];
         $messages = [];
 
         foreach ($domainFiles as $language => $path) {
-            /** @var array<string, string> $languageMessages */
-            $languageMessages = require $path;
-            $messages[$language] = $languageMessages;
+            $messages[$language] = $this->loadCatalogFile($path);
         }
 
-        return $messages;
+        return $this->domainMessagesCache[$domain] = $messages;
     }
 
     /**
@@ -41,15 +45,26 @@ class TranslationCatalogLoader
     {
         $normalizedLanguage = strtolower(trim($language));
         $normalizedFallbackLanguage = strtolower(trim($fallbackLanguage));
-        $messagesByLanguage = $this->loadDomainMessages($domain);
+        $cacheKey = $domain.'|'.$normalizedLanguage.'|'.$normalizedFallbackLanguage;
 
-        $messages = $messagesByLanguage[$normalizedLanguage] ?? [];
-
-        if ($normalizedLanguage !== $normalizedFallbackLanguage) {
-            $messages += $messagesByLanguage[$normalizedFallbackLanguage] ?? [];
+        if (isset($this->languageMessagesCache[$cacheKey])) {
+            return $this->languageMessagesCache[$cacheKey];
         }
 
-        return [] !== $messages ? $messages : ($messagesByLanguage[$normalizedFallbackLanguage] ?? []);
+        $domainFiles = self::TRANSLATION_FILES[$domain] ?? [];
+        $messages = isset($domainFiles[$normalizedLanguage])
+            ? $this->loadCatalogFile($domainFiles[$normalizedLanguage])
+            : [];
+
+        if ($normalizedLanguage !== $normalizedFallbackLanguage && isset($domainFiles[$normalizedFallbackLanguage])) {
+            $messages += $this->loadCatalogFile($domainFiles[$normalizedFallbackLanguage]);
+        }
+
+        if ([] === $messages && isset($domainFiles[$normalizedFallbackLanguage])) {
+            $messages = $this->loadCatalogFile($domainFiles[$normalizedFallbackLanguage]);
+        }
+
+        return $this->languageMessagesCache[$cacheKey] = $messages;
     }
 
     /**
@@ -63,6 +78,17 @@ class TranslationCatalogLoader
         foreach ($domains as $domain) {
             $messages += $this->loadLanguageMessages($domain, $language, $fallbackLanguage);
         }
+
+        return $messages;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function loadCatalogFile(string $path): array
+    {
+        /** @var array<string, string> $messages */
+        $messages = require $path;
 
         return $messages;
     }

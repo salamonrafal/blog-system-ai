@@ -29,4 +29,14 @@ final class TranslationCatalogLoaderTest extends TestCase
 
         $this->assertSame('Obrazek nie może być większy niż {{ limit }}.', $messages['validation_media_file_too_large'] ?? null);
     }
+
+    public function testLoadLanguageMessagesMergesRequestedLanguageWithPolishFallback(): void
+    {
+        $loader = new TranslationCatalogLoader();
+
+        $messages = $loader->loadLanguageMessages('app', 'en');
+
+        $this->assertSame('Category import', $messages['admin_category_imports_title'] ?? null);
+        $this->assertSame('{{count}} powiadomienia', $messages['admin_shortcut_notifications_badge_few'] ?? null);
+    }
 }

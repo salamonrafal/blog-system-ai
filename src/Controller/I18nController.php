@@ -18,8 +18,8 @@ final class I18nController extends AbstractController
     {
         $messages = $translationCatalogLoader->loadMergedLanguageMessages(['app', 'validators'], $language);
         $response = new JsonResponse($messages);
-
-        $etag = hash('sha256', $language.':'.json_encode($messages, \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES));
+        $responseContent = $response->getContent() ?: '{}';
+        $etag = hash('sha256', $language.':'.$responseContent);
         $response->setPublic();
         $response->setMaxAge(3600);
         $response->setSharedMaxAge(3600);
