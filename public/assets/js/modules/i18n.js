@@ -1,4 +1,4 @@
-import { ensureTranslations, i18n } from './i18n-data.js';
+import { ensureTranslations, hasLoadedTranslations, i18n } from './i18n-data.js';
 import { getLang } from './preferences.js';
 import { qs, qsa, sleep } from './shared.js';
 
@@ -180,7 +180,7 @@ function renderI18n(normalizedLang){
 export async function applyI18n(lang){
   const normalizedLang = lang === 'en' ? 'en' : 'pl';
   const applyId = ++i18nApplyId;
-  const hadTranslations = Boolean(i18n[normalizedLang]);
+  const hadTranslations = hasLoadedTranslations(normalizedLang);
 
   renderI18n(normalizedLang);
 

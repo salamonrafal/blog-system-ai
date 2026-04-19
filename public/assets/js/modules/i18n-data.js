@@ -11,6 +11,7 @@ export const i18n = {
 };
 
 const pendingLoads = new Map();
+const loadedLanguages = new Set([initialLocale]);
 
 function normalizeLanguage(lang){
   return lang === 'en' ? 'en' : 'pl';
@@ -20,10 +21,14 @@ function buildCatalogUrl(lang){
   return urlTemplate.replace('__LANG__', normalizeLanguage(lang));
 }
 
+export function hasLoadedTranslations(lang){
+  return loadedLanguages.has(normalizeLanguage(lang));
+}
+
 export async function ensureTranslations(lang){
   const normalizedLang = normalizeLanguage(lang);
 
-  if(i18n[normalizedLang]){
+  if(hasLoadedTranslations(normalizedLang)){
     return i18n[normalizedLang];
   }
 
@@ -44,6 +49,7 @@ export async function ensureTranslations(lang){
 
       const messages = await response.json();
       i18n[normalizedLang] = messages && typeof messages === 'object' ? messages : {};
+      loadedLanguages.add(normalizedLang);
 
       return i18n[normalizedLang];
     })
