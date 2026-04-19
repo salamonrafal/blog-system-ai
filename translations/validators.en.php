@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-return array (
+return [
   'The file is too large. Allowed maximum size is {{ limit }} {{ suffix }}.' => 'The file is too large. Allowed maximum size is {{ limit }} {{ suffix }}.',
   'The uploaded file was too large. Please try to upload a smaller file.' => 'The uploaded file was too large. Please try to upload a smaller file.',
   'validation_import_file_required' => 'Select an import file.',
@@ -58,4 +58,4 @@ return array (
   'validation_top_menu_parent_cycle' => 'The selected parent creates a circular menu structure.',
   'validation_top_menu_parent_depth' => 'Only a top-level menu item can be selected as a parent.',
   'validation_top_menu_parent_with_children' => 'A menu item that already has children cannot be moved into a submenu.',
-);
+];

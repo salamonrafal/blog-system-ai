@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-return array (
+return [
   'The file is too large. Allowed maximum size is {{ limit }} {{ suffix }}.' => 'Plik jest za duży. Maksymalny dozwolony rozmiar to {{ limit }} {{ suffix }}.',
   'The uploaded file was too large. Please try to upload a smaller file.' => 'Przesłany plik jest za duży. Spróbuj przesłać mniejszy plik.',
   'validation_import_file_required' => 'Wybierz plik importu.',
@@ -58,4 +58,4 @@ return array (
   'validation_top_menu_parent_cycle' => 'Wybrany rodzic tworzy zapętloną strukturę menu.',
   'validation_top_menu_parent_depth' => 'Można wybrać tylko rodzica z poziomu głównego menu.',
   'validation_top_menu_parent_with_children' => 'Element menu, który ma dzieci, nie może zostać przeniesiony do submenu.',
-);
+];
