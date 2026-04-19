@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Form;
 
 use App\Service\FileSizeFormatter;
+use App\Service\TranslationCatalogLoader;
 use App\Service\UploadLimitResolver;
 use App\Service\UserLanguageResolver;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -21,16 +22,13 @@ class ArticleImportType extends AbstractType
 {
     private const MAX_FILE_SIZE = 10 * 1024 * 1024;
     private const TOO_LARGE_MESSAGE_KEY = 'validation_import_file_too_large_dynamic';
-    private const VALIDATOR_TRANSLATION_FILES = [
-        'pl' => __DIR__.'/../../translations/validators.pl.php',
-        'en' => __DIR__.'/../../translations/validators.en.php',
-    ];
 
     public function __construct(
         private readonly ?UploadLimitResolver $uploadLimitResolver = null,
         private readonly ?FileSizeFormatter $fileSizeFormatter = null,
         private readonly ?UserLanguageResolver $userLanguageResolver = null,
         private readonly ?TranslatorInterface $translator = null,
+        private readonly ?TranslationCatalogLoader $translationCatalogLoader = null,
     ) {
     }
 
@@ -105,8 +103,10 @@ class ArticleImportType extends AbstractType
             );
         }
 
-        /** @var array<string, string> $messages */
-        $messages = require $this->resolveValidatorTranslationFile();
+        $messages = $this->translationCatalogLoader()->loadLanguageMessages(
+            'validators',
+            $this->userLanguageResolver?->getLanguage() ?? '',
+        );
 
         return strtr($messages[self::TOO_LARGE_MESSAGE_KEY] ?? self::TOO_LARGE_MESSAGE_KEY, $parameters);
     }
@@ -121,10 +121,8 @@ class ArticleImportType extends AbstractType
         return ['{{ limit }}' => $formattedLimit];
     }
 
-    private function resolveValidatorTranslationFile(): string
+    private function translationCatalogLoader(): TranslationCatalogLoader
     {
-        $language = strtolower(trim((string) $this->userLanguageResolver?->getLanguage()));
-
-        return self::VALIDATOR_TRANSLATION_FILES[$language] ?? self::VALIDATOR_TRANSLATION_FILES['pl'];
+        return $this->translationCatalogLoader ?? new TranslationCatalogLoader();
     }
 }

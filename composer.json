@@ -138,10 +138,5 @@
         "allow-plugins": {
             "symfony/flex": true
         }
-    },
-    "extra": {
-        "symfony": {
-            "require": "7.4.*"
-        }
     }
 }

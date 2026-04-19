@@ -14,16 +14,13 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 class ImageUploadConstraintFactory
 {
     private const TOO_LARGE_MESSAGE_KEY = 'validation_media_file_too_large';
-    private const VALIDATOR_TRANSLATION_FILES = [
-        'pl' => __DIR__.'/../../translations/validators.pl.php',
-        'en' => __DIR__.'/../../translations/validators.en.php',
-    ];
 
     public function __construct(
         private readonly ?UploadLimitResolver $uploadLimitResolver = null,
         private readonly ?FileSizeFormatter $fileSizeFormatter = null,
         private readonly ?UserLanguageResolver $userLanguageResolver = null,
         private readonly ?TranslatorInterface $translator = null,
+        private readonly ?TranslationCatalogLoader $translationCatalogLoader = null,
     ) {
     }
 
@@ -63,8 +60,10 @@ class ImageUploadConstraintFactory
             );
         }
 
-        /** @var array<string, string> $messages */
-        $messages = require $this->resolveValidatorTranslationFile();
+        $messages = $this->translationCatalogLoader()->loadLanguageMessages(
+            'validators',
+            $this->userLanguageResolver?->getLanguage() ?? '',
+        );
 
         return strtr($messages[self::TOO_LARGE_MESSAGE_KEY] ?? self::TOO_LARGE_MESSAGE_KEY, $parameters);
     }
@@ -121,10 +120,8 @@ class ImageUploadConstraintFactory
         ];
     }
 
-    private function resolveValidatorTranslationFile(): string
+    private function translationCatalogLoader(): TranslationCatalogLoader
     {
-        $language = strtolower(trim((string) $this->userLanguageResolver?->getLanguage()));
-
-        return self::VALIDATOR_TRANSLATION_FILES[$language] ?? self::VALIDATOR_TRANSLATION_FILES['pl'];
+        return $this->translationCatalogLoader ?? new TranslationCatalogLoader();
     }
 }

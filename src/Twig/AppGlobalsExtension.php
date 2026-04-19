@@ -7,6 +7,7 @@ namespace App\Twig;
 use App\Service\BlogSettingsProvider;
 use App\Service\FileSizeFormatter;
 use App\Service\TopMenuBuilder;
+use App\Service\TranslationCatalogLoader;
 use App\Service\UploadLimitResolver;
 use App\Service\UserLanguageResolver;
 use App\Service\UserTimeZoneResolver;
@@ -30,16 +31,6 @@ use Twig\TwigFunction;
 
 class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
 {
-    private const TRANSLATION_FILES = [
-        'app' => [
-            'pl' => __DIR__ . '/../../translations/app.pl.php',
-            'en' => __DIR__ . '/../../translations/app.en.php',
-        ],
-        'validators' => [
-            'pl' => __DIR__ . '/../../translations/validators.pl.php',
-            'en' => __DIR__ . '/../../translations/validators.en.php',
-        ],
-    ];
     private const TOP_MENU_CACHE_KEY_PREFIX = 'twig.top_menu_items.';
 
     private ?array $appMessageFallbacks = null;
@@ -68,6 +59,7 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
         private readonly CacheInterface $appCache,
         private readonly string $appEnv,
         private readonly ?TranslatorInterface $translator = null,
+        private readonly ?TranslationCatalogLoader $translationCatalogLoader = null,
     )
     {
     }
@@ -347,16 +339,11 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
      */
     private function loadDomainMessages(string $domain): array
     {
-        $domainFiles = self::TRANSLATION_FILES[$domain] ?? [];
+        return $this->translationCatalogLoader()->loadDomainMessages($domain);
+    }
 
-        $messages = [];
-
-        foreach ($domainFiles as $language => $path) {
-            /** @var array<string, string> $languageMessages */
-            $languageMessages = require $path;
-            $messages[$language] = $languageMessages;
-        }
-
-        return $messages;
+    private function translationCatalogLoader(): TranslationCatalogLoader
+    {
+        return $this->translationCatalogLoader ?? new TranslationCatalogLoader();
     }
 }
