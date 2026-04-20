@@ -58,6 +58,31 @@ final class I18nControllerTest extends TestCase
         $this->assertTrue($response->headers->hasCacheControlDirective('immutable'));
     }
 
+    public function testShowReturnsNotModifiedWithoutLoadingCatalogPayload(): void
+    {
+        $controller = new I18nController();
+        $translationCatalogLoader = new class extends TranslationCatalogLoader
+        {
+            public int $loadMergedLanguageMessagesCalls = 0;
+
+            public function loadMergedLanguageMessages(array $domains, string $language, string $fallbackLanguage = 'pl'): array
+            {
+                ++$this->loadMergedLanguageMessagesCalls;
+
+                return parent::loadMergedLanguageMessages($domains, $language, $fallbackLanguage);
+            }
+        };
+        $catalogVersion = $translationCatalogLoader->getCatalogVersion(['app', 'validators']);
+        $request = new Request(['v' => $catalogVersion]);
+        $request->headers->set('If-None-Match', '"'.hash('sha256', 'en:'.$catalogVersion).'"');
+
+        $response = $controller->show('en', $request, $translationCatalogLoader);
+
+        $this->assertSame(Response::HTTP_NOT_MODIFIED, $response->getStatusCode());
+        $this->assertSame(0, $translationCatalogLoader->loadMergedLanguageMessagesCalls);
+        $this->assertSame('', $response->getContent());
+    }
+
     public function testShowRejectsUnsupportedLanguage(): void
     {
         $controller = new I18nController();

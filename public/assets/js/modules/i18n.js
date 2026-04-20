@@ -16,9 +16,26 @@ export function registerI18nListener(listener){
 
 export function getTranslation(key, lang = getLang()){
   const normalizedLang = lang === 'en' ? 'en' : 'pl';
-  return (i18n[normalizedLang] && i18n[normalizedLang][key])
-    || (i18n.pl && i18n.pl[key])
+  const translations = resolveTranslations(normalizedLang);
+
+  return translations[key]
     || '';
+}
+
+function resolveTranslations(normalizedLang){
+  if(hasLoadedTranslations(normalizedLang)){
+    return i18n[normalizedLang];
+  }
+
+  if(hasLoadedTranslations('pl')){
+    return i18n.pl;
+  }
+
+  if(hasLoadedTranslations('en')){
+    return i18n.en;
+  }
+
+  return {};
 }
 
 function parseStructuredTranslation(template){
@@ -101,7 +118,7 @@ function resolveTerminalLines(lang){
 }
 
 function renderI18n(normalizedLang){
-  const translations = i18n[normalizedLang] || i18n.pl || {};
+  const translations = resolveTranslations(normalizedLang);
   document.documentElement.lang = normalizedLang;
   applyLangVisibility(normalizedLang);
 
