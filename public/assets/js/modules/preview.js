@@ -1,5 +1,5 @@
 import { getLang } from './preferences.js';
-import { i18n, registerI18nListener } from './i18n.js';
+import { getTranslation, registerI18nListener } from './i18n.js';
 import { lockDocumentScroll, qs, qsa, unlockDocumentScroll } from './shared.js';
 
 export function setupImagePreview(){
@@ -54,8 +54,7 @@ export function setupImagePreview(){
   let captionCollapsed = false;
 
   const getPreviewText = (key)=>{
-    const lang = getLang();
-    return (i18n[lang] && i18n[lang][key]) || i18n.pl[key] || '';
+    return getTranslation(key, getLang());
   };
 
   const syncAccessibilityLabels = ()=>{

@@ -9,15 +9,19 @@ use Symfony\Component\Validator\Constraints\Callback;
 use Symfony\Component\Validator\Constraints\NotNull;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class ImageUploadConstraintFactory
 {
     private const TOO_LARGE_MESSAGE_KEY = 'validation_media_file_too_large';
+    private ?TranslationCatalogLoader $resolvedTranslationCatalogLoader = null;
 
     public function __construct(
         private readonly ?UploadLimitResolver $uploadLimitResolver = null,
         private readonly ?FileSizeFormatter $fileSizeFormatter = null,
         private readonly ?UserLanguageResolver $userLanguageResolver = null,
+        private readonly ?TranslatorInterface $translator = null,
+        private readonly ?TranslationCatalogLoader $translationCatalogLoader = null,
     ) {
     }
 
@@ -46,13 +50,23 @@ class ImageUploadConstraintFactory
 
     public function buildPostMaxSizeMessage(int $applicationLimit = MediaImageSupport::MAX_FILE_SIZE): string
     {
-        return strtr(
-            $this->translate(
-                'Obrazek nie może być większy niż {{ limit }}.',
-                'The image cannot be larger than {{ limit }}.',
-            ),
-            $this->buildTooLargeMessageParameters($this->resolveEffectiveLimit($applicationLimit)),
+        $parameters = $this->buildTooLargeMessageParameters($this->resolveEffectiveLimit($applicationLimit));
+
+        if (null !== $this->translator) {
+            return $this->translator->trans(
+                self::TOO_LARGE_MESSAGE_KEY,
+                $parameters,
+                'validators',
+                $this->userLanguageResolver?->getLanguage(),
+            );
+        }
+
+        $messages = $this->translationCatalogLoader()->loadLanguageMessages(
+            'validators',
+            $this->userLanguageResolver?->getLanguage() ?? '',
         );
+
+        return strtr($messages[self::TOO_LARGE_MESSAGE_KEY] ?? self::TOO_LARGE_MESSAGE_KEY, $parameters);
     }
 
     private function createImageConstraint(int $applicationLimit): Constraint
@@ -107,8 +121,12 @@ class ImageUploadConstraintFactory
         ];
     }
 
-    private function translate(string $polish, string $english): string
+    private function translationCatalogLoader(): TranslationCatalogLoader
     {
-        return $this->userLanguageResolver?->translate($polish, $english) ?? $polish;
+        if (null !== $this->translationCatalogLoader) {
+            return $this->translationCatalogLoader;
+        }
+
+        return $this->resolvedTranslationCatalogLoader ??= new TranslationCatalogLoader();
     }
 }

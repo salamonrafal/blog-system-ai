@@ -24,10 +24,10 @@
                 {% set category_language_code = user_language ?? 'pl' %}
                 {% set category_localized_title = current_category ? current_category.title(category_language_code, null) : null %}
                 {% set category_localized_description = current_category ? current_category.description(category_language_code, null) : null %}
-                {% set category_title_fallback = ui_translate('Wybrana kategoria', 'Selected category') %}
-                {% set category_description_fallback = ui_translate('Artykuły przypisane do wybranej kategorii.', 'Articles assigned to the selected category.') %}
-                {% set keyword_title_fallback = ui_translate('Słowo kluczowe', 'Keyword') %}
-                {% set keyword_description_fallback = ui_translate('Artykuły oznaczone wybranym słowem kluczowym.', 'Articles tagged with the selected keyword.') %}
+                {% set category_title_fallback = i18n_fallback('blog_category_fallback_title') %}
+                {% set category_description_fallback = i18n_fallback('blog_category_fallback_description') %}
+                {% set keyword_title_fallback = i18n_fallback('blog_keyword_fallback_title') %}
+                {% set keyword_description_fallback = i18n_fallback('blog_keyword_fallback_description') %}
                 {% set category_base_title = current_category ? current_category.name : null %}
                 {% set category_base_description = current_category ? current_category.shortDescription : null %}
                 {% set category_title = current_category ? (category_localized_title ?: category_base_title ?: category_title_fallback) : null %}

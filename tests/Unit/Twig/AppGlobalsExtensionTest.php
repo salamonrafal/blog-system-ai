@@ -26,6 +26,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Form\FormError;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 final class AppGlobalsExtensionTest extends TestCase
 {
@@ -50,6 +51,25 @@ final class AppGlobalsExtensionTest extends TestCase
         $topMenuRepository = $this->createMock(TopMenuItemRepository::class);
         $topMenuBuilder = $this->createMock(TopMenuBuilder::class);
         $appCache = $this->createMock(CacheInterface::class);
+        $translator = new class implements TranslatorInterface {
+            public function trans(?string $id, array $parameters = [], ?string $domain = null, ?string $locale = null): string
+            {
+                return $id ?? '';
+            }
+
+            public function getLocale(): string
+            {
+                return 'en';
+            }
+
+            /**
+             * @return list<string>
+             */
+            public function getFallbackLocales(): array
+            {
+                return ['pl'];
+            }
+        };
 
         $extension = new AppGlobalsExtension(
             $provider,
@@ -70,11 +90,13 @@ final class AppGlobalsExtensionTest extends TestCase
             new UploadLimitResolver(static fn (string $key): string|false => false),
             $appCache,
             'test',
+            $translator,
         );
 
         $this->assertSame('Select an import file.', $extension->getI18nFallback('validation_import_file_required'));
         $this->assertSame('The import file cannot be larger than 10 MB.', $extension->getI18nFallback('validation_import_file_too_large'));
         $this->assertSame('The image cannot be larger than {{ limit }}.', $extension->getI18nFallback('validation_media_file_too_large'));
+        $this->assertSame('{{count}} powiadomienia', $extension->getI18nFallback('admin_shortcut_notifications_badge_few'));
         $this->assertSame('unknown_key', $extension->getI18nFallback('unknown_key'));
         $this->assertSame('Category import', $extension->translateUi('Import kategorii', 'Category import'));
         $this->assertSame('English (EN)', $extension->getLanguageLabel('en'));
@@ -218,19 +240,23 @@ final class AppGlobalsExtensionTest extends TestCase
             ->method('expiresAfter')
             ->with(3600)
             ->willReturnSelf();
+        $i18nCatalogVersionCacheItem = $this->createMock(ItemInterface::class);
+        $i18nCatalogVersionCacheItem
+            ->expects($this->once())
+            ->method('expiresAfter')
+            ->with(300)
+            ->willReturnSelf();
         $appCache = $this->createMock(CacheInterface::class);
         $appCache
-            ->expects($this->once())
+            ->expects($this->exactly(2))
             ->method('get')
-            ->with(
-                'twig.top_menu_items.en',
-                $this->callback(function (callable $callback) use ($cacheItem): bool {
-                    $result = $callback($cacheItem);
-
-                    return [['label' => 'Blog', 'url' => '/', 'children' => [], 'has_children' => false, 'external' => false]] === $result;
-                })
-            )
-            ->willReturn([['label' => 'Blog', 'url' => '/', 'children' => [], 'has_children' => false, 'external' => false]]);
+            ->willReturnCallback(function (string $key, callable $callback) use ($cacheItem, $i18nCatalogVersionCacheItem): mixed {
+                return match ($key) {
+                    'twig.top_menu_items.en' => $callback($cacheItem),
+                    'twig.i18n_catalog_version' => $callback($i18nCatalogVersionCacheItem),
+                    default => throw new \RuntimeException(sprintf('Unexpected cache key "%s".', $key)),
+                };
+            });
 
         $extension = new AppGlobalsExtension(
             $provider,
@@ -254,7 +280,7 @@ final class AppGlobalsExtensionTest extends TestCase
                 default => false,
             }),
             $appCache,
-            'test',
+            'prod',
         );
         $globals = $extension->getGlobals();
 
@@ -262,12 +288,16 @@ final class AppGlobalsExtensionTest extends TestCase
         $this->assertSame('https://blog.example.com', $globals['app_url']);
         $this->assertSame('.example.com', $globals['preference_cookie_domain']);
         $this->assertSame($settings, $globals['blog_settings']);
-        $this->assertSame('test', $globals['app_env']);
+        $this->assertSame('prod', $globals['app_env']);
         $this->assertSame('en', $globals['user_language']);
         $this->assertSame('Europe/Warsaw', $globals['user_timezone']);
         $this->assertSame(2 * 1024 * 1024, $globals['media_upload_limit_bytes']);
         $this->assertSame('2.0 MB', $globals['media_upload_limit_formatted']);
-        $this->assertJson($globals['validation_i18n_json']);
+        $this->assertJson($globals['active_i18n_json']);
+        $activeI18n = json_decode($globals['active_i18n_json'], true, 512, \JSON_THROW_ON_ERROR);
+        $this->assertSame('Select an import file.', $activeI18n['validation_import_file_required'] ?? null);
+        $this->assertSame('{{count}} powiadomienia', $activeI18n['admin_shortcut_notifications_badge_few'] ?? null);
+        $this->assertMatchesRegularExpression('/^[a-f0-9]{40}$/', $globals['i18n_catalog_version']);
         $this->assertSame([
             'queue_status' => 21,
             'imports' => 2,

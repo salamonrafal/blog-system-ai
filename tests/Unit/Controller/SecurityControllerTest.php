@@ -126,7 +126,18 @@ final class SecurityControllerTest extends TestCase
         $resolver = $this->createMock(UserLanguageResolver::class);
         $resolver
             ->method('translate')
-            ->willReturnCallback(static fn (string $polish, string $english): string => 'pl' === $language ? $polish : $english);
+            ->willReturnCallback(static function (string $id, string|array|null $englishOrParameters = null) use ($language): string {
+                if (is_array($englishOrParameters) || null === $englishOrParameters) {
+                    return match ($id) {
+                        'login_error_invalid_credentials' => 'pl' === $language ? 'Nieprawidłowe dane logowania.' : 'Invalid credentials.',
+                        'login_error_account_inactive' => 'pl' === $language ? 'Twoje konto jest nieaktywne.' : 'Your account is inactive.',
+                        'login_error_administrator_access_required' => 'pl' === $language ? 'To konto nie ma dostępu administratora.' : 'This account does not have administrator access.',
+                        default => $id,
+                    };
+                }
+
+                return 'pl' === $language ? $id : $englishOrParameters;
+            });
 
         return $resolver;
     }

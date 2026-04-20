@@ -45,4 +45,26 @@ final class ValidationMessagesTranslationTest extends TestCase
             $messages['validation_top_menu_parent_with_children'] ?? null,
         );
     }
+
+    public function testPolishValidatorsCatalogContainsDynamicImportUploadLimitMessage(): void
+    {
+        /** @var array<string, string> $messages */
+        $messages = require __DIR__.'/../../../translations/validators.pl.php';
+
+        $this->assertSame(
+            'Plik importu nie może być większy niż {{ limit }}.',
+            $messages['validation_import_file_too_large_dynamic'] ?? null,
+        );
+    }
+
+    public function testEnglishValidatorsCatalogContainsDynamicImportUploadLimitMessage(): void
+    {
+        /** @var array<string, string> $messages */
+        $messages = require __DIR__.'/../../../translations/validators.en.php';
+
+        $this->assertSame(
+            'The import file cannot be larger than {{ limit }}.',
+            $messages['validation_import_file_too_large_dynamic'] ?? null,
+        );
+    }
 }
