@@ -1,0 +1,62 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Controller;
+
+use App\Service\TranslationCatalogLoader;
+use App\Service\UserLanguageResolver;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
+
+final class I18nController extends AbstractController
+{
+    #[Route('/i18n/{language}.json', name: 'app_i18n_catalog', methods: ['GET'])]
+    public function show(string $language, Request $request, TranslationCatalogLoader $translationCatalogLoader): Response
+    {
+        if (!UserLanguageResolver::isSupportedLanguage($language)) {
+            throw $this->createNotFoundException('Unsupported i18n catalog language.');
+        }
+
+        $request->setLocale($language);
+        $catalogVersion = $translationCatalogLoader->getCatalogVersion(['app', 'validators']);
+        $etag = hash('sha256', $language.':'.$catalogVersion);
+        $response = new Response();
+        $response->setPublic();
+        $response->setEtag($etag);
+        $response->headers->set('Content-Language', $language);
+
+        if ($request->query->getString('v') === $catalogVersion) {
+            $response->setMaxAge(31536000);
+            $response->setSharedMaxAge(31536000);
+            $response->setImmutable();
+        } else {
+            $response->setMaxAge(3600);
+            $response->setSharedMaxAge(3600);
+        }
+
+        if ($response->isNotModified($request)) {
+            return $response;
+        }
+
+        $messages = $translationCatalogLoader->loadMergedLanguageMessages(['app', 'validators'], $language);
+        $response = new JsonResponse($messages, Response::HTTP_OK, $response->headers->all());
+        $response->setPublic();
+        $response->setEtag($etag);
+        $response->headers->set('Content-Language', $language);
+
+        if ($request->query->getString('v') === $catalogVersion) {
+            $response->setMaxAge(31536000);
+            $response->setSharedMaxAge(31536000);
+            $response->setImmutable();
+        } else {
+            $response->setMaxAge(3600);
+            $response->setSharedMaxAge(3600);
+        }
+
+        return $response;
+    }
+}

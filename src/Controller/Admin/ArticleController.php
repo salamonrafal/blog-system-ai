@@ -279,10 +279,9 @@ class ArticleController extends AbstractController
         if (0 === $result['skipped']) {
             $this->addFlash(
                 'success',
-                $userLanguageResolver->translate(
-                    sprintf('%d eksport(ów) artykułów dodano do kolejki.', $result['queued']),
-                    sprintf('%d article export(s) added to the queue.', $result['queued'])
-                )
+                $userLanguageResolver->translate('flash_article_exports_queued_count', [
+                    '%queued%' => $result['queued'],
+                ])
             );
 
             return $this->redirectToRoute('admin_article_index');
@@ -290,18 +289,10 @@ class ArticleController extends AbstractController
 
         $this->addFlash(
             'success',
-            $userLanguageResolver->translate(
-                sprintf(
-                    '%d eksport(ów) artykułów dodano do kolejki. Pominięto %d element(y) już będące w kolejce.',
-                    $result['queued'],
-                    $result['skipped'],
-                ),
-                sprintf(
-                    '%d article export(s) added to the queue. %d already queued item(s) skipped.',
-                    $result['queued'],
-                    $result['skipped'],
-                )
-            )
+            $userLanguageResolver->translate('flash_article_exports_queued_with_skipped', [
+                '%queued%' => $result['queued'],
+                '%skipped%' => $result['skipped'],
+            ])
         );
 
         return $this->redirectToRoute('admin_article_index');

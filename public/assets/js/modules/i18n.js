@@ -1,8 +1,9 @@
-import { i18n } from './i18n-data.js';
+import { ensureTranslations, hasLoadedTranslations, i18n } from './i18n-data.js';
 import { getLang } from './preferences.js';
 import { qs, qsa, sleep } from './shared.js';
 
 const i18nApplyListeners = [];
+let i18nApplyId = 0;
 let terminalRenderId = 0;
 
 export { i18n };
@@ -14,7 +15,44 @@ export function registerI18nListener(listener){
 }
 
 export function getTranslation(key, lang = getLang()){
-  return (i18n[lang] && i18n[lang][key]) || i18n.pl[key] || '';
+  const normalizedLang = lang === 'en' ? 'en' : 'pl';
+  const translations = resolveTranslations(normalizedLang);
+
+  return translations[key]
+    || '';
+}
+
+function resolveTranslations(normalizedLang){
+  if(hasLoadedTranslations(normalizedLang)){
+    return i18n[normalizedLang];
+  }
+
+  if(hasLoadedTranslations('pl')){
+    return i18n.pl;
+  }
+
+  if(hasLoadedTranslations('en')){
+    return i18n.en;
+  }
+
+  return {};
+}
+
+function parseStructuredTranslation(template){
+  if(typeof template !== 'string'){
+    return template;
+  }
+
+  const normalized = template.trim();
+  if(normalized === '' || (!normalized.startsWith('[') && !normalized.startsWith('{'))){
+    return template;
+  }
+
+  try{
+    return JSON.parse(normalized);
+  }catch(_error){
+    return template;
+  }
 }
 
 function interpolateTranslation(template, element){
@@ -73,10 +111,16 @@ async function typeTerminal(root, lines, renderId){
   root.scrollTop = root.scrollHeight;
 }
 
-export function applyI18n(lang){
-  const translations = i18n[lang] || i18n.pl;
-  document.documentElement.lang = lang;
-  applyLangVisibility(lang);
+function resolveTerminalLines(lang){
+  const structuredLines = parseStructuredTranslation(getTranslation('term_lines', lang));
+
+  return Array.isArray(structuredLines) ? structuredLines : [];
+}
+
+function renderI18n(normalizedLang){
+  const translations = resolveTranslations(normalizedLang);
+  document.documentElement.lang = normalizedLang;
+  applyLangVisibility(normalizedLang);
 
   const pageTitleKey = document.body?.getAttribute('data-page-title-i18n');
   if(pageTitleKey && translations[pageTitleKey] !== undefined){
@@ -127,7 +171,7 @@ export function applyI18n(lang){
   });
 
   qsa('[data-menu-label-pl][data-menu-label-en]').forEach((element)=>{
-    const nextLabel = lang === 'en'
+    const nextLabel = normalizedLang === 'en'
       ? element.getAttribute('data-menu-label-en')
       : element.getAttribute('data-menu-label-pl');
 
@@ -140,12 +184,32 @@ export function applyI18n(lang){
   if(terminal){
     terminal.innerHTML = '';
     terminalRenderId += 1;
-    typeTerminal(terminal, translations.term_lines, terminalRenderId);
+    typeTerminal(terminal, resolveTerminalLines(normalizedLang), terminalRenderId);
   }
 
   qsa('[data-action="toggle-lang"]').forEach((button)=>{
-    button.textContent = lang === 'pl' ? 'PL' : 'EN';
+    button.textContent = normalizedLang === 'pl' ? 'PL' : 'EN';
   });
 
-  i18nApplyListeners.forEach((listener)=> listener(lang));
+  i18nApplyListeners.forEach((listener)=> listener(normalizedLang));
+}
+
+export async function applyI18n(lang){
+  const normalizedLang = lang === 'en' ? 'en' : 'pl';
+  const applyId = ++i18nApplyId;
+  const hadTranslations = hasLoadedTranslations(normalizedLang);
+
+  renderI18n(normalizedLang);
+
+  if(hadTranslations){
+    return;
+  }
+
+  await ensureTranslations(normalizedLang);
+
+  if(applyId !== i18nApplyId){
+    return;
+  }
+
+  renderI18n(normalizedLang);
 }

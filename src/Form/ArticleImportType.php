@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Form;
 
 use App\Service\FileSizeFormatter;
+use App\Service\TranslationCatalogLoader;
 use App\Service\UploadLimitResolver;
 use App\Service\UserLanguageResolver;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -19,17 +21,21 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 class ArticleImportType extends AbstractType
 {
     private const MAX_FILE_SIZE = 10 * 1024 * 1024;
+    private const TOO_LARGE_MESSAGE_KEY = 'validation_import_file_too_large_dynamic';
+    private ?TranslationCatalogLoader $resolvedTranslationCatalogLoader = null;
 
     public function __construct(
         private readonly ?UploadLimitResolver $uploadLimitResolver = null,
         private readonly ?FileSizeFormatter $fileSizeFormatter = null,
         private readonly ?UserLanguageResolver $userLanguageResolver = null,
+        private readonly ?TranslatorInterface $translator = null,
+        private readonly ?TranslationCatalogLoader $translationCatalogLoader = null,
     ) {
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        $applicationLimitMessage = $this->buildTooLargeMessage(self::MAX_FILE_SIZE);
+        $applicationLimitMessageParameters = $this->buildTooLargeMessageParameters(self::MAX_FILE_SIZE);
 
         $builder->add('importFile', FileType::class, [
             'label' => 'Plik importu',
@@ -40,7 +46,7 @@ class ArticleImportType extends AbstractType
                     'message' => 'validation_import_file_required',
                 ]),
                 new Callback([
-                    'callback' => function (mixed $value, ExecutionContextInterface $context) use ($applicationLimitMessage): void {
+                    'callback' => function (mixed $value, ExecutionContextInterface $context) use ($applicationLimitMessageParameters): void {
                         if (!$value instanceof UploadedFile) {
                             return;
                         }
@@ -50,7 +56,8 @@ class ArticleImportType extends AbstractType
                         }
 
                         if ($value->getSize() > self::MAX_FILE_SIZE) {
-                            $context->buildViolation($applicationLimitMessage)
+                            $context->buildViolation(self::TOO_LARGE_MESSAGE_KEY)
+                                ->setParameters($applicationLimitMessageParameters)
                                 ->addViolation();
 
                             return;
@@ -86,16 +93,41 @@ class ArticleImportType extends AbstractType
 
     private function buildTooLargeMessage(int $limitBytes): string
     {
-        $formattedLimit = ($this->fileSizeFormatter ?? new FileSizeFormatter())->format($limitBytes);
+        $parameters = $this->buildTooLargeMessageParameters($limitBytes);
 
-        return $this->translate(
-            sprintf('Plik importu nie może być większy niż %s.', $formattedLimit),
-            sprintf('The import file cannot be larger than %s.', $formattedLimit),
+        if (null !== $this->translator) {
+            return $this->translator->trans(
+                self::TOO_LARGE_MESSAGE_KEY,
+                $parameters,
+                'validators',
+                $this->userLanguageResolver?->getLanguage(),
+            );
+        }
+
+        $messages = $this->translationCatalogLoader()->loadLanguageMessages(
+            'validators',
+            $this->userLanguageResolver?->getLanguage() ?? '',
         );
+
+        return strtr($messages[self::TOO_LARGE_MESSAGE_KEY] ?? self::TOO_LARGE_MESSAGE_KEY, $parameters);
     }
 
-    private function translate(string $polish, string $english): string
+    /**
+     * @return array<string, string>
+     */
+    private function buildTooLargeMessageParameters(int $limitBytes): array
     {
-        return $this->userLanguageResolver?->translate($polish, $english) ?? $polish;
+        $formattedLimit = ($this->fileSizeFormatter ?? new FileSizeFormatter())->format($limitBytes);
+
+        return ['{{ limit }}' => $formattedLimit];
+    }
+
+    private function translationCatalogLoader(): TranslationCatalogLoader
+    {
+        if (null !== $this->translationCatalogLoader) {
+            return $this->translationCatalogLoader;
+        }
+
+        return $this->resolvedTranslationCatalogLoader ??= new TranslationCatalogLoader();
     }
 }

@@ -171,10 +171,9 @@ class ArticleCategoryController extends AbstractController
         if (0 === $result['skipped']) {
             $this->addFlash(
                 'success',
-                $userLanguageResolver->translate(
-                    sprintf('%d eksport(ów) kategorii dodano do kolejki.', $result['queued']),
-                    sprintf('%d category export(s) added to the queue.', $result['queued'])
-                )
+                $userLanguageResolver->translate('flash_category_exports_queued_count', [
+                    '%queued%' => $result['queued'],
+                ])
             );
 
             return $this->redirectToRoute('admin_article_category_index');
@@ -182,18 +181,10 @@ class ArticleCategoryController extends AbstractController
 
         $this->addFlash(
             'success',
-            $userLanguageResolver->translate(
-                sprintf(
-                    '%d eksport(ów) kategorii dodano do kolejki. Pominięto %d element(y) już będące w kolejce.',
-                    $result['queued'],
-                    $result['skipped'],
-                ),
-                sprintf(
-                    '%d category export(s) added to the queue. %d already queued item(s) skipped.',
-                    $result['queued'],
-                    $result['skipped'],
-                )
-            )
+            $userLanguageResolver->translate('flash_category_exports_queued_with_skipped', [
+                '%queued%' => $result['queued'],
+                '%skipped%' => $result['skipped'],
+            ])
         );
 
         return $this->redirectToRoute('admin_article_category_index');

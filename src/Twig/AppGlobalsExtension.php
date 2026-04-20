@@ -7,6 +7,7 @@ namespace App\Twig;
 use App\Service\BlogSettingsProvider;
 use App\Service\FileSizeFormatter;
 use App\Service\TopMenuBuilder;
+use App\Service\TranslationCatalogLoader;
 use App\Service\UploadLimitResolver;
 use App\Service\UserLanguageResolver;
 use App\Service\UserTimeZoneResolver;
@@ -30,10 +31,14 @@ use Twig\TwigFunction;
 
 class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
 {
-    private const VALIDATION_I18N_FILE = __DIR__ . '/../../config/validation_i18n.php';
+    private const I18N_CATALOG_VERSION_CACHE_KEY = 'twig.i18n_catalog_version';
     private const TOP_MENU_CACHE_KEY_PREFIX = 'twig.top_menu_items.';
 
+    private ?array $appMessageFallbacks = null;
     private ?array $validationMessageFallbacks = null;
+    private array $mergedLanguageMessagesJson = [];
+    private array $resolvedI18nFallbackMessages = [];
+    private ?TranslationCatalogLoader $resolvedTranslationCatalogLoader = null;
 
     public function __construct(
         private readonly BlogSettingsProvider $blogSettingsProvider,
@@ -55,6 +60,7 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
         private readonly CacheInterface $appCache,
         private readonly string $appEnv,
         private readonly ?TranslatorInterface $translator = null,
+        private readonly ?TranslationCatalogLoader $translationCatalogLoader = null,
     )
     {
     }
@@ -106,10 +112,8 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
             'user_timezone' => $this->userTimeZoneResolver->getTimeZone(),
             'media_upload_limit_bytes' => $mediaUploadLimitBytes,
             'media_upload_limit_formatted' => null !== $mediaUploadLimitBytes ? $this->formatFileSize($mediaUploadLimitBytes) : '',
-            'validation_i18n_json' => json_encode(
-                $this->getValidationMessageFallbacks(),
-                \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT | \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES
-            ) ?: '{"pl":{},"en":{}}',
+            'active_i18n_json' => $this->getMergedLanguageMessagesJson($language),
+            'i18n_catalog_version' => $this->getI18nCatalogVersion(),
             'admin_shortcut_badges' => [
                 'queue_status' => $pendingImportCount + $pendingExportQueueCount,
                 'imports' => $pendingArticleImportCount,
@@ -146,9 +150,7 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
 
     public function getI18nFallback(string $key): string
     {
-        $language = $this->userLanguageResolver->getLanguage();
-        $fallbacks = $this->getValidationMessageFallbacks();
-        $messages = $fallbacks[$language] ?? $fallbacks['en'] ?? [];
+        $messages = $this->getResolvedI18nFallbackMessages();
 
         return $messages[$key] ?? $key;
     }
@@ -231,9 +233,119 @@ class AppGlobalsExtension extends AbstractExtension implements GlobalsInterface
             return $this->validationMessageFallbacks;
         }
 
-        /** @var array<string, array<string, string>> $messages */
-        $messages = require self::VALIDATION_I18N_FILE;
+        return $this->validationMessageFallbacks = $this->loadDomainMessages('validators');
+    }
 
-        return $this->validationMessageFallbacks = $messages;
+    private function getAppMessageFallbacks(): array
+    {
+        if (null !== $this->appMessageFallbacks) {
+            return $this->appMessageFallbacks;
+        }
+
+        return $this->appMessageFallbacks = $this->loadDomainMessages('app');
+    }
+
+    private function getMergedLanguageMessagesJson(string $language): string
+    {
+        $normalizedLanguage = strtolower(trim($language));
+
+        if (isset($this->mergedLanguageMessagesJson[$normalizedLanguage])) {
+            return $this->mergedLanguageMessagesJson[$normalizedLanguage];
+        }
+
+        $messages = $this->translationCatalogLoader()->loadMergedLanguageMessages(['app', 'validators'], $normalizedLanguage);
+
+        return $this->mergedLanguageMessagesJson[$normalizedLanguage] = json_encode(
+            $messages,
+            \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT | \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES
+        ) ?: '{}';
+    }
+
+    private function getI18nCatalogVersion(): string
+    {
+        if ('dev' === $this->appEnv) {
+            return $this->translationCatalogLoader()->getCatalogVersion(['app', 'validators']);
+        }
+
+        return $this->appCache->get(
+            self::I18N_CATALOG_VERSION_CACHE_KEY,
+            function (ItemInterface $item): string {
+                $item->expiresAfter(300);
+
+                return $this->translationCatalogLoader()->getCatalogVersion(['app', 'validators']);
+            }
+        );
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function getResolvedI18nFallbackMessages(): array
+    {
+        $languages = $this->resolveFallbackLanguages();
+        $cacheKey = implode('|', $languages);
+
+        if (isset($this->resolvedI18nFallbackMessages[$cacheKey])) {
+            return $this->resolvedI18nFallbackMessages[$cacheKey];
+        }
+
+        $messages = [];
+
+        foreach ($languages as $language) {
+            $messages += ($this->getAppMessageFallbacks()[$language] ?? [])
+                + ($this->getValidationMessageFallbacks()[$language] ?? []);
+        }
+
+        return $this->resolvedI18nFallbackMessages[$cacheKey] = $messages;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function resolveFallbackLanguages(): array
+    {
+        $languages = [$this->userLanguageResolver->getLanguage()];
+
+        if (null !== $this->translator && method_exists($this->translator, 'getFallbackLocales')) {
+            /** @var mixed $fallbackLocales */
+            $fallbackLocales = $this->translator->getFallbackLocales();
+            if (is_array($fallbackLocales)) {
+                foreach ($fallbackLocales as $fallbackLocale) {
+                    if (is_string($fallbackLocale) && '' !== trim($fallbackLocale)) {
+                        $languages[] = $fallbackLocale;
+                    }
+                }
+            }
+        }
+
+        $normalizedLanguages = [];
+
+        foreach ($languages as $language) {
+            $normalizedLanguage = strtolower(trim($language));
+            if ('' === $normalizedLanguage || in_array($normalizedLanguage, $normalizedLanguages, true)) {
+                continue;
+            }
+
+            $normalizedLanguages[] = $normalizedLanguage;
+        }
+
+        return $normalizedLanguages;
+    }
+
+    /**
+     * @return array<string, array<string, string>>
+     */
+    private function loadDomainMessages(string $domain): array
+    {
+        return $this->translationCatalogLoader()->loadDomainMessages($domain);
+    }
+
+    private function translationCatalogLoader(): TranslationCatalogLoader
+    {
+        if (null !== $this->translationCatalogLoader) {
+            return $this->translationCatalogLoader;
+        }
+
+        return $this->resolvedTranslationCatalogLoader ??= new TranslationCatalogLoader();
     }
 }

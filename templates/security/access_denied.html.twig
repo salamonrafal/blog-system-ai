@@ -3,16 +3,16 @@
 {% set force_non_admin_layout = true %}
 {% set show_admin_shortcuts = false %}
 
-{% block title %}{{ ui_translate('Brak dostępu', 'Access denied') }} | {{ app_name }}{% endblock %}
+{% block title %}{{ i18n_fallback('error_access_denied_title') }} | {{ app_name }}{% endblock %}
 
 {% block body %}
     {% include 'error/_status_page.html.twig' with {
         status_code: 403,
-        prompt: ui_translate('Sekcja administracyjna', 'Administration section'),
-        message: ui_translate('Nie masz uprawnień, aby wejść do tej sekcji. Jeśli potrzebujesz dostępu administratora, skontaktuj się z właścicielem systemu.', 'You do not have permission to enter this section. If you need administrator access, contact the system owner.'),
+        prompt: i18n_fallback('error_access_denied_prompt'),
+        message: i18n_fallback('error_access_denied_message'),
         primary_href: path('blog_index'),
-        primary_label: ui_translate('Wróć na stronę główną', 'Back to homepage'),
+        primary_label: i18n_fallback('error_back_home'),
         secondary_href: app.user ? path('app_logout') : path('app_login'),
-        secondary_label: app.user ? ui_translate('Wyloguj się i zmień konto', 'Log out and switch account') : ui_translate('Przejdź do logowania', 'Go to login'),
+        secondary_label: app.user ? i18n_fallback('error_access_denied_logout') : i18n_fallback('error_access_denied_login'),
     } only %}
 {% endblock %}
