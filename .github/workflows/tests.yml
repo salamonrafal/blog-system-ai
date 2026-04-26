@@ -46,7 +46,7 @@ jobs:
         vendor/bin/phpunit --configuration phpunit.xml.dist --log-junit var/test-results/phpunit.xml
 
     - name: Publish PHP test summary
-      if: always()
+      if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
       uses: dorny/test-reporter@v3
       with:
         name: PHP Unit Tests
