@@ -1,4 +1,4 @@
-name: PHP Tests
+name: Tests
 on:
   push:
     branches: [ "main" ]
@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  php-test:
     runs-on: ubuntu-latest
     steps:
     - name: Setup PHP with pre-release PECL extension
@@ -40,3 +40,23 @@ jobs:
 
     - name: Run test suite
       run: composer test
+
+  javascript-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v5
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '24'
+        cache: npm
+
+    - name: Install frontend dependencies
+      run: npm ci
+
+    - name: Run JavaScript test suite
+      run: npm run test:js
+
+    - name: Build production assets
+      run: npm run build:assets:prod

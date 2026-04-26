@@ -102,6 +102,18 @@ You can also run PHPUnit directly:
 
 The unit tests do not require a database. Repository-dependent logic uses PHPUnit mocks.
 
+## JavaScript unit tests
+
+Frontend JavaScript modules are covered by a separate Vitest suite. These tests run independently from `composer test`:
+
+1. Install frontend dependencies:
+   `npm ci`
+2. Run the JavaScript test suite:
+   `npm run test:js`
+
+For local iteration you can use watch mode:
+`npm run test:js:watch`
+
 ## Release versioning
 
 The project includes Composer shortcuts for semantic version bumps and Git tagging after finishing work.
