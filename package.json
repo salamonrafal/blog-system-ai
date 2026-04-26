@@ -6,9 +6,14 @@
     "build:assets": "node scripts/build-assets.mjs",
     "build:assets:dev": "node scripts/build-assets.mjs dev",
     "build:assets:prod": "node scripts/build-assets.mjs prod",
-    "build:prod": "npm run build:assets:prod"
+    "build:prod": "npm run build:assets:prod",
+    "test:js": "vitest run",
+    "test:js:watch": "vitest"
   },
   "devDependencies": {
-    "esbuild": "0.25.3"
+    "@testing-library/dom": "^10.4.1",
+    "esbuild": "^0.27.7",
+    "jsdom": "^29.0.2",
+    "vitest": "^4.1.5"
   }
 }

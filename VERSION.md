@@ -480,3 +480,12 @@
 - Przebudowano `AppGlobalsExtension`, aby eksportował do widoków i przeglądarki dane i18n wyłącznie z plików `translations/`, a nie z osobnych plików konfiguracyjnych.
 - Przeniesiono komunikaty walidacyjne do pełnych katalogów `translations/validators.pl.php` i `translations/validators.en.php`, a następnie usunięto legacy plik `config/validation_i18n.php`, dzięki czemu także walidacje korzystają już tylko z `symfony/translation`.
 - Dostosowano formularze uploadu, wybrane kontrolery administracyjne, strony błędów `403/404` oraz testy jednostkowe do nowego modelu tłumaczeń opartego o klucze i domeny Symfony, zachowując zgodność istniejących scenariuszy.
+
+## 2026-04-26
+
+- Dodano niezależną infrastrukturę testów jednostkowych JavaScript opartą o `Vitest`, `jsdom` i `@testing-library/dom`, wraz ze skryptami `npm run test:js` oraz `npm run test:js:watch`.
+- Utworzono osobny katalog `tests/JavaScript` z resetem środowiska testowego dla DOM, cookie, `localStorage`, timerów i mocków, tak aby testy frontendowe były odseparowane od istniejących testów PHPUnit.
+- Dodano pierwsze testy frontendowe dla modułów `shared`, `preferences`, `privacy`, `layout`, `custom-select`, `file-upload` i `option-list`, obejmujące helpery, preferencje użytkownika, popup prywatności, akcje layoutu oraz komponenty formularzy.
+- Uzupełniono `README.md` o instrukcję uruchamiania testów JavaScript oraz watch mode dla lokalnej iteracji.
+- Rozszerzono GitHub Actions o osobny job `javascript-test`, który uruchamia `npm ci`, `npm run test:js` oraz produkcyjny build assetów, pozostawiając `composer test` w niezależnym jobie PHP.
+- Zmieniono nazwę pliku workflow z `.github/workflows/php.yml` na `.github/workflows/tests.yml`, aby odpowiadała zawartości obejmującej zarówno testy PHP, jak i JavaScript.

@@ -1,0 +1,118 @@
+name: Tests
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  actions: read
+  checks: write
+  contents: read
+
+jobs:
+  php-test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Setup PHP with pre-release PECL extension
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.4'
+        extensions: bz2 bcmath ctype curl iconv exif fileinfo gd gmp hash json intl mbstring opcache pdo_sqlite readline session tokenizer xml xmlreader xmlwriter xsl zip
+    
+    - uses: actions/checkout@v6
+
+    - name: Prepare Env File
+      run: cp .env.template .env
+
+    - name: Validate composer.json and composer.lock
+      run: composer validate --strict
+
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v5
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+      
+    - name: Install dependencies
+      run: composer install --no-progress
+
+    - name: Run PHP test suite
+      run: |
+        mkdir -p var/test-results
+        vendor/bin/phpunit --configuration phpunit.xml.dist --log-junit var/test-results/phpunit.xml
+
+    - name: Publish PHP test summary
+      if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+      uses: dorny/test-reporter@v3
+      with:
+        name: PHP Unit Tests
+        path: var/test-results/phpunit.xml
+        reporter: phpunit-junit
+        use-actions-summary: true
+        report-title: PHP Unit Tests
+        list-suites: all
+        list-tests: failed
+        fail-on-error: false
+        fail-on-empty: false
+
+    - name: Publish PHP assertion summary
+      if: always()
+      run: |
+        if [ ! -f var/test-results/phpunit.xml ]; then
+          exit 0
+        fi
+
+        php <<'PHP'
+        <?php
+
+        $summaryPath = getenv('GITHUB_STEP_SUMMARY');
+        if (!$summaryPath) {
+            exit(0);
+        }
+
+        $report = simplexml_load_file('var/test-results/phpunit.xml');
+        if (!$report) {
+            exit(0);
+        }
+
+        $suite = $report->getName() === 'testsuite' ? $report : ($report->testsuite[0] ?? null);
+        if (!$suite) {
+            exit(0);
+        }
+
+        $tests = (int) ($suite['tests'] ?? 0);
+        $assertions = (int) ($suite['assertions'] ?? 0);
+
+        $summary = [
+            '### PHPUnit Assertions',
+            '',
+            sprintf('PHPUnit executed **%d assertions** across **%d tests**.', $assertions, $tests),
+            '',
+        ];
+
+        file_put_contents($summaryPath, implode(PHP_EOL, $summary), FILE_APPEND);
+        PHP
+
+  javascript-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v6
+      with:
+        node-version: '24'
+        cache: npm
+
+    - name: Install frontend dependencies
+      run: npm ci
+
+    - name: Run JavaScript test suite
+      run: npm run test:js
+
+    - name: Build production assets
+      run: npm run build:assets:prod
