@@ -1,14 +1,85 @@
 # Blog System AI
 
-Symfony foundation for a blog application with:
+Blog System AI is a Symfony-based blog and content management application built as a practical playground for AI-assisted software development. Most implementation work in this repository is written with AI support, then reviewed, adjusted and maintained through normal engineering workflows.
+
+The application provides public article pages, an authenticated admin area, media management, menu management, import/export queues and background processing for moving content between environments. It is designed as a full-stack PHP project rather than a static demo, with persistent storage, migrations, services, forms, Twig templates, frontend assets and automated tests.
+
+Technical foundation:
 - public article listing and details
 - admin area for managing content
+- media library with upload, gallery and orphan cleanup support
+- article, category, keyword and top menu import/export workflows
 - Doctrine entity, repository, form and service layer
 - Twig templates and starter configuration
 - migration workflow for the database schema
 - authenticated admin access with role-based authorization
+- PHPUnit and Vitest coverage for backend and frontend behavior
 
-## Development server
+## 📚 Table of contents
+
+- [🗂️ Suggested structure](#suggested-structure)
+- [🚀 Development server](#development-server)
+- [🗄️ Database migrations](#database-migrations)
+- [🔐 Admin access](#admin-access)
+- [🧩 JavaScript assets](#javascript-assets)
+- [🎨 CSS assets](#css-assets)
+- [✅ Unit tests](#unit-tests)
+- [🧪 JavaScript unit tests](#javascript-unit-tests)
+- [🏷️ Release versioning](#release-versioning)
+- [🖼️ Media library](#media-library)
+  - [Orphaned media files](#orphaned-media-files)
+- [📤 Export queues](#export-queues)
+  - [Article export](#article-export)
+  - [Category export](#category-export)
+  - [Article keyword export](#article-keyword-export)
+  - [Top menu export](#top-menu-export)
+- [📥 Import queue](#import-queue)
+  - [Article import](#article-import)
+  - [Category import](#category-import)
+  - [Article keyword](#article-keyword)
+  - [Top menu import](#top-menu-import)
+- [⏱️ Scheduled processing with cron](#scheduled-processing-with-cron)
+- [🐳 Docker Manual Command](#docker-manual-command)
+  - [Persistent data in Docker](#persistent-data-in-docker)
+  - [Build image](#build-image)
+  - [Create develop container](#create-develop-container)
+  - [Run command in container](#run-command-in-container)
+  - [Run Composer install](#run-composer-install)
+  - [Run database migrations](#run-database-migrations)
+  - [Display log](#display-log)
+  - [Delete develop container](#delete-develop-container)
+- [🧭 Next steps](#next-steps)
+
+## 🗂️ Suggested structure
+
+```text
+.
+|-- bin/
+|-- config/
+|   |-- packages/
+|   |-- bootstrap.php
+|   |-- bundles.php
+|   `-- routes.yaml
+|-- migrations/
+|-- public/
+|-- src/
+|   |-- Command/
+|   |-- Controller/
+|   |   `-- Admin/
+|   |-- Entity/
+|   |-- Enum/
+|   |-- Form/
+|   |-- Repository/
+|   |-- Security/
+|   `-- Service/
+|-- templates/
+|   |-- admin/
+|   |-- blog/
+|   `-- security/
+`-- var/
+```
+
+## 🚀 Development server
 
 The project includes a small PHP-based development server helper.
 
@@ -25,13 +96,84 @@ Quick start:
 5. Open the application:
    `http://127.0.0.1:8888`
 
-## JavaScript assets
+Useful commands:
+
+- Start server:
+  `composer serve:debug:start`
+- Check status:
+  `composer serve:debug:status`
+- Restart server:
+  `composer serve:debug:restart`
+- Stop server:
+  `composer serve:debug:stop`
+
+The server writes its PID to:
+- [`var/dev-server.pid`](./var/dev-server.pid)
+
+Logs are written to:
+- [`var/log/dev-server.log`](./var/log/dev-server.log)
+
+## 🗄️ Database migrations
+
+The project uses Doctrine Migrations. The schema is created by:
+- [migrations/Version20260314120000.php](./migrations/Version20260314120000.php)
+- [migrations/Version20260314133000.php](./migrations/Version20260314133000.php)
+
+Typical workflow:
+
+1. Create the SQLite database file:
+   `composer db:create`
+2. Run existing migrations:
+   `composer db:migrate`
+3. After changing entities, generate a new migration:
+   `composer db:migration:diff`
+4. Apply the new migration:
+   `composer db:migrate`
+
+For SQLite, the database file is configured in:
+- [`.env`](./.env)
+
+Current value:
+`DATABASE_URL="sqlite:///%kernel.project_dir%/var/data.db"`
+
+In this project `composer db:create` creates the SQLite file directly. It does not call `doctrine:database:create`, because that operation is not supported here by the SQLite platform/DBAL combination.
+
+If you see `no such table: article` or `no such table: user`, it means migrations have not been executed yet.
+
+## 🔐 Admin access
+
+The admin area under `/admin` is protected by Symfony Security and requires `ROLE_ADMIN`.
+
+Setup flow:
+
+1. Install packages:
+   `composer install`
+2. Create the SQLite file:
+   `composer db:create`
+3. Run migrations:
+   `composer db:migrate`
+4. Create the first administrator:
+   `composer user:create-admin`
+5. Open the login page:
+   `/login`
+
+The create-admin command also accepts arguments:
+`php bin/console app:user:create-admin admin@example.com strong-password`
+
+Main security files:
+- [config/packages/security.yaml](./config/packages/security.yaml)
+- [src/Entity/User.php](./src/Entity/User.php)
+- [src/Security/UserChecker.php](./src/Security/UserChecker.php)
+- [src/Controller/SecurityController.php](./src/Controller/SecurityController.php)
+- [templates/security/login.html.twig](./templates/security/login.html.twig)
+
+## 🧩 JavaScript assets
 
 JavaScript runs in two modes:
 - `dev`: Twig loads source modules directly from `public/assets/js/` without minification
 - `prod`: Twig loads one bundled and minified file from `public/assets/build/app.min.js`
 
-## CSS assets
+## 🎨 CSS assets
 
 CSS also runs in two modes:
 - `dev`: Twig loads `public/assets/css/styles.css`, which imports all source files from `public/assets/css/`
@@ -65,24 +207,7 @@ Optional command:
 - Build an unminified development bundle for manual inspection/debugging of the bundled output:
   `npm run build:assets:dev`
 
-Useful commands:
-
-- Start server:
-  `composer serve:debug:start`
-- Check status:
-  `composer serve:debug:status`
-- Restart server:
-  `composer serve:debug:restart`
-- Stop server:
-  `composer serve:debug:stop`
-
-The server writes its PID to:
-- [`var/dev-server.pid`](./var/dev-server.pid)
-
-Logs are written to:
-- [`var/log/dev-server.log`](./var/log/dev-server.log)
-
-## Unit tests
+## ✅ Unit tests
 
 The project includes PHPUnit-based unit tests for the domain and service layer:
 - slug generation in [`src/Service/ArticleSlugger.php`](./src/Service/ArticleSlugger.php)
@@ -102,7 +227,7 @@ You can also run PHPUnit directly:
 
 The unit tests do not require a database. Repository-dependent logic uses PHPUnit mocks.
 
-## JavaScript unit tests
+## 🧪 JavaScript unit tests
 
 Frontend JavaScript modules are covered by a separate Vitest suite. These tests run independently from `composer test`:
 
@@ -114,7 +239,7 @@ Frontend JavaScript modules are covered by a separate Vitest suite. These tests 
 For local iteration you can use watch mode:
 `npm run test:js:watch`
 
-## Release versioning
+## 🏷️ Release versioning
 
 The project includes Composer shortcuts for semantic version bumps and Git tagging after finishing work.
 
@@ -162,90 +287,7 @@ Recommended flow:
 2. Create the tag and push branch with tag in one step:
    `composer release:publish:patch`
 
-## Suggested structure
-
-```text
-.
-|-- bin/
-|-- config/
-|   |-- packages/
-|   |-- bootstrap.php
-|   |-- bundles.php
-|   `-- routes.yaml
-|-- migrations/
-|-- public/
-|-- src/
-|   |-- Command/
-|   |-- Controller/
-|   |   `-- Admin/
-|   |-- Entity/
-|   |-- Enum/
-|   |-- Form/
-|   |-- Repository/
-|   |-- Security/
-|   `-- Service/
-|-- templates/
-|   |-- admin/
-|   |-- blog/
-|   `-- security/
-`-- var/
-```
-
-## Database migrations
-
-The project uses Doctrine Migrations. The schema is created by:
-- [migrations/Version20260314120000.php](./migrations/Version20260314120000.php)
-- [migrations/Version20260314133000.php](./migrations/Version20260314133000.php)
-
-Typical workflow:
-
-1. Create the SQLite database file:
-   `composer db:create`
-2. Run existing migrations:
-   `composer db:migrate`
-3. After changing entities, generate a new migration:
-   `composer db:migration:diff`
-4. Apply the new migration:
-   `composer db:migrate`
-
-For SQLite, the database file is configured in:
-- [`.env`](./.env)
-
-Current value:
-`DATABASE_URL="sqlite:///%kernel.project_dir%/var/data.db"`
-
-In this project `composer db:create` creates the SQLite file directly. It does not call `doctrine:database:create`, because that operation is not supported here by the SQLite platform/DBAL combination.
-
-If you see `no such table: article` or `no such table: user`, it means migrations have not been executed yet.
-
-## Admin access
-
-The admin area under `/admin` is protected by Symfony Security and requires `ROLE_ADMIN`.
-
-Setup flow:
-
-1. Install packages:
-   `composer install`
-2. Create the SQLite file:
-   `composer db:create`
-3. Run migrations:
-   `composer db:migrate`
-4. Create the first administrator:
-   `composer user:create-admin`
-5. Open the login page:
-   `/login`
-
-The create-admin command also accepts arguments:
-`php bin/console app:user:create-admin admin@example.com strong-password`
-
-Main security files:
-- [config/packages/security.yaml](./config/packages/security.yaml)
-- [src/Entity/User.php](./src/Entity/User.php)
-- [src/Security/UserChecker.php](./src/Security/UserChecker.php)
-- [src/Controller/SecurityController.php](./src/Controller/SecurityController.php)
-- [templates/security/login.html.twig](./templates/security/login.html.twig)
-
-## Media library
+## 🖼️ Media library
 
 The admin panel includes a media module for uploading and browsing blog images.
 
@@ -304,7 +346,7 @@ Notes:
 - the command does not modify database rows; it only moves untracked files from disk and archives them
 - because the archive is written under `var/`, it is treated as runtime/generated data rather than user-facing media
 
-## Export queues
+## 📤 Export queues
 
 The project includes background export queues for:
 - articles
@@ -413,33 +455,13 @@ Manual run:
 - Direct Symfony command:
   `php bin/console app:top-menu-export:process-queue`
 
-### Scheduled processing with cron
+## 📥 Import queue
 
-The repository includes a ready cron file:
-- [docker/conf/cron/article-queue](./docker/conf/cron/article-queue)
+The project includes import queues for restoring data from previously exported JSON files in the background.
 
-Current entries process all background queues once per minute:
-- `app:article-export:process-queue`
-- `app:category-export:process-queue`
-- `app:article-keyword-export:process-queue`
-- `app:top-menu-export:process-queue`
-- `app:article-import:process-queue`
-- `app:article-keyword-import:process-queue`
-- `app:category-import:process-queue`
-- `app:top-menu-import:process-queue`
+### Article import
 
-Before running consumers manually or from cron, make sure the database exists and migrations are applied:
-
-1. Install dependencies:
-   `composer install`
-2. Create the SQLite database file:
-   `composer db:create`
-3. Run migrations:
-   `composer db:migrate`
-
-## Import queue
-
-The project also includes an article import queue for processing previously exported JSON files in the background.
+The article import queue restores articles from exported JSON files.
 
 Flow overview:
 - In the admin panel, uploading a file on `/admin/imports` creates a pending record in `article_import_queue`
@@ -453,43 +475,19 @@ Flow overview:
   - upload and status list: `/admin/imports`
   - pending queue view: `/admin/queues/status`
 
+Manual run:
+- Composer shortcut:
+  `composer article-import:process-queue`
+- Direct Symfony command:
+  `php bin/console app:article-import:process-queue`
+
 Important files:
 - [src/Command/ProcessArticleImportQueueCommand.php](./src/Command/ProcessArticleImportQueueCommand.php)
 - [src/Service/ArticleImportProcessor.php](./src/Service/ArticleImportProcessor.php)
 - [src/Entity/ArticleImportQueue.php](./src/Entity/ArticleImportQueue.php)
 - [src/Controller/Admin/ArticleImportController.php](./src/Controller/Admin/ArticleImportController.php)
 
-### Manual consumer run
-
-Before running the import consumer manually, make sure the database exists and migrations are applied:
-
-1. Install dependencies:
-   `composer install`
-2. Create the SQLite database file:
-   `composer db:create`
-3. Run migrations:
-   `composer db:migrate`
-
-Run the queue consumer manually with one of these commands:
-
-- Composer shortcut:
-  `composer article-import:process-queue`
-- Direct Symfony command:
-  `php bin/console app:article-import:process-queue`
-
-What the manual run does:
-- reads pending entries from `article_import_queue`
-- sets them to `processing`
-- loads the uploaded JSON file from `var/imports`
-- validates required fields and article constraints
-- updates an existing article by `slug` or creates a new one
-- marks successful items as `completed`
-- marks invalid items as `failed` and stores the reason in `error_message`
-
-If there are no pending entries, the command exits successfully and prints:
-`No queued article imports to process.`
-
-## Category import queue
+### Category import
 
 The project also includes a dedicated category import queue for restoring category data from exported JSON files in the background.
 
@@ -513,7 +511,7 @@ Important files:
 - [src/Entity/CategoryImportQueue.php](./src/Entity/CategoryImportQueue.php)
 - [src/Controller/Admin/CategoryImportController.php](./src/Controller/Admin/CategoryImportController.php)
 
-## Article keyword import queue
+### Article keyword
 
 The project also includes a dedicated article keyword import queue for restoring keyword data from exported JSON files.
 
@@ -538,7 +536,7 @@ Important files:
 - [src/Entity/ArticleKeywordImportQueue.php](./src/Entity/ArticleKeywordImportQueue.php)
 - [src/Controller/Admin/ArticleKeywordImportController.php](./src/Controller/Admin/ArticleKeywordImportController.php)
 
-## Top menu import queue
+### Top menu import
 
 The project also includes a dedicated top menu import queue for restoring the menu hierarchy from exported JSON files.
 
@@ -556,6 +554,21 @@ Manual run:
 - Direct Symfony command:
   `php bin/console app:top-menu-import:process-queue`
 
+## ⏱️ Scheduled processing with cron
+
+The repository includes a ready cron file:
+- [docker/conf/cron/article-queue](./docker/conf/cron/article-queue)
+
+Current entries process all background queues once per minute:
+- `app:article-export:process-queue`
+- `app:category-export:process-queue`
+- `app:article-keyword-export:process-queue`
+- `app:top-menu-export:process-queue`
+- `app:article-import:process-queue`
+- `app:article-keyword-import:process-queue`
+- `app:category-import:process-queue`
+- `app:top-menu-import:process-queue`
+
 For a local non-Docker setup you can use equivalent crontab entries, for example:
 
 - `* * * * * cd /path/to/project && composer article-export:process-queue`
@@ -567,15 +580,16 @@ For a local non-Docker setup you can use equivalent crontab entries, for example
 - `* * * * * cd /path/to/project && composer category-import:process-queue`
 - `* * * * * cd /path/to/project && composer top-menu-import:process-queue`
 
-## Next steps
+Before running consumers manually or from cron, make sure the database exists and migrations are applied:
 
-1. Add password reset and email verification.
-2. Split admin roles into editor and administrator.
-3. Add audit logging for content changes.
-4. Extend the domain with categories, tags, comments and media.
+1. Install dependencies:
+   `composer install`
+2. Create the SQLite database file:
+   `composer db:create`
+3. Run migrations:
+   `composer db:migrate`
 
-
-## Docker Manual Command
+## 🐳 Docker Manual Command
 
 ### Persistent data in Docker
 
@@ -648,3 +662,10 @@ docker container logs blog-system-ai
 ```bash
 docker container stop blog-system-ai && docker container rm blog-system-ai
 ```
+
+## 🧭 Next steps
+
+1. Add password reset and email verification.
+2. Split admin roles into editor and administrator.
+3. Add audit logging for content changes.
+4. Extend the domain with categories, tags, comments and media.

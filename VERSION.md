@@ -489,3 +489,9 @@
 - Uzupełniono `README.md` o instrukcję uruchamiania testów JavaScript oraz watch mode dla lokalnej iteracji.
 - Rozszerzono GitHub Actions o osobny job `javascript-test`, który uruchamia `npm ci`, `npm run test:js` oraz produkcyjny build assetów, pozostawiając `composer test` w niezależnym jobie PHP.
 - Zmieniono nazwę pliku workflow z `.github/workflows/php.yml` na `.github/workflows/tests.yml`, aby odpowiadała zawartości obejmującej zarówno testy PHP, jak i JavaScript.
+
+## 2026-04-28
+
+- Rozbudowano wstęp `README.md` o opis celu projektu, głównych możliwości aplikacji, technicznych fundamentów oraz informacji, że większość implementacji powstaje z pomocą AI i jest dalej utrzymywana w normalnym workflow inżynierskim.
+- Uporządkowano strukturę `README.md`, przenosząc najważniejsze sekcje startowe na górę dokumentu, rozdzielając treści dotyczące serwera developerskiego, assetów, crona oraz kolejek importu i eksportu, a także przenosząc `Next steps` na koniec pliku.
+- Dodano do `README.md` spis treści zgodny z aktualną hierarchią sekcji, wraz z ikonami dla głównych nagłówków `##` i odpowiadających im pozycji w spisie treści.
