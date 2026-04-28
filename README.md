@@ -57,26 +57,55 @@ Technical foundation:
 |-- bin/
 |-- config/
 |   |-- packages/
-|   |-- bootstrap.php
-|   |-- bundles.php
-|   `-- routes.yaml
+|   `-- secrets/
+|-- docker/
+|   |-- conf/
+|   |   |-- cron/
+|   |   `-- nginx/
+|   `-- scripts/
 |-- migrations/
 |-- public/
+|   |-- assets/
+|   |   |-- build/
+|   |   |-- css/
+|   |   |   |-- components/
+|   |   |   `-- pages/
+|   |   |-- img/
+|   |   `-- js/
+|   |       `-- modules/
+|   `-- uploads/
+|       |-- avatars/
+|       `-- media/
+|-- scripts/
 |-- src/
 |   |-- Command/
 |   |-- Controller/
 |   |   `-- Admin/
 |   |-- Entity/
 |   |-- Enum/
+|   |-- EventSubscriber/
+|   |-- Exception/
 |   |-- Form/
 |   |-- Repository/
 |   |-- Security/
-|   `-- Service/
+|   |-- Service/
+|   `-- Twig/
 |-- templates/
 |   |-- admin/
 |   |-- blog/
+|   |-- bundles/
+|   |-- error/
 |   `-- security/
+|-- tests/
+|   |-- JavaScript/
+|   `-- Unit/
+|-- translations/
 `-- var/
+    |-- cache/
+    |-- exports/
+    |-- imports/
+    |-- log/
+    `-- media-orphans/
 ```
 
 ## 🚀 Development server
