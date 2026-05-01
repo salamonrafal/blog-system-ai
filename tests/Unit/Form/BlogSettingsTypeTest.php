@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Form;
 use App\Entity\BlogSettings;
 use App\Form\BlogSettingsType;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -46,7 +47,7 @@ final class BlogSettingsTypeTest extends TestCase
         $this->assertSame(4, $form->get('homepageSeoDescription')->getConfig()->getOption('attr')['rows']);
         $this->assertSame(320, $form->get('homepageSeoDescription')->getConfig()->getOption('attr')['maxlength']);
 
-        $this->assertInstanceOf(TextType::class, $form->get('homepageSocialImage')->getConfig()->getType()->getInnerType());
+        $this->assertInstanceOf(HiddenType::class, $form->get('homepageSocialImage')->getConfig()->getType()->getInnerType());
         $this->assertSame(500, $form->get('homepageSocialImage')->getConfig()->getOption('attr')['maxlength']);
 
         $this->assertInstanceOf(TextareaType::class, $form->get('homepageSeoKeywords')->getConfig()->getType()->getInnerType());

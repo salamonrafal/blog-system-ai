@@ -720,8 +720,9 @@ export function setupHeadlineImagePicker(){
 
       if(previewImage instanceof HTMLImageElement){
         if(hasValue){
+          const previewAltKey = previewImage.getAttribute('data-headline-image-preview-alt-key') || 'form_headline_image_preview_alt';
           previewImage.src = previewValue;
-          previewImage.alt = getTranslation('form_headline_image_preview_alt');
+          previewImage.alt = getTranslation(previewAltKey);
         }else{
           previewImage.removeAttribute('src');
         }
@@ -751,6 +752,9 @@ export function setupHeadlineImagePicker(){
       onSelect: ({ path })=>{
         updateInputValue(path);
       },
+      selectLabelKey: modal?.getAttribute('data-media-image-picker-select-label-key') || undefined,
+      emptyKey: modal?.getAttribute('data-media-image-picker-empty-key') || undefined,
+      noResultsKey: modal?.getAttribute('data-media-image-picker-no-results-key') || undefined,
     });
 
     openButton?.addEventListener('click', ()=>{
@@ -758,7 +762,7 @@ export function setupHeadlineImagePicker(){
     });
 
     clearButton?.addEventListener('click', ()=>{
-      updateInputValue('');
+      updateInputValue(clearButton.getAttribute('data-clear-headline-image-value') || '');
     });
 
     toggle?.addEventListener('change', syncPreview);
