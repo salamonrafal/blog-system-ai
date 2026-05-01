@@ -1,11 +1,7 @@
 import { fireEvent } from '@testing-library/dom';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { setupAdminListingFilters } from '../../public/assets/js/modules/admin.js';
-
-afterEach(()=>{
-  vi.restoreAllMocks();
-});
 
 describe('setupAdminListingFilters', ()=>{
   it('updates the hidden input that belongs to the clicked dropdown', ()=>{
