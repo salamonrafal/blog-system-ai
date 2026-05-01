@@ -232,7 +232,7 @@ TEXT);
         $this->assertStringContainsString('<div class="article-table-wrap"><table><thead><tr><th>Kolumna A</th><th>Kolumna B</th></tr></thead><tbody><tr><td><code>kod</code></td><td>Wartosc</td></tr></tbody></table></div>', $html);
     }
 
-    public function testRendersConsecutiveParagraphLinesAsLineBreaksWithoutBackslash(): void
+    public function testRendersConsecutiveTextLinesAsSeparateParagraphs(): void
     {
         $renderer = new ArticleMarkupRenderer();
 

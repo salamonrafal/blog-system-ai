@@ -502,4 +502,4 @@
 - Uspójniono renderowanie bloków nietekstowych w treści artykułu: samodzielne obrazy Markdown są emitowane jako `<img>` poza paragrafem, a tabele pozostają osobnymi blokami HTML bez opakowania w `<p>`.
 - Naprawiono renderowanie samodzielnych obrazów Markdown z encjami HTML w `alt` i adresie URL, tak aby wynik był spójny z obrazami inline i nie powodował podwójnego encodowania `&amp;`.
 - Dopasowano style publicznego widoku artykułu do nowej struktury treści, zdejmując dodatkowy odstęp między kolejnymi liniami `<p>` i pustymi liniami `<br>` oraz zmniejszając bazowy `line-height` treści.
-- Zaktualizowano podpowiedź formatowania w formularzu artykułu oraz rozszerzono testy jednostkowe renderera o zachowanie pustych linii, linii z `\`, samodzielnych obrazów i tekstowych linii renderowanych jako osobne paragrafy.
+- Zaktualizowano podpowiedź formatowania w formularzu artykułu, aby opisywała osobne akapity tekstu zamiast nowej linii w jednym akapicie, oraz rozszerzono testy jednostkowe renderera o zachowanie pustych linii, linii z `\`, samodzielnych obrazów i tekstowych linii renderowanych jako osobne paragrafy.
