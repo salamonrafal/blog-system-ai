@@ -144,6 +144,25 @@
   justify-self:end;
 }
 
+.blog-settings-image-picker-field {
+  align-items:start;
+  grid-template-columns:1fr;
+}
+
+.blog-settings-image-picker-hint {
+  color:var(--muted);
+  font-size:.9rem;
+  line-height:1.5;
+}
+
+.blog-settings-image-picker-actions {
+  margin-top:0;
+}
+
+.blog-settings-image-picker-preview {
+  margin-top:12px;
+}
+
 .article-editor-grid {
   display:grid;
   grid-template-columns:repeat(2, minmax(0, 1fr));

@@ -720,8 +720,9 @@ export function setupHeadlineImagePicker(){
 
       if(previewImage instanceof HTMLImageElement){
         if(hasValue){
+          const previewAltKey = previewImage.getAttribute('data-headline-image-preview-alt-key') || 'form_headline_image_preview_alt';
           previewImage.src = previewValue;
-          previewImage.alt = getTranslation('form_headline_image_preview_alt');
+          previewImage.alt = getTranslation(previewAltKey);
         }else{
           previewImage.removeAttribute('src');
         }

@@ -507,3 +507,6 @@
 - Znormalizowano tytuły stron renderowane w `base.html.twig`, usuwając początkowe i końcowe znaki białe z wartości trafiających do `<title>`, `og:title`, `twitter:title` oraz atrybutu `data-page-title`, dzięki czemu wieloliniowe bloki Twig nie generują już spacji ani znaków nowej linii w metadanych.
 - Dodano test regresyjny renderowania bazowego szablonu, który sprawdza trimowanie tytułów w metatagach i `data-page-title` oraz potwierdza, że escapowanie znaków specjalnych nie jest wykonywane podwójnie.
 - Poprawiono akcję `Publikuj` na liście zarządzania artykułami, tak aby zmiana samego statusu na opublikowany nie nadpisywała istniejącej daty publikacji, oraz dodano test regresyjny kontrolera dla tego scenariusza.
+- Zmieniono pole obrazka strony głównej w ustawieniach bloga z widocznego pola tekstowego na wybór obrazka z galerii mediów, z przyciskami wyboru, czyszczenia, przejścia do galerii oraz podglądem aktualnie zapisanej grafiki.
+- Wydzielono wspólny partial Twig modala pickera obrazów mediów i podłączono go zarówno w formularzu artykułu, jak i w ustawieniach bloga, ograniczając duplikację markup-u istniejącego pickera.
+- Dopasowano układ sekcji wyboru obrazka strony głównej w formularzu ustawień bloga tak, aby zajmowała pełną szerokość sekcji zamiast ograniczać się do prawej kolumny formularza.
