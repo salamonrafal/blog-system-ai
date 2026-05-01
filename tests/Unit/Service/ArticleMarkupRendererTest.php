@@ -50,6 +50,7 @@ TEXT);
         $this->assertStringContainsString('<blockquote><p>Cytat testowy</p></blockquote>', $html);
         $this->assertStringContainsString('<a href="https://openai.com" target="_blank" rel="noopener noreferrer">OpenAI</a>', $html);
         $this->assertStringContainsString('<img src="https://example.com/test.png" alt="Alt" loading="lazy">', $html);
+        $this->assertStringNotContainsString('<p><img src="https://example.com/test.png" alt="Alt" loading="lazy"></p>', $html);
         $this->assertStringContainsString('<div class="article-code-block">', $html);
         $this->assertStringContainsString('<div class="article-code-scroll">', $html);
         $this->assertStringContainsString('<code class="language-php">', $html);
@@ -79,7 +80,21 @@ TEXT);
 
         $html = $renderer->render('![Obrazek](/uploads/media/2026/04/test-image.webp)');
 
-        $this->assertStringContainsString('<img src="/uploads/media/2026/04/test-image.webp" alt="Obrazek" loading="lazy">', $html);
+        $this->assertSame('<img src="/uploads/media/2026/04/test-image.webp" alt="Obrazek" loading="lazy">', $html);
+    }
+
+    public function testRendersStandaloneImageOutsideParagraphBetweenTextLines(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+
+        $html = $renderer->render(<<<'TEXT'
+Przed
+![Obrazek](/uploads/media/2026/04/test-image.webp)
+Po
+TEXT);
+
+        $this->assertStringContainsString("<p>Przed</p>\n<img src=\"/uploads/media/2026/04/test-image.webp\" alt=\"Obrazek\" loading=\"lazy\">\n<p>Po</p>", $html);
+        $this->assertStringNotContainsString('<p><img ', $html);
     }
 
     public function testDoesNotRenderImageForSchemeRelativeUrl(): void
@@ -202,9 +217,50 @@ Druga linia
 | `kod` | Wartosc |
 TEXT);
 
-        $this->assertStringContainsString('<p>Pierwsza linia<br>Druga linia</p>', $html);
+        $this->assertStringContainsString("<p>Pierwsza linia</p>\n<p>Druga linia</p>", $html);
         $this->assertStringContainsString('<hr>', $html);
         $this->assertStringContainsString('<div class="article-table-wrap"><table><thead><tr><th>Kolumna A</th><th>Kolumna B</th></tr></thead><tbody><tr><td><code>kod</code></td><td>Wartosc</td></tr></tbody></table></div>', $html);
+    }
+
+    public function testRendersConsecutiveParagraphLinesAsLineBreaksWithoutBackslash(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+
+        $html = $renderer->render(<<<'TEXT'
+Pierwsza linia
+Druga linia
+Trzecia linia
+TEXT);
+
+        $this->assertStringContainsString("<p>Pierwsza linia</p>\n<p>Druga linia</p>\n<p>Trzecia linia</p>", $html);
+    }
+
+    public function testPreservesBlankParagraphLinesBetweenText(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+
+        $html = $renderer->render(<<<'TEXT'
+Tresc
+
+
+Tresc
+TEXT);
+
+        $this->assertStringContainsString("<p>Tresc</p>\n<br>\n<br>\n<p>Tresc</p>", $html);
+    }
+
+    public function testPreservesBackslashOnlyLinesBetweenText(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+
+        $html = $renderer->render(<<<'TEXT'
+Tresc
+\
+\
+Tresc
+TEXT);
+
+        $this->assertStringContainsString("<p>Tresc</p>\n<br>\n<br>\n<p>Tresc</p>", $html);
     }
 
     public function testRendersForcedLineBreakInParagraphImmediatelyAfterTable(): void
@@ -220,7 +276,7 @@ Druga linia
 TEXT);
 
         $this->assertStringContainsString('<div class="article-table-wrap"><table><thead><tr><th>Kolumna A</th><th>Kolumna B</th></tr></thead><tbody><tr><td>Wartosc 1</td><td>Wartosc 2</td></tr></tbody></table></div>', $html);
-        $this->assertStringContainsString('<p>Po tabeli<br>Druga linia</p>', $html);
+        $this->assertStringContainsString("<p>Po tabeli</p>\n<p>Druga linia</p>", $html);
     }
 
     public function testKeepsTableBeforeParagraphWithoutBlankLineAfterTable(): void
@@ -261,7 +317,7 @@ Architektura monolityczna.
 TEXT);
 
         $this->assertStringContainsString('<div class="article-table-wrap"><table><thead><tr><th>Cecha</th><th>Monolit</th><th>Mikroserwisy</th></tr></thead><tbody><tr><td>Deployment</td><td>Jeden</td><td>Wiele</td></tr><tr><td>Skalowanie</td><td>Całość</td><td>Per serwis</td></tr><tr><td>Złożoność</td><td>Niska</td><td>Wysoka</td></tr><tr><td>Wydajność</td><td>Wysoka</td><td>Niższa</td></tr></tbody></table></div>', $html);
-        $this->assertStringContainsString('<p><br><br><br>Architektura monolityczna.</p>', $html);
+        $this->assertStringContainsString("<br>\n<br>\n<br>\n<p>Architektura monolityczna.</p>", $html);
     }
 
     public function testEscapesRawHtml(): void
