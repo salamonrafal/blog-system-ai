@@ -9,6 +9,7 @@ use App\Entity\Article;
 use App\Entity\ArticleCategory;
 use App\Entity\BlogSettings;
 use App\Entity\User;
+use App\Enum\ArticleStatus;
 use App\Repository\ArticleCategoryRepository;
 use App\Repository\ArticleExportQueueRepository;
 use App\Repository\ArticleKeywordRepository;
@@ -426,6 +427,43 @@ final class ArticleControllerTest extends TestCase
         $this->assertSame('/admin/articles', $response->getTargetUrl());
         $this->assertSame($existingAuthor, $article->getCreatedBy());
         $this->assertSame([['error', 'Artykuł ma już przypisanego autora.']], $controller->flashes);
+    }
+
+    public function testPublishKeepsExistingPublicationDate(): void
+    {
+        $publishedAt = new \DateTimeImmutable('2026-04-20 12:00:00', new \DateTimeZone('Europe/Warsaw'));
+        $currentUser = (new User())
+            ->setEmail('publisher@example.com')
+            ->setPassword('hashed-password');
+        $article = (new Article())
+            ->setTitle('Test article')
+            ->setSlug('test-article')
+            ->setStatus(ArticleStatus::DRAFT)
+            ->setPublishedAt($publishedAt);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager
+            ->expects($this->once())
+            ->method('flush');
+        $userLanguageResolver = $this->createUserLanguageResolverMock('pl');
+
+        $controller = new TestArticleController();
+        $controller->authenticatedUser = $currentUser;
+        $controller->csrfTokenIsValid = true;
+
+        $request = new Request([], [
+            '_token' => 'valid-token',
+        ]);
+
+        $response = $controller->publish($article, $request, $entityManager, $userLanguageResolver);
+
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertSame('/admin/articles', $response->getTargetUrl());
+        $this->assertSame(ArticleStatus::PUBLISHED, $article->getStatus());
+        $this->assertSame($currentUser, $article->getUpdatedBy());
+        $this->assertSame('2026-04-20 10:00:00', $article->getPublishedAt()?->format('Y-m-d H:i:s'));
+        $this->assertSame('UTC', $article->getPublishedAt()?->getTimezone()->getName());
+        $this->assertSame([['success', 'Artykuł został opublikowany.']], $controller->flashes);
     }
 
     public function testExportAddsArticleToQueueWhenRepositoryEnqueuesIt(): void
