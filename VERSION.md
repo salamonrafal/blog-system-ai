@@ -513,3 +513,7 @@
 - Zmieniono akcję czyszczenia obrazka strony głównej na przywracanie domyślnej grafiki społecznościowej, aby formularz ustawień bloga nie zapisywał pustej wartości odrzucanej przez walidację `NotBlank`.
 - Podpięto dynamiczne teksty pickera mediów do prefiksu tłumaczeń modala, dzięki czemu wybór obrazka strony głównej używa własnych etykiet przycisku wyboru oraz komunikatów pustej galerii i braku wyników.
 - Zabezpieczono wspólny partial modala pickera mediów przed niepotrzebnym renderowaniem nazw atrybutów przez `raw`, zastępując je escapowaniem `html_attr`.
+- Dodano na ekranie `Zarządzanie artykułami` filtr statusu artykułu działający razem z filtrem kategorii i paginacją, wraz z obsługą niepoprawnych wartości parametru `status`.
+- Ujednolicono prezentację statusów artykułów przez klucze tłumaczeń `ArticleStatus`, usuwając powielone warunki `Twig` z tabeli administracyjnej.
+- Rozszerzono frontendowy moduł filtrów listy administracyjnej o obsługę wielu dropdownów w jednym formularzu oraz dodano test JavaScript zabezpieczający poprawne mapowanie dropdownu na właściwe ukryte pole.
+- Uzupełniono testy jednostkowe kontrolera i enumu artykułów o filtrowanie po statusie, łączenie filtrów oraz eksport kluczy tłumaczeń statusów.

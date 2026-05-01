@@ -1250,7 +1250,11 @@ export function setupAdminListingFilters(){
   dropdownEntries.forEach((entry)=>{
     const { dropdown } = entry;
     const trigger = qs('[data-listing-filter-trigger]', dropdown);
-    const hiddenInput = qs('[data-listing-filter-input]', dropdown.closest('form'));
+    const filterName = dropdown.getAttribute('data-listing-filter-dropdown');
+    const form = dropdown.closest('form');
+    const hiddenInput = filterName
+      ? qs(`[data-listing-filter-input="${filterName}"]`, form)
+      : qs('[data-listing-filter-input]', form);
     const panel = qs('.article-index-filter-options', dropdown);
     const options = qsa('[data-listing-filter-option]', dropdown);
     if(!trigger || !hiddenInput || !panel || !options.length) return;

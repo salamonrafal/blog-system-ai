@@ -52,12 +52,12 @@ final class ArticleControllerTest extends TestCase
         $articleRepository
             ->expects($this->once())
             ->method('countForAdminIndex')
-            ->with(null)
+            ->with(null, null)
             ->willReturn(63);
         $articleRepository
             ->expects($this->once())
             ->method('findPaginatedOrderedByCreatedDate')
-            ->with(2, 25, null)
+            ->with(2, 25, null, null)
             ->willReturn($articles);
 
         $categoryRepository = $this->createMock(ArticleCategoryRepository::class);
@@ -84,7 +84,9 @@ final class ArticleControllerTest extends TestCase
         $this->assertSame('admin/article/index.html.twig', $controller->capturedView);
         $this->assertSame($articles, $controller->capturedParameters['articles']);
         $this->assertSame($categories, $controller->capturedParameters['article_categories']);
+        $this->assertSame(ArticleStatus::cases(), $controller->capturedParameters['article_statuses']);
         $this->assertNull($controller->capturedParameters['selected_category']);
+        $this->assertNull($controller->capturedParameters['selected_status']);
         $this->assertSame([], $controller->capturedParameters['pagination_route_params']);
         $this->assertSame(2, $controller->capturedParameters['current_page']);
         $this->assertSame(3, $controller->capturedParameters['total_pages']);
@@ -101,12 +103,12 @@ final class ArticleControllerTest extends TestCase
         $articleRepository
             ->expects($this->once())
             ->method('countForAdminIndex')
-            ->with(null)
+            ->with(null, null)
             ->willReturn(0);
         $articleRepository
             ->expects($this->once())
             ->method('findPaginatedOrderedByCreatedDate')
-            ->with(1, 25, null)
+            ->with(1, 25, null, null)
             ->willReturn([]);
 
         $categoryRepository
@@ -149,12 +151,12 @@ final class ArticleControllerTest extends TestCase
         $articleRepository
             ->expects($this->once())
             ->method('countForAdminIndex')
-            ->with($selectedCategory)
+            ->with($selectedCategory, null)
             ->willReturn(1);
         $articleRepository
             ->expects($this->once())
             ->method('findPaginatedOrderedByCreatedDate')
-            ->with(1, 10, $selectedCategory)
+            ->with(1, 10, $selectedCategory, null)
             ->willReturn([$article]);
 
         $categoryRepository = $this->createMock(ArticleCategoryRepository::class);
@@ -198,12 +200,12 @@ final class ArticleControllerTest extends TestCase
         $articleRepository
             ->expects($this->once())
             ->method('countForAdminIndex')
-            ->with(null)
+            ->with(null, null)
             ->willReturn(0);
         $articleRepository
             ->expects($this->once())
             ->method('findPaginatedOrderedByCreatedDate')
-            ->with(1, 10, null)
+            ->with(1, 10, null, null)
             ->willReturn([]);
 
         $categoryRepository = $this->createMock(ArticleCategoryRepository::class);
@@ -233,6 +235,155 @@ final class ArticleControllerTest extends TestCase
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
         $this->assertNull($controller->capturedParameters['selected_category']);
+        $this->assertNull($controller->capturedParameters['selected_status']);
+        $this->assertSame([], $controller->capturedParameters['pagination_route_params']);
+    }
+
+    public function testIndexFiltersArticlesBySelectedStatus(): void
+    {
+        $settings = (new BlogSettings())
+            ->setAdminListingItemsPerPage(10);
+        $article = (new Article())
+            ->setTitle('Draft article')
+            ->setSlug('draft-article')
+            ->setStatus(ArticleStatus::DRAFT);
+
+        $articleRepository = $this->createMock(ArticleRepository::class);
+        $articleRepository
+            ->expects($this->once())
+            ->method('countForAdminIndex')
+            ->with(null, ArticleStatus::DRAFT)
+            ->willReturn(1);
+        $articleRepository
+            ->expects($this->once())
+            ->method('findPaginatedOrderedByCreatedDate')
+            ->with(1, 10, null, ArticleStatus::DRAFT)
+            ->willReturn([$article]);
+
+        $categoryRepository = $this->createMock(ArticleCategoryRepository::class);
+        $categoryRepository
+            ->expects($this->never())
+            ->method('find');
+        $categoryRepository
+            ->expects($this->once())
+            ->method('findForAdminIndex')
+            ->willReturn([]);
+
+        $blogSettingsProvider = $this->createMock(BlogSettingsProvider::class);
+        $blogSettingsProvider
+            ->expects($this->once())
+            ->method('getSettings')
+            ->willReturn($settings);
+
+        $controller = new TestArticleController();
+
+        $controller->index(
+            new Request(['status' => 'draft']),
+            $articleRepository,
+            $categoryRepository,
+            $blogSettingsProvider,
+            new PaginationBuilder(),
+        );
+
+        $this->assertSame(ArticleStatus::DRAFT, $controller->capturedParameters['selected_status']);
+        $this->assertSame(['status' => 'draft'], $controller->capturedParameters['pagination_route_params']);
+        $this->assertSame([$article], $controller->capturedParameters['articles']);
+    }
+
+    public function testIndexKeepsCategoryAndStatusFiltersInPaginationState(): void
+    {
+        $settings = (new BlogSettings())
+            ->setAdminListingItemsPerPage(10);
+        $selectedCategory = (new ArticleCategory())->setName('AI');
+        $this->setEntityId($selectedCategory, 7);
+
+        $articleRepository = $this->createMock(ArticleRepository::class);
+        $articleRepository
+            ->expects($this->once())
+            ->method('countForAdminIndex')
+            ->with($selectedCategory, ArticleStatus::REVIEW)
+            ->willReturn(0);
+        $articleRepository
+            ->expects($this->once())
+            ->method('findPaginatedOrderedByCreatedDate')
+            ->with(1, 10, $selectedCategory, ArticleStatus::REVIEW)
+            ->willReturn([]);
+
+        $categoryRepository = $this->createMock(ArticleCategoryRepository::class);
+        $categoryRepository
+            ->expects($this->once())
+            ->method('find')
+            ->with(7)
+            ->willReturn($selectedCategory);
+        $categoryRepository
+            ->expects($this->once())
+            ->method('findForAdminIndex')
+            ->willReturn([$selectedCategory]);
+
+        $blogSettingsProvider = $this->createMock(BlogSettingsProvider::class);
+        $blogSettingsProvider
+            ->expects($this->once())
+            ->method('getSettings')
+            ->willReturn($settings);
+
+        $controller = new TestArticleController();
+
+        $controller->index(
+            new Request(['category' => '7', 'status' => 'review']),
+            $articleRepository,
+            $categoryRepository,
+            $blogSettingsProvider,
+            new PaginationBuilder(),
+        );
+
+        $this->assertSame($selectedCategory, $controller->capturedParameters['selected_category']);
+        $this->assertSame(ArticleStatus::REVIEW, $controller->capturedParameters['selected_status']);
+        $this->assertSame(['category' => 7, 'status' => 'review'], $controller->capturedParameters['pagination_route_params']);
+    }
+
+    public function testIndexTreatsUnsupportedStatusFilterAsNoFilter(): void
+    {
+        $settings = (new BlogSettings())
+            ->setAdminListingItemsPerPage(10);
+
+        $articleRepository = $this->createMock(ArticleRepository::class);
+        $articleRepository
+            ->expects($this->once())
+            ->method('countForAdminIndex')
+            ->with(null, null)
+            ->willReturn(0);
+        $articleRepository
+            ->expects($this->once())
+            ->method('findPaginatedOrderedByCreatedDate')
+            ->with(1, 10, null, null)
+            ->willReturn([]);
+
+        $categoryRepository = $this->createMock(ArticleCategoryRepository::class);
+        $categoryRepository
+            ->expects($this->never())
+            ->method('find');
+        $categoryRepository
+            ->expects($this->once())
+            ->method('findForAdminIndex')
+            ->willReturn([]);
+
+        $blogSettingsProvider = $this->createMock(BlogSettingsProvider::class);
+        $blogSettingsProvider
+            ->expects($this->once())
+            ->method('getSettings')
+            ->willReturn($settings);
+
+        $controller = new TestArticleController();
+
+        $controller->index(
+            new Request(['status' => 'unsupported']),
+            $articleRepository,
+            $categoryRepository,
+            $blogSettingsProvider,
+            new PaginationBuilder(),
+        );
+
+        $this->assertNull($controller->capturedParameters['selected_status']);
         $this->assertSame([], $controller->capturedParameters['pagination_route_params']);
     }
 

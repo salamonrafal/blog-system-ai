@@ -61,18 +61,23 @@ class ArticleRepository extends ServiceEntityRepository
     /**
      * @return list<Article>
      */
-    public function findPaginatedOrderedByCreatedDate(int $page, int $limit, ?ArticleCategory $category = null): array
+    public function findPaginatedOrderedByCreatedDate(
+        int $page,
+        int $limit,
+        ?ArticleCategory $category = null,
+        ?ArticleStatus $status = null,
+    ): array
     {
-        return $this->createAdminIndexQueryBuilder($category)
+        return $this->createAdminIndexQueryBuilder($category, $status)
             ->setFirstResult(max(0, ($page - 1) * $limit))
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
     }
 
-    public function countForAdminIndex(?ArticleCategory $category = null): int
+    public function countForAdminIndex(?ArticleCategory $category = null, ?ArticleStatus $status = null): int
     {
-        return (int) $this->createAdminIndexFilterQueryBuilder($category)
+        return (int) $this->createAdminIndexFilterQueryBuilder($category, $status)
             ->select('COUNT(article.id)')
             ->getQuery()
             ->getSingleScalarResult();
@@ -214,14 +219,14 @@ class ArticleRepository extends ServiceEntityRepository
         return $queryBuilder;
     }
 
-    private function createAdminIndexQueryBuilder(?ArticleCategory $category): QueryBuilder
+    private function createAdminIndexQueryBuilder(?ArticleCategory $category, ?ArticleStatus $status): QueryBuilder
     {
-        return $this->createAdminIndexFilterQueryBuilder($category)
+        return $this->createAdminIndexFilterQueryBuilder($category, $status)
             ->orderBy('article.createdAt', 'DESC')
             ->addOrderBy('article.id', 'DESC');
     }
 
-    private function createAdminIndexFilterQueryBuilder(?ArticleCategory $category): QueryBuilder
+    private function createAdminIndexFilterQueryBuilder(?ArticleCategory $category, ?ArticleStatus $status): QueryBuilder
     {
         $queryBuilder = $this->createQueryBuilder('article');
 
@@ -229,6 +234,12 @@ class ArticleRepository extends ServiceEntityRepository
             $queryBuilder
                 ->andWhere('article.category = :category')
                 ->setParameter('category', $category);
+        }
+
+        if (null !== $status) {
+            $queryBuilder
+                ->andWhere('article.status = :adminIndexStatus')
+                ->setParameter('adminIndexStatus', $status);
         }
 
         return $queryBuilder;
