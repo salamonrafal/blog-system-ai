@@ -506,3 +506,4 @@
 - Rozszerzono `BlogSettings` o edytowalną wartość autora meta tagu, dodając pole formularza ustawień bloga, migrację bazy danych, tłumaczenia i walidację, a bazowy layout przestał renderować `<meta name="author">` z zahardcodowaną wartością.
 - Znormalizowano tytuły stron renderowane w `base.html.twig`, usuwając początkowe i końcowe znaki białe z wartości trafiających do `<title>`, `og:title`, `twitter:title` oraz atrybutu `data-page-title`, dzięki czemu wieloliniowe bloki Twig nie generują już spacji ani znaków nowej linii w metadanych.
 - Dodano test regresyjny renderowania bazowego szablonu, który sprawdza trimowanie tytułów w metatagach i `data-page-title` oraz potwierdza, że escapowanie znaków specjalnych nie jest wykonywane podwójnie.
+- Poprawiono akcję `Publikuj` na liście zarządzania artykułami, tak aby zmiana samego statusu na opublikowany nie nadpisywała istniejącej daty publikacji, oraz dodano test regresyjny kontrolera dla tego scenariusza.
