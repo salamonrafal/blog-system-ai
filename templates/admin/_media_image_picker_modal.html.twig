@@ -1,9 +1,12 @@
 <div
     id="{{ modal_id }}"
     class="confirm-delete-modal headline-image-picker-modal"
-    {{ modal_data_attribute|raw }}
+    {{ modal_data_attribute|e('html_attr') }}
+    data-media-image-picker-select-label-key="{{ translation_prefix }}_select"
+    data-media-image-picker-empty-key="{{ translation_prefix }}_empty"
+    data-media-image-picker-no-results-key="{{ translation_prefix }}_no_results"
     {% if endpoint_data_attribute is defined and endpoint_data_attribute and endpoint_path is defined and endpoint_path %}
-        {{ endpoint_data_attribute|raw }}="{{ endpoint_path }}"
+        {{ endpoint_data_attribute|e('html_attr') }}="{{ endpoint_path }}"
     {% endif %}
     hidden
     aria-hidden="true"
@@ -36,7 +39,7 @@
                     id="{{ control_id_base }}-picker-search"
                     type="search"
                     class="article-editor-input headline-image-picker-search-input"
-                    {{ search_data_attribute|raw }}
+                    {{ search_data_attribute|e('html_attr') }}
                     data-i18n-placeholder="{{ translation_prefix }}_search_placeholder"
                     placeholder="{{ i18n_fallback(translation_prefix ~ '_search_placeholder') }}"
                     autocomplete="off"
@@ -48,7 +51,7 @@
                 <select
                     id="{{ control_id_base }}-picker-sort"
                     class="article-editor-input article-editor-select headline-image-picker-sort-select"
-                    {{ sort_data_attribute|raw }}
+                    {{ sort_data_attribute|e('html_attr') }}
                     data-i18n-aria="{{ translation_prefix }}_sort_label"
                     aria-label="{{ i18n_fallback(translation_prefix ~ '_sort_label') }}"
                 >
@@ -57,8 +60,8 @@
                 </select>
             </div>
         </div>
-        <div class="media-gallery-grid headline-image-picker-grid" {{ grid_data_attribute|raw }} role="listbox" data-i18n-aria="{{ translation_prefix }}_grid_aria" aria-label="{{ i18n_fallback(translation_prefix ~ '_grid_aria') }}"></div>
-        <p class="meta headline-image-picker-empty-results" {{ empty_results_data_attribute|raw }} role="status" aria-live="polite" aria-atomic="true" hidden>{{ i18n_fallback(translation_prefix ~ '_empty') }}</p>
+        <div class="media-gallery-grid headline-image-picker-grid" {{ grid_data_attribute|e('html_attr') }} role="listbox" data-i18n-aria="{{ translation_prefix }}_grid_aria" aria-label="{{ i18n_fallback(translation_prefix ~ '_grid_aria') }}"></div>
+        <p class="meta headline-image-picker-empty-results" {{ empty_results_data_attribute|e('html_attr') }} role="status" aria-live="polite" aria-atomic="true" hidden>{{ i18n_fallback(translation_prefix ~ '_empty') }}</p>
         <div class="confirm-delete-actions">
             <button type="button" class="button secondary" data-action="close-media-image-picker" data-i18n="{{ translation_prefix }}_close">{{ i18n_fallback(translation_prefix ~ '_close') }}</button>
         </div>

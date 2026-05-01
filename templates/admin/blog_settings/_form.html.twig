@@ -241,7 +241,12 @@
                         >
                             <span data-i18n="blog_settings_homepage_social_image_pick_from_media">{{ i18n_fallback('blog_settings_homepage_social_image_pick_from_media') }}</span>
                         </button>
-                        <button type="button" class="button secondary" data-action="clear-headline-image">
+                        <button
+                            type="button"
+                            class="button secondary"
+                            data-action="clear-headline-image"
+                            data-clear-headline-image-value="{{ constant('App\\Entity\\BlogSettings::DEFAULT_SOCIAL_IMAGE') }}"
+                        >
                             <span data-i18n="blog_settings_homepage_social_image_clear">{{ i18n_fallback('blog_settings_homepage_social_image_clear') }}</span>
                         </button>
                         <a class="button secondary" href="{{ path('admin_media_gallery') }}">

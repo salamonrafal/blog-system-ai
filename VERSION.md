@@ -510,3 +510,6 @@
 - Zmieniono pole obrazka strony głównej w ustawieniach bloga z widocznego pola tekstowego na wybór obrazka z galerii mediów, z przyciskami wyboru, czyszczenia, przejścia do galerii oraz podglądem aktualnie zapisanej grafiki.
 - Wydzielono wspólny partial Twig modala pickera obrazów mediów i podłączono go zarówno w formularzu artykułu, jak i w ustawieniach bloga, ograniczając duplikację markup-u istniejącego pickera.
 - Dopasowano układ sekcji wyboru obrazka strony głównej w formularzu ustawień bloga tak, aby zajmowała pełną szerokość sekcji zamiast ograniczać się do prawej kolumny formularza.
+- Zmieniono akcję czyszczenia obrazka strony głównej na przywracanie domyślnej grafiki społecznościowej, aby formularz ustawień bloga nie zapisywał pustej wartości odrzucanej przez walidację `NotBlank`.
+- Podpięto dynamiczne teksty pickera mediów do prefiksu tłumaczeń modala, dzięki czemu wybór obrazka strony głównej używa własnych etykiet przycisku wyboru oraz komunikatów pustej galerii i braku wyników.
+- Zabezpieczono wspólny partial modala pickera mediów przed niepotrzebnym renderowaniem nazw atrybutów przez `raw`, zastępując je escapowaniem `html_attr`.
