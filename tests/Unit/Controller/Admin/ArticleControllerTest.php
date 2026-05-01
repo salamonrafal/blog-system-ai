@@ -15,6 +15,7 @@ use App\Repository\ArticleExportQueueRepository;
 use App\Repository\ArticleKeywordRepository;
 use App\Repository\ArticleRepository;
 use App\Service\ArticlePublisher;
+use App\Service\ArticleSlugger;
 use App\Service\BlogSettingsProvider;
 use App\Service\PaginationBuilder;
 use App\Service\UserLanguageResolver;
@@ -445,6 +446,10 @@ final class ArticleControllerTest extends TestCase
         $entityManager
             ->expects($this->once())
             ->method('flush');
+        $articlePublisher = new ArticlePublisher(
+            $this->createMock(ArticleRepository::class),
+            new ArticleSlugger(),
+        );
         $userLanguageResolver = $this->createUserLanguageResolverMock('pl');
 
         $controller = new TestArticleController();
@@ -455,7 +460,7 @@ final class ArticleControllerTest extends TestCase
             '_token' => 'valid-token',
         ]);
 
-        $response = $controller->publish($article, $request, $entityManager, $userLanguageResolver);
+        $response = $controller->publish($article, $request, $entityManager, $articlePublisher, $userLanguageResolver);
 
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertSame('/admin/articles', $response->getTargetUrl());
@@ -464,6 +469,39 @@ final class ArticleControllerTest extends TestCase
         $this->assertSame('2026-04-20 10:00:00', $article->getPublishedAt()?->format('Y-m-d H:i:s'));
         $this->assertSame('UTC', $article->getPublishedAt()?->getTimezone()->getName());
         $this->assertSame([['success', 'Artykuł został opublikowany.']], $controller->flashes);
+    }
+
+    public function testPublishSetsPublicationDateWhenMissing(): void
+    {
+        $article = (new Article())
+            ->setTitle('Test article')
+            ->setSlug('test-article')
+            ->setStatus(ArticleStatus::DRAFT)
+            ->setPublishedAt(null);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager
+            ->expects($this->once())
+            ->method('flush');
+        $articlePublisher = new ArticlePublisher(
+            $this->createMock(ArticleRepository::class),
+            new ArticleSlugger(),
+        );
+        $userLanguageResolver = $this->createUserLanguageResolverMock('pl');
+
+        $controller = new TestArticleController();
+        $controller->csrfTokenIsValid = true;
+
+        $request = new Request([], [
+            '_token' => 'valid-token',
+        ]);
+
+        $response = $controller->publish($article, $request, $entityManager, $articlePublisher, $userLanguageResolver);
+
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertSame(ArticleStatus::PUBLISHED, $article->getStatus());
+        $this->assertInstanceOf(\DateTimeImmutable::class, $article->getPublishedAt());
+        $this->assertSame('UTC', $article->getPublishedAt()?->getTimezone()->getName());
     }
 
     public function testExportAddsArticleToQueueWhenRepositoryEnqueuesIt(): void

@@ -158,6 +158,7 @@ class ArticleController extends AbstractController
         Article $article,
         Request $request,
         EntityManagerInterface $entityManager,
+        ArticlePublisher $articlePublisher,
         UserLanguageResolver $userLanguageResolver,
     ): Response {
         if (!$this->isCsrfTokenValid('publish_article_'.$article->getId(), (string) $request->request->get('_token'))) {
@@ -172,6 +173,7 @@ class ArticleController extends AbstractController
 
         $article->setStatus(ArticleStatus::PUBLISHED);
         $article->setUpdatedBy($this->resolveAuthenticatedUser());
+        $articlePublisher->prepareForSave($article);
 
         $entityManager->flush();
 
