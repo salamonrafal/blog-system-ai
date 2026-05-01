@@ -88,6 +88,7 @@ final class ArticleControllerTest extends TestCase
         $this->assertNull($controller->capturedParameters['selected_category']);
         $this->assertNull($controller->capturedParameters['selected_status']);
         $this->assertSame('desc', $controller->capturedParameters['sort_order']);
+        $this->assertSame([], $controller->capturedParameters['article_filter_route_params']);
         $this->assertSame([], $controller->capturedParameters['pagination_route_params']);
         $this->assertSame(2, $controller->capturedParameters['current_page']);
         $this->assertSame(3, $controller->capturedParameters['total_pages']);
@@ -188,6 +189,7 @@ final class ArticleControllerTest extends TestCase
         );
 
         $this->assertSame($selectedCategory, $controller->capturedParameters['selected_category']);
+        $this->assertSame(['category' => 7], $controller->capturedParameters['article_filter_route_params']);
         $this->assertSame(['category' => 7], $controller->capturedParameters['pagination_route_params']);
         $this->assertSame([$article], $controller->capturedParameters['articles']);
     }
@@ -287,6 +289,7 @@ final class ArticleControllerTest extends TestCase
         );
 
         $this->assertSame(ArticleStatus::DRAFT, $controller->capturedParameters['selected_status']);
+        $this->assertSame(['status' => 'draft'], $controller->capturedParameters['article_filter_route_params']);
         $this->assertSame(['status' => 'draft'], $controller->capturedParameters['pagination_route_params']);
         $this->assertSame([$article], $controller->capturedParameters['articles']);
     }
@@ -339,6 +342,7 @@ final class ArticleControllerTest extends TestCase
 
         $this->assertSame($selectedCategory, $controller->capturedParameters['selected_category']);
         $this->assertSame(ArticleStatus::REVIEW, $controller->capturedParameters['selected_status']);
+        $this->assertSame(['category' => 7, 'status' => 'review'], $controller->capturedParameters['article_filter_route_params']);
         $this->assertSame(['category' => 7, 'status' => 'review'], $controller->capturedParameters['pagination_route_params']);
     }
 
@@ -389,6 +393,7 @@ final class ArticleControllerTest extends TestCase
         );
 
         $this->assertSame('asc', $controller->capturedParameters['sort_order']);
+        $this->assertSame(['category' => 7, 'status' => 'review'], $controller->capturedParameters['article_filter_route_params']);
         $this->assertSame(['category' => 7, 'status' => 'review', 'sort' => 'asc'], $controller->capturedParameters['pagination_route_params']);
     }
 

@@ -139,9 +139,10 @@
                         <th data-i18n="admin_table_status">Status</th>
                         <th class="article-index-updated-column" aria-sort="{{ sort_order == 'asc' ? 'ascending' : 'descending' }}">
                             {% set next_sort_order = sort_order == 'asc' ? 'desc' : 'asc' %}
+                            {% set sort_route_params = next_sort_order == 'desc' ? article_filter_route_params : article_filter_route_params|merge({ sort: next_sort_order }) %}
                             <a
                                 class="article-index-sort-link"
-                                href="{{ path('admin_article_index', pagination_route_params|merge({ sort: next_sort_order })) }}"
+                                href="{{ path('admin_article_index', sort_route_params) }}"
                                 data-i18n-aria="{{ sort_order == 'asc' ? 'admin_article_sort_updated_desc' : 'admin_article_sort_updated_asc' }}"
                                 aria-label="{{ sort_order == 'asc' ? 'Sortuj po aktualizacji od najnowszych' : 'Sortuj po aktualizacji od najstarszych' }}"
                             >

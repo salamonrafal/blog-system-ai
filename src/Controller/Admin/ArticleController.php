@@ -47,6 +47,10 @@ class ArticleController extends AbstractController
         $totalArticles = $articleRepository->countForAdminIndex($selectedCategory, $selectedStatus);
         $totalPages = max(1, (int) ceil($totalArticles / $articlesPerPage));
         $currentPage = min($requestedPage, $totalPages);
+        $filterRouteParams = array_filter([
+            'category' => $selectedCategory?->getId(),
+            'status' => $selectedStatus?->value,
+        ], static fn (mixed $value): bool => null !== $value && '' !== $value);
 
         return $this->render('admin/article/index.html.twig', [
             'articles' => $articleRepository->findPaginatedForAdminIndex($currentPage, $articlesPerPage, $selectedCategory, $selectedStatus, $sortOrder),
@@ -55,9 +59,9 @@ class ArticleController extends AbstractController
             'selected_category' => $selectedCategory,
             'selected_status' => $selectedStatus,
             'sort_order' => $sortOrder,
+            'article_filter_route_params' => $filterRouteParams,
             'pagination_route_params' => array_filter([
-                'category' => $selectedCategory?->getId(),
-                'status' => $selectedStatus?->value,
+                ...$filterRouteParams,
                 'sort' => 'desc' !== $sortOrder ? $sortOrder : null,
             ], static fn (mixed $value): bool => null !== $value && '' !== $value),
             'current_page' => $currentPage,

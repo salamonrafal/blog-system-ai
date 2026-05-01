@@ -227,7 +227,7 @@ class ArticleRepository extends ServiceEntityRepository
         return $this->createAdminIndexFilterQueryBuilder($category, $status)
             ->orderBy('article.updatedAt', $normalizedSort)
             ->addOrderBy('article.createdAt', $normalizedSort)
-            ->addOrderBy('article.id', 'DESC');
+            ->addOrderBy('article.id', $normalizedSort);
     }
 
     private function createAdminIndexFilterQueryBuilder(?ArticleCategory $category, ?ArticleStatus $status): QueryBuilder
