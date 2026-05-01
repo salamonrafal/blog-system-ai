@@ -6,7 +6,7 @@
     <meta name="description" content="{% block meta_description %}{{ blog_settings.homepageSeoDescription }}{% endblock %}">
     <meta name="keywords" content="{% block meta_keywords %}{{ blog_settings.homepageSeoKeywords }}{% endblock %}">
     <meta name="robots" content="{% block meta_robots %}index,follow,max-image-preview:large{% endblock %}">
-    <meta name="author" content="Rafał Salamon">
+    <meta name="author" content="{{ blog_settings.metaAuthor }}">
     <meta name="theme-color" content="#0b0f12">
     <script>
         (function() {

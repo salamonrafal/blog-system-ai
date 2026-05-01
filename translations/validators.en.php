@@ -19,6 +19,8 @@ return [
   'validation_blog_settings_app_url_origin_only' => 'Application URL must point to the origin only, without path, query, fragment, or user info.',
   'validation_blog_settings_blog_title_required' => 'Blog title is required.',
   'validation_blog_settings_blog_title_too_long' => 'Blog title can be at most 255 characters long.',
+  'validation_blog_settings_meta_author_required' => 'Meta tag author is required.',
+  'validation_blog_settings_meta_author_too_long' => 'Meta tag author can be at most 255 characters long.',
   'validation_blog_settings_preference_cookie_domain_too_long' => 'Preference cookie domain can be at most 255 characters long.',
   'validation_blog_settings_preference_cookie_domain_invalid' => 'Provide a valid cookie domain in the format .example.com or example.com.',
   'validation_blog_settings_homepage_seo_description_required' => 'Homepage SEO description is required.',

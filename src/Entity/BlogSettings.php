@@ -16,6 +16,7 @@ class BlogSettings
 {
     public const DEFAULT_APP_URL = 'https://www.salamonrafal.pl';
     public const DEFAULT_BLOG_TITLE = 'Blog System AI';
+    public const DEFAULT_META_AUTHOR = 'Rafał Salamon';
     public const DEFAULT_SEO_DESCRIPTION = 'Blog o programowaniu, technologii i praktyce tworzenia produktów. Artykuły o PHP, web developmencie, architekturze aplikacji i jakości kodu.';
     public const DEFAULT_SOCIAL_IMAGE = 'https://www.salamonrafal.pl/assets/img/profile.jpg';
     public const DEFAULT_SEO_KEYWORDS = 'blog, programowanie, php, web development, architektura aplikacji, seo, jakość kodu';
@@ -43,6 +44,11 @@ class BlogSettings
     #[Assert\Length(max: 255, maxMessage: 'validation_blog_settings_blog_title_too_long')]
     #[ORM\Column(length: 255)]
     private string $blogTitle = self::DEFAULT_BLOG_TITLE;
+
+    #[Assert\NotBlank(message: 'validation_blog_settings_meta_author_required')]
+    #[Assert\Length(max: 255, maxMessage: 'validation_blog_settings_meta_author_too_long')]
+    #[ORM\Column(length: 255)]
+    private string $metaAuthor = self::DEFAULT_META_AUTHOR;
 
     #[Assert\Length(max: 255, maxMessage: 'validation_blog_settings_preference_cookie_domain_too_long')]
     #[ORM\Column(name: 'preference_cookie_domain', length: 255, nullable: true)]
@@ -115,6 +121,18 @@ class BlogSettings
     public function setBlogTitle(string $blogTitle): self
     {
         $this->blogTitle = trim($blogTitle);
+
+        return $this;
+    }
+
+    public function getMetaAuthor(): string
+    {
+        return $this->metaAuthor;
+    }
+
+    public function setMetaAuthor(string $metaAuthor): self
+    {
+        $this->metaAuthor = trim($metaAuthor);
 
         return $this;
     }

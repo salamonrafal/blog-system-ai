@@ -19,6 +19,8 @@ return [
   'validation_blog_settings_app_url_origin_only' => 'URL aplikacji musi wskazywać wyłącznie origin bez ścieżki, parametrów, fragmentu i danych użytkownika.',
   'validation_blog_settings_blog_title_required' => 'Tytuł bloga jest wymagany.',
   'validation_blog_settings_blog_title_too_long' => 'Tytuł bloga może mieć maksymalnie 255 znaków.',
+  'validation_blog_settings_meta_author_required' => 'Autor meta tagu jest wymagany.',
+  'validation_blog_settings_meta_author_too_long' => 'Autor meta tagu może mieć maksymalnie 255 znaków.',
   'validation_blog_settings_preference_cookie_domain_too_long' => 'Domena cookie preferencji może mieć maksymalnie 255 znaków.',
   'validation_blog_settings_preference_cookie_domain_invalid' => 'Podaj poprawną domenę cookie w formacie .example.com lub example.com.',
   'validation_blog_settings_homepage_seo_description_required' => 'Opis SEO strony głównej jest wymagany.',

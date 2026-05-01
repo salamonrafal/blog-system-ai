@@ -88,6 +88,50 @@
                 {% endif %}
             </div>
 
+            {% set meta_author_has_errors = form.metaAuthor.vars.errors|length > 0 %}
+            {% set meta_author_counter_id = form.metaAuthor.vars.id ~ '-char-count' %}
+            {% set meta_author_hint_id = form.metaAuthor.vars.id ~ '-hint' %}
+            {% set meta_author_described_by = meta_author_hint_id ~ ' ' ~ meta_author_counter_id ~ (meta_author_has_errors ? ' ' ~ form.metaAuthor.vars.id ~ '-error' : '') %}
+            <div class="field article-editor-field blog-settings-inline-field blog-settings-inline-field-with-counter{{ meta_author_has_errors ? ' has-error' : '' }}">
+                <div class="blog-settings-inline-field-copy">
+                    <div class="blog-settings-label-row">
+                        {{ form_label(form.metaAuthor) }}
+                        <button
+                            type="button"
+                            class="article-keyword-help-trigger"
+                            data-i18n-tooltip="blog_settings_meta_author_hint"
+                            data-i18n-aria="blog_settings_meta_author_hint_aria"
+                            data-tooltip="Wartość trafia do tagu &lt;meta name=&quot;author&quot;&gt; w bazowym layoucie."
+                            data-tooltip-wide="true"
+                            data-tooltip-wrap="true"
+                            aria-label="Pomoc do pola autora meta tagu"
+                        >?</button>
+                    </div>
+                    <span id="{{ meta_author_hint_id }}" class="sr-only" data-i18n="blog_settings_meta_author_hint">Wartość trafia do tagu &lt;meta name=&quot;author&quot;&gt; w bazowym layoucie.</span>
+                </div>
+                <div class="blog-settings-input-stack">
+                    <div class="blog-settings-input-row">
+                        {{ form_widget(form.metaAuthor, { attr: {
+                            class: 'article-editor-input',
+                            placeholder: 'Np. Rafał Salamon',
+                            'data-i18n-placeholder': 'blog_settings_meta_author_placeholder',
+                            'data-character-count-input': 'true',
+                            'aria-describedby': meta_author_described_by
+                        }|merge(meta_author_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
+                        <div class="article-editor-field-meta">
+                            <span id="{{ meta_author_counter_id }}" class="article-editor-character-count" data-character-count-target>{{ form.metaAuthor.vars.value|default('')|length }} / {{ form.metaAuthor.vars.attr.maxlength }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% if meta_author_has_errors %}
+                    <div id="{{ form.metaAuthor.vars.id }}-error" class="article-editor-error-message" role="alert">
+                        {% for error in form.metaAuthor.vars.errors %}
+                            {% include 'admin/_validation_error.html.twig' with { error: error } %}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
             {% set cookie_domain_has_errors = form.preferenceCookieDomainOverride.vars.errors|length > 0 %}
             {% set cookie_domain_counter_id = form.preferenceCookieDomainOverride.vars.id ~ '-char-count' %}
             {% set cookie_domain_hint_id = form.preferenceCookieDomainOverride.vars.id ~ '-hint' %}
