@@ -430,12 +430,13 @@ final class ArticleControllerTest extends TestCase
         $this->assertSame([['error', 'Artykuł ma już przypisanego autora.']], $controller->flashes);
     }
 
-    public function testPublishKeepsExistingPublicationDate(): void
+    public function testPublishKeepsExistingPublicationDateForPersistedLegacyData(): void
     {
         $publishedAt = new \DateTimeImmutable('2026-04-20 12:00:00', new \DateTimeZone('Europe/Warsaw'));
         $currentUser = (new User())
             ->setEmail('publisher@example.com')
             ->setPassword('hashed-password');
+        // Covers persisted legacy/imported rows that already carry publication metadata.
         $article = (new Article())
             ->setTitle('Test article')
             ->setSlug('test-article')
@@ -466,7 +467,7 @@ final class ArticleControllerTest extends TestCase
         $this->assertSame('/admin/articles', $response->getTargetUrl());
         $this->assertSame(ArticleStatus::PUBLISHED, $article->getStatus());
         $this->assertSame($currentUser, $article->getUpdatedBy());
-        $this->assertSame('2026-04-20 10:00:00', $article->getPublishedAt()?->format('Y-m-d H:i:s'));
+        $this->assertSame($publishedAt->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s'), $article->getPublishedAt()?->format('Y-m-d H:i:s'));
         $this->assertSame('UTC', $article->getPublishedAt()?->getTimezone()->getName());
         $this->assertSame([['success', 'Artykuł został opublikowany.']], $controller->flashes);
     }
