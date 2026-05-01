@@ -32,9 +32,24 @@ TWIG,
             new FilesystemLoader(__DIR__.'/../../../templates'),
         ]));
         $twig->addFunction(new TwigFunction('path', static fn (string $route, array $parameters = []): string => '/'.$route));
-        $twig->addFunction(new TwigFunction('is_granted', static fn (): bool => false));
-        $twig->addFunction(new TwigFunction('csrf_token', static fn (): string => 'token'));
+        $twig->addFunction(new TwigFunction('is_granted', static fn (mixed $attribute, mixed $subject = null): bool => false));
+        $twig->addFunction(new TwigFunction('csrf_token', static fn (string $tokenId): string => 'token'));
         $twig->addFunction(new TwigFunction('i18n_fallback', static fn (string $id): string => $id));
+
+        $request = new Request();
+        $request->attributes->set('_route', 'app_login');
+        $app = new class($request) {
+            public mixed $user = null;
+
+            public function __construct(public Request $request)
+            {
+            }
+
+            public function flashes(string $type): array
+            {
+                return [];
+            }
+        };
 
         $html = $twig->render('test/page.html.twig', [
             'active_i18n_json' => '{}',
@@ -47,9 +62,7 @@ TWIG,
                 'import_export' => 0,
                 'queue_status' => 0,
             ],
-            'app' => [
-                'request' => new Request(),
-            ],
+            'app' => $app,
             'app_env' => 'test',
             'app_name' => 'Test Blog',
             'app_url' => 'https://example.com',
@@ -57,6 +70,7 @@ TWIG,
             'i18n_catalog_version' => 'test',
             'preference_cookie_domain' => '',
             'raw_title' => 'Clean & tidy',
+            'show_admin_shortcuts' => false,
             'top_menu_items' => [],
             'user_language' => 'pl',
         ]);
