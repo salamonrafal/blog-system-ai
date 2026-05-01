@@ -61,14 +61,15 @@ class ArticleRepository extends ServiceEntityRepository
     /**
      * @return list<Article>
      */
-    public function findPaginatedOrderedByCreatedDate(
+    public function findPaginatedForAdminIndex(
         int $page,
         int $limit,
         ?ArticleCategory $category = null,
         ?ArticleStatus $status = null,
+        string $sort = 'desc',
     ): array
     {
-        return $this->createAdminIndexQueryBuilder($category, $status)
+        return $this->createAdminIndexQueryBuilder($category, $status, $sort)
             ->setFirstResult(max(0, ($page - 1) * $limit))
             ->setMaxResults($limit)
             ->getQuery()
@@ -219,10 +220,13 @@ class ArticleRepository extends ServiceEntityRepository
         return $queryBuilder;
     }
 
-    private function createAdminIndexQueryBuilder(?ArticleCategory $category, ?ArticleStatus $status): QueryBuilder
+    private function createAdminIndexQueryBuilder(?ArticleCategory $category, ?ArticleStatus $status, string $sort): QueryBuilder
     {
+        $normalizedSort = 'asc' === strtolower($sort) ? 'ASC' : 'DESC';
+
         return $this->createAdminIndexFilterQueryBuilder($category, $status)
-            ->orderBy('article.createdAt', 'DESC')
+            ->orderBy('article.updatedAt', $normalizedSort)
+            ->addOrderBy('article.createdAt', $normalizedSort)
             ->addOrderBy('article.id', 'DESC');
     }
 

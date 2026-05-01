@@ -517,3 +517,4 @@
 - Ujednolicono prezentację statusów artykułów przez klucze tłumaczeń `ArticleStatus`, usuwając powielone warunki `Twig` z tabeli administracyjnej.
 - Rozszerzono frontendowy moduł filtrów listy administracyjnej o obsługę wielu dropdownów w jednym formularzu oraz dodano test JavaScript zabezpieczający poprawne mapowanie dropdownu na właściwe ukryte pole.
 - Uzupełniono testy jednostkowe kontrolera i enumu artykułów o filtrowanie po statusie, łączenie filtrów oraz eksport kluczy tłumaczeń statusów.
+- Dodano na `admin_article_index` sortowanie artykułów po dacie aktualizacji w obu kierunkach, z klikalnym nagłówkiem kolumny, ikoną aktualnego kierunku sortowania bez podkreślenia po najechaniu oraz zachowaniem filtrów i paginacji.

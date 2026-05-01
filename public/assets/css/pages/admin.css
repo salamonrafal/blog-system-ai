@@ -1245,6 +1245,46 @@
   max-width:320px;
 }
 
+.article-index-updated-column {
+  min-width:172px;
+}
+
+.article-index-sort-link {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  color:inherit;
+  text-decoration:none;
+}
+
+.article-index-sort-link:hover,
+.article-index-sort-link:focus-visible {
+  color:var(--accent);
+  text-decoration:none;
+}
+
+.article-index-sort-icon {
+  display:inline-flex;
+  width:18px;
+  height:18px;
+  color:var(--accent);
+}
+
+.article-index-sort-icon svg {
+  width:100%;
+  height:100%;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:2.2;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.article-index-sort-icon.is-ascending {
+  transform:rotate(180deg);
+}
+
 .article-index-select-column,
 .article-index-select-cell {
   width:56px;
