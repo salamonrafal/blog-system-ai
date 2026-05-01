@@ -66,6 +66,7 @@ final class BlogSettingsControllerTest extends TestCase
             ->with($this->callback(function (BlogSettings $settings): bool {
                 $this->assertSame('https://example.com', $settings->getAppUrl());
                 $this->assertSame('Nowy blog', $settings->getBlogTitle());
+                $this->assertSame('Rafal Testowy', $settings->getMetaAuthor());
                 $this->assertSame('.example.com', $settings->getPreferenceCookieDomainOverride());
                 $this->assertSame(8, $settings->getArticlesPerPage());
                 $this->assertSame(30, $settings->getAdminListingItemsPerPage());
@@ -80,6 +81,7 @@ final class BlogSettingsControllerTest extends TestCase
             'blog_settings' => [
                 'appUrl' => 'https://example.com/',
                 'blogTitle' => 'Nowy blog',
+                'metaAuthor' => 'Rafal Testowy',
                 'preferenceCookieDomainOverride' => 'example.com',
                 'homepageSeoDescription' => 'Opis strony glownej dla testu.',
                 'homepageSocialImage' => '/assets/img/test-social.jpg',
@@ -121,6 +123,7 @@ final class BlogSettingsControllerTest extends TestCase
             'blog_settings' => [
                 'appUrl' => 'https://www.example.com',
                 'blogTitle' => 'Zmieniony blog',
+                'metaAuthor' => 'Autor po zmianie',
                 'preferenceCookieDomainOverride' => '.example.com',
                 'homepageSeoDescription' => 'Aktualizacja opisu SEO.',
                 'homepageSocialImage' => 'https://cdn.example.com/social.jpg',
@@ -137,6 +140,7 @@ final class BlogSettingsControllerTest extends TestCase
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertSame('/admin/settings/blog', $response->getTargetUrl());
         $this->assertSame('Zmieniony blog', $settings->getBlogTitle());
+        $this->assertSame('Autor po zmianie', $settings->getMetaAuthor());
         $this->assertSame('.example.com', $settings->getPreferenceCookieDomainOverride());
         $this->assertSame(9, $settings->getArticlesPerPage());
         $this->assertSame(31, $settings->getAdminListingItemsPerPage());

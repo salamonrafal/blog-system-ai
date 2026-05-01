@@ -36,6 +36,9 @@ final class BlogSettingsTypeTest extends TestCase
         $this->assertInstanceOf(TextType::class, $form->get('blogTitle')->getConfig()->getType()->getInnerType());
         $this->assertSame(255, $form->get('blogTitle')->getConfig()->getOption('attr')['maxlength']);
 
+        $this->assertInstanceOf(TextType::class, $form->get('metaAuthor')->getConfig()->getType()->getInnerType());
+        $this->assertSame(255, $form->get('metaAuthor')->getConfig()->getOption('attr')['maxlength']);
+
         $this->assertInstanceOf(TextType::class, $form->get('preferenceCookieDomainOverride')->getConfig()->getType()->getInnerType());
         $this->assertSame(255, $form->get('preferenceCookieDomainOverride')->getConfig()->getOption('attr')['maxlength']);
 

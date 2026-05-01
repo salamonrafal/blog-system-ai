@@ -33,6 +33,14 @@ class BlogSettingsType extends AbstractType
                     'data-i18n-placeholder' => 'blog_settings_blog_title_placeholder',
                 ],
             ])
+            ->add('metaAuthor', TextType::class, [
+                'label' => 'Autor meta tagu',
+                'label_attr' => ['data-i18n' => 'blog_settings_meta_author'],
+                'attr' => [
+                    'maxlength' => 255,
+                    'data-i18n-placeholder' => 'blog_settings_meta_author_placeholder',
+                ],
+            ])
             ->add('preferenceCookieDomainOverride', TextType::class, [
                 'label' => 'Domena cookie preferencji',
                 'required' => false,

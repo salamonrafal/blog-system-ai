@@ -503,3 +503,4 @@
 - Naprawiono renderowanie samodzielnych obrazów Markdown z encjami HTML w `alt` i adresie URL, tak aby wynik był spójny z obrazami inline i nie powodował podwójnego encodowania `&amp;`.
 - Dopasowano style publicznego widoku artykułu do nowej struktury treści, zdejmując dodatkowy odstęp między kolejnymi liniami `<p>` i pustymi liniami `<br>` oraz zmniejszając bazowy `line-height` treści.
 - Zaktualizowano podpowiedź formatowania w formularzu artykułu, aby opisywała osobne akapity tekstu zamiast nowej linii w jednym akapicie, oraz rozszerzono testy jednostkowe renderera o zachowanie pustych linii, linii z `\`, samodzielnych obrazów i tekstowych linii renderowanych jako osobne paragrafy.
+- Rozszerzono `BlogSettings` o edytowalną wartość autora meta tagu, dodając pole formularza ustawień bloga, migrację bazy danych, tłumaczenia i walidację, a bazowy layout przestał renderować `<meta name="author">` z zahardcodowaną wartością.
