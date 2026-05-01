@@ -69,18 +69,18 @@ TWIG,
             'blog_settings' => new BlogSettings(),
             'i18n_catalog_version' => 'test',
             'preference_cookie_domain' => '',
-            'raw_title' => 'Clean & tidy',
+            'raw_title' => 'Clean "quoted" & tidy',
             'show_admin_shortcuts' => false,
             'top_menu_items' => [],
             'user_language' => 'pl',
         ]);
 
-        self::assertStringContainsString('<title>Clean &amp; tidy | Test Blog</title>', $html);
-        self::assertStringContainsString('<meta property="og:title" content="Clean &amp; tidy | Test Blog">', $html);
-        self::assertStringContainsString('<meta name="twitter:title" content="Clean &amp; tidy | Test Blog">', $html);
-        self::assertStringContainsString('data-page-title="Clean &amp; tidy | Test Blog"', $html);
-        self::assertStringNotContainsString("content=\"\n    Clean &amp; tidy | Test Blog", $html);
-        self::assertStringNotContainsString("data-page-title=\"\n    Clean &amp; tidy | Test Blog", $html);
-        self::assertStringNotContainsString('Clean &amp;amp; tidy', $html);
+        self::assertStringContainsString('<title>Clean &quot;quoted&quot; &amp; tidy | Test Blog</title>', $html);
+        self::assertStringContainsString('<meta property="og:title" content="Clean &quot;quoted&quot; &amp; tidy | Test Blog">', $html);
+        self::assertStringContainsString('<meta name="twitter:title" content="Clean &quot;quoted&quot; &amp; tidy | Test Blog">', $html);
+        self::assertStringContainsString('data-page-title="Clean &quot;quoted&quot; &amp; tidy | Test Blog"', $html);
+        self::assertStringNotContainsString("content=\"\n    Clean &quot;quoted&quot; &amp; tidy | Test Blog", $html);
+        self::assertStringNotContainsString("data-page-title=\"\n    Clean &quot;quoted&quot; &amp; tidy | Test Blog", $html);
+        self::assertStringNotContainsString('Clean &amp;quot;quoted&amp;quot; &amp;amp; tidy', $html);
     }
 }

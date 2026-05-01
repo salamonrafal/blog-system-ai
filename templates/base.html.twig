@@ -48,23 +48,20 @@
     {% endif %}
 
     {% set og_locale = user_language == 'en' ? 'en_US' : 'pl_PL' %}
-    {% set resolved_page_title %}{% block title %}{{ app_name }}{% endblock %}{% endset %}
-    {% set resolved_og_title %}{% block og_title %}{{ resolved_page_title }}{% endblock %}{% endset %}
-    {% set resolved_twitter_title %}{% block twitter_title %}{{ resolved_og_title }}{% endblock %}{% endset %}
     <meta property="og:locale" content="{{ og_locale }}">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="{{ app_name }}">
-    <meta property="og:title" content="{{ resolved_og_title|trim }}">
+    <meta property="og:title" content="{% apply trim %}{% block og_title %}{{ block('title') }}{% endblock %}{% endapply %}">
     <meta property="og:description" content="{% block og_description %}{{ block('meta_description') }}{% endblock %}">
     <meta property="og:url" content="{% block og_url %}{{ app_url ~ path('blog_index') }}{% endblock %}">
     <meta property="og:image" content="{% block og_image %}{{ blog_settings.resolvedHomepageSocialImage }}{% endblock %}">
 
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ resolved_twitter_title|trim }}">
+    <meta name="twitter:title" content="{% apply trim %}{% block twitter_title %}{{ block('og_title') }}{% endblock %}{% endapply %}">
     <meta name="twitter:description" content="{% block twitter_description %}{{ block('og_description') }}{% endblock %}">
     <meta name="twitter:image" content="{% block twitter_image %}{{ block('og_image') }}{% endblock %}">
 
-    <title>{{ resolved_page_title|trim }}</title>
+    <title>{% apply trim %}{% block title %}{{ app_name }}{% endblock %}{% endapply %}</title>
 </head>
 
 {% set route_name = app.request.attributes.get('_route')|default('') %}
@@ -89,8 +86,7 @@
 {% set page_title_i18n_key = page_title_i18n_key|default('') %}
 
 <body
-    {% set resolved_body_page_title %}{% block page_title %}{{ resolved_page_title }}{% endblock %}{% endset %}
-    data-page-title="{{ resolved_body_page_title|trim }}"
+    data-page-title="{% apply trim %}{% block page_title %}{{ block('title') }}{% endblock %}{% endapply %}"
     {% if page_title_i18n_key is not empty %}
         data-page-title-i18n="{{ page_title_i18n_key }}"
         data-i18n-param-app_name="{{ app_name }}"
