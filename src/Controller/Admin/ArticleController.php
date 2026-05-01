@@ -43,19 +43,26 @@ class ArticleController extends AbstractController
         $requestedPage = max(1, $request->query->getInt('page', 1));
         $selectedCategory = $this->resolveSelectedCategory($request, $articleCategoryRepository);
         $selectedStatus = $this->resolveSelectedStatus($request);
+        $sortOrder = $this->resolveArticleSortOrder($request);
         $totalArticles = $articleRepository->countForAdminIndex($selectedCategory, $selectedStatus);
         $totalPages = max(1, (int) ceil($totalArticles / $articlesPerPage));
         $currentPage = min($requestedPage, $totalPages);
+        $filterRouteParams = array_filter([
+            'category' => $selectedCategory?->getId(),
+            'status' => $selectedStatus?->value,
+        ], static fn (mixed $value): bool => null !== $value && '' !== $value);
 
         return $this->render('admin/article/index.html.twig', [
-            'articles' => $articleRepository->findPaginatedOrderedByCreatedDate($currentPage, $articlesPerPage, $selectedCategory, $selectedStatus),
+            'articles' => $articleRepository->findPaginatedForAdminIndex($currentPage, $articlesPerPage, $selectedCategory, $selectedStatus, $sortOrder),
             'article_categories' => $articleCategoryRepository->findForAdminIndex(),
             'article_statuses' => ArticleStatus::cases(),
             'selected_category' => $selectedCategory,
             'selected_status' => $selectedStatus,
+            'sort_order' => $sortOrder,
+            'article_filter_route_params' => $filterRouteParams,
             'pagination_route_params' => array_filter([
-                'category' => $selectedCategory?->getId(),
-                'status' => $selectedStatus?->value,
+                ...$filterRouteParams,
+                'sort' => 'desc' !== $sortOrder ? $sortOrder : null,
             ], static fn (mixed $value): bool => null !== $value && '' !== $value),
             'current_page' => $currentPage,
             'total_pages' => $totalPages,
@@ -385,6 +392,11 @@ class ArticleController extends AbstractController
         }
 
         return ArticleStatus::tryFrom(trim($status));
+    }
+
+    private function resolveArticleSortOrder(Request $request): string
+    {
+        return 'asc' === strtolower((string) $request->query->get('sort', 'desc')) ? 'asc' : 'desc';
     }
 
     private function createArticleForm(

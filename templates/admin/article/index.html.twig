@@ -137,7 +137,24 @@
                         <th class="article-index-title-column" data-i18n="admin_table_title">Tytuł</th>
                         <th data-i18n="admin_table_author">Autor</th>
                         <th data-i18n="admin_table_status">Status</th>
-                        <th data-i18n="admin_table_updated">Aktualizacja</th>
+                        <th class="article-index-updated-column" aria-sort="{{ sort_order == 'asc' ? 'ascending' : 'descending' }}">
+                            {% set next_sort_order = sort_order == 'asc' ? 'desc' : 'asc' %}
+                            {% set sort_route_params = next_sort_order == 'desc' ? article_filter_route_params : article_filter_route_params|merge({ sort: next_sort_order }) %}
+                            {% set sort_aria_key = sort_order == 'asc' ? 'admin_article_sort_updated_desc' : 'admin_article_sort_updated_asc' %}
+                            <a
+                                class="article-index-sort-link"
+                                href="{{ path('admin_article_index', sort_route_params) }}"
+                                data-i18n-aria="{{ sort_aria_key }}"
+                                aria-label="{{ i18n_fallback(sort_aria_key) }}"
+                            >
+                                <span data-i18n="admin_table_updated">Aktualizacja</span>
+                                <span class="article-index-sort-icon{{ sort_order == 'asc' ? ' is-ascending' : ' is-descending' }}" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" focusable="false">
+                                        <path d="M12 5v14m0 0 5-5m-5 5-5-5"></path>
+                                    </svg>
+                                </span>
+                            </a>
+                        </th>
                         <th data-i18n="admin_table_action">Akcja</th>
                     </tr>
                     </thead>
