@@ -78,7 +78,7 @@
                             type="button"
                             class="article-index-filter-trigger"
                             data-listing-filter-trigger
-                            {% if not selected_status %}data-i18n-aria="admin_article_filter_all_statuses"{% endif %}
+                            data-i18n-aria="{{ selected_status ? selected_status.translationKey : 'admin_article_filter_all_statuses' }}"
                             aria-haspopup="true"
                             aria-expanded="false"
                             aria-controls="article-index-status-filter-panel"
