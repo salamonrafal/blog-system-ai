@@ -37,8 +37,9 @@
             <div class="article-index-toolbar">
                 <form method="get" class="article-index-filter-panel" data-i18n-aria="admin_article_filters_aria" aria-label="Filtry listy artykułów">
                     <span class="article-index-filter-label" data-i18n="blog_filters">Filtry</span>
-                    <input type="hidden" name="category" value="{{ selected_category ? selected_category.id : '' }}" data-listing-filter-input>
-                    <div class="article-index-filter-dropdown" data-listing-filter-dropdown>
+                    <input type="hidden" name="category" value="{{ selected_category ? selected_category.id : '' }}" data-listing-filter-input="category">
+                    <input type="hidden" name="status" value="{{ selected_status ? selected_status.value : '' }}" data-listing-filter-input="status">
+                    <div class="article-index-filter-dropdown" data-listing-filter-dropdown="category">
                         <button
                             type="button"
                             class="article-index-filter-trigger"
@@ -72,7 +73,48 @@
                             {% endfor %}
                         </div>
                     </div>
-                    {% if selected_category %}
+                    <div class="article-index-filter-dropdown" data-listing-filter-dropdown="status">
+                        <button
+                            type="button"
+                            class="article-index-filter-trigger"
+                            data-listing-filter-trigger
+                            data-i18n-aria="{{ selected_status ? selected_status.translationKey : 'admin_article_filter_all_statuses' }}"
+                            aria-haspopup="true"
+                            aria-expanded="false"
+                            aria-controls="article-index-status-filter-panel"
+                            aria-label="{{ selected_status ? selected_status.label : 'Wszystkie statusy' }}"
+                        >
+                            <span class="article-index-filter-trigger-label"{% if not selected_status %} data-i18n="admin_article_filter_all_statuses"{% endif %}>
+                                {% if selected_status %}
+                                    <span data-i18n="{{ selected_status.translationKey }}">{{ selected_status.label }}</span>
+                                {% else %}
+                                    Wszystkie statusy
+                                {% endif %}
+                            </span>
+                            <span class="article-index-filter-trigger-caret" aria-hidden="true">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="m7 10 5 5 5-5"></path>
+                                </svg>
+                            </span>
+                        </button>
+                        <div class="article-index-filter-options" id="article-index-status-filter-panel" data-i18n-aria="admin_article_filter_status_options_aria" aria-label="Statusy artykułów" aria-hidden="true" hidden>
+                            <button type="button" class="article-index-filter-option{{ not selected_status ? ' is-selected' : '' }}" data-listing-filter-option data-value="" data-i18n="admin_article_filter_all_statuses">
+                                Wszystkie statusy
+                            </button>
+                            {% for status in article_statuses %}
+                                <button
+                                    type="button"
+                                    class="article-index-filter-option{{ selected_status and selected_status == status ? ' is-selected' : '' }}"
+                                    data-listing-filter-option
+                                    data-value="{{ status.value }}"
+                                    data-i18n="{{ status.translationKey }}"
+                                >
+                                    {{ status.label }}
+                                </button>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% if selected_category or selected_status %}
                         <a class="button secondary article-index-filter-reset" href="{{ path('admin_article_index') }}" data-i18n="admin_article_filter_clear">Wyczyść</a>
                     {% endif %}
                 </form>
@@ -128,12 +170,7 @@
                                 {% endif %}
                             </td>
                             <td class="article-index-status-cell">
-                                <span data-lang="pl">
-                                    {% if article.status.value == 'draft' %}Szkic{% elseif article.status.value == 'review' %}W recenzji{% elseif article.status.value == 'archived' %}Zarchiwizowany{% else %}Opublikowany{% endif %}
-                                </span>
-                                <span data-lang="en">
-                                    {% if article.status.value == 'draft' %}Draft{% elseif article.status.value == 'review' %}In review{% elseif article.status.value == 'archived' %}Archived{% else %}Published{% endif %}
-                                </span>
+                                <span data-i18n="{{ article.status.translationKey }}">{{ article.status.label }}</span>
                             </td>
                             <td class="article-index-updated-cell">{{ article.updatedAt|user_date }}</td>
                             <td>

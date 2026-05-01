@@ -42,16 +42,20 @@ class ArticleController extends AbstractController
         $articlesPerPage = max(1, $settings->getAdminListingItemsPerPage());
         $requestedPage = max(1, $request->query->getInt('page', 1));
         $selectedCategory = $this->resolveSelectedCategory($request, $articleCategoryRepository);
-        $totalArticles = $articleRepository->countForAdminIndex($selectedCategory);
+        $selectedStatus = $this->resolveSelectedStatus($request);
+        $totalArticles = $articleRepository->countForAdminIndex($selectedCategory, $selectedStatus);
         $totalPages = max(1, (int) ceil($totalArticles / $articlesPerPage));
         $currentPage = min($requestedPage, $totalPages);
 
         return $this->render('admin/article/index.html.twig', [
-            'articles' => $articleRepository->findPaginatedOrderedByCreatedDate($currentPage, $articlesPerPage, $selectedCategory),
+            'articles' => $articleRepository->findPaginatedOrderedByCreatedDate($currentPage, $articlesPerPage, $selectedCategory, $selectedStatus),
             'article_categories' => $articleCategoryRepository->findForAdminIndex(),
+            'article_statuses' => ArticleStatus::cases(),
             'selected_category' => $selectedCategory,
+            'selected_status' => $selectedStatus,
             'pagination_route_params' => array_filter([
                 'category' => $selectedCategory?->getId(),
+                'status' => $selectedStatus?->value,
             ], static fn (mixed $value): bool => null !== $value && '' !== $value),
             'current_page' => $currentPage,
             'total_pages' => $totalPages,
@@ -371,6 +375,16 @@ class ArticleController extends AbstractController
         $category = $articleCategoryRepository->find((int) $categoryId);
 
         return $category instanceof ArticleCategory ? $category : null;
+    }
+
+    private function resolveSelectedStatus(Request $request): ?ArticleStatus
+    {
+        $status = $request->query->get('status');
+        if (!is_string($status) || '' === trim($status)) {
+            return null;
+        }
+
+        return ArticleStatus::tryFrom(trim($status));
     }
 
     private function createArticleForm(
