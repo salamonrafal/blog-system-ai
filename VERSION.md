@@ -495,3 +495,10 @@
 - Rozbudowano wstęp `README.md` o opis celu projektu, głównych możliwości aplikacji, technicznych fundamentów oraz informacji, że większość implementacji powstaje z pomocą AI i jest dalej utrzymywana w normalnym workflow inżynierskim.
 - Uporządkowano strukturę `README.md`, przenosząc najważniejsze sekcje startowe na górę dokumentu, rozdzielając treści dotyczące serwera developerskiego, assetów, crona oraz kolejek importu i eksportu, a także przenosząc `Next steps` na koniec pliku.
 - Dodano do `README.md` spis treści zgodny z aktualną hierarchią sekcji, wraz z ikonami dla głównych nagłówków `##` i odpowiadających im pozycji w spisie treści.
+
+## 2026-05-01
+
+- Zmieniono renderowanie zwykłej treści artykułu w `ArticleMarkupRenderer`, tak aby każda linia tekstu była osobnym tagiem `<p>`, a puste linie oraz linie z samym `\` były renderowane jako osobne `<br>` bez konieczności łączenia całej treści w jeden paragraf.
+- Uspójniono renderowanie bloków nietekstowych w treści artykułu: samodzielne obrazy Markdown są emitowane jako `<img>` poza paragrafem, a tabele pozostają osobnymi blokami HTML bez opakowania w `<p>`.
+- Dopasowano style publicznego widoku artykułu do nowej struktury treści, zdejmując dodatkowy odstęp między kolejnymi liniami `<p>` i pustymi liniami `<br>` oraz zmniejszając bazowy `line-height` treści.
+- Zaktualizowano podpowiedź formatowania w formularzu artykułu oraz rozszerzono testy jednostkowe renderera o zachowanie pustych linii, linii z `\`, samodzielnych obrazów i tekstowych linii renderowanych jako osobne paragrafy.
