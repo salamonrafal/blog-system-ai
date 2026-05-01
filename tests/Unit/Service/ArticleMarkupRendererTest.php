@@ -97,6 +97,16 @@ TEXT);
         $this->assertStringNotContainsString('<p><img ', $html);
     }
 
+    public function testRendersStandaloneImageWithDecodedEntities(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+
+        $html = $renderer->render('![Tom &amp; Jerry](https://example.com/test.png?size=large&amp;v=1)');
+
+        $this->assertSame('<img src="https://example.com/test.png?size=large&amp;v=1" alt="Tom &amp; Jerry" loading="lazy">', $html);
+        $this->assertStringNotContainsString('&amp;amp;', $html);
+    }
+
     public function testDoesNotRenderImageForSchemeRelativeUrl(): void
     {
         $renderer = new ArticleMarkupRenderer();

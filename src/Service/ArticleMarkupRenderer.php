@@ -738,7 +738,10 @@ final class ArticleMarkupRenderer
             return null;
         }
 
-        return self::renderImage($matches[1], $matches[2]);
+        return self::renderImage(
+            htmlspecialchars_decode($matches[1], ENT_QUOTES),
+            htmlspecialchars_decode($matches[2], ENT_QUOTES),
+        );
     }
 
     private static function renderImage(string $alt, string $source): ?string
