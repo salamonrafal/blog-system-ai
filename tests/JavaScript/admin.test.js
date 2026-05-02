@@ -334,6 +334,71 @@ describe('setupAdminListingFilters', ()=>{
     vi.useRealTimers();
   });
 
+  it('ignores in-flight author search results while a newer query is debouncing', async ()=>{
+    vi.useFakeTimers();
+    document.body.innerHTML = `
+      <form>
+        <input type="hidden" name="author" value="" data-listing-filter-input="author">
+        <div data-listing-filter-dropdown="author" data-listing-filter-endpoint="/admin/articles/author-filter" data-listing-filter-no-results-i18n="admin_article_filter_author_no_results" data-listing-filter-no-results="No authors">
+          <button type="button" data-listing-filter-trigger>Authors</button>
+          <div class="article-index-filter-options" hidden>
+            <input type="search" data-listing-filter-search-input>
+            <button type="button" data-listing-filter-option data-value="">All authors</button>
+            <div data-listing-filter-results></div>
+          </div>
+        </div>
+      </form>
+    `;
+    let resolveFirstJson;
+    vi.spyOn(window, 'fetch').mockImplementation((url)=> {
+      if(String(url).includes('q=old')){
+        return Promise.resolve({
+          ok: true,
+          json: ()=> new Promise((resolve)=>{
+            resolveFirstJson = resolve;
+          }),
+        });
+      }
+
+      return Promise.resolve({
+        ok: true,
+        json: async ()=> ({
+          options: [
+            { id: 22, label: 'New Author' },
+          ],
+        }),
+      });
+    });
+
+    setupAdminListingFilters();
+    const searchInput = document.querySelector('[data-listing-filter-search-input]');
+    fireEvent.input(searchInput, {
+      target: { value: 'old' },
+    });
+    await vi.advanceTimersByTimeAsync(180);
+
+    fireEvent.input(searchInput, {
+      target: { value: 'new' },
+    });
+
+    resolveFirstJson({
+      options: [
+        { id: 11, label: 'Old Author' },
+      ],
+    });
+    await Promise.resolve();
+
+    expect(document.querySelector('[data-listing-filter-results] [data-value="11"]')).toBeNull();
+
+    await vi.advanceTimersByTimeAsync(180);
+
+    await waitFor(()=>{
+      expect(document.querySelector('[data-listing-filter-results] [data-value="22"]')?.textContent).toBe('New Author');
+    });
+
+    vi.useRealTimers();
+  });
+
   it('renders remote empty states with an i18n key', async ()=>{
     vi.useFakeTimers();
     document.body.innerHTML = `

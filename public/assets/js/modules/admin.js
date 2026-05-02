@@ -1269,15 +1269,19 @@ export function setupAdminListingFilters(){
     let searchRequestId = 0;
     if(!trigger || !hiddenInput || !panel) return;
 
-    entry.cancelRemoteSearch = ()=>{
-      window.clearTimeout(searchDebounceId);
-      searchDebounceId = 0;
+    const invalidateRemoteSearch = ()=>{
       searchRequestId += 1;
 
       if(searchAbortController instanceof AbortController){
         searchAbortController.abort();
         searchAbortController = null;
       }
+    };
+
+    entry.cancelRemoteSearch = ()=>{
+      window.clearTimeout(searchDebounceId);
+      searchDebounceId = 0;
+      invalidateRemoteSearch();
     };
 
     const getOptions = ()=> qsa('[data-listing-filter-option]', panel);
@@ -1370,6 +1374,7 @@ export function setupAdminListingFilters(){
 
     const requestRemoteOptions = ()=>{
       window.clearTimeout(searchDebounceId);
+      invalidateRemoteSearch();
       searchDebounceId = window.setTimeout(()=>{
         void loadRemoteOptions();
       }, 160);
