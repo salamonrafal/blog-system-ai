@@ -920,8 +920,24 @@ export function setupDashboardCarousels(){
   setupTabbedPanels('[data-dashboard-carousel]', 'data-dashboard-carousel-tab', 'data-dashboard-carousel-panel');
 }
 
+let activeAnalyticsVariablesModalClose = null;
+let analyticsVariablesEscapeHandlerRegistered = false;
+
 export function setupAnalyticsScriptVariables(){
+  if(!analyticsVariablesEscapeHandlerRegistered){
+    document.addEventListener('keydown', (event)=>{
+      if(event.key !== 'Escape' || typeof activeAnalyticsVariablesModalClose !== 'function') return;
+
+      event.preventDefault();
+      activeAnalyticsVariablesModalClose();
+    });
+    analyticsVariablesEscapeHandlerRegistered = true;
+  }
+
   qsa('[data-analytics-variables-help-modal]').forEach((modal)=>{
+    if(modal.dataset.analyticsVariablesHelpInitialized === 'true') return;
+    modal.dataset.analyticsVariablesHelpInitialized = 'true';
+
     const field = modal.closest('.article-editor-field');
     const dialog = qs('.analytics-script-variables-dialog', modal);
     const openButton = field ? qs('[data-action="open-analytics-variables-help"]', field) : null;
@@ -931,12 +947,20 @@ export function setupAnalyticsScriptVariables(){
       modal.setAttribute('hidden', '');
       modal.setAttribute('aria-hidden', 'true');
       unlockDocumentScroll();
+      if(activeAnalyticsVariablesModalClose === closeModal){
+        activeAnalyticsVariablesModalClose = null;
+      }
       openButton?.focus({ preventScroll: true });
     };
 
     const openModal = ()=>{
+      if(typeof activeAnalyticsVariablesModalClose === 'function' && activeAnalyticsVariablesModalClose !== closeModal){
+        activeAnalyticsVariablesModalClose();
+      }
+
       modal.removeAttribute('hidden');
       modal.setAttribute('aria-hidden', 'false');
+      activeAnalyticsVariablesModalClose = closeModal;
       lockDocumentScroll();
       if(dialog instanceof HTMLElement){
         dialog.setAttribute('tabindex', '-1');
@@ -958,17 +982,12 @@ export function setupAnalyticsScriptVariables(){
     dialog?.addEventListener('click', (event)=>{
       event.stopPropagation();
     });
-
-    document.addEventListener('keydown', (event)=>{
-      if(modal.hasAttribute('hidden')) return;
-      if(event.key === 'Escape'){
-        event.preventDefault();
-        closeModal();
-      }
-    });
   });
 
   qsa('[data-action="insert-analytics-variable"]').forEach((button)=>{
+    if(button.dataset.analyticsVariableInsertInitialized === 'true') return;
+    button.dataset.analyticsVariableInsertInitialized = 'true';
+
     button.addEventListener('click', ()=>{
       const variableName = button.getAttribute('data-analytics-variable') || '';
       if(!variableName) return;

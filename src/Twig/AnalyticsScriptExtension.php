@@ -21,6 +21,8 @@ use Twig\TwigFunction;
 
 class AnalyticsScriptExtension extends AbstractExtension
 {
+    private ?int $resolvedVariablesRequestId = null;
+
     private ?array $resolvedVariables = null;
 
     public function __construct(
@@ -100,22 +102,31 @@ class AnalyticsScriptExtension extends AbstractExtension
      */
     private function resolveVariables(): array
     {
-        if (null !== $this->resolvedVariables) {
+        $request = $this->requestStack->getCurrentRequest();
+        $requestId = null !== $request ? spl_object_id($request) : null;
+
+        if (null !== $requestId && $requestId === $this->resolvedVariablesRequestId && null !== $this->resolvedVariables) {
             return $this->resolvedVariables;
         }
 
-        $request = $this->requestStack->getCurrentRequest();
         $routeName = null !== $request ? (string) $request->attributes->get('_route', '') : '';
         $userLanguage = $this->userLanguageResolver->getLanguage();
         $pageType = $this->resolvePageType($routeName);
         $pageName = $this->resolvePageName($routeName, $pageType, $userLanguage);
 
-        return $this->resolvedVariables = [
+        $variables = [
             'page_name' => $pageName,
             'page_type' => $pageType,
             'is_logged_user' => null !== $this->security->getUser(),
             'user_language' => $userLanguage,
         ];
+
+        if (null !== $requestId) {
+            $this->resolvedVariablesRequestId = $requestId;
+            $this->resolvedVariables = $variables;
+        }
+
+        return $variables;
     }
 
     private function resolvePageType(string $routeName): string

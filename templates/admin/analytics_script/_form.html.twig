@@ -8,12 +8,12 @@
     {% endif %}
 
     <div class="article-editor-fields">
-        <div class="article-editor-grid">
+        <div class="article-editor-grid analytics-script-form-grid">
             {% for field in [form.pageName, form.name, form.scope, form.placement, form.position] %}
                 {% set has_errors = field.vars.errors|length > 0 %}
                 <div class="field article-editor-field{{ has_errors ? ' has-error' : '' }}">
                     {% if field.vars.name == 'pageName' %}
-                        <div class="article-keyword-form-label-row">
+                        <div class="article-keyword-form-label-row analytics-script-form-label-row">
                             {{ form_label(field, null, { label_attr: { class: 'article-keyword-form-label' } }) }}
                             <button
                                 type="button"
@@ -27,7 +27,9 @@
                             >?</button>
                         </div>
                     {% else %}
-                        {{ form_label(field) }}
+                        <div class="article-keyword-form-label-row analytics-script-form-label-row">
+                            {{ form_label(field, null, { label_attr: { class: 'article-keyword-form-label' } }) }}
+                        </div>
                     {% endif %}
                     {{ form_widget(field, {
                         attr: field.vars.attr|merge(has_errors ? {'aria-invalid': 'true', 'aria-describedby': field.vars.id ~ '-error'} : {})

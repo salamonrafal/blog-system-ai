@@ -875,6 +875,10 @@
   transition:border-color .16s ease, box-shadow .16s ease;
 }
 
+.analytics-script-form-label-row{
+  min-height:20px;
+}
+
 .analytics-script-editor:focus-within{
   border-color:color-mix(in oklab, var(--accent-2) 56%, var(--border));
   box-shadow:0 0 0 3px color-mix(in oklab, var(--accent-2) 16%, transparent);

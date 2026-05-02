@@ -1,7 +1,7 @@
 import { fireEvent, waitFor } from '@testing-library/dom';
 import { describe, expect, it, vi } from 'vitest';
 
-import { setupAdminListingFilters } from '../../public/assets/js/modules/admin.js';
+import { setupAdminListingFilters, setupAnalyticsScriptVariables } from '../../public/assets/js/modules/admin.js';
 
 describe('setupAdminListingFilters', ()=>{
   it('updates the hidden input that belongs to the clicked dropdown', ()=>{
@@ -480,5 +480,48 @@ describe('setupAdminListingFilters', ()=>{
     });
 
     vi.useRealTimers();
+  });
+});
+
+describe('setupAnalyticsScriptVariables', ()=>{
+  it('registers one Escape handler and closes the active variables modal', ()=>{
+    document.body.innerHTML = `
+      <form>
+        <div class="article-editor-field">
+          <button type="button" data-action="open-analytics-variables-help">Open first</button>
+          <div data-analytics-variables-help-modal hidden aria-hidden="true">
+            <div class="analytics-script-variables-dialog">
+              <button type="button" data-action="close-analytics-variables-help">Close</button>
+            </div>
+          </div>
+        </div>
+        <div class="article-editor-field">
+          <button type="button" data-action="open-analytics-variables-help">Open second</button>
+          <div data-analytics-variables-help-modal hidden aria-hidden="true">
+            <div class="analytics-script-variables-dialog">
+              <button type="button" data-action="close-analytics-variables-help">Close</button>
+            </div>
+          </div>
+        </div>
+      </form>
+    `;
+    const addEventListenerSpy = vi.spyOn(document, 'addEventListener');
+
+    setupAnalyticsScriptVariables();
+    setupAnalyticsScriptVariables();
+
+    const escapeHandlers = addEventListenerSpy.mock.calls.filter(([eventName])=> eventName === 'keydown');
+    expect(escapeHandlers).toHaveLength(1);
+
+    const openButtons = document.querySelectorAll('[data-action="open-analytics-variables-help"]');
+    const modals = document.querySelectorAll('[data-analytics-variables-help-modal]');
+
+    fireEvent.click(openButtons[0]);
+    fireEvent.click(openButtons[1]);
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(modals[0].hasAttribute('hidden')).toBe(true);
+    expect(modals[1].hasAttribute('hidden')).toBe(true);
+    expect(modals[1].getAttribute('aria-hidden')).toBe('true');
   });
 });

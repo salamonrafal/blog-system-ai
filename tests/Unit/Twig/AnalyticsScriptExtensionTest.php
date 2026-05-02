@@ -154,6 +154,50 @@ final class AnalyticsScriptExtensionTest extends TestCase
         );
     }
 
+    public function testResolvesAnalyticsVariablesPerCurrentRequest(): void
+    {
+        $repository = $this->createMock(AnalyticsScriptRepository::class);
+        $requestStack = new RequestStack();
+
+        $firstRequest = new Request(cookies: ['user_language' => 'pl']);
+        $firstRequest->attributes->set('_route', 'blog_show');
+        $firstRequest->attributes->set('slug', 'pierwszy-artykul');
+        $requestStack->push($firstRequest);
+
+        $articleRepository = $this->createMock(ArticleRepository::class);
+        $articleRepository
+            ->expects($this->exactly(2))
+            ->method('findOneBySlug')
+            ->willReturnCallback(static fn (string $slug): ?Article => match ($slug) {
+                'pierwszy-artykul' => (new Article())->setTitle('Pierwszy artykuł'),
+                'drugi-artykul' => (new Article())->setTitle('Second article'),
+                default => null,
+            });
+
+        $extension = $this->createExtension(
+            $repository,
+            $requestStack,
+            articleRepository: $articleRepository,
+            languageResolver: new UserLanguageResolver($requestStack),
+        );
+        $script = (new AnalyticsScript())->setScript('VAR_PAGE_NAME|VAR_USER_LANGUAGE');
+
+        $this->assertSame(
+            '"article_page_pierwszy_artykul"|"pl"',
+            $extension->renderAnalyticsScriptSnippet($script),
+        );
+
+        $secondRequest = new Request(cookies: ['user_language' => 'en']);
+        $secondRequest->attributes->set('_route', 'blog_show');
+        $secondRequest->attributes->set('slug', 'drugi-artykul');
+        $requestStack->push($secondRequest);
+
+        $this->assertSame(
+            '"article_page_second_article"|"en"',
+            $extension->renderAnalyticsScriptSnippet($script),
+        );
+    }
+
     private function createExtension(
         AnalyticsScriptRepository $repository,
         RequestStack $requestStack,

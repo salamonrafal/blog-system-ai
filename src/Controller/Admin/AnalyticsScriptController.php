@@ -8,6 +8,7 @@ use App\Entity\AnalyticsScript;
 use App\Form\AnalyticsScriptType;
 use App\Repository\AnalyticsScriptRepository;
 use App\Service\UserLanguageResolver;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
@@ -49,7 +50,15 @@ class AnalyticsScriptController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($script);
-            $entityManager->flush();
+            try {
+                $entityManager->flush();
+            } catch (UniqueConstraintViolationException) {
+                $this->addPageNameAlreadyUsedError($form, $userLanguageResolver);
+
+                return $this->render('admin/analytics_script/new.html.twig', [
+                    'form' => $form,
+                ]);
+            }
 
             $this->addFlash('success', $userLanguageResolver->translate('Skrypt analityczny został dodany.', 'Analytics script created.'));
 
@@ -77,7 +86,16 @@ class AnalyticsScriptController extends AbstractController
         }
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
+            try {
+                $entityManager->flush();
+            } catch (UniqueConstraintViolationException) {
+                $this->addPageNameAlreadyUsedError($form, $userLanguageResolver);
+
+                return $this->render('admin/analytics_script/edit.html.twig', [
+                    'script' => $script,
+                    'form' => $form,
+                ]);
+            }
 
             $this->addFlash('success', $userLanguageResolver->translate('Skrypt analityczny został zaktualizowany.', 'Analytics script updated.'));
 
@@ -142,6 +160,11 @@ class AnalyticsScriptController extends AbstractController
             return;
         }
 
+        $this->addPageNameAlreadyUsedError($form, $userLanguageResolver);
+    }
+
+    private function addPageNameAlreadyUsedError(FormInterface $form, UserLanguageResolver $userLanguageResolver): void
+    {
         $form->get('pageName')->addError(new FormError($userLanguageResolver->translate(
             'Ten identyfikator skryptu jest już używany.',
             'This script identifier is already used.',
