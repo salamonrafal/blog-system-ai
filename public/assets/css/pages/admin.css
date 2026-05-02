@@ -1184,6 +1184,36 @@
   transform:translateY(0);
 }
 
+.article-index-filter-search-input {
+  width:100%;
+  min-height:38px;
+  padding:9px 12px;
+  border:1px solid color-mix(in oklab, var(--accent-2) 22%, var(--border));
+  border-radius:10px;
+  background:color-mix(in oklab, var(--panel) 86%, transparent);
+  color:var(--text);
+  font:inherit;
+}
+
+.article-index-filter-search-input:focus,
+.article-index-filter-search-input:focus-visible {
+  outline:none;
+  border-color:color-mix(in oklab, var(--accent) 52%, var(--border));
+  box-shadow:0 0 0 3px color-mix(in oklab, var(--accent) 12%, transparent);
+}
+
+.article-index-filter-results {
+  display:grid;
+  gap:6px;
+}
+
+.article-index-filter-empty {
+  margin:2px 4px 4px;
+  color:var(--muted);
+  font-size:.88rem;
+  line-height:1.4;
+}
+
 .article-index-filter-option {
   width:100%;
   display:flex;

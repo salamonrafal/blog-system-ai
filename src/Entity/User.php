@@ -34,9 +34,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $fullName = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $fullNameSearch = null;
+
     #[Assert\Length(max: 120)]
     #[ORM\Column(length: 120, nullable: true)]
     private ?string $nickname = null;
+
+    #[ORM\Column(length: 120, nullable: true)]
+    private ?string $nicknameSearch = null;
 
     #[Assert\Length(max: 500)]
     #[ORM\Column(length: 500, nullable: true)]
@@ -103,8 +109,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setFullName(?string $fullName): self
     {
         $this->fullName = $this->normalizeNullableText($fullName);
+        $this->fullNameSearch = self::normalizeSearchText($this->fullName);
 
         return $this;
+    }
+
+    public function getFullNameSearch(): ?string
+    {
+        return $this->fullNameSearch;
     }
 
     public function getNickname(): ?string
@@ -115,8 +127,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setNickname(?string $nickname): self
     {
         $this->nickname = $this->normalizeNullableText($nickname);
+        $this->nicknameSearch = self::normalizeSearchText($this->nickname);
 
         return $this;
+    }
+
+    public function getNicknameSearch(): ?string
+    {
+        return $this->nicknameSearch;
     }
 
     public function getShortBio(): ?string
@@ -192,5 +210,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $value = trim($value);
 
         return '' === $value ? null : $value;
+    }
+
+    private static function normalizeSearchText(?string $value): ?string
+    {
+        return null !== $value ? mb_strtolower($value, 'UTF-8') : null;
     }
 }

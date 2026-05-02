@@ -518,3 +518,8 @@
 - Rozszerzono frontendowy moduł filtrów listy administracyjnej o obsługę wielu dropdownów w jednym formularzu oraz dodano test JavaScript zabezpieczający poprawne mapowanie dropdownu na właściwe ukryte pole.
 - Uzupełniono testy jednostkowe kontrolera i enumu artykułów o filtrowanie po statusie, łączenie filtrów oraz eksport kluczy tłumaczeń statusów.
 - Dodano na `admin_article_index` sortowanie artykułów po dacie aktualizacji w obu kierunkach, z klikalnym nagłówkiem kolumny, ikoną aktualnego kierunku sortowania bez podkreślenia po najechaniu oraz zachowaniem filtrów i paginacji.
+
+## 2026-05-02
+
+- Dodano na `admin_article_index` filtrowanie artykułów po autorze, z zachowaniem wybranego autora podczas paginacji i sortowania oraz obsługą niepoprawnych wartości parametru `author`.
+- Ograniczono dropdown autorów na `admin_article_index` do 10 pozycji opartych o faktycznych autorów artykułów i dodano w nim pole wyszukiwania, które dociąga dopasowanych autorów z backendu.

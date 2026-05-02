@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Entity\Article;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -36,6 +37,52 @@ class UserRepository extends ServiceEntityRepository
             ->getResult();
 
         return $users;
+    }
+
+    /**
+     * @return list<User>
+     */
+    public function findForArticleAuthorFilter(string $query = '', int $limit = 10): array
+    {
+        if ($limit <= 0) {
+            return [];
+        }
+
+        $queryBuilder = $this->createQueryBuilder('user')
+            ->innerJoin(Article::class, 'article', 'WITH', 'article.createdBy = user')
+            ->addSelect('MAX(article.updatedAt) AS HIDDEN latestArticleUpdate')
+            ->groupBy('user.id')
+            ->orderBy('latestArticleUpdate', 'DESC')
+            ->addOrderBy('user.email', 'ASC')
+            ->setMaxResults($limit);
+
+        $query = self::normalizeAuthorSearchText($query);
+        if ('' !== $query) {
+            $queryBuilder
+                ->andWhere('user.email LIKE :authorQuery OR user.fullNameSearch LIKE :authorQuery OR user.nicknameSearch LIKE :authorQuery')
+                ->setParameter('authorQuery', '%'.$query.'%');
+        }
+
+        /** @var list<User> $users */
+        $users = $queryBuilder
+            ->getQuery()
+            ->getResult();
+
+        return $users;
+    }
+
+    public function findArticleAuthorById(int $id): ?User
+    {
+        /** @var ?User $user */
+        $user = $this->createQueryBuilder('user')
+            ->innerJoin(Article::class, 'article', 'WITH', 'article.createdBy = user')
+            ->andWhere('user.id = :id')
+            ->setParameter('id', $id)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        return $user;
     }
 
     public function countActive(): int
@@ -71,5 +118,10 @@ class UserRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
 
         return $user;
+    }
+
+    private static function normalizeAuthorSearchText(string $value): string
+    {
+        return mb_strtolower(trim($value), 'UTF-8');
     }
 }

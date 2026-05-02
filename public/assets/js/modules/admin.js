@@ -1223,6 +1223,12 @@ export function setupAdminListingFilters(){
 
   const closeDropdown = (entry, { restoreFocus = false } = {})=>{
     if(!entry?.dropdown) return;
+    if(typeof entry.cancelRemoteSearch === 'function'){
+      entry.cancelRemoteSearch();
+    }
+    if(typeof entry.resetRemoteSearch === 'function'){
+      entry.resetRemoteSearch();
+    }
     entry.dropdown.classList.remove('is-open');
     const trigger = qs('[data-listing-filter-trigger]', entry.dropdown);
     const panel = getPanel(entry);
@@ -1251,13 +1257,144 @@ export function setupAdminListingFilters(){
     const { dropdown } = entry;
     const trigger = qs('[data-listing-filter-trigger]', dropdown);
     const filterName = dropdown.getAttribute('data-listing-filter-dropdown');
+    const remoteEndpoint = dropdown.getAttribute('data-listing-filter-endpoint') || '';
+    const noResultsKey = dropdown.getAttribute('data-listing-filter-no-results-i18n') || '';
+    const noResultsMessage = dropdown.getAttribute('data-listing-filter-no-results') || '';
     const form = dropdown.closest('form');
     const hiddenInput = filterName
       ? qs(`[data-listing-filter-input="${filterName}"]`, form)
       : qs('[data-listing-filter-input]', form);
     const panel = qs('.article-index-filter-options', dropdown);
-    const options = qsa('[data-listing-filter-option]', dropdown);
-    if(!trigger || !hiddenInput || !panel || !options.length) return;
+    const searchInput = qs('[data-listing-filter-search-input]', panel);
+    const resultsContainer = qs('[data-listing-filter-results]', panel);
+    const initialRemoteResultsHtml = resultsContainer?.innerHTML ?? '';
+    let searchDebounceId = 0;
+    let searchAbortController = null;
+    let searchRequestId = 0;
+    if(!trigger || !hiddenInput || !panel) return;
+
+    const invalidateRemoteSearch = ()=>{
+      searchRequestId += 1;
+
+      if(searchAbortController instanceof AbortController){
+        searchAbortController.abort();
+        searchAbortController = null;
+      }
+    };
+
+    entry.cancelRemoteSearch = ()=>{
+      window.clearTimeout(searchDebounceId);
+      searchDebounceId = 0;
+      invalidateRemoteSearch();
+    };
+
+    entry.resetRemoteSearch = ()=>{
+      if(searchInput instanceof HTMLInputElement){
+        searchInput.value = '';
+      }
+
+      if(resultsContainer){
+        resultsContainer.innerHTML = initialRemoteResultsHtml;
+      }
+
+      scheduleFloatingPanelSync();
+    };
+
+    const getOptions = ()=> qsa('[data-listing-filter-option]', panel);
+
+    const renderRemoteOptions = (items)=>{
+      if(!resultsContainer) return;
+
+      resultsContainer.innerHTML = '';
+
+      if(!items.length && noResultsMessage){
+        const empty = document.createElement('p');
+        empty.className = 'article-index-filter-empty';
+        empty.setAttribute('role', 'status');
+        if(noResultsKey){
+          empty.setAttribute('data-i18n', noResultsKey);
+        }
+        empty.textContent = noResultsKey
+          ? getTranslation(noResultsKey) || noResultsMessage
+          : noResultsMessage;
+        resultsContainer.appendChild(empty);
+        scheduleFloatingPanelSync();
+        return;
+      }
+
+      items.forEach((item)=>{
+        const id = String(item?.id ?? '');
+        const label = String(item?.label ?? '').trim();
+        if(!id || !label) return;
+
+        const option = document.createElement('button');
+        option.type = 'button';
+        option.className = `article-index-filter-option${hiddenInput.value === id ? ' is-selected' : ''}`;
+        option.setAttribute('data-listing-filter-option', '');
+        option.setAttribute('data-value', id);
+        option.textContent = label;
+        resultsContainer.appendChild(option);
+      });
+
+      scheduleFloatingPanelSync();
+    };
+
+    const loadRemoteOptions = async ()=>{
+      if(!remoteEndpoint || !(searchInput instanceof HTMLInputElement)) return;
+
+      if(searchAbortController instanceof AbortController){
+        searchAbortController.abort();
+      }
+
+      const params = new URLSearchParams({
+        q: searchInput.value.trim(),
+      });
+      if(filterName && hiddenInput.value){
+        params.set(filterName, hiddenInput.value);
+      }
+      const requestId = searchRequestId + 1;
+      const abortController = new AbortController();
+      searchRequestId = requestId;
+      searchAbortController = abortController;
+
+      try{
+        const response = await fetch(`${remoteEndpoint}?${params.toString()}`, {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+          },
+          signal: abortController.signal,
+        });
+
+        if(!response.ok){
+          throw new Error(`Unexpected listing filter response: ${response.status}`);
+        }
+
+        const payload = await response.json();
+        const options = Array.isArray(payload?.options)
+          ? payload.options
+          : Array.isArray(payload?.authors)
+            ? payload.authors
+            : [];
+        if(requestId !== searchRequestId){
+          return;
+        }
+
+        renderRemoteOptions(options);
+      }catch(error){
+        if(error instanceof DOMException && error.name === 'AbortError'){
+          return;
+        }
+      }
+    };
+
+    const requestRemoteOptions = ()=>{
+      window.clearTimeout(searchDebounceId);
+      invalidateRemoteSearch();
+      searchDebounceId = window.setTimeout(()=>{
+        void loadRemoteOptions();
+      }, 160);
+    };
 
     const open = ()=>{
       dropdown.classList.add('is-open');
@@ -1265,6 +1402,12 @@ export function setupAdminListingFilters(){
       panel.hidden = false;
       panel.setAttribute('aria-hidden', 'false');
       floatPanel(entry, panel);
+      if(searchInput instanceof HTMLElement){
+        searchInput.focus({ preventScroll: true });
+        return;
+      }
+
+      const options = getOptions();
       const selectedOption = qs('.article-index-filter-option.is-selected', panel) || options[0];
       selectedOption?.focus({ preventScroll: true });
     };
@@ -1281,11 +1424,23 @@ export function setupAdminListingFilters(){
       }
     });
 
-    options.forEach((option)=>{
-      option.addEventListener('click', ()=>{
-        hiddenInput.value = option.getAttribute('data-value') || '';
-        dropdown.closest('form')?.submit();
-      });
+    panel.addEventListener('click', (event)=>{
+      const target = event.target instanceof Element ? event.target : null;
+      const option = target ? target.closest('[data-listing-filter-option]') : null;
+      if(!(option instanceof HTMLElement) || !panel.contains(option)) return;
+
+      hiddenInput.value = option.getAttribute('data-value') || '';
+      dropdown.closest('form')?.submit();
+    });
+
+    searchInput?.addEventListener('input', requestRemoteOptions);
+    searchInput?.addEventListener('search', requestRemoteOptions);
+    searchInput?.addEventListener('keydown', (event)=>{
+      if(event.key === 'Enter'){
+        event.preventDefault();
+        window.clearTimeout(searchDebounceId);
+        void loadRemoteOptions();
+      }
     });
   });
 
