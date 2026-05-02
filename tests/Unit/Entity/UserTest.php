@@ -33,7 +33,9 @@ final class UserTest extends TestCase
             ->setAvatar('  avatar.webp  ');
 
         $this->assertSame('Jan Kowalski', $user->getFullName());
+        $this->assertSame('jan kowalski', $user->getFullNameSearch());
         $this->assertSame('janko', $user->getNickname());
+        $this->assertSame('janko', $user->getNicknameSearch());
         $this->assertSame('Autor i redaktor', $user->getShortBio());
         $this->assertSame('avatar.webp', $user->getAvatar());
 
@@ -44,9 +46,21 @@ final class UserTest extends TestCase
             ->setAvatar("\t");
 
         $this->assertNull($user->getFullName());
+        $this->assertNull($user->getFullNameSearch());
         $this->assertNull($user->getNickname());
+        $this->assertNull($user->getNicknameSearch());
         $this->assertNull($user->getShortBio());
         $this->assertNull($user->getAvatar());
+    }
+
+    public function testProfileSearchFieldsNormalizePolishUppercaseCharacters(): void
+    {
+        $user = (new User())
+            ->setFullName('Łukasz Kowalski')
+            ->setNickname('Żaneta');
+
+        $this->assertSame('łukasz kowalski', $user->getFullNameSearch());
+        $this->assertSame('żaneta', $user->getNicknameSearch());
     }
 
     public function testDisplayNameFallsBackThroughProfileFieldsToEmail(): void

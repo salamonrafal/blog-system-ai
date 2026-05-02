@@ -53,11 +53,14 @@ class UserRepository extends ServiceEntityRepository
             ->addSelect('MAX(article.updatedAt) AS HIDDEN latestArticleUpdate')
             ->groupBy('user.id')
             ->orderBy('latestArticleUpdate', 'DESC')
-            ->addOrderBy('user.email', 'ASC');
+            ->addOrderBy('user.email', 'ASC')
+            ->setMaxResults($limit);
 
         $query = self::normalizeAuthorSearchText($query);
-        if ('' === $query) {
-            $queryBuilder->setMaxResults($limit);
+        if ('' !== $query) {
+            $queryBuilder
+                ->andWhere('user.email LIKE :authorQuery OR user.fullNameSearch LIKE :authorQuery OR user.nicknameSearch LIKE :authorQuery')
+                ->setParameter('authorQuery', '%'.$query.'%');
         }
 
         /** @var list<User> $users */
@@ -65,18 +68,7 @@ class UserRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        if ('' === $query) {
-            return $users;
-        }
-
-        return \array_slice(
-            \array_values(\array_filter(
-                $users,
-                static fn (User $user): bool => self::matchesArticleAuthorFilterQuery($user, $query),
-            )),
-            0,
-            $limit,
-        );
+        return $users;
     }
 
     public function findArticleAuthorById(int $id): ?User
@@ -126,17 +118,6 @@ class UserRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
 
         return $user;
-    }
-
-    private static function matchesArticleAuthorFilterQuery(User $user, string $query): bool
-    {
-        foreach ([$user->getEmail(), $user->getFullName(), $user->getNickname()] as $value) {
-            if (null !== $value && str_contains(self::normalizeAuthorSearchText($value), $query)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private static function normalizeAuthorSearchText(string $value): string

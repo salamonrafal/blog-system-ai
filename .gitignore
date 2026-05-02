@@ -95,3 +95,4 @@
 
 # AI data
 /_ai_data/
+var/data.db:Zone.Identifier
