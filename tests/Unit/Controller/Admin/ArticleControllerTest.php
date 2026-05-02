@@ -541,7 +541,12 @@ final class ArticleControllerTest extends TestCase
         );
 
         $this->assertSame($selectedAuthor, $controller->capturedParameters['selected_author']);
-        $this->assertSame([$selectedAuthor], $controller->capturedParameters['article_authors']);
+        $this->assertSame([
+            [
+                'id' => 12,
+                'label' => 'Author Name <author@example.com>',
+            ],
+        ], $controller->capturedParameters['article_authors']);
         $this->assertSame(['author' => 12], $controller->capturedParameters['article_filter_route_params']);
         $this->assertSame(['author' => 12], $controller->capturedParameters['pagination_route_params']);
         $this->assertSame([$article], $controller->capturedParameters['articles']);
@@ -552,8 +557,7 @@ final class ArticleControllerTest extends TestCase
         $settings = (new BlogSettings())
             ->setAdminListingItemsPerPage(10);
         $selectedAuthor = (new User())
-            ->setEmail('older-author@example.com')
-            ->setFullName('Older Author');
+            ->setEmail('older-author@example.com');
         $defaultAuthor = (new User())
             ->setEmail('recent-author@example.com')
             ->setFullName('Recent Author');
@@ -610,8 +614,94 @@ final class ArticleControllerTest extends TestCase
             new PaginationBuilder(),
         );
 
-        $this->assertSame([$selectedAuthor, $defaultAuthor], $controller->capturedParameters['article_authors']);
+        $this->assertSame([
+            [
+                'id' => 12,
+                'label' => 'older-author@example.com',
+            ],
+            [
+                'id' => 21,
+                'label' => 'Recent Author <recent-author@example.com>',
+            ],
+        ], $controller->capturedParameters['article_authors']);
         $this->assertSame(['author' => 12], $controller->capturedParameters['pagination_route_params']);
+    }
+
+    public function testIndexKeepsAuthorFilterOptionsCappedWhenPrependingSelectedAuthor(): void
+    {
+        $settings = (new BlogSettings())
+            ->setAdminListingItemsPerPage(10);
+        $selectedAuthor = (new User())
+            ->setEmail('selected-author@example.com')
+            ->setFullName('Selected Author');
+        $this->setEntityId($selectedAuthor, 12);
+        $defaultAuthors = [];
+
+        for ($i = 1; $i <= 10; ++$i) {
+            $defaultAuthor = (new User())
+                ->setEmail(sprintf('recent-author-%d@example.com', $i))
+                ->setFullName(sprintf('Recent Author %d', $i));
+            $this->setEntityId($defaultAuthor, 100 + $i);
+            $defaultAuthors[] = $defaultAuthor;
+        }
+
+        $articleRepository = $this->createMock(ArticleRepository::class);
+        $articleRepository
+            ->expects($this->once())
+            ->method('countForAdminIndex')
+            ->with(null, null, $selectedAuthor)
+            ->willReturn(0);
+        $articleRepository
+            ->expects($this->once())
+            ->method('findPaginatedForAdminIndex')
+            ->with(1, 10, null, null, $selectedAuthor, 'desc')
+            ->willReturn([]);
+
+        $categoryRepository = $this->createMock(ArticleCategoryRepository::class);
+        $categoryRepository
+            ->expects($this->never())
+            ->method('find');
+        $categoryRepository
+            ->expects($this->once())
+            ->method('findForAdminIndex')
+            ->willReturn([]);
+
+        $userRepository = $this->createMock(UserRepository::class);
+        $userRepository
+            ->expects($this->once())
+            ->method('findArticleAuthorById')
+            ->with(12)
+            ->willReturn($selectedAuthor);
+        $userRepository
+            ->expects($this->once())
+            ->method('findForArticleAuthorFilter')
+            ->with('', 10)
+            ->willReturn($defaultAuthors);
+
+        $blogSettingsProvider = $this->createMock(BlogSettingsProvider::class);
+        $blogSettingsProvider
+            ->expects($this->once())
+            ->method('getSettings')
+            ->willReturn($settings);
+
+        $controller = new TestArticleController();
+
+        $controller->index(
+            new Request(['author' => '12']),
+            $articleRepository,
+            $categoryRepository,
+            $userRepository,
+            $blogSettingsProvider,
+            new PaginationBuilder(),
+        );
+
+        $this->assertCount(10, $controller->capturedParameters['article_authors']);
+        $this->assertSame([
+            'id' => 12,
+            'label' => 'Selected Author <selected-author@example.com>',
+        ], $controller->capturedParameters['article_authors'][0]);
+        $this->assertSame(109, $controller->capturedParameters['article_authors'][9]['id']);
+        $this->assertNotContains(110, array_column($controller->capturedParameters['article_authors'], 'id'));
     }
 
     public function testIndexTreatsUnsupportedStatusFilterAsNoFilter(): void
@@ -694,14 +784,17 @@ final class ArticleControllerTest extends TestCase
         $author = (new User())
             ->setEmail('author@example.com')
             ->setFullName('Author Name');
+        $emailOnlyAuthor = (new User())
+            ->setEmail('admin@example.com');
         $this->setEntityId($author, 12);
+        $this->setEntityId($emailOnlyAuthor, 13);
 
         $userRepository = $this->createMock(UserRepository::class);
         $userRepository
             ->expects($this->once())
             ->method('findForArticleAuthorFilter')
             ->with('auth', 10)
-            ->willReturn([$author]);
+            ->willReturn([$author, $emailOnlyAuthor]);
 
         $controller = new TestArticleController();
 
@@ -713,6 +806,10 @@ final class ArticleControllerTest extends TestCase
                 [
                     'id' => 12,
                     'label' => 'Author Name <author@example.com>',
+                ],
+                [
+                    'id' => 13,
+                    'label' => 'admin@example.com',
                 ],
             ],
         ], json_decode((string) $response->getContent(), true));

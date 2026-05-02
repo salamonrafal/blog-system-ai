@@ -1263,6 +1263,7 @@ export function setupAdminListingFilters(){
     const resultsContainer = qs('[data-listing-filter-results]', panel);
     let searchDebounceId = 0;
     let searchAbortController = null;
+    let searchRequestId = 0;
     if(!trigger || !hiddenInput || !panel) return;
 
     const getOptions = ()=> qsa('[data-listing-filter-option]', panel);
@@ -1314,7 +1315,10 @@ export function setupAdminListingFilters(){
       const params = new URLSearchParams({
         q: searchInput.value.trim(),
       });
-      searchAbortController = new AbortController();
+      const requestId = searchRequestId + 1;
+      const abortController = new AbortController();
+      searchRequestId = requestId;
+      searchAbortController = abortController;
 
       try{
         const response = await fetch(`${remoteEndpoint}?${params.toString()}`, {
@@ -1322,7 +1326,7 @@ export function setupAdminListingFilters(){
           headers: {
             Accept: 'application/json',
           },
-          signal: searchAbortController.signal,
+          signal: abortController.signal,
         });
 
         if(!response.ok){
@@ -1335,6 +1339,10 @@ export function setupAdminListingFilters(){
           : Array.isArray(payload?.authors)
             ? payload.authors
             : [];
+        if(requestId !== searchRequestId){
+          return;
+        }
+
         renderRemoteOptions(options);
       }catch(error){
         if(error instanceof DOMException && error.name === 'AbortError'){
@@ -1392,6 +1400,7 @@ export function setupAdminListingFilters(){
     searchInput?.addEventListener('keydown', (event)=>{
       if(event.key === 'Enter'){
         event.preventDefault();
+        window.clearTimeout(searchDebounceId);
         void loadRemoteOptions();
       }
     });

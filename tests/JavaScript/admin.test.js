@@ -118,6 +118,113 @@ describe('setupAdminListingFilters', ()=>{
     vi.useRealTimers();
   });
 
+  it('does not keep a pending debounced author search after Enter', async ()=>{
+    vi.useFakeTimers();
+    document.body.innerHTML = `
+      <form>
+        <input type="hidden" name="author" value="" data-listing-filter-input="author">
+        <div data-listing-filter-dropdown="author" data-listing-filter-endpoint="/admin/articles/author-filter" data-listing-filter-no-results-i18n="admin_article_filter_author_no_results" data-listing-filter-no-results="No authors">
+          <button type="button" data-listing-filter-trigger>Authors</button>
+          <div class="article-index-filter-options" hidden>
+            <input type="search" data-listing-filter-search-input>
+            <button type="button" data-listing-filter-option data-value="">All authors</button>
+            <div data-listing-filter-results></div>
+          </div>
+        </div>
+      </form>
+    `;
+    const fetchMock = vi.spyOn(window, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async ()=> ({
+        options: [
+          { id: 12, label: 'Author Name' },
+        ],
+      }),
+    });
+    const searchInput = document.querySelector('[data-listing-filter-search-input]');
+
+    setupAdminListingFilters();
+    fireEvent.input(searchInput, {
+      target: { value: 'auth' },
+    });
+    fireEvent.keyDown(searchInput, { key: 'Enter' });
+
+    await waitFor(()=>{
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    await vi.advanceTimersByTimeAsync(180);
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    vi.useRealTimers();
+  });
+
+  it('ignores stale author search results when a newer query has started', async ()=>{
+    vi.useFakeTimers();
+    document.body.innerHTML = `
+      <form>
+        <input type="hidden" name="author" value="" data-listing-filter-input="author">
+        <div data-listing-filter-dropdown="author" data-listing-filter-endpoint="/admin/articles/author-filter" data-listing-filter-no-results-i18n="admin_article_filter_author_no_results" data-listing-filter-no-results="No authors">
+          <button type="button" data-listing-filter-trigger>Authors</button>
+          <div class="article-index-filter-options" hidden>
+            <input type="search" data-listing-filter-search-input>
+            <button type="button" data-listing-filter-option data-value="">All authors</button>
+            <div data-listing-filter-results></div>
+          </div>
+        </div>
+      </form>
+    `;
+    let resolveFirstJson;
+    vi.spyOn(window, 'fetch').mockImplementation((url)=> {
+      if(String(url).includes('q=old')){
+        return Promise.resolve({
+          ok: true,
+          json: ()=> new Promise((resolve)=>{
+            resolveFirstJson = resolve;
+          }),
+        });
+      }
+
+      return Promise.resolve({
+        ok: true,
+        json: async ()=> ({
+          options: [
+            { id: 22, label: 'New Author' },
+          ],
+        }),
+      });
+    });
+
+    setupAdminListingFilters();
+    fireEvent.input(document.querySelector('[data-listing-filter-search-input]'), {
+      target: { value: 'old' },
+    });
+    await vi.advanceTimersByTimeAsync(180);
+
+    fireEvent.input(document.querySelector('[data-listing-filter-search-input]'), {
+      target: { value: 'new' },
+    });
+    await vi.advanceTimersByTimeAsync(180);
+
+    await waitFor(()=>{
+      expect(document.querySelector('[data-listing-filter-results] [data-value="22"]')?.textContent).toBe('New Author');
+    });
+
+    resolveFirstJson({
+      options: [
+        { id: 11, label: 'Old Author' },
+      ],
+    });
+
+    await waitFor(()=>{
+      expect(document.querySelector('[data-listing-filter-results] [data-value="22"]')?.textContent).toBe('New Author');
+      expect(document.querySelector('[data-listing-filter-results] [data-value="11"]')).toBeNull();
+    });
+
+    vi.useRealTimers();
+  });
+
   it('renders remote empty states with an i18n key', async ()=>{
     vi.useFakeTimers();
     document.body.innerHTML = `

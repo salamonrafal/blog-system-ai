@@ -31,6 +31,8 @@ class ArticleController extends AbstractController
 {
     use AuthenticatedAdminUserTrait;
 
+    private const ARTICLE_AUTHOR_FILTER_LIMIT = 10;
+
     #[Route('', name: 'admin_article_index', methods: ['GET'])]
     public function index(
         Request $request,
@@ -82,13 +84,10 @@ class ArticleController extends AbstractController
     {
         $query = $request->query->all()['q'] ?? '';
         $query = is_string($query) ? trim($query) : '';
-        $authors = $userRepository->findForArticleAuthorFilter($query, 10);
+        $authors = $userRepository->findForArticleAuthorFilter($query, self::ARTICLE_AUTHOR_FILTER_LIMIT);
 
         return new JsonResponse([
-            'options' => array_map(static fn (User $author): array => [
-                'id' => $author->getId(),
-                'label' => sprintf('%s <%s>', $author->getDisplayName(), $author->getEmail()),
-            ], $authors),
+            'options' => array_map(self::buildArticleAuthorFilterOption(...), $authors),
         ]);
     }
 
@@ -434,25 +433,47 @@ class ArticleController extends AbstractController
     }
 
     /**
-     * @return list<User>
+     * @return list<array{id: int|null, label: string}>
      */
     private function buildArticleAuthorFilterOptions(UserRepository $userRepository, ?User $selectedAuthor): array
     {
-        $authors = $userRepository->findForArticleAuthorFilter('', 10);
+        $authors = $userRepository->findForArticleAuthorFilter('', self::ARTICLE_AUTHOR_FILTER_LIMIT);
 
-        if (null === $selectedAuthor) {
-            return $authors;
-        }
-
-        foreach ($authors as $author) {
-            if ($author->getId() === $selectedAuthor->getId()) {
-                return $authors;
+        if (null !== $selectedAuthor) {
+            foreach ($authors as $author) {
+                if ($author->getId() === $selectedAuthor->getId()) {
+                    return array_map(self::buildArticleAuthorFilterOption(...), $authors);
+                }
             }
+
+            array_unshift($authors, $selectedAuthor);
+            $authors = array_slice($authors, 0, self::ARTICLE_AUTHOR_FILTER_LIMIT);
         }
 
-        array_unshift($authors, $selectedAuthor);
+        return array_map(self::buildArticleAuthorFilterOption(...), $authors);
+    }
 
-        return $authors;
+    /**
+     * @return array{id: int|null, label: string}
+     */
+    private static function buildArticleAuthorFilterOption(User $author): array
+    {
+        return [
+            'id' => $author->getId(),
+            'label' => self::formatArticleAuthorFilterLabel($author),
+        ];
+    }
+
+    private static function formatArticleAuthorFilterLabel(User $author): string
+    {
+        $displayName = $author->getDisplayName();
+        $email = $author->getEmail();
+
+        if ($displayName === $email) {
+            return $email;
+        }
+
+        return sprintf('%s <%s>', $displayName, $email);
     }
 
     private function resolveArticleSortOrder(Request $request): string
