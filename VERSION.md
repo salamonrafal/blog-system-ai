@@ -523,3 +523,4 @@
 
 - Dodano na `admin_article_index` filtrowanie artykułów po autorze, z zachowaniem wybranego autora podczas paginacji i sortowania oraz obsługą niepoprawnych wartości parametru `author`.
 - Ograniczono dropdown autorów na `admin_article_index` do 10 pozycji opartych o faktycznych autorów artykułów i dodano w nim pole wyszukiwania, które dociąga dopasowanych autorów z backendu.
+- Usunięto kolumnę `Opis` z tabeli na `admin_article_category_index`, zachowując spójny układ pozostałych kolumn i pustego stanu listy.
