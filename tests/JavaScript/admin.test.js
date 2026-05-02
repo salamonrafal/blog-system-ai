@@ -269,6 +269,53 @@ describe('setupAdminListingFilters', ()=>{
     vi.useRealTimers();
   });
 
+  it('restores default author options when the dropdown closes after a search', async ()=>{
+    vi.useFakeTimers();
+    document.body.innerHTML = `
+      <form>
+        <input type="hidden" name="author" value="" data-listing-filter-input="author">
+        <div data-listing-filter-dropdown="author" data-listing-filter-endpoint="/admin/articles/author-filter" data-listing-filter-no-results-i18n="admin_article_filter_author_no_results" data-listing-filter-no-results="No authors">
+          <button type="button" data-listing-filter-trigger>Authors</button>
+          <div class="article-index-filter-options" hidden>
+            <input type="search" data-listing-filter-search-input>
+            <button type="button" data-listing-filter-option data-value="">All authors</button>
+            <div data-listing-filter-results>
+              <button type="button" data-listing-filter-option data-value="7">Default Author</button>
+            </div>
+          </div>
+        </div>
+      </form>
+    `;
+    vi.spyOn(window, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async ()=> ({
+        options: [],
+      }),
+    });
+    const trigger = document.querySelector('[data-listing-filter-trigger]');
+    const searchInput = document.querySelector('[data-listing-filter-search-input]');
+
+    setupAdminListingFilters();
+    fireEvent.click(trigger);
+    fireEvent.input(searchInput, {
+      target: { value: 'missing' },
+    });
+    await vi.advanceTimersByTimeAsync(180);
+
+    await waitFor(()=>{
+      expect(document.querySelector('.article-index-filter-empty')?.textContent).toBe('No authors');
+    });
+
+    fireEvent.click(document.body);
+    fireEvent.click(trigger);
+
+    expect(searchInput.value).toBe('');
+    expect(document.querySelector('.article-index-filter-empty')).toBeNull();
+    expect(document.querySelector('[data-listing-filter-results] [data-value="7"]')?.textContent).toBe('Default Author');
+
+    vi.useRealTimers();
+  });
+
   it('ignores stale author search results when a newer query has started', async ()=>{
     vi.useFakeTimers();
     document.body.innerHTML = `

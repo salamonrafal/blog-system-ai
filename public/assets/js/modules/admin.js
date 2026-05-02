@@ -1226,6 +1226,9 @@ export function setupAdminListingFilters(){
     if(typeof entry.cancelRemoteSearch === 'function'){
       entry.cancelRemoteSearch();
     }
+    if(typeof entry.resetRemoteSearch === 'function'){
+      entry.resetRemoteSearch();
+    }
     entry.dropdown.classList.remove('is-open');
     const trigger = qs('[data-listing-filter-trigger]', entry.dropdown);
     const panel = getPanel(entry);
@@ -1264,6 +1267,7 @@ export function setupAdminListingFilters(){
     const panel = qs('.article-index-filter-options', dropdown);
     const searchInput = qs('[data-listing-filter-search-input]', panel);
     const resultsContainer = qs('[data-listing-filter-results]', panel);
+    const initialRemoteResultsHtml = resultsContainer?.innerHTML ?? '';
     let searchDebounceId = 0;
     let searchAbortController = null;
     let searchRequestId = 0;
@@ -1282,6 +1286,18 @@ export function setupAdminListingFilters(){
       window.clearTimeout(searchDebounceId);
       searchDebounceId = 0;
       invalidateRemoteSearch();
+    };
+
+    entry.resetRemoteSearch = ()=>{
+      if(searchInput instanceof HTMLInputElement){
+        searchInput.value = '';
+      }
+
+      if(resultsContainer){
+        resultsContainer.innerHTML = initialRemoteResultsHtml;
+      }
+
+      scheduleFloatingPanelSync();
     };
 
     const getOptions = ()=> qsa('[data-listing-filter-option]', panel);
