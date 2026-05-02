@@ -118,6 +118,46 @@ describe('setupAdminListingFilters', ()=>{
     vi.useRealTimers();
   });
 
+  it('sends the selected author with remote author searches', async ()=>{
+    vi.useFakeTimers();
+    document.body.innerHTML = `
+      <form>
+        <input type="hidden" name="author" value="12" data-listing-filter-input="author">
+        <div data-listing-filter-dropdown="author" data-listing-filter-endpoint="/admin/articles/author-filter" data-listing-filter-no-results-i18n="admin_article_filter_author_no_results" data-listing-filter-no-results="No authors">
+          <button type="button" data-listing-filter-trigger>Authors</button>
+          <div class="article-index-filter-options" hidden>
+            <input type="search" data-listing-filter-search-input>
+            <button type="button" data-listing-filter-option data-value="">All authors</button>
+            <div data-listing-filter-results></div>
+          </div>
+        </div>
+      </form>
+    `;
+    const fetchMock = vi.spyOn(window, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async ()=> ({
+        options: [
+          { id: 12, label: 'Selected Author' },
+        ],
+      }),
+    });
+
+    setupAdminListingFilters();
+    fireEvent.input(document.querySelector('[data-listing-filter-search-input]'), {
+      target: { value: '' },
+    });
+    await vi.advanceTimersByTimeAsync(180);
+
+    await waitFor(()=>{
+      expect(fetchMock).toHaveBeenCalledWith('/admin/articles/author-filter?q=&author=12', expect.objectContaining({
+        method: 'GET',
+      }));
+      expect(document.querySelector('[data-listing-filter-results] [data-value="12"]')?.classList.contains('is-selected')).toBe(true);
+    });
+
+    vi.useRealTimers();
+  });
+
   it('does not keep a pending debounced author search after Enter', async ()=>{
     vi.useFakeTimers();
     document.body.innerHTML = `
@@ -156,6 +196,75 @@ describe('setupAdminListingFilters', ()=>{
     await vi.advanceTimersByTimeAsync(180);
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    vi.useRealTimers();
+  });
+
+  it('cancels pending author search when the dropdown closes', async ()=>{
+    vi.useFakeTimers();
+    document.body.innerHTML = `
+      <form>
+        <input type="hidden" name="author" value="" data-listing-filter-input="author">
+        <div data-listing-filter-dropdown="author" data-listing-filter-endpoint="/admin/articles/author-filter" data-listing-filter-no-results-i18n="admin_article_filter_author_no_results" data-listing-filter-no-results="No authors">
+          <button type="button" data-listing-filter-trigger>Authors</button>
+          <div class="article-index-filter-options" hidden>
+            <input type="search" data-listing-filter-search-input>
+            <button type="button" data-listing-filter-option data-value="">All authors</button>
+            <div data-listing-filter-results></div>
+          </div>
+        </div>
+      </form>
+    `;
+    const fetchMock = vi.spyOn(window, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async ()=> ({ options: [] }),
+    });
+
+    setupAdminListingFilters();
+    fireEvent.input(document.querySelector('[data-listing-filter-search-input]'), {
+      target: { value: 'abandoned' },
+    });
+    fireEvent.click(document.body);
+    await vi.advanceTimersByTimeAsync(180);
+
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    vi.useRealTimers();
+  });
+
+  it('aborts in-flight author search when the dropdown closes', async ()=>{
+    vi.useFakeTimers();
+    document.body.innerHTML = `
+      <form>
+        <input type="hidden" name="author" value="" data-listing-filter-input="author">
+        <div data-listing-filter-dropdown="author" data-listing-filter-endpoint="/admin/articles/author-filter" data-listing-filter-no-results-i18n="admin_article_filter_author_no_results" data-listing-filter-no-results="No authors">
+          <button type="button" data-listing-filter-trigger>Authors</button>
+          <div class="article-index-filter-options" hidden>
+            <input type="search" data-listing-filter-search-input>
+            <button type="button" data-listing-filter-option data-value="">All authors</button>
+            <div data-listing-filter-results></div>
+          </div>
+        </div>
+      </form>
+    `;
+    let fetchSignal;
+    vi.spyOn(window, 'fetch').mockImplementation((url, options)=> {
+      fetchSignal = options.signal;
+
+      return new Promise(()=> {});
+    });
+
+    setupAdminListingFilters();
+    fireEvent.input(document.querySelector('[data-listing-filter-search-input]'), {
+      target: { value: 'active' },
+    });
+    await vi.advanceTimersByTimeAsync(180);
+
+    expect(fetchSignal?.aborted).toBe(false);
+
+    fireEvent.click(document.body);
+
+    expect(fetchSignal?.aborted).toBe(true);
 
     vi.useRealTimers();
   });

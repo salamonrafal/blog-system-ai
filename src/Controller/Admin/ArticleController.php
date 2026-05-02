@@ -67,6 +67,7 @@ class ArticleController extends AbstractController
             'selected_category' => $selectedCategory,
             'selected_status' => $selectedStatus,
             'selected_author' => $selectedAuthor,
+            'selected_author_label' => null !== $selectedAuthor ? self::formatArticleAuthorFilterLabel($selectedAuthor) : null,
             'sort_order' => $sortOrder,
             'article_filter_route_params' => $filterRouteParams,
             'pagination_route_params' => array_filter([
@@ -84,6 +85,13 @@ class ArticleController extends AbstractController
     {
         $query = $request->query->all()['q'] ?? '';
         $query = is_string($query) ? trim($query) : '';
+
+        if ('' === $query) {
+            return new JsonResponse([
+                'options' => $this->buildArticleAuthorFilterOptions($userRepository, $this->resolveSelectedAuthor($request, $userRepository)),
+            ]);
+        }
+
         $authors = $userRepository->findForArticleAuthorFilter($query, self::ARTICLE_AUTHOR_FILTER_LIMIT);
 
         return new JsonResponse([

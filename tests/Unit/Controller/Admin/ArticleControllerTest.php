@@ -541,6 +541,7 @@ final class ArticleControllerTest extends TestCase
         );
 
         $this->assertSame($selectedAuthor, $controller->capturedParameters['selected_author']);
+        $this->assertSame('Author Name <author@example.com>', $controller->capturedParameters['selected_author_label']);
         $this->assertSame([
             [
                 'id' => 12,
@@ -810,6 +811,48 @@ final class ArticleControllerTest extends TestCase
                 [
                     'id' => 13,
                     'label' => 'admin@example.com',
+                ],
+            ],
+        ], json_decode((string) $response->getContent(), true));
+    }
+
+    public function testAuthorFilterKeepsSelectedAuthorForEmptySearch(): void
+    {
+        $selectedAuthor = (new User())
+            ->setEmail('older-author@example.com')
+            ->setFullName('Older Author');
+        $defaultAuthor = (new User())
+            ->setEmail('recent-author@example.com')
+            ->setFullName('Recent Author');
+        $this->setEntityId($selectedAuthor, 12);
+        $this->setEntityId($defaultAuthor, 21);
+
+        $userRepository = $this->createMock(UserRepository::class);
+        $userRepository
+            ->expects($this->once())
+            ->method('findArticleAuthorById')
+            ->with(12)
+            ->willReturn($selectedAuthor);
+        $userRepository
+            ->expects($this->once())
+            ->method('findForArticleAuthorFilter')
+            ->with('', 10)
+            ->willReturn([$defaultAuthor]);
+
+        $controller = new TestArticleController();
+
+        $response = $controller->authorFilter(new Request(['q' => '', 'author' => '12']), $userRepository);
+
+        $this->assertInstanceOf(JsonResponse::class, $response);
+        $this->assertSame([
+            'options' => [
+                [
+                    'id' => 12,
+                    'label' => 'Older Author <older-author@example.com>',
+                ],
+                [
+                    'id' => 21,
+                    'label' => 'Recent Author <recent-author@example.com>',
                 ],
             ],
         ], json_decode((string) $response->getContent(), true));

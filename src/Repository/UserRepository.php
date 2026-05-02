@@ -53,14 +53,11 @@ class UserRepository extends ServiceEntityRepository
             ->addSelect('MAX(article.updatedAt) AS HIDDEN latestArticleUpdate')
             ->groupBy('user.id')
             ->orderBy('latestArticleUpdate', 'DESC')
-            ->addOrderBy('user.email', 'ASC')
-            ->setMaxResults($limit);
+            ->addOrderBy('user.email', 'ASC');
 
-        $query = strtolower(trim($query));
-        if ('' !== $query) {
-            $queryBuilder
-                ->andWhere('LOWER(user.email) LIKE :authorQuery OR LOWER(user.fullName) LIKE :authorQuery OR LOWER(user.nickname) LIKE :authorQuery')
-                ->setParameter('authorQuery', '%'.$query.'%');
+        $query = self::normalizeAuthorSearchText($query);
+        if ('' === $query) {
+            $queryBuilder->setMaxResults($limit);
         }
 
         /** @var list<User> $users */
@@ -68,7 +65,18 @@ class UserRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        return $users;
+        if ('' === $query) {
+            return $users;
+        }
+
+        return \array_slice(
+            \array_values(\array_filter(
+                $users,
+                static fn (User $user): bool => self::matchesArticleAuthorFilterQuery($user, $query),
+            )),
+            0,
+            $limit,
+        );
     }
 
     public function findArticleAuthorById(int $id): ?User
@@ -118,5 +126,21 @@ class UserRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
 
         return $user;
+    }
+
+    private static function matchesArticleAuthorFilterQuery(User $user, string $query): bool
+    {
+        foreach ([$user->getEmail(), $user->getFullName(), $user->getNickname()] as $value) {
+            if (null !== $value && str_contains(self::normalizeAuthorSearchText($value), $query)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static function normalizeAuthorSearchText(string $value): string
+    {
+        return mb_strtolower(trim($value), 'UTF-8');
     }
 }

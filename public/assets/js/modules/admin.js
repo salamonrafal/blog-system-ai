@@ -1223,6 +1223,9 @@ export function setupAdminListingFilters(){
 
   const closeDropdown = (entry, { restoreFocus = false } = {})=>{
     if(!entry?.dropdown) return;
+    if(typeof entry.cancelRemoteSearch === 'function'){
+      entry.cancelRemoteSearch();
+    }
     entry.dropdown.classList.remove('is-open');
     const trigger = qs('[data-listing-filter-trigger]', entry.dropdown);
     const panel = getPanel(entry);
@@ -1265,6 +1268,17 @@ export function setupAdminListingFilters(){
     let searchAbortController = null;
     let searchRequestId = 0;
     if(!trigger || !hiddenInput || !panel) return;
+
+    entry.cancelRemoteSearch = ()=>{
+      window.clearTimeout(searchDebounceId);
+      searchDebounceId = 0;
+      searchRequestId += 1;
+
+      if(searchAbortController instanceof AbortController){
+        searchAbortController.abort();
+        searchAbortController = null;
+      }
+    };
 
     const getOptions = ()=> qsa('[data-listing-filter-option]', panel);
 
@@ -1315,6 +1329,9 @@ export function setupAdminListingFilters(){
       const params = new URLSearchParams({
         q: searchInput.value.trim(),
       });
+      if(filterName && hiddenInput.value){
+        params.set(filterName, hiddenInput.value);
+      }
       const requestId = searchRequestId + 1;
       const abortController = new AbortController();
       searchRequestId = requestId;

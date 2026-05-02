@@ -124,9 +124,9 @@
                             aria-haspopup="true"
                             aria-expanded="false"
                             aria-controls="article-index-author-filter-panel"
-                            aria-label="{{ selected_author ? selected_author.displayName : 'Wszyscy autorzy' }}"
+                            aria-label="{{ selected_author ? selected_author_label : 'Wszyscy autorzy' }}"
                         >
-                            <span class="article-index-filter-trigger-label"{% if not selected_author %} data-i18n="admin_article_filter_all_authors"{% endif %}>{{ selected_author ? selected_author.displayName : 'Wszyscy autorzy' }}</span>
+                            <span class="article-index-filter-trigger-label"{% if not selected_author %} data-i18n="admin_article_filter_all_authors"{% endif %}>{{ selected_author ? selected_author_label : 'Wszyscy autorzy' }}</span>
                             <span class="article-index-filter-trigger-caret" aria-hidden="true">
                                 <svg viewBox="0 0 24 24">
                                     <path d="m7 10 5 5 5-5"></path>
