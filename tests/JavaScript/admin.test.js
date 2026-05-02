@@ -1,4 +1,4 @@
-import { fireEvent } from '@testing-library/dom';
+import { fireEvent, waitFor } from '@testing-library/dom';
 import { describe, expect, it, vi } from 'vitest';
 
 import { setupAdminListingFilters } from '../../public/assets/js/modules/admin.js';
@@ -31,5 +31,51 @@ describe('setupAdminListingFilters', ()=>{
     expect(document.querySelector('[name="category"]').value).toBe('');
     expect(document.querySelector('[name="status"]').value).toBe('draft');
     expect(submit).toHaveBeenCalledTimes(1);
+  });
+
+  it('loads author options from the search endpoint', async ()=>{
+    vi.useFakeTimers();
+    document.body.innerHTML = `
+      <form>
+        <input type="hidden" name="author" value="" data-listing-filter-input="author">
+        <div data-listing-filter-dropdown="author" data-listing-filter-endpoint="/admin/articles/author-filter" data-listing-filter-no-results="No authors">
+          <button type="button" data-listing-filter-trigger>Authors</button>
+          <div class="article-index-filter-options" hidden>
+            <input type="search" data-listing-filter-search-input>
+            <button type="button" data-listing-filter-option data-value="">All authors</button>
+            <div data-listing-filter-results></div>
+          </div>
+        </div>
+      </form>
+    `;
+    const submit = vi.spyOn(HTMLFormElement.prototype, 'submit').mockImplementation(()=> {});
+    const fetchMock = vi.spyOn(window, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async ()=> ({
+        authors: [
+          { id: 12, label: 'Author Name' },
+        ],
+      }),
+    });
+
+    setupAdminListingFilters();
+    fireEvent.input(document.querySelector('[data-listing-filter-search-input]'), {
+      target: { value: 'auth' },
+    });
+    await vi.advanceTimersByTimeAsync(180);
+
+    await waitFor(()=>{
+      expect(fetchMock).toHaveBeenCalledWith('/admin/articles/author-filter?q=auth', expect.objectContaining({
+        method: 'GET',
+      }));
+      expect(document.querySelector('[data-listing-filter-results] [data-value="12"]')?.textContent).toBe('Author Name');
+    });
+
+    fireEvent.click(document.querySelector('[data-listing-filter-results] [data-value="12"]'));
+
+    expect(document.querySelector('[name="author"]').value).toBe('12');
+    expect(submit).toHaveBeenCalledTimes(1);
+
+    vi.useRealTimers();
   });
 });

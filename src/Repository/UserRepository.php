@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Entity\Article;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -32,6 +33,38 @@ class UserRepository extends ServiceEntityRepository
         $users = $this->createQueryBuilder('user')
             ->orderBy('user.createdAt', 'DESC')
             ->addOrderBy('user.email', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        return $users;
+    }
+
+    /**
+     * @return list<User>
+     */
+    public function findForArticleAuthorFilter(string $query = '', int $limit = 10): array
+    {
+        if ($limit <= 0) {
+            return [];
+        }
+
+        $queryBuilder = $this->createQueryBuilder('user')
+            ->innerJoin(Article::class, 'article', 'WITH', 'article.createdBy = user')
+            ->addSelect('MAX(article.updatedAt) AS HIDDEN latestArticleUpdate')
+            ->groupBy('user.id')
+            ->orderBy('latestArticleUpdate', 'DESC')
+            ->addOrderBy('user.email', 'ASC')
+            ->setMaxResults($limit);
+
+        $query = strtolower(trim($query));
+        if ('' !== $query) {
+            $queryBuilder
+                ->andWhere('LOWER(user.email) LIKE :authorQuery OR LOWER(user.fullName) LIKE :authorQuery OR LOWER(user.nickname) LIKE :authorQuery')
+                ->setParameter('authorQuery', '%'.$query.'%');
+        }
+
+        /** @var list<User> $users */
+        $users = $queryBuilder
             ->getQuery()
             ->getResult();
 

@@ -13,12 +13,14 @@ use App\Repository\ArticleCategoryRepository;
 use App\Repository\ArticleExportQueueRepository;
 use App\Repository\ArticleKeywordRepository;
 use App\Repository\ArticleRepository;
+use App\Repository\UserRepository;
 use App\Service\ArticlePublisher;
 use App\Service\BlogSettingsProvider;
 use App\Service\PaginationBuilder;
 use App\Service\UserLanguageResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -34,6 +36,7 @@ class ArticleController extends AbstractController
         Request $request,
         ArticleRepository $articleRepository,
         ArticleCategoryRepository $articleCategoryRepository,
+        UserRepository $userRepository,
         BlogSettingsProvider $blogSettingsProvider,
         PaginationBuilder $paginationBuilder,
     ): Response
@@ -43,21 +46,25 @@ class ArticleController extends AbstractController
         $requestedPage = max(1, $request->query->getInt('page', 1));
         $selectedCategory = $this->resolveSelectedCategory($request, $articleCategoryRepository);
         $selectedStatus = $this->resolveSelectedStatus($request);
+        $selectedAuthor = $this->resolveSelectedAuthor($request, $userRepository);
         $sortOrder = $this->resolveArticleSortOrder($request);
-        $totalArticles = $articleRepository->countForAdminIndex($selectedCategory, $selectedStatus);
+        $totalArticles = $articleRepository->countForAdminIndex($selectedCategory, $selectedStatus, $selectedAuthor);
         $totalPages = max(1, (int) ceil($totalArticles / $articlesPerPage));
         $currentPage = min($requestedPage, $totalPages);
         $filterRouteParams = array_filter([
             'category' => $selectedCategory?->getId(),
             'status' => $selectedStatus?->value,
+            'author' => $selectedAuthor?->getId(),
         ], static fn (mixed $value): bool => null !== $value && '' !== $value);
 
         return $this->render('admin/article/index.html.twig', [
-            'articles' => $articleRepository->findPaginatedForAdminIndex($currentPage, $articlesPerPage, $selectedCategory, $selectedStatus, $sortOrder),
+            'articles' => $articleRepository->findPaginatedForAdminIndex($currentPage, $articlesPerPage, $selectedCategory, $selectedStatus, $selectedAuthor, $sortOrder),
             'article_categories' => $articleCategoryRepository->findForAdminIndex(),
             'article_statuses' => ArticleStatus::cases(),
+            'article_authors' => $this->buildArticleAuthorFilterOptions($userRepository, $selectedAuthor),
             'selected_category' => $selectedCategory,
             'selected_status' => $selectedStatus,
+            'selected_author' => $selectedAuthor,
             'sort_order' => $sortOrder,
             'article_filter_route_params' => $filterRouteParams,
             'pagination_route_params' => array_filter([
@@ -67,6 +74,20 @@ class ArticleController extends AbstractController
             'current_page' => $currentPage,
             'total_pages' => $totalPages,
             'pagination_items' => $paginationBuilder->buildPaginationItems($currentPage, $totalPages),
+        ]);
+    }
+
+    #[Route('/author-filter', name: 'admin_article_author_filter', methods: ['GET'])]
+    public function authorFilter(Request $request, UserRepository $userRepository): JsonResponse
+    {
+        $query = trim((string) $request->query->get('q', ''));
+        $authors = $userRepository->findForArticleAuthorFilter($query, 10);
+
+        return new JsonResponse([
+            'authors' => array_map(static fn (User $author): array => [
+                'id' => $author->getId(),
+                'label' => $author->getDisplayName(),
+            ], $authors),
         ]);
     }
 
@@ -392,6 +413,45 @@ class ArticleController extends AbstractController
         }
 
         return ArticleStatus::tryFrom(trim($status));
+    }
+
+    private function resolveSelectedAuthor(Request $request, UserRepository $userRepository): ?User
+    {
+        $authorId = $request->query->get('author');
+        if (!is_string($authorId) || '' === trim($authorId)) {
+            return null;
+        }
+
+        $authorId = trim($authorId);
+        if (!ctype_digit($authorId) || (int) $authorId <= 0) {
+            return null;
+        }
+
+        $author = $userRepository->find((int) $authorId);
+
+        return $author instanceof User ? $author : null;
+    }
+
+    /**
+     * @return list<User>
+     */
+    private function buildArticleAuthorFilterOptions(UserRepository $userRepository, ?User $selectedAuthor): array
+    {
+        $authors = $userRepository->findForArticleAuthorFilter('', 10);
+
+        if (null === $selectedAuthor) {
+            return $authors;
+        }
+
+        foreach ($authors as $author) {
+            if ($author->getId() === $selectedAuthor->getId()) {
+                return $authors;
+            }
+        }
+
+        array_unshift($authors, $selectedAuthor);
+
+        return $authors;
     }
 
     private function resolveArticleSortOrder(Request $request): string

@@ -39,6 +39,7 @@
                     <span class="article-index-filter-label" data-i18n="blog_filters">Filtry</span>
                     <input type="hidden" name="category" value="{{ selected_category ? selected_category.id : '' }}" data-listing-filter-input="category">
                     <input type="hidden" name="status" value="{{ selected_status ? selected_status.value : '' }}" data-listing-filter-input="status">
+                    <input type="hidden" name="author" value="{{ selected_author ? selected_author.id : '' }}" data-listing-filter-input="author">
                     <div class="article-index-filter-dropdown" data-listing-filter-dropdown="category">
                         <button
                             type="button"
@@ -114,7 +115,52 @@
                             {% endfor %}
                         </div>
                     </div>
-                    {% if selected_category or selected_status %}
+                    <div class="article-index-filter-dropdown" data-listing-filter-dropdown="author" data-listing-filter-endpoint="{{ path('admin_article_author_filter') }}" data-listing-filter-no-results="{{ i18n_fallback('admin_article_filter_author_no_results') }}">
+                        <button
+                            type="button"
+                            class="article-index-filter-trigger"
+                            data-listing-filter-trigger
+                            {% if not selected_author %}data-i18n-aria="admin_article_filter_all_authors"{% endif %}
+                            aria-haspopup="true"
+                            aria-expanded="false"
+                            aria-controls="article-index-author-filter-panel"
+                            aria-label="{{ selected_author ? selected_author.displayName : 'Wszyscy autorzy' }}"
+                        >
+                            <span class="article-index-filter-trigger-label"{% if not selected_author %} data-i18n="admin_article_filter_all_authors"{% endif %}>{{ selected_author ? selected_author.displayName : 'Wszyscy autorzy' }}</span>
+                            <span class="article-index-filter-trigger-caret" aria-hidden="true">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="m7 10 5 5 5-5"></path>
+                                </svg>
+                            </span>
+                        </button>
+                        <div class="article-index-filter-options" id="article-index-author-filter-panel" data-i18n-aria="admin_article_filter_author_options_aria" aria-label="Autorzy artykułów" aria-hidden="true" hidden>
+                            <label class="sr-only" for="article-index-author-filter-search" data-i18n="admin_article_filter_author_search_label">Wyszukaj autora</label>
+                            <input
+                                id="article-index-author-filter-search"
+                                type="search"
+                                class="article-index-filter-search-input"
+                                data-listing-filter-search-input
+                                data-i18n-placeholder="admin_article_filter_author_search_placeholder"
+                                placeholder="{{ i18n_fallback('admin_article_filter_author_search_placeholder') }}"
+                            >
+                            <button type="button" class="article-index-filter-option{{ not selected_author ? ' is-selected' : '' }}" data-listing-filter-option data-value="" data-i18n="admin_article_filter_all_authors">
+                                Wszyscy autorzy
+                            </button>
+                            <div class="article-index-filter-results" data-listing-filter-results>
+                                {% for author in article_authors %}
+                                    <button
+                                        type="button"
+                                        class="article-index-filter-option{{ selected_author and selected_author.id == author.id ? ' is-selected' : '' }}"
+                                        data-listing-filter-option
+                                        data-value="{{ author.id }}"
+                                    >
+                                        {{ author.displayName }}
+                                    </button>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% if selected_category or selected_status or selected_author %}
                         <a class="button secondary article-index-filter-reset" href="{{ path('admin_article_index') }}" data-i18n="admin_article_filter_clear">Wyczyść</a>
                     {% endif %}
                 </form>

@@ -8,6 +8,7 @@ use App\Entity\Article;
 use App\Entity\ArticleCategory;
 use App\Entity\ArticleKeyword;
 use App\Entity\BlogSettings;
+use App\Entity\User;
 use App\Enum\ArticleLanguage;
 use App\Enum\ArticleStatus;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -66,19 +67,20 @@ class ArticleRepository extends ServiceEntityRepository
         int $limit,
         ?ArticleCategory $category = null,
         ?ArticleStatus $status = null,
+        ?User $author = null,
         string $sort = 'desc',
     ): array
     {
-        return $this->createAdminIndexQueryBuilder($category, $status, $sort)
+        return $this->createAdminIndexQueryBuilder($category, $status, $author, $sort)
             ->setFirstResult(max(0, ($page - 1) * $limit))
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
     }
 
-    public function countForAdminIndex(?ArticleCategory $category = null, ?ArticleStatus $status = null): int
+    public function countForAdminIndex(?ArticleCategory $category = null, ?ArticleStatus $status = null, ?User $author = null): int
     {
-        return (int) $this->createAdminIndexFilterQueryBuilder($category, $status)
+        return (int) $this->createAdminIndexFilterQueryBuilder($category, $status, $author)
             ->select('COUNT(article.id)')
             ->getQuery()
             ->getSingleScalarResult();
@@ -220,17 +222,17 @@ class ArticleRepository extends ServiceEntityRepository
         return $queryBuilder;
     }
 
-    private function createAdminIndexQueryBuilder(?ArticleCategory $category, ?ArticleStatus $status, string $sort): QueryBuilder
+    private function createAdminIndexQueryBuilder(?ArticleCategory $category, ?ArticleStatus $status, ?User $author, string $sort): QueryBuilder
     {
         $normalizedSort = 'asc' === strtolower($sort) ? 'ASC' : 'DESC';
 
-        return $this->createAdminIndexFilterQueryBuilder($category, $status)
+        return $this->createAdminIndexFilterQueryBuilder($category, $status, $author)
             ->orderBy('article.updatedAt', $normalizedSort)
             ->addOrderBy('article.createdAt', $normalizedSort)
             ->addOrderBy('article.id', $normalizedSort);
     }
 
-    private function createAdminIndexFilterQueryBuilder(?ArticleCategory $category, ?ArticleStatus $status): QueryBuilder
+    private function createAdminIndexFilterQueryBuilder(?ArticleCategory $category, ?ArticleStatus $status, ?User $author): QueryBuilder
     {
         $queryBuilder = $this->createQueryBuilder('article');
 
@@ -244,6 +246,12 @@ class ArticleRepository extends ServiceEntityRepository
             $queryBuilder
                 ->andWhere('article.status = :adminIndexStatus')
                 ->setParameter('adminIndexStatus', $status);
+        }
+
+        if (null !== $author) {
+            $queryBuilder
+                ->andWhere('article.createdBy = :adminIndexAuthor')
+                ->setParameter('adminIndexAuthor', $author);
         }
 
         return $queryBuilder;
