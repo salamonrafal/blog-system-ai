@@ -1,0 +1,136 @@
+{{ form_start(form, { attr: { class: 'article-editor-form' } }) }}
+    {% if form.vars.errors|length > 0 %}
+        <div class="form-errors article-editor-errors" role="alert">
+            {% for error in form.vars.errors %}
+                {% include 'admin/_validation_error.html.twig' with { error: error } %}
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="article-editor-fields">
+        <div class="article-editor-grid">
+            {% for field in [form.pageName, form.name, form.scope, form.placement, form.position] %}
+                {% set has_errors = field.vars.errors|length > 0 %}
+                <div class="field article-editor-field{{ has_errors ? ' has-error' : '' }}">
+                    {% if field.vars.name == 'pageName' %}
+                        <div class="article-keyword-form-label-row">
+                            {{ form_label(field, null, { label_attr: { class: 'article-keyword-form-label' } }) }}
+                            <button
+                                type="button"
+                                class="article-keyword-help-trigger"
+                                data-i18n-tooltip="analytics_script_form_page_name_hint"
+                                data-i18n-aria="analytics_script_form_page_name_hint_aria"
+                                data-tooltip="{{ i18n_fallback('analytics_script_form_page_name_hint') }}"
+                                data-tooltip-wide="true"
+                                data-tooltip-wrap="true"
+                                aria-label="{{ i18n_fallback('analytics_script_form_page_name_hint_aria') }}"
+                            >?</button>
+                        </div>
+                    {% else %}
+                        {{ form_label(field) }}
+                    {% endif %}
+                    {{ form_widget(field, {
+                        attr: field.vars.attr|merge(has_errors ? {'aria-invalid': 'true', 'aria-describedby': field.vars.id ~ '-error'} : {})
+                    }) }}
+                    {% if has_errors %}
+                        <div id="{{ field.vars.id }}-error" class="article-editor-error-message" role="alert">
+                            {% for error in field.vars.errors %}
+                                {% include 'admin/_validation_error.html.twig' with { error: error } %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        {% set script_has_errors = form.script.vars.errors|length > 0 %}
+        <div class="field article-editor-field{{ script_has_errors ? ' has-error' : '' }}">
+            {{ form_label(form.script) }}
+            <div class="analytics-script-editor">
+                {{ form_widget(form.script, {
+                    attr: form.script.vars.attr|merge({'data-analytics-script-input': ''})|merge(script_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.script.vars.id ~ '-error'} : {})
+                }) }}
+                <div class="analytics-script-editor-toolbar">
+                    <span class="analytics-script-editor-toolbar-label" data-i18n="analytics_script_variables_label">Zmienne</span>
+                    <div class="analytics-script-variable-list" data-i18n-aria="analytics_script_variables_aria" aria-label="Zmienne skryptu">
+                        <button class="button secondary" type="button" data-action="insert-analytics-variable" data-analytics-variable="VAR_PAGE_NAME">VAR_PAGE_NAME</button>
+                        <button class="button secondary" type="button" data-action="insert-analytics-variable" data-analytics-variable="VAR_PAGE_TYPE">VAR_PAGE_TYPE</button>
+                        <button class="button secondary" type="button" data-action="insert-analytics-variable" data-analytics-variable="VAR_IS_LOGGED_USER">VAR_IS_LOGGED_USER</button>
+                        <button class="button secondary" type="button" data-action="insert-analytics-variable" data-analytics-variable="VAR_USER_LANGUAGE">VAR_USER_LANGUAGE</button>
+                        <button
+                            class="article-keyword-help-trigger"
+                            type="button"
+                            data-action="open-analytics-variables-help"
+                            aria-haspopup="dialog"
+                            aria-controls="{{ form.script.vars.id }}-variables-help-modal"
+                            aria-label="{{ i18n_fallback('analytics_script_variables_help_aria') }}"
+                        >?</button>
+                    </div>
+                </div>
+            </div>
+            <div class="article-editor-help-modal" data-analytics-variables-help-modal hidden aria-hidden="true">
+                <div id="{{ form.script.vars.id }}-variables-help-modal" class="article-editor-help-dialog analytics-script-variables-dialog" role="dialog" aria-modal="true" aria-labelledby="{{ form.script.vars.id }}-variables-help-title" aria-describedby="{{ form.script.vars.id }}-variables-help-text">
+                    <button type="button" class="article-editor-help-close" data-action="close-analytics-variables-help" data-i18n-aria="editor_modal_close" aria-label="{{ i18n_fallback('editor_modal_close') }}">
+                        <span class="article-editor-toolbar-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg>
+                        </span>
+                    </button>
+                    <div class="article-editor-help-eyebrow">admin://script-variables</div>
+                    <h2 id="{{ form.script.vars.id }}-variables-help-title" class="article-editor-help-title" data-i18n="analytics_script_variables_help_title">Zmienne skryptu</h2>
+                    <div id="{{ form.script.vars.id }}-variables-help-text" class="article-editor-help-content">
+                        <p class="article-editor-help-intro" data-i18n="analytics_script_variables_help_intro">Zmienne możesz wkleić do kodu JavaScript. Podczas renderowania strony system zamieni je na aktualne wartości.</p>
+                        <dl class="analytics-script-variable-definitions">
+                            <div>
+                                <dt>VAR_PAGE_NAME</dt>
+                                <dd data-i18n="analytics_script_variable_page_name_description">Zunifikowana nazwa aktualnej strony, np. article_page_tytul_artykulu, category_page_php albo keyword_page_symfony.</dd>
+                            </div>
+                            <div>
+                                <dt>VAR_PAGE_TYPE</dt>
+                                <dd data-i18n="analytics_script_variable_page_type_description">Typ aktualnej strony, np. blog_index, article, category albo keyword.</dd>
+                            </div>
+                            <div>
+                                <dt>VAR_IS_LOGGED_USER</dt>
+                                <dd data-i18n="analytics_script_variable_logged_description">Boolean informujący, czy użytkownik jest zalogowany: true dla zalogowanego, false dla niezalogowanego.</dd>
+                            </div>
+                            <div>
+                                <dt>VAR_USER_LANGUAGE</dt>
+                                <dd data-i18n="analytics_script_variable_language_description">Aktualnie wybrany język użytkownika, np. pl albo en.</dd>
+                            </div>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+            <p class="article-editor-help-text analytics-script-field-hint">
+                <span class="analytics-script-field-hint-icon" aria-hidden="true">?</span>
+                <span data-i18n="analytics_script_form_script_hint">Wklej pełny kod dostawcy zawierający tag &lt;script&gt;. Zamykające tagi dokumentu nie są akceptowane.</span>
+            </p>
+            {% if script_has_errors %}
+                <div id="{{ form.script.vars.id }}-error" class="article-editor-error-message" role="alert">
+                    {% for error in form.script.vars.errors %}
+                        {% include 'admin/_validation_error.html.twig' with { error: error } %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="field article-editor-field article-editor-field-switch">
+            <div class="article-editor-switch-row">
+                <div class="article-editor-switch-copy">
+                    {{ form_label(form.enabled, null, { label_attr: { class: 'article-editor-switch-label', 'data-i18n': 'analytics_script_form_enabled' } }) }}
+                    <span class="article-editor-switch-hint" data-i18n="analytics_script_form_enabled_hint">Wyłączony skrypt zostaje zapisany, ale nie jest wstrzykiwany na stronie publicznej.</span>
+                </div>
+                <label class="article-editor-switch" for="{{ form.enabled.vars.id }}">
+                    {{ form_widget(form.enabled, { attr: { class: 'article-editor-switch-input' } }) }}
+                    <span class="article-editor-switch-slider" aria-hidden="true"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    {{ form_rest(form) }}
+
+    <div class="actions article-editor-actions">
+        <button class="button" type="submit" data-i18n="{{ submit_key|default('analytics_script_form_submit_save') }}">{{ submit_label|default('Zapisz skrypt') }}</button>
+        <a class="button secondary" href="{{ path('admin_analytics_script_index') }}" data-i18n="analytics_script_form_back_to_list">Wróć do listy</a>
+    </div>
+{{ form_end(form) }}

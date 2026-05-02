@@ -866,6 +866,172 @@
   line-height:1.6;
 }
 
+.analytics-script-editor{
+  overflow:hidden;
+  border:1px solid color-mix(in oklab, var(--accent-2) 18%, var(--border));
+  border-radius:16px;
+  background:linear-gradient(180deg, color-mix(in oklab, var(--panel-2) 96%, transparent), color-mix(in oklab, var(--panel) 94%, transparent));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+  transition:border-color .16s ease, box-shadow .16s ease;
+}
+
+.analytics-script-editor:focus-within{
+  border-color:color-mix(in oklab, var(--accent-2) 56%, var(--border));
+  box-shadow:0 0 0 3px color-mix(in oklab, var(--accent-2) 16%, transparent);
+}
+
+.analytics-script-editor .article-editor-input{
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+}
+
+.analytics-script-editor .article-editor-input:hover,
+.analytics-script-editor .article-editor-input:focus{
+  border:0;
+  box-shadow:none;
+}
+
+.analytics-script-editor .article-editor-input[aria-invalid="true"]{
+  border:0;
+  background:linear-gradient(180deg, rgba(255, 107, 107, .12), rgba(255, 107, 107, .06));
+  box-shadow:none;
+}
+
+.analytics-script-editor:has(.article-editor-input[aria-invalid="true"]){
+  border-color:color-mix(in oklab, #ff6b6b 72%, var(--border));
+  box-shadow:0 0 0 3px rgba(255, 107, 107, .12);
+}
+
+.analytics-script-editor-toolbar{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 12px;
+  border-top:1px solid color-mix(in oklab, var(--accent-2) 14%, var(--border));
+  background:color-mix(in oklab, var(--panel) 82%, transparent);
+}
+
+.analytics-script-editor-toolbar-label{
+  flex:0 0 auto;
+  color:var(--muted);
+  font-size:12px;
+  font-weight:700;
+  text-transform:uppercase;
+}
+
+.analytics-script-variable-list{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+  min-width:0;
+}
+
+.analytics-script-variable-list .button{
+  min-height:34px;
+  padding:8px 10px;
+  font-size:.76rem;
+}
+
+.analytics-script-variable-list .article-keyword-help-trigger{
+  flex:0 0 auto;
+  cursor:pointer;
+}
+
+.analytics-script-variables-dialog{
+  width:min(720px, 100%);
+}
+
+.analytics-script-variable-definitions{
+  display:grid;
+  gap:12px;
+  margin:0;
+}
+
+.analytics-script-variable-definitions div{
+  display:grid;
+  gap:4px;
+  padding:12px 14px;
+  border:1px solid color-mix(in oklab, var(--accent-2) 16%, var(--border));
+  border-radius:14px;
+  background:color-mix(in oklab, var(--panel) 74%, transparent);
+}
+
+.analytics-script-variable-definitions dt{
+  color:color-mix(in oklab, var(--accent) 78%, var(--text));
+  font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size:13px;
+  font-weight:800;
+}
+
+.analytics-script-variable-definitions dd{
+  margin:0;
+  color:var(--muted);
+  line-height:1.55;
+}
+
+.analytics-script-field-hint{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-top:2px;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.45;
+}
+
+.analytics-script-field-hint-icon{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:18px;
+  height:18px;
+  border:1px solid color-mix(in oklab, var(--accent-2) 20%, var(--border));
+  border-radius:999px;
+  background:color-mix(in oklab, var(--panel-2) 82%, transparent);
+  flex:0 0 auto;
+  color:color-mix(in oklab, var(--accent) 68%, var(--muted));
+  font-size:11px;
+  font-weight:700;
+  line-height:18px;
+}
+
+.analytics-script-table-centered{
+  text-align:center;
+}
+
+.analytics-script-status-light{
+  display:inline-flex;
+  width:12px;
+  height:12px;
+  border-radius:999px;
+  vertical-align:middle;
+  box-shadow:
+    0 0 0 3px color-mix(in oklab, currentColor 16%, transparent),
+    0 0 14px color-mix(in oklab, currentColor 36%, transparent);
+  cursor:help;
+}
+
+.analytics-script-status-light.is-enabled{
+  color:#27d17f;
+  background:#27d17f;
+}
+
+.analytics-script-status-light.is-disabled{
+  color:#ff5a5f;
+  background:#ff5a5f;
+}
+
+.analytics-script-status-light:focus-visible{
+  outline:none;
+  box-shadow:
+    0 0 0 3px color-mix(in oklab, currentColor 22%, transparent),
+    0 0 0 6px var(--focus),
+    0 0 16px color-mix(in oklab, currentColor 42%, transparent);
+}
+
 .article-editor-help-blocks{
   display:grid;
   gap:10px;

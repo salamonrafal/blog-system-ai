@@ -525,3 +525,10 @@
 - Ograniczono dropdown autorów na `admin_article_index` do 10 pozycji opartych o faktycznych autorów artykułów i dodano w nim pole wyszukiwania, które dociąga dopasowanych autorów z backendu.
 - Usunięto kolumnę `Opis` z tabeli na `admin_article_category_index`, zachowując spójny układ pozostałych kolumn i pustego stanu listy.
 - Zmieniono układ paneli na `admin_dashboard` na powtarzalny wzór rzędów `3 + 2`, dzięki czemu kolejne grupy paneli zachowują bardziej zbalansowaną strukturę przy zachowaniu responsywnego przejścia do węższych układów.
+- Dodano moduł zarządzania skryptami analitycznymi w panelu administracyjnym, obejmujący encję `AnalyticsScript`, repozytorium, formularz, kontroler CRUD, migrację bazy danych oraz ekran listy dostępny w skrótach administratora pod harmonijką `Zaawansowane`.
+- Rozszerzono bazowy layout o dynamiczne wstrzykiwanie aktywnych skryptów analitycznych w `<head>` albo przed `</body>` zależnie od konfiguracji oraz zakresu stron publicznych.
+- Dodano obsługę zakresów skryptów analitycznych dla wszystkich stron publicznych, głównej strony bloga, artykułów, kategorii i słów kluczowych, wraz z możliwością włączania, wyłączania, edycji i usuwania konfiguracji.
+- Rozbudowano edytor kodu JavaScript skryptu analitycznego o zintegrowany pasek zmiennych `VAR_PAGE_NAME`, `VAR_PAGE_TYPE`, `VAR_IS_LOGGED_USER` i `VAR_USER_LANGUAGE`, które są zastępowane aktualnym kontekstem strony podczas renderowania.
+- Dodano popup pomocy dla zmiennych skryptu analitycznego, przyciski wstawiania zmiennych do kodu w miejscu kursora oraz dopracowane podpowiedzi pól formularza, tooltipy i zachowanie dostępności.
+- Dopracowano listę skryptów analitycznych, upraszczając kolumny tabeli, centrując kluczowe wartości, zastępując tekstowy status diodą z tooltipem oraz dodając ikonową akcję przełączania statusu aktywny/nieaktywny.
+- Uzupełniono tłumaczenia `PL/EN`, komunikaty walidacyjne, testy jednostkowe encji i rozszerzenia Twig oraz integrację frontendową dla nowego modułu skryptów analitycznych.

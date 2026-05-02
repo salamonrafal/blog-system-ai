@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edycja skryptu analitycznego | {{ app_name }}{% endblock %}
+
+{% block body %}
+    <section class="section">
+        <div class="card">
+            <div class="card-header">
+                <div class="window-dots" aria-hidden="true">
+                    <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                </div>
+                <span class="pill">admin://analytics-scripts/{{ script.id }}</span>
+            </div>
+
+            <div class="dashboard-feed-intro">
+                <h1 data-i18n="admin_analytics_script_edit_title">Edytuj skrypt analityczny</h1>
+                <p class="lede" data-i18n="admin_analytics_script_edit_lede">Zmień zakres, miejsce wstrzyknięcia, kolejność albo status wybranego kodu śledzącego.</p>
+            </div>
+
+            {% include 'admin/analytics_script/_form.html.twig' with { form: form } %}
+        </div>
+    </section>
+{% endblock %}
