@@ -71,6 +71,20 @@ class UserRepository extends ServiceEntityRepository
         return $users;
     }
 
+    public function findArticleAuthorById(int $id): ?User
+    {
+        /** @var ?User $user */
+        $user = $this->createQueryBuilder('user')
+            ->innerJoin(Article::class, 'article', 'WITH', 'article.createdBy = user')
+            ->andWhere('user.id = :id')
+            ->setParameter('id', $id)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        return $user;
+    }
+
     public function countActive(): int
     {
         return $this->count(['isActive' => true]);

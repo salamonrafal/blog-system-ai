@@ -38,7 +38,7 @@ describe('setupAdminListingFilters', ()=>{
     document.body.innerHTML = `
       <form>
         <input type="hidden" name="author" value="" data-listing-filter-input="author">
-        <div data-listing-filter-dropdown="author" data-listing-filter-endpoint="/admin/articles/author-filter" data-listing-filter-no-results="No authors">
+        <div data-listing-filter-dropdown="author" data-listing-filter-endpoint="/admin/articles/author-filter" data-listing-filter-no-results-i18n="admin_article_filter_author_no_results" data-listing-filter-no-results="No authors">
           <button type="button" data-listing-filter-trigger>Authors</button>
           <div class="article-index-filter-options" hidden>
             <input type="search" data-listing-filter-search-input>
@@ -52,7 +52,7 @@ describe('setupAdminListingFilters', ()=>{
     const fetchMock = vi.spyOn(window, 'fetch').mockResolvedValue({
       ok: true,
       json: async ()=> ({
-        authors: [
+        options: [
           { id: 12, label: 'Author Name' },
         ],
       }),
@@ -75,6 +75,81 @@ describe('setupAdminListingFilters', ()=>{
 
     expect(document.querySelector('[name="author"]').value).toBe('12');
     expect(submit).toHaveBeenCalledTimes(1);
+
+    vi.useRealTimers();
+  });
+
+  it('keeps current author options when the search endpoint fails', async ()=>{
+    vi.useFakeTimers();
+    document.body.innerHTML = `
+      <form>
+        <input type="hidden" name="author" value="" data-listing-filter-input="author">
+        <div data-listing-filter-dropdown="author" data-listing-filter-endpoint="/admin/articles/author-filter" data-listing-filter-no-results-i18n="admin_article_filter_author_no_results" data-listing-filter-no-results="No authors">
+          <button type="button" data-listing-filter-trigger>Authors</button>
+          <div class="article-index-filter-options" hidden>
+            <input type="search" data-listing-filter-search-input>
+            <button type="button" data-listing-filter-option data-value="">All authors</button>
+            <div data-listing-filter-results>
+              <button type="button" data-listing-filter-option data-value="7">Existing Author</button>
+            </div>
+          </div>
+        </div>
+      </form>
+    `;
+    vi.spyOn(window, 'fetch').mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async ()=> ({}),
+    });
+
+    setupAdminListingFilters();
+    fireEvent.input(document.querySelector('[data-listing-filter-search-input]'), {
+      target: { value: 'broken' },
+    });
+    await vi.advanceTimersByTimeAsync(180);
+
+    await waitFor(()=>{
+      expect(window.fetch).toHaveBeenCalled();
+    });
+
+    expect(document.querySelector('[data-listing-filter-results] [data-value="7"]')?.textContent).toBe('Existing Author');
+    expect(document.querySelector('.article-index-filter-empty')).toBeNull();
+
+    vi.useRealTimers();
+  });
+
+  it('renders remote empty states with an i18n key', async ()=>{
+    vi.useFakeTimers();
+    document.body.innerHTML = `
+      <form>
+        <input type="hidden" name="author" value="" data-listing-filter-input="author">
+        <div data-listing-filter-dropdown="author" data-listing-filter-endpoint="/admin/articles/author-filter" data-listing-filter-no-results-i18n="admin_article_filter_author_no_results" data-listing-filter-no-results="No authors">
+          <button type="button" data-listing-filter-trigger>Authors</button>
+          <div class="article-index-filter-options" hidden>
+            <input type="search" data-listing-filter-search-input>
+            <button type="button" data-listing-filter-option data-value="">All authors</button>
+            <div data-listing-filter-results></div>
+          </div>
+        </div>
+      </form>
+    `;
+    vi.spyOn(window, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async ()=> ({
+        options: [],
+      }),
+    });
+
+    setupAdminListingFilters();
+    fireEvent.input(document.querySelector('[data-listing-filter-search-input]'), {
+      target: { value: 'missing' },
+    });
+    await vi.advanceTimersByTimeAsync(180);
+
+    await waitFor(()=>{
+      expect(document.querySelector('.article-index-filter-empty')?.getAttribute('data-i18n')).toBe('admin_article_filter_author_no_results');
+      expect(document.querySelector('.article-index-filter-empty')?.textContent).toBe('No authors');
+    });
 
     vi.useRealTimers();
   });

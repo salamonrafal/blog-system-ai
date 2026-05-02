@@ -115,7 +115,7 @@
                             {% endfor %}
                         </div>
                     </div>
-                    <div class="article-index-filter-dropdown" data-listing-filter-dropdown="author" data-listing-filter-endpoint="{{ path('admin_article_author_filter') }}" data-listing-filter-no-results="{{ i18n_fallback('admin_article_filter_author_no_results') }}">
+                    <div class="article-index-filter-dropdown" data-listing-filter-dropdown="author" data-listing-filter-endpoint="{{ path('admin_article_author_filter') }}" data-listing-filter-no-results-i18n="admin_article_filter_author_no_results" data-listing-filter-no-results="{{ i18n_fallback('admin_article_filter_author_no_results') }}">
                         <button
                             type="button"
                             class="article-index-filter-trigger"
@@ -154,7 +154,7 @@
                                         data-listing-filter-option
                                         data-value="{{ author.id }}"
                                     >
-                                        {{ author.displayName }}
+                                    {{ author.displayName }} &lt;{{ author.email }}&gt;
                                     </button>
                                 {% endfor %}
                             </div>

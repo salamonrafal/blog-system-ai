@@ -1252,6 +1252,7 @@ export function setupAdminListingFilters(){
     const trigger = qs('[data-listing-filter-trigger]', dropdown);
     const filterName = dropdown.getAttribute('data-listing-filter-dropdown');
     const remoteEndpoint = dropdown.getAttribute('data-listing-filter-endpoint') || '';
+    const noResultsKey = dropdown.getAttribute('data-listing-filter-no-results-i18n') || '';
     const noResultsMessage = dropdown.getAttribute('data-listing-filter-no-results') || '';
     const form = dropdown.closest('form');
     const hiddenInput = filterName
@@ -1275,7 +1276,12 @@ export function setupAdminListingFilters(){
         const empty = document.createElement('p');
         empty.className = 'article-index-filter-empty';
         empty.setAttribute('role', 'status');
-        empty.textContent = noResultsMessage;
+        if(noResultsKey){
+          empty.setAttribute('data-i18n', noResultsKey);
+        }
+        empty.textContent = noResultsKey
+          ? getTranslation(noResultsKey) || noResultsMessage
+          : noResultsMessage;
         resultsContainer.appendChild(empty);
         scheduleFloatingPanelSync();
         return;
@@ -1324,13 +1330,16 @@ export function setupAdminListingFilters(){
         }
 
         const payload = await response.json();
-        renderRemoteOptions(Array.isArray(payload?.authors) ? payload.authors : []);
+        const options = Array.isArray(payload?.options)
+          ? payload.options
+          : Array.isArray(payload?.authors)
+            ? payload.authors
+            : [];
+        renderRemoteOptions(options);
       }catch(error){
         if(error instanceof DOMException && error.name === 'AbortError'){
           return;
         }
-
-        renderRemoteOptions([]);
       }
     };
 

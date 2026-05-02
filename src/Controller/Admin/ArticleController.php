@@ -80,13 +80,14 @@ class ArticleController extends AbstractController
     #[Route('/author-filter', name: 'admin_article_author_filter', methods: ['GET'])]
     public function authorFilter(Request $request, UserRepository $userRepository): JsonResponse
     {
-        $query = trim((string) $request->query->get('q', ''));
+        $query = $request->query->all()['q'] ?? '';
+        $query = is_string($query) ? trim($query) : '';
         $authors = $userRepository->findForArticleAuthorFilter($query, 10);
 
         return new JsonResponse([
-            'authors' => array_map(static fn (User $author): array => [
+            'options' => array_map(static fn (User $author): array => [
                 'id' => $author->getId(),
-                'label' => $author->getDisplayName(),
+                'label' => sprintf('%s <%s>', $author->getDisplayName(), $author->getEmail()),
             ], $authors),
         ]);
     }
@@ -427,7 +428,7 @@ class ArticleController extends AbstractController
             return null;
         }
 
-        $author = $userRepository->find((int) $authorId);
+        $author = $userRepository->findArticleAuthorById((int) $authorId);
 
         return $author instanceof User ? $author : null;
     }
