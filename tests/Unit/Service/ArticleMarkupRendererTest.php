@@ -97,7 +97,7 @@ TEXT);
         $this->assertStringNotContainsString('<p><img ', $html);
     }
 
-    public function testPreservesBlankLineBeforeStandaloneImageBlock(): void
+    public function testDoesNotRenderExtraBlankLineBeforeStandaloneImageBlock(): void
     {
         $renderer = new ArticleMarkupRenderer();
 
@@ -107,7 +107,8 @@ Przed
 ![Obrazek](/uploads/media/2026/04/test-image.webp)
 TEXT);
 
-        $this->assertStringContainsString("<p>Przed</p>\n<br>\n<img src=\"/uploads/media/2026/04/test-image.webp\" alt=\"Obrazek\" loading=\"lazy\">", $html);
+        $this->assertStringContainsString("<p>Przed</p>\n<img src=\"/uploads/media/2026/04/test-image.webp\" alt=\"Obrazek\" loading=\"lazy\">", $html);
+        $this->assertStringNotContainsString("<p>Przed</p>\n<br>\n<img", $html);
     }
 
     public function testRendersStandaloneImageWithDecodedEntities(): void
@@ -291,6 +292,20 @@ Tresc
 TEXT);
 
         $this->assertStringContainsString("<p>Tresc</p>\n<br>\n<br>\n<p>Tresc</p>", $html);
+    }
+
+    public function testDoesNotRenderBlankParagraphLineBeforeHeadingBlock(): void
+    {
+        $renderer = new ArticleMarkupRenderer();
+
+        $html = $renderer->render(<<<'TEXT'
+Tresc
+
+## Naglowek
+TEXT);
+
+        $this->assertStringContainsString("<p>Tresc</p>\n<h2 id=\"naglowek\">Naglowek</h2>", $html);
+        $this->assertStringNotContainsString("<p>Tresc</p>\n<br>\n<h2", $html);
     }
 
     public function testPreservesBackslashOnlyLinesBetweenText(): void
