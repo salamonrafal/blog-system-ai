@@ -172,7 +172,7 @@ class AnalyticsScript
     {
         $script = strtolower($this->script);
 
-        if ('' !== $script && !str_contains($script, '<script')) {
+        if ('' !== $script && 1 !== preg_match('/<script\b/i', $this->script)) {
             $context
                 ->buildViolation('validation_analytics_script_snippet_script_tag_required')
                 ->atPath('script')

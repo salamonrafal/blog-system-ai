@@ -41,7 +41,7 @@ class AnalyticsScriptExtension extends AbstractExtension
     {
         return [
             new TwigFunction('analytics_scripts', $this->getAnalyticsScripts(...)),
-            new TwigFunction('analytics_script_snippet', $this->renderAnalyticsScriptSnippet(...)),
+            new TwigFunction('analytics_script_snippet', $this->renderAnalyticsScriptSnippet(...), ['is_safe' => ['html']]),
         ];
     }
 

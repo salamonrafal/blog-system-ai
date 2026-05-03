@@ -49,6 +49,23 @@ final class AnalyticsScriptTest extends TestCase
         $this->assertContains('validation_analytics_script_snippet_script_tag_required', $messages);
     }
 
+    public function testSnippetDoesNotTreatScriptPrefixAsScriptTag(): void
+    {
+        $validator = Validation::createValidatorBuilder()
+            ->enableAttributeMapping()
+            ->getValidator();
+
+        $script = (new AnalyticsScript())
+            ->setPageName('invalid_script_prefix')
+            ->setName('Invalid script prefix')
+            ->setScript('<scripture>console.log("not a script tag");</scripture>');
+
+        $violations = $validator->validate($script);
+        $messages = array_map(static fn ($violation): string => $violation->getMessage(), iterator_to_array($violations));
+
+        $this->assertContains('validation_analytics_script_snippet_script_tag_required', $messages);
+    }
+
     public function testSnippetCannotCloseDocumentTags(): void
     {
         $validator = Validation::createValidatorBuilder()

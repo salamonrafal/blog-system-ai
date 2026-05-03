@@ -63,7 +63,7 @@
 
     <title>{% apply trim %}{% block title %}{{ app_name }}{% endblock %}{% endapply %}</title>
     {% for analytics_script in analytics_scripts('head') %}
-        {{ analytics_script_snippet(analytics_script)|raw }}
+        {{ analytics_script_snippet(analytics_script) }}
     {% endfor %}
 </head>
 
@@ -770,7 +770,7 @@ Fullstack Developer</span>
     <script type="module" src="/assets/js/app.js"></script>
 {% endif %}
 {% for analytics_script in analytics_scripts('body_end') %}
-    {{ analytics_script_snippet(analytics_script)|raw }}
+    {{ analytics_script_snippet(analytics_script) }}
 {% endfor %}
 </body>
 </html>
