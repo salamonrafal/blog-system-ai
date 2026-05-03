@@ -954,6 +954,8 @@ export function setupAnalyticsScriptVariables(){
     };
 
     const openModal = ()=>{
+      if(!modal.hasAttribute('hidden')) return;
+
       if(typeof activeAnalyticsVariablesModalClose === 'function' && activeAnalyticsVariablesModalClose !== closeModal){
         activeAnalyticsVariablesModalClose();
       }

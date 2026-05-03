@@ -524,4 +524,34 @@ describe('setupAnalyticsScriptVariables', ()=>{
     expect(modals[1].hasAttribute('hidden')).toBe(true);
     expect(modals[1].getAttribute('aria-hidden')).toBe('true');
   });
+
+  it('does not stack document scroll locks when opening an already open variables modal', ()=>{
+    document.body.innerHTML = `
+      <form>
+        <div class="article-editor-field">
+          <button type="button" data-action="open-analytics-variables-help">Open</button>
+          <div data-analytics-variables-help-modal hidden aria-hidden="true">
+            <div class="analytics-script-variables-dialog">
+              <button type="button" data-action="close-analytics-variables-help">Close</button>
+            </div>
+          </div>
+        </div>
+      </form>
+    `;
+
+    setupAnalyticsScriptVariables();
+
+    const openButton = document.querySelector('[data-action="open-analytics-variables-help"]');
+    const modal = document.querySelector('[data-analytics-variables-help-modal]');
+
+    fireEvent.click(openButton);
+    fireEvent.click(openButton);
+
+    expect(document.documentElement.dataset.scrollLockCount).toBe('1');
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(modal.hasAttribute('hidden')).toBe(true);
+    expect(document.documentElement.dataset.scrollLockCount).toBeUndefined();
+  });
 });

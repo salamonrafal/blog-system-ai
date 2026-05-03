@@ -34,22 +34,19 @@ class AnalyticsScriptRepository extends ServiceEntityRepository
     }
 
     /**
+     * @param list<AnalyticsScriptScope> $scopes
+     *
      * @return list<AnalyticsScript>
      */
     public function findEnabledForPlacementAndScopes(AnalyticsScriptPlacement $placement, array $scopes): array
     {
-        $scopeValues = array_map(
-            static fn (AnalyticsScriptScope $scope): string => $scope->value,
-            $scopes,
-        );
-
         return $this->createQueryBuilder('script')
             ->andWhere('script.enabled = :enabled')
             ->andWhere('script.placement = :placement')
             ->andWhere('script.scope IN (:scopes)')
             ->setParameter('enabled', true)
-            ->setParameter('placement', $placement->value)
-            ->setParameter('scopes', $scopeValues)
+            ->setParameter('placement', $placement)
+            ->setParameter('scopes', $scopes)
             ->orderBy('script.position', 'ASC')
             ->addOrderBy('script.name', 'ASC')
             ->addOrderBy('script.id', 'ASC')
