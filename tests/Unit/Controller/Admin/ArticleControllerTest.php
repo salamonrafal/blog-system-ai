@@ -858,6 +858,48 @@ final class ArticleControllerTest extends TestCase
         ], json_decode((string) $response->getContent(), true));
     }
 
+    public function testAuthorFilterKeepsSelectedAuthorForRemoteSearch(): void
+    {
+        $selectedAuthor = (new User())
+            ->setEmail('selected-author@example.com')
+            ->setFullName('Selected Author');
+        $matchingAuthor = (new User())
+            ->setEmail('matching-author@example.com')
+            ->setFullName('Matching Author');
+        $this->setEntityId($selectedAuthor, 12);
+        $this->setEntityId($matchingAuthor, 21);
+
+        $userRepository = $this->createMock(UserRepository::class);
+        $userRepository
+            ->expects($this->once())
+            ->method('findForArticleAuthorFilter')
+            ->with('match', 10)
+            ->willReturn([$matchingAuthor]);
+        $userRepository
+            ->expects($this->once())
+            ->method('findArticleAuthorById')
+            ->with(12)
+            ->willReturn($selectedAuthor);
+
+        $controller = new TestArticleController();
+
+        $response = $controller->authorFilter(new Request(['q' => ' match ', 'author' => '12']), $userRepository);
+
+        $this->assertInstanceOf(JsonResponse::class, $response);
+        $this->assertSame([
+            'options' => [
+                [
+                    'id' => 12,
+                    'label' => 'Selected Author <selected-author@example.com>',
+                ],
+                [
+                    'id' => 21,
+                    'label' => 'Matching Author <matching-author@example.com>',
+                ],
+            ],
+        ], json_decode((string) $response->getContent(), true));
+    }
+
     public function testAuthorFilterTreatsMalformedQueryAsEmptySearch(): void
     {
         $userRepository = $this->createMock(UserRepository::class);

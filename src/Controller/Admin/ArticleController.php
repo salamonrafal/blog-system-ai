@@ -92,7 +92,10 @@ class ArticleController extends AbstractController
             ]);
         }
 
-        $authors = $userRepository->findForArticleAuthorFilter($query, self::ARTICLE_AUTHOR_FILTER_LIMIT);
+        $authors = $this->includeSelectedArticleAuthor(
+            $userRepository->findForArticleAuthorFilter($query, self::ARTICLE_AUTHOR_FILTER_LIMIT),
+            $this->resolveSelectedAuthor($request, $userRepository),
+        );
 
         return new JsonResponse([
             'options' => array_map(self::buildArticleAuthorFilterOption(...), $authors),
@@ -445,12 +448,23 @@ class ArticleController extends AbstractController
      */
     private function buildArticleAuthorFilterOptions(UserRepository $userRepository, ?User $selectedAuthor): array
     {
-        $authors = $userRepository->findForArticleAuthorFilter('', self::ARTICLE_AUTHOR_FILTER_LIMIT);
+        return array_map(self::buildArticleAuthorFilterOption(...), $this->includeSelectedArticleAuthor(
+            $userRepository->findForArticleAuthorFilter('', self::ARTICLE_AUTHOR_FILTER_LIMIT),
+            $selectedAuthor,
+        ));
+    }
 
+    /**
+     * @param list<User> $authors
+     *
+     * @return list<User>
+     */
+    private function includeSelectedArticleAuthor(array $authors, ?User $selectedAuthor): array
+    {
         if (null !== $selectedAuthor) {
             foreach ($authors as $author) {
                 if ($author->getId() === $selectedAuthor->getId()) {
-                    return array_map(self::buildArticleAuthorFilterOption(...), $authors);
+                    return $authors;
                 }
             }
 
@@ -458,7 +472,7 @@ class ArticleController extends AbstractController
             $authors = array_slice($authors, 0, self::ARTICLE_AUTHOR_FILTER_LIMIT);
         }
 
-        return array_map(self::buildArticleAuthorFilterOption(...), $authors);
+        return $authors;
     }
 
     /**
