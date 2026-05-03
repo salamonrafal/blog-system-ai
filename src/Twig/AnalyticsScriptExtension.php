@@ -71,6 +71,10 @@ class AnalyticsScriptExtension extends AbstractExtension
             return [];
         }
 
+        if (null === AnalyticsScriptScope::fromRouteName($routeName)) {
+            return [];
+        }
+
         $resolvedPlacement = AnalyticsScriptPlacement::tryFrom($placement);
         if (null === $resolvedPlacement) {
             return [];
