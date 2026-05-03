@@ -380,7 +380,7 @@ final class ArticleMarkupRenderer
     {
         $blocks = [];
 
-        foreach ($lines as $line) {
+        foreach ($lines as $index => $line) {
             $trimmed = trim($line);
 
             if ('' === $trimmed || '\\' === $trimmed) {
@@ -389,14 +389,23 @@ final class ArticleMarkupRenderer
                 continue;
             }
 
-            $standaloneImage = self::renderStandaloneImage($trimmed);
+            $content = $trimmed;
+            if (
+                str_ends_with($trimmed, '\\')
+                && '' !== trim($lines[$index + 1] ?? '')
+                && preg_match('/\b[A-Za-z]:\\\\$/', $trimmed) !== 1
+            ) {
+                $content = rtrim(substr($trimmed, 0, -1));
+            }
+
+            $standaloneImage = self::renderStandaloneImage($content);
             if (null !== $standaloneImage) {
                 $blocks[] = $standaloneImage;
 
                 continue;
             }
 
-            $blocks[] = '<p>'.self::renderInline($trimmed).'</p>';
+            $blocks[] = '<p>'.self::renderInline($content).'</p>';
         }
 
         return implode("\n", $blocks);
