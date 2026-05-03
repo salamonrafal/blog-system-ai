@@ -442,6 +442,7 @@ final class ArticleMarkupRenderer
             || ':::pre' === strtolower($trimmed)
             || preg_match('/^:::(left|center|right|justify)\s*$/i', $trimmed) === 1
             || self::isTableStart($lines, $index)
+            || null !== self::renderStandaloneImage($trimmed)
             || preg_match('/^\s*([-*_])(?:\s*\1){2,}\s*$/', $line) === 1
             || null !== self::parseHeading($line)
             || preg_match('/^\s*>\s?(.*)$/', $line) === 1
