@@ -33,9 +33,8 @@ final class AnalyticsScriptExtensionTest extends TestCase
         $repository = $this->createMock(AnalyticsScriptRepository::class);
         $repository
             ->expects($this->once())
-            ->method('findEnabledForPlacementAndScopes')
+            ->method('findEnabledForScopes')
             ->with(
-                AnalyticsScriptPlacement::HEAD,
                 [AnalyticsScriptScope::ALL_PUBLIC, AnalyticsScriptScope::ARTICLE],
             )
             ->willReturn([$expectedScript]);
@@ -55,7 +54,7 @@ final class AnalyticsScriptExtensionTest extends TestCase
         $repository = $this->createMock(AnalyticsScriptRepository::class);
         $repository
             ->expects($this->never())
-            ->method('findEnabledForPlacementAndScopes');
+            ->method('findEnabledForScopes');
 
         $requestStack = new RequestStack();
         $request = new Request();
@@ -77,9 +76,8 @@ final class AnalyticsScriptExtensionTest extends TestCase
         $repository = $this->createMock(AnalyticsScriptRepository::class);
         $repository
             ->expects($this->once())
-            ->method('findEnabledForPlacementAndScopes')
+            ->method('findEnabledForScopes')
             ->with(
-                AnalyticsScriptPlacement::HEAD,
                 [AnalyticsScriptScope::ALL_PUBLIC],
             )
             ->willReturn([$expectedScript]);
@@ -92,6 +90,37 @@ final class AnalyticsScriptExtensionTest extends TestCase
         $extension = $this->createExtension($repository, $requestStack);
 
         $this->assertSame([$expectedScript], $extension->getAnalyticsScripts('head'));
+    }
+
+    public function testCachesEnabledScriptsForCurrentRequestAndSplitsByPlacement(): void
+    {
+        $headScript = (new AnalyticsScript())
+            ->setPageName('head_script')
+            ->setName('Head script')
+            ->setPlacement(AnalyticsScriptPlacement::HEAD)
+            ->setScript('<script></script>');
+        $bodyScript = (new AnalyticsScript())
+            ->setPageName('body_script')
+            ->setName('Body script')
+            ->setPlacement(AnalyticsScriptPlacement::BODY_END)
+            ->setScript('<script></script>');
+
+        $repository = $this->createMock(AnalyticsScriptRepository::class);
+        $repository
+            ->expects($this->once())
+            ->method('findEnabledForScopes')
+            ->with([AnalyticsScriptScope::ALL_PUBLIC, AnalyticsScriptScope::ARTICLE])
+            ->willReturn([$headScript, $bodyScript]);
+
+        $requestStack = new RequestStack();
+        $request = new Request();
+        $request->attributes->set('_route', 'blog_show');
+        $requestStack->push($request);
+
+        $extension = $this->createExtension($repository, $requestStack);
+
+        $this->assertSame([$headScript], $extension->getAnalyticsScripts('head'));
+        $this->assertSame([$bodyScript], $extension->getAnalyticsScripts('body_end'));
     }
 
     public function testReplacesAnalyticsVariablesWithCurrentPageContext(): void
@@ -150,6 +179,35 @@ final class AnalyticsScriptExtensionTest extends TestCase
 
         $this->assertSame(
             '<script>window.analytics = {page: "article_page_tytul_strony_zolc", type: "article", logged: true, lang: "pl"};</script>',
+            $extension->renderAnalyticsScriptSnippet($script),
+        );
+    }
+
+    public function testUsesControllerProvidedAnalyticsPageContextBeforeRepositoryLookup(): void
+    {
+        $repository = $this->createMock(AnalyticsScriptRepository::class);
+        $requestStack = new RequestStack();
+        $request = new Request();
+        $request->attributes->set('_route', 'blog_show');
+        $request->attributes->set(AnalyticsScriptExtension::REQUEST_ATTRIBUTE_PAGE_TYPE, 'article');
+        $request->attributes->set(AnalyticsScriptExtension::REQUEST_ATTRIBUTE_PAGE_NAME_BASE, 'Loaded Article Title');
+        $requestStack->push($request);
+
+        $articleRepository = $this->createMock(ArticleRepository::class);
+        $articleRepository
+            ->expects($this->never())
+            ->method('findOneBySlug');
+
+        $extension = $this->createExtension(
+            $repository,
+            $requestStack,
+            articleRepository: $articleRepository,
+            languageResolver: new UserLanguageResolver($requestStack),
+        );
+        $script = (new AnalyticsScript())->setScript('VAR_PAGE_NAME|VAR_PAGE_TYPE');
+
+        $this->assertSame(
+            '"article_page_loaded_article_title"|"article"',
             $extension->renderAnalyticsScriptSnippet($script),
         );
     }

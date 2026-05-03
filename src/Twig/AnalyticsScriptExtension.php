@@ -15,12 +15,23 @@ use App\Repository\AnalyticsScriptRepository;
 use App\Service\ArticleSlugger;
 use App\Service\UserLanguageResolver;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 
 class AnalyticsScriptExtension extends AbstractExtension
 {
+    public const REQUEST_ATTRIBUTE_PAGE_TYPE = '_analytics_page_type';
+    public const REQUEST_ATTRIBUTE_PAGE_NAME_BASE = '_analytics_page_name_base';
+
+    private ?int $analyticsScriptsRequestId = null;
+
+    /**
+     * @var array<string, list<AnalyticsScript>>
+     */
+    private array $analyticsScriptsByPlacement = [];
+
     private ?int $resolvedVariablesRequestId = null;
 
     private ?array $resolvedVariables = null;
@@ -65,16 +76,13 @@ class AnalyticsScriptExtension extends AbstractExtension
             return [];
         }
 
-        $scopes = [AnalyticsScriptScope::ALL_PUBLIC];
-        $routeScope = AnalyticsScriptScope::fromRouteName($routeName);
-        if (null !== $routeScope) {
-            $scopes[] = $routeScope;
+        $requestId = spl_object_id($request);
+        if ($requestId !== $this->analyticsScriptsRequestId) {
+            $this->analyticsScriptsRequestId = $requestId;
+            $this->analyticsScriptsByPlacement = $this->findAnalyticsScriptsByPlacement($routeName);
         }
 
-        return $this->analyticsScriptRepository->findEnabledForPlacementAndScopes(
-            $resolvedPlacement,
-            $scopes,
-        );
+        return $this->analyticsScriptsByPlacement[$resolvedPlacement->value] ?? [];
     }
 
     public function renderAnalyticsScriptSnippet(AnalyticsScript $script): string
@@ -111,7 +119,7 @@ class AnalyticsScriptExtension extends AbstractExtension
 
         $routeName = null !== $request ? (string) $request->attributes->get('_route', '') : '';
         $userLanguage = $this->userLanguageResolver->getLanguage();
-        $pageType = $this->resolvePageType($routeName);
+        $pageType = $this->resolvePageType($routeName, $request);
         $pageName = $this->resolvePageName($routeName, $pageType, $userLanguage);
 
         $variables = [
@@ -129,8 +137,13 @@ class AnalyticsScriptExtension extends AbstractExtension
         return $variables;
     }
 
-    private function resolvePageType(string $routeName): string
+    private function resolvePageType(string $routeName, ?Request $request = null): string
     {
+        $pageType = $request?->attributes->get(self::REQUEST_ATTRIBUTE_PAGE_TYPE);
+        if (is_string($pageType) && '' !== trim($pageType)) {
+            return trim($pageType);
+        }
+
         return match ($routeName) {
             'blog_index' => 'blog_index',
             'blog_show' => 'article',
@@ -138,6 +151,33 @@ class AnalyticsScriptExtension extends AbstractExtension
             'blog_keyword' => 'keyword',
             default => '' !== $routeName ? $routeName : 'unknown',
         };
+    }
+
+    /**
+     * @return array<string, list<AnalyticsScript>>
+     */
+    private function findAnalyticsScriptsByPlacement(string $routeName): array
+    {
+        $scriptsByPlacement = [];
+        foreach ($this->analyticsScriptRepository->findEnabledForScopes($this->resolveScopes($routeName)) as $script) {
+            $scriptsByPlacement[$script->getPlacement()->value][] = $script;
+        }
+
+        return $scriptsByPlacement;
+    }
+
+    /**
+     * @return list<AnalyticsScriptScope>
+     */
+    private function resolveScopes(string $routeName): array
+    {
+        $scopes = [AnalyticsScriptScope::ALL_PUBLIC];
+        $routeScope = AnalyticsScriptScope::fromRouteName($routeName);
+        if (null !== $routeScope) {
+            $scopes[] = $routeScope;
+        }
+
+        return $scopes;
     }
 
     private function resolvePageName(string $routeName, string $pageType, string $userLanguage): string
@@ -149,6 +189,11 @@ class AnalyticsScriptExtension extends AbstractExtension
 
         if ('blog_index' === $routeName) {
             return 'blog_index';
+        }
+
+        $pageNameBase = $request->attributes->get(self::REQUEST_ATTRIBUTE_PAGE_NAME_BASE);
+        if (is_string($pageNameBase) && '' !== trim($pageNameBase)) {
+            return $this->buildPageName($pageType, $pageNameBase);
         }
 
         if ('blog_show' === $routeName) {
@@ -177,6 +222,17 @@ class AnalyticsScriptExtension extends AbstractExtension
         }
 
         return $this->slugifyPageName($pageType, 'page');
+    }
+
+    private function buildPageName(string $pageType, string $baseName): string
+    {
+        return match ($pageType) {
+            'blog_index' => 'blog_index',
+            'article' => 'article_page_'.$this->slugifyPageName($baseName, 'article'),
+            'category' => 'category_page_'.$this->slugifyPageName($baseName, 'category'),
+            'keyword' => 'keyword_page_'.$this->slugifyPageName($baseName, 'keyword'),
+            default => $this->slugifyPageName($baseName, 'page'),
+        };
     }
 
     private function slugifyPageName(string $value, string $fallback): string

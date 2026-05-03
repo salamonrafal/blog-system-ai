@@ -25,6 +25,71 @@ final class AnalyticsScriptControllerTest extends TestCase
 {
     use MocksUserLanguageResolver;
 
+    public function testNewDoesNotCheckDuplicatePageNameWhenSubmittedFormIsInvalid(): void
+    {
+        $repository = $this->createMock(AnalyticsScriptRepository::class);
+        $repository
+            ->expects($this->never())
+            ->method('findOneBy');
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager
+            ->expects($this->never())
+            ->method('persist');
+        $entityManager
+            ->expects($this->never())
+            ->method('flush');
+
+        $controller = new TestAnalyticsScriptController();
+
+        $response = $controller->new(
+            $this->createSubmittedRequest(['pageName' => 'Invalid identifier!']),
+            $entityManager,
+            $repository,
+            $this->createUserLanguageResolverMock('en'),
+        );
+
+        $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
+        $this->assertSame('admin/analytics_script/new.html.twig', $controller->capturedView);
+    }
+
+    public function testNewRerendersFormWhenPageNameAlreadyExistsBeforeFlush(): void
+    {
+        $existingScript = new AnalyticsScript();
+        $this->setEntityId($existingScript, 42);
+
+        $repository = $this->createMock(AnalyticsScriptRepository::class);
+        $repository
+            ->expects($this->once())
+            ->method('findOneBy')
+            ->with(['pageName' => 'google_analytics'])
+            ->willReturn($existingScript);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager
+            ->expects($this->never())
+            ->method('persist');
+        $entityManager
+            ->expects($this->never())
+            ->method('flush');
+
+        $controller = new TestAnalyticsScriptController();
+
+        $response = $controller->new(
+            $this->createSubmittedRequest(),
+            $entityManager,
+            $repository,
+            $this->createUserLanguageResolverMock('en'),
+        );
+
+        $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
+        $this->assertSame('admin/analytics_script/new.html.twig', $controller->capturedView);
+        $this->assertSame(
+            'This script identifier is already used.',
+            (string) $controller->capturedParameters['form']->get('pageName')->getErrors()[0]->getMessage(),
+        );
+    }
+
     public function testNewShowsFormErrorWhenPageNameBecomesDuplicateDuringFlush(): void
     {
         $repository = $this->createMock(AnalyticsScriptRepository::class);
@@ -109,10 +174,13 @@ final class AnalyticsScriptControllerTest extends TestCase
         );
     }
 
-    private function createSubmittedRequest(): Request
+    /**
+     * @param array<string, string> $overrides
+     */
+    private function createSubmittedRequest(array $overrides = []): Request
     {
         return new Request([], [
-            'analytics_script' => [
+            'analytics_script' => array_merge([
                 'pageName' => 'google_analytics',
                 'name' => 'Google Analytics',
                 'scope' => 'all_public',
@@ -120,7 +188,7 @@ final class AnalyticsScriptControllerTest extends TestCase
                 'script' => '<script>window.analytics = true;</script>',
                 'position' => '0',
                 'enabled' => '1',
-            ],
+            ], $overrides),
         ], [], [], [], ['REQUEST_METHOD' => 'POST']);
     }
 

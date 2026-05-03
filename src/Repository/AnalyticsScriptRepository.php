@@ -54,6 +54,26 @@ class AnalyticsScriptRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * @param list<AnalyticsScriptScope> $scopes
+     *
+     * @return list<AnalyticsScript>
+     */
+    public function findEnabledForScopes(array $scopes): array
+    {
+        return $this->createQueryBuilder('script')
+            ->andWhere('script.enabled = :enabled')
+            ->andWhere('script.scope IN (:scopes)')
+            ->setParameter('enabled', true)
+            ->setParameter('scopes', $scopes)
+            ->orderBy('script.placement', 'ASC')
+            ->addOrderBy('script.position', 'ASC')
+            ->addOrderBy('script.name', 'ASC')
+            ->addOrderBy('script.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
     public function countEnabled(): int
     {
         return (int) $this->createQueryBuilder('script')

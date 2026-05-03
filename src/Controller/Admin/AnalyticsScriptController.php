@@ -44,11 +44,13 @@ class AnalyticsScriptController extends AbstractController
         $form = $this->createForm(AnalyticsScriptType::class, $script);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted()) {
-            $this->addDuplicatePageNameError($form, $script, $analyticsScriptRepository, $userLanguageResolver);
-        }
-
         if ($form->isSubmitted() && $form->isValid()) {
+            if ($this->addDuplicatePageNameError($form, $script, $analyticsScriptRepository, $userLanguageResolver)) {
+                return $this->render('admin/analytics_script/new.html.twig', [
+                    'form' => $form,
+                ]);
+            }
+
             $entityManager->persist($script);
             try {
                 $entityManager->flush();
@@ -81,11 +83,14 @@ class AnalyticsScriptController extends AbstractController
         $form = $this->createForm(AnalyticsScriptType::class, $script);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted()) {
-            $this->addDuplicatePageNameError($form, $script, $analyticsScriptRepository, $userLanguageResolver);
-        }
-
         if ($form->isSubmitted() && $form->isValid()) {
+            if ($this->addDuplicatePageNameError($form, $script, $analyticsScriptRepository, $userLanguageResolver)) {
+                return $this->render('admin/analytics_script/edit.html.twig', [
+                    'script' => $script,
+                    'form' => $form,
+                ]);
+            }
+
             try {
                 $entityManager->flush();
             } catch (UniqueConstraintViolationException) {
@@ -154,13 +159,15 @@ class AnalyticsScriptController extends AbstractController
         AnalyticsScript $script,
         AnalyticsScriptRepository $analyticsScriptRepository,
         UserLanguageResolver $userLanguageResolver,
-    ): void {
+    ): bool {
         $existingScript = $analyticsScriptRepository->findOneBy(['pageName' => $script->getPageName()]);
         if (!$existingScript instanceof AnalyticsScript || $existingScript->getId() === $script->getId()) {
-            return;
+            return false;
         }
 
         $this->addPageNameAlreadyUsedError($form, $userLanguageResolver);
+
+        return true;
     }
 
     private function addPageNameAlreadyUsedError(FormInterface $form, UserLanguageResolver $userLanguageResolver): void
