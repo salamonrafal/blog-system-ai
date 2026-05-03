@@ -141,6 +141,7 @@ final class UserRepositoryTest extends TestCase
         $nonAuthor = $this->createUser('non-author@example.com', 'Non Author');
         $this->entityManager->persist($nonAuthor);
         $this->createArticle('Author article', 'author-article', $author);
+        $this->createArticle('Second author article', 'second-author-article', $author);
         $this->entityManager->flush();
         $authorId = $author->getId();
         $nonAuthorId = $nonAuthor->getId();

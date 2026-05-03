@@ -173,6 +173,7 @@ class AnalyticsScript
     {
         $script = strtolower($this->script);
         $completeScriptTags = (int) preg_match_all('/<script\b[^>]*>.*?<\/script\s*>/is', $this->script);
+        $closingScriptTags = (int) preg_match_all('/<\/script\s*>/i', $this->script);
         $contentOutsideScriptTags = preg_replace('/<script\b[^>]*>.*?<\/script\s*>/is', '', $this->script);
 
         if ('' !== $script && 0 === $completeScriptTags && 1 !== preg_match('/<script\b[^>]*>/i', $this->script)) {
@@ -185,6 +186,13 @@ class AnalyticsScript
         if ('' !== $script && null !== $contentOutsideScriptTags && 1 === preg_match('/<script\b[^>]*>/i', $contentOutsideScriptTags)) {
             $context
                 ->buildViolation('validation_analytics_script_snippet_script_tag_closing_required')
+                ->atPath('script')
+                ->addViolation();
+        }
+
+        if ('' !== $script && $closingScriptTags > $completeScriptTags) {
+            $context
+                ->buildViolation('validation_analytics_script_snippet_script_tag_literal_disallowed')
                 ->atPath('script')
                 ->addViolation();
         }

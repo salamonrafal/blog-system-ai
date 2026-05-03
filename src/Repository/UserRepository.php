@@ -101,6 +101,7 @@ class UserRepository extends ServiceEntityRepository
     {
         /** @var ?User $user */
         $user = $this->createQueryBuilder('user')
+            ->select('DISTINCT user')
             ->innerJoin(Article::class, 'article', 'WITH', 'article.createdBy = user')
             ->andWhere('user.id = :id')
             ->setParameter('id', $id)

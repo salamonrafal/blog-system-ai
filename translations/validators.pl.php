@@ -69,6 +69,7 @@ return [
   'validation_analytics_script_snippet_too_long' => 'Kod skryptu może mieć maksymalnie 10000 znaków.',
   'validation_analytics_script_snippet_script_tag_required' => 'Kod musi zawierać tag <script>.',
   'validation_analytics_script_snippet_script_tag_closing_required' => 'Kod musi zawierać zamykający tag </script>.',
+  'validation_analytics_script_snippet_script_tag_literal_disallowed' => 'Kod nie może zawierać surowego literału </script> wewnątrz JavaScript. Użyj zapisu <\\/script>.',
   'validation_analytics_script_snippet_only_script_tags' => 'Kod może zawierać wyłącznie kompletne tagi <script>.',
   'validation_analytics_script_position_non_negative' => 'Pozycja musi być liczbą większą lub równą zero.',
 ];
