@@ -13,6 +13,7 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ORM\Entity(repositoryClass: AnalyticsScriptRepository::class)]
 #[ORM\Table(name: 'analytics_script')]
+#[ORM\Index(name: 'idx_analytics_script_render_lookup', columns: ['enabled', 'placement', 'scope', 'position'])]
 #[ORM\HasLifecycleCallbacks]
 class AnalyticsScript
 {
