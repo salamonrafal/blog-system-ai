@@ -66,12 +66,21 @@ final class AnalyticsScriptExtensionTest extends TestCase
         $this->assertSame([], $extension->getAnalyticsScripts('head'));
     }
 
-    public function testSkipsNonBlogPublicRoutes(): void
+    public function testUnknownPublicRoutesStillReceiveAllPublicScripts(): void
     {
+        $expectedScript = (new AnalyticsScript())
+            ->setPageName('ga_all')
+            ->setName('GA')
+            ->setScript('<script></script>');
+
         $repository = $this->createMock(AnalyticsScriptRepository::class);
         $repository
-            ->expects($this->never())
-            ->method('findEnabledForScopes');
+            ->expects($this->once())
+            ->method('findEnabledForScopes')
+            ->with(
+                [AnalyticsScriptScope::ALL_PUBLIC],
+            )
+            ->willReturn([$expectedScript]);
 
         $requestStack = new RequestStack();
         $request = new Request();
@@ -80,7 +89,7 @@ final class AnalyticsScriptExtensionTest extends TestCase
 
         $extension = $this->createExtension($repository, $requestStack);
 
-        $this->assertSame([], $extension->getAnalyticsScripts('head'));
+        $this->assertSame([$expectedScript], $extension->getAnalyticsScripts('head'));
     }
 
     public function testCachesEnabledScriptsForCurrentRequestAndSplitsByPlacement(): void

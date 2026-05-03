@@ -97,7 +97,7 @@ TEXT);
         $this->assertStringNotContainsString('<p><img ', $html);
     }
 
-    public function testDoesNotRenderExtraBlankLineBeforeStandaloneImageBlock(): void
+    public function testPreservesBlankLineBeforeStandaloneImageBlock(): void
     {
         $renderer = new ArticleMarkupRenderer();
 
@@ -107,8 +107,7 @@ Przed
 ![Obrazek](/uploads/media/2026/04/test-image.webp)
 TEXT);
 
-        $this->assertStringContainsString("<p>Przed</p>\n<img src=\"/uploads/media/2026/04/test-image.webp\" alt=\"Obrazek\" loading=\"lazy\">", $html);
-        $this->assertStringNotContainsString("<p>Przed</p>\n<br>\n<img", $html);
+        $this->assertStringContainsString("<p>Przed</p>\n<br>\n<img src=\"/uploads/media/2026/04/test-image.webp\" alt=\"Obrazek\" loading=\"lazy\">", $html);
     }
 
     public function testRendersStandaloneImageWithDecodedEntities(): void
