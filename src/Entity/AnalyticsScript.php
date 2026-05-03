@@ -171,10 +171,19 @@ class AnalyticsScript
     public function validateScriptSnippet(ExecutionContextInterface $context): void
     {
         $script = strtolower($this->script);
+        $openingScriptTags = (int) preg_match_all('/<script\b[^>]*>/i', $this->script);
+        $closingScriptTags = (int) preg_match_all('/<\/script\s*>/i', $this->script);
 
-        if ('' !== $script && 1 !== preg_match('/<script\b/i', $this->script)) {
+        if ('' !== $script && 0 === $openingScriptTags) {
             $context
                 ->buildViolation('validation_analytics_script_snippet_script_tag_required')
+                ->atPath('script')
+                ->addViolation();
+        }
+
+        if ('' !== $script && $openingScriptTags !== $closingScriptTags) {
+            $context
+                ->buildViolation('validation_analytics_script_snippet_script_tag_closing_required')
                 ->atPath('script')
                 ->addViolation();
         }

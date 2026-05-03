@@ -185,7 +185,8 @@
                         <th data-i18n="admin_table_status">Status</th>
                         <th class="article-index-updated-column" aria-sort="{{ sort_order == 'asc' ? 'ascending' : 'descending' }}">
                             {% set next_sort_order = sort_order == 'asc' ? 'desc' : 'asc' %}
-                            {% set sort_route_params = next_sort_order == 'desc' ? article_filter_route_params : article_filter_route_params|merge({ sort: next_sort_order }) %}
+                            {% set sort_base_route_params = current_page > 1 ? article_filter_route_params|merge({ page: current_page }) : article_filter_route_params %}
+                            {% set sort_route_params = next_sort_order == 'desc' ? sort_base_route_params : sort_base_route_params|merge({ sort: next_sort_order }) %}
                             {% set sort_aria_key = sort_order == 'asc' ? 'admin_article_sort_updated_desc' : 'admin_article_sort_updated_asc' %}
                             <a
                                 class="article-index-sort-link"

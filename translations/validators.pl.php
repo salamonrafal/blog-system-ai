@@ -68,6 +68,7 @@ return [
   'validation_analytics_script_snippet_required' => 'Kod skryptu jest wymagany.',
   'validation_analytics_script_snippet_too_long' => 'Kod skryptu może mieć maksymalnie 10000 znaków.',
   'validation_analytics_script_snippet_script_tag_required' => 'Kod musi zawierać tag <script>.',
+  'validation_analytics_script_snippet_script_tag_closing_required' => 'Kod musi zawierać zamykający tag </script>.',
   'validation_analytics_script_snippet_disallowed_document_tag' => 'Kod nie może zawierać zamykających tagów head, body ani html.',
   'validation_analytics_script_position_non_negative' => 'Pozycja musi być liczbą większą lub równą zero.',
 ];

@@ -34,86 +34,90 @@ final class AnalyticsScriptTest extends TestCase
 
     public function testSnippetMustContainScriptTag(): void
     {
-        $validator = Validation::createValidatorBuilder()
-            ->enableAttributeMapping()
-            ->getValidator();
-
         $script = (new AnalyticsScript())
             ->setPageName('invalid_snippet')
             ->setName('Invalid snippet')
             ->setScript("console.log('missing tag');");
 
-        $violations = $validator->validate($script);
-        $messages = array_map(static fn ($violation): string => $violation->getMessage(), iterator_to_array($violations));
-
-        $this->assertContains('validation_analytics_script_snippet_script_tag_required', $messages);
+        $this->assertContains('validation_analytics_script_snippet_script_tag_required', self::validationMessages($script));
     }
 
     public function testSnippetDoesNotTreatScriptPrefixAsScriptTag(): void
     {
-        $validator = Validation::createValidatorBuilder()
-            ->enableAttributeMapping()
-            ->getValidator();
-
         $script = (new AnalyticsScript())
             ->setPageName('invalid_script_prefix')
             ->setName('Invalid script prefix')
             ->setScript('<scripture>console.log("not a script tag");</scripture>');
 
-        $violations = $validator->validate($script);
-        $messages = array_map(static fn ($violation): string => $violation->getMessage(), iterator_to_array($violations));
+        $this->assertContains('validation_analytics_script_snippet_script_tag_required', self::validationMessages($script));
+    }
 
-        $this->assertContains('validation_analytics_script_snippet_script_tag_required', $messages);
+    public function testSnippetMustContainClosingScriptTag(): void
+    {
+        $script = (new AnalyticsScript())
+            ->setPageName('missing_closing_script')
+            ->setName('Missing closing script')
+            ->setScript('<script>console.log("missing close");');
+
+        $this->assertContains(
+            'validation_analytics_script_snippet_script_tag_closing_required',
+            self::validationMessages($script),
+        );
+    }
+
+    public function testSnippetMustCloseEveryScriptTag(): void
+    {
+        $script = (new AnalyticsScript())
+            ->setPageName('missing_second_closing_script')
+            ->setName('Missing second closing script')
+            ->setScript('<script>console.log("first");</script><script>console.log("second");');
+
+        $this->assertContains(
+            'validation_analytics_script_snippet_script_tag_closing_required',
+            self::validationMessages($script),
+        );
     }
 
     public function testSnippetCannotCloseDocumentTags(): void
     {
-        $validator = Validation::createValidatorBuilder()
-            ->enableAttributeMapping()
-            ->getValidator();
-
         $script = (new AnalyticsScript())
             ->setPageName('bad_document_tag')
             ->setName('Bad document tag')
             ->setScript('<script></script></body>');
 
-        $violations = $validator->validate($script);
-        $messages = array_map(static fn ($violation): string => $violation->getMessage(), iterator_to_array($violations));
-
-        $this->assertContains('validation_analytics_script_snippet_disallowed_document_tag', $messages);
+        $this->assertContains('validation_analytics_script_snippet_disallowed_document_tag', self::validationMessages($script));
     }
 
     public function testSnippetAllowsTagsThatOnlyStartLikeBlockedDocumentTags(): void
     {
-        $validator = Validation::createValidatorBuilder()
-            ->enableAttributeMapping()
-            ->getValidator();
-
         $script = (new AnalyticsScript())
             ->setPageName('safe_similar_tags')
             ->setName('Safe similar tags')
             ->setScript('<script>document.write("</header></bodyguard></htmlish>");</script>');
 
-        $violations = $validator->validate($script);
-        $messages = array_map(static fn ($violation): string => $violation->getMessage(), iterator_to_array($violations));
-
-        $this->assertNotContains('validation_analytics_script_snippet_disallowed_document_tag', $messages);
+        $this->assertNotContains('validation_analytics_script_snippet_disallowed_document_tag', self::validationMessages($script));
     }
 
     public function testPageNameMustBeMachineReadable(): void
     {
-        $validator = Validation::createValidatorBuilder()
-            ->enableAttributeMapping()
-            ->getValidator();
-
         $script = (new AnalyticsScript())
             ->setPageName('Google Analytics!')
             ->setName('Google Analytics')
             ->setScript('<script></script>');
 
-        $violations = $validator->validate($script);
-        $messages = array_map(static fn ($violation): string => $violation->getMessage(), iterator_to_array($violations));
+        $this->assertContains('validation_analytics_script_page_name_invalid', self::validationMessages($script));
+    }
 
-        $this->assertContains('validation_analytics_script_page_name_invalid', $messages);
+    /**
+     * @return list<string>
+     */
+    private static function validationMessages(AnalyticsScript $script): array
+    {
+        $violations = Validation::createValidatorBuilder()
+            ->enableAttributeMapping()
+            ->getValidator()
+            ->validate($script);
+
+        return array_map(static fn ($violation): string => $violation->getMessage(), iterator_to_array($violations));
     }
 }
