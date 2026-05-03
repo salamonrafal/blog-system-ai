@@ -110,6 +110,19 @@ HTML);
         $this->assertNotContains('validation_analytics_script_snippet_script_tag_closing_required', $messages);
     }
 
+    public function testSnippetAllowsOpeningScriptTagLiteralInsideJavaScript(): void
+    {
+        $script = (new AnalyticsScript())
+            ->setPageName('script_tag_literal')
+            ->setName('Script tag literal')
+            ->setScript('<script>console.log("<script>");</script>');
+
+        $messages = self::validationMessages($script);
+
+        $this->assertNotContains('validation_analytics_script_snippet_script_tag_closing_required', $messages);
+        $this->assertNotContains('validation_analytics_script_snippet_only_script_tags', $messages);
+    }
+
     public function testSnippetCannotContainDocumentClosingTagsOutsideScriptTag(): void
     {
         $script = (new AnalyticsScript())

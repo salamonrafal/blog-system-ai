@@ -226,7 +226,7 @@ TEXT);
         $this->assertStringContainsString("</span>\n<span class=\"article-code-line\">", $html);
     }
 
-    public function testRendersToolbarTrailingBackslashLineBreakMarkerAndTable(): void
+    public function testRendersTrailingBackslashLineBreakInParagraphAndRendersTable(): void
     {
         $renderer = new ArticleMarkupRenderer();
 
@@ -241,7 +241,7 @@ Druga linia
 | `kod` | Wartosc |
 TEXT);
 
-        $this->assertStringContainsString("<p>Pierwsza linia</p>\n<p>Druga linia</p>", $html);
+        $this->assertStringContainsString("<p>Pierwsza linia<br />\nDruga linia</p>", $html);
         $this->assertStringContainsString('<hr>', $html);
         $this->assertStringContainsString('<div class="article-table-wrap"><table><thead><tr><th>Kolumna A</th><th>Kolumna B</th></tr></thead><tbody><tr><td><code>kod</code></td><td>Wartosc</td></tr></tbody></table></div>', $html);
     }
@@ -255,16 +255,13 @@ TEXT);
         $this->assertSame("<p>Sciezka: C:\\</p>", $html);
     }
 
-    public function testPreservesWindowsDriveTrailingBackslashBeforeNextLine(): void
+    public function testPreservesBackslashInsideTextLine(): void
     {
         $renderer = new ArticleMarkupRenderer();
 
-        $html = $renderer->render(<<<'TEXT'
-Sciezka: C:\
-Dalszy opis
-TEXT);
+        $html = $renderer->render('Folder\Cos');
 
-        $this->assertStringContainsString("<p>Sciezka: C:\\</p>\n<p>Dalszy opis</p>", $html);
+        $this->assertSame("<p>Folder\\Cos</p>", $html);
     }
 
     public function testRendersConsecutiveTextLinesAsSeparateParagraphs(): void
@@ -322,7 +319,7 @@ TEXT);
         $this->assertStringContainsString("<p>Tresc</p>\n<br>\n<br>\n<p>Tresc</p>", $html);
     }
 
-    public function testRendersToolbarTrailingBackslashLineBreakMarkerImmediatelyAfterTable(): void
+    public function testRendersTrailingBackslashLineBreakInParagraphImmediatelyAfterTable(): void
     {
         $renderer = new ArticleMarkupRenderer();
 
@@ -335,7 +332,7 @@ Druga linia
 TEXT);
 
         $this->assertStringContainsString('<div class="article-table-wrap"><table><thead><tr><th>Kolumna A</th><th>Kolumna B</th></tr></thead><tbody><tr><td>Wartosc 1</td><td>Wartosc 2</td></tr></tbody></table></div>', $html);
-        $this->assertStringContainsString("<p>Po tabeli</p>\n<p>Druga linia</p>", $html);
+        $this->assertStringContainsString("<p>Po tabeli<br />\nDruga linia</p>", $html);
     }
 
     public function testKeepsTableBeforeParagraphWithoutBlankLineAfterTable(): void

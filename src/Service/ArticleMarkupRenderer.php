@@ -382,34 +382,56 @@ final class ArticleMarkupRenderer
     private static function renderParagraphLines(array $lines): string
     {
         $blocks = [];
+        $inlineParts = [];
+        $flushInlineParts = static function () use (&$blocks, &$inlineParts): void {
+            if ([] === $inlineParts) {
+                return;
+            }
+
+            $blocks[] = '<p>'.implode("\n", $inlineParts).'</p>';
+            $inlineParts = [];
+        };
 
         foreach ($lines as $index => $line) {
             $trimmed = trim($line);
 
             if ('' === $trimmed || '\\' === $trimmed) {
+                $flushInlineParts();
                 $blocks[] = '<br>';
 
                 continue;
             }
 
-            $content = $trimmed;
-            if (
-                str_ends_with($trimmed, '\\')
-                && '' !== trim($lines[$index + 1] ?? '')
-                && preg_match('/\b[A-Za-z]:\\\\$/', $trimmed) !== 1
-            ) {
-                $content = rtrim(substr($trimmed, 0, -1));
+            $hasLineBreakMarker = str_ends_with($trimmed, '\\')
+                && array_key_exists($index + 1, $lines)
+                && '' !== trim($lines[$index + 1]);
+            $content = $hasLineBreakMarker ? rtrim(substr($trimmed, 0, -1)) : $trimmed;
+
+            $standaloneImage = self::renderStandaloneImage($trimmed);
+            if (null !== $standaloneImage) {
+                $flushInlineParts();
+                $blocks[] = $standaloneImage;
+
+                continue;
             }
 
-            $standaloneImage = self::renderStandaloneImage($content);
-            if (null !== $standaloneImage) {
-                $blocks[] = $standaloneImage;
+            if ($hasLineBreakMarker) {
+                $inlineParts[] = self::renderInline($content).'<br />';
+
+                continue;
+            }
+
+            if ([] !== $inlineParts) {
+                $inlineParts[] = self::renderInline($content);
+                $flushInlineParts();
 
                 continue;
             }
 
             $blocks[] = '<p>'.self::renderInline($content).'</p>';
         }
+
+        $flushInlineParts();
 
         return implode("\n", $blocks);
     }

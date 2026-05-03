@@ -172,24 +172,23 @@ class AnalyticsScript
     public function validateScriptSnippet(ExecutionContextInterface $context): void
     {
         $script = strtolower($this->script);
-        $openingScriptTags = (int) preg_match_all('/<script\b[^>]*>/i', $this->script);
-        $closingScriptTags = (int) preg_match_all('/<\/script\s*>/i', $this->script);
+        $completeScriptTags = (int) preg_match_all('/<script\b[^>]*>.*?<\/script\s*>/is', $this->script);
+        $contentOutsideScriptTags = preg_replace('/<script\b[^>]*>.*?<\/script\s*>/is', '', $this->script);
 
-        if ('' !== $script && 0 === $openingScriptTags) {
+        if ('' !== $script && 0 === $completeScriptTags && 1 !== preg_match('/<script\b[^>]*>/i', $this->script)) {
             $context
                 ->buildViolation('validation_analytics_script_snippet_script_tag_required')
                 ->atPath('script')
                 ->addViolation();
         }
 
-        if ('' !== $script && $openingScriptTags !== $closingScriptTags) {
+        if ('' !== $script && null !== $contentOutsideScriptTags && 1 === preg_match('/<script\b[^>]*>/i', $contentOutsideScriptTags)) {
             $context
                 ->buildViolation('validation_analytics_script_snippet_script_tag_closing_required')
                 ->atPath('script')
                 ->addViolation();
         }
 
-        $contentOutsideScriptTags = preg_replace('/<script\b[^>]*>.*?<\/script\s*>/is', '', $this->script);
         if ('' !== $script && null !== $contentOutsideScriptTags && '' !== trim($contentOutsideScriptTags)) {
             $context
                 ->buildViolation('validation_analytics_script_snippet_only_script_tags')
