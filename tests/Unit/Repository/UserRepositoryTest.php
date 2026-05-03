@@ -97,6 +97,19 @@ final class UserRepositoryTest extends TestCase
         ));
     }
 
+    public function testFindForArticleAuthorFilterMatchesEmailCaseInsensitively(): void
+    {
+        $author = $this->createUser('author@example.com', 'Writer');
+        $this->createArticle('Author article', 'author-article', $author);
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+
+        $authors = $this->repository->findForArticleAuthorFilter('Author', 10);
+
+        $this->assertCount(1, $authors);
+        $this->assertSame('author@example.com', $authors[0]->getEmail());
+    }
+
     public function testFindArticleAuthorByIdOnlyReturnsUsersWhoAuthoredArticles(): void
     {
         $author = $this->createUser('author@example.com', 'Author');

@@ -78,6 +78,38 @@ final class AnalyticsScriptTest extends TestCase
         );
     }
 
+    public function testSnippetCannotContainNonScriptMarkupAroundScriptTag(): void
+    {
+        $script = (new AnalyticsScript())
+            ->setPageName('wrapped_script')
+            ->setName('Wrapped script')
+            ->setScript('<div class="tracker"><script>console.log("analytics");</script></div>');
+
+        $this->assertContains(
+            'validation_analytics_script_snippet_only_script_tags',
+            self::validationMessages($script),
+        );
+    }
+
+    public function testSnippetAllowsMultipleCompleteScriptTagsWithWhitespace(): void
+    {
+        $script = (new AnalyticsScript())
+            ->setPageName('multiple_scripts')
+            ->setName('Multiple scripts')
+            ->setScript(<<<'HTML'
+<script src="https://example.com/analytics.js"></script>
+
+<script>
+window.analytics = true;
+</script>
+HTML);
+
+        $messages = self::validationMessages($script);
+
+        $this->assertNotContains('validation_analytics_script_snippet_only_script_tags', $messages);
+        $this->assertNotContains('validation_analytics_script_snippet_script_tag_closing_required', $messages);
+    }
+
     public function testSnippetCannotCloseDocumentTags(): void
     {
         $script = (new AnalyticsScript())

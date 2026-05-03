@@ -62,7 +62,7 @@ class UserRepository extends ServiceEntityRepository
         $query = self::normalizeAuthorSearchText($query);
         if ('' !== $query) {
             $queryBuilder
-                ->andWhere('user.email LIKE :authorQuery OR user.fullNameSearch LIKE :authorQuery OR user.nicknameSearch LIKE :authorQuery')
+                ->andWhere('LOWER(user.email) LIKE :authorQuery OR user.fullNameSearch LIKE :authorQuery OR user.nicknameSearch LIKE :authorQuery')
                 ->setParameter('authorQuery', '%'.$query.'%');
         }
 

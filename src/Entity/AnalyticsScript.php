@@ -188,6 +188,14 @@ class AnalyticsScript
                 ->addViolation();
         }
 
+        $contentOutsideScriptTags = preg_replace('/<script\b[^>]*>.*?<\/script\s*>/is', '', $this->script);
+        if ('' !== $script && null !== $contentOutsideScriptTags && '' !== trim($contentOutsideScriptTags)) {
+            $context
+                ->buildViolation('validation_analytics_script_snippet_only_script_tags')
+                ->atPath('script')
+                ->addViolation();
+        }
+
         foreach (['head', 'body', 'html'] as $blockedTag) {
             if (1 === preg_match(sprintf('/<\/%s\b/i', $blockedTag), $this->script)) {
                 $context
