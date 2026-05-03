@@ -70,6 +70,5 @@ return [
   'validation_analytics_script_snippet_script_tag_required' => 'Script code must include a <script> tag.',
   'validation_analytics_script_snippet_script_tag_closing_required' => 'Script code must include a closing </script> tag.',
   'validation_analytics_script_snippet_only_script_tags' => 'Script code can only contain complete <script> tags.',
-  'validation_analytics_script_snippet_disallowed_document_tag' => 'Script code cannot include closing head, body, or html tags.',
   'validation_analytics_script_position_non_negative' => 'Position must be greater than or equal to zero.',
 ];

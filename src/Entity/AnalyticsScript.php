@@ -195,17 +195,6 @@ class AnalyticsScript
                 ->atPath('script')
                 ->addViolation();
         }
-
-        foreach (['head', 'body', 'html'] as $blockedTag) {
-            if (1 === preg_match(sprintf('/<\/%s\b/i', $blockedTag), $this->script)) {
-                $context
-                    ->buildViolation('validation_analytics_script_snippet_disallowed_document_tag')
-                    ->atPath('script')
-                    ->addViolation();
-
-                return;
-            }
-        }
     }
 
     #[ORM\PrePersist]

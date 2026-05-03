@@ -110,24 +110,27 @@ HTML);
         $this->assertNotContains('validation_analytics_script_snippet_script_tag_closing_required', $messages);
     }
 
-    public function testSnippetCannotCloseDocumentTags(): void
+    public function testSnippetCannotContainDocumentClosingTagsOutsideScriptTag(): void
     {
         $script = (new AnalyticsScript())
             ->setPageName('bad_document_tag')
             ->setName('Bad document tag')
             ->setScript('<script></script></body>');
 
-        $this->assertContains('validation_analytics_script_snippet_disallowed_document_tag', self::validationMessages($script));
+        $this->assertContains('validation_analytics_script_snippet_only_script_tags', self::validationMessages($script));
     }
 
-    public function testSnippetAllowsTagsThatOnlyStartLikeBlockedDocumentTags(): void
+    public function testSnippetAllowsDocumentClosingTagLiteralsInsideJavaScript(): void
     {
         $script = (new AnalyticsScript())
-            ->setPageName('safe_similar_tags')
-            ->setName('Safe similar tags')
-            ->setScript('<script>document.write("</header></bodyguard></htmlish>");</script>');
+            ->setPageName('document_tag_literals')
+            ->setName('Document tag literals')
+            ->setScript('<script>console.log("</head></body></html>"); /* </body> */</script>');
 
-        $this->assertNotContains('validation_analytics_script_snippet_disallowed_document_tag', self::validationMessages($script));
+        $messages = self::validationMessages($script);
+
+        $this->assertNotContains('validation_analytics_script_snippet_only_script_tags', $messages);
+        $this->assertNotContains('validation_analytics_script_snippet_script_tag_closing_required', $messages);
     }
 
     public function testPageNameMustBeMachineReadable(): void

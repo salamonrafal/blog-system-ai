@@ -212,6 +212,42 @@ final class AnalyticsScriptExtensionTest extends TestCase
         );
     }
 
+    public function testReplacesOnlyStandaloneAnalyticsVariableTokens(): void
+    {
+        $repository = $this->createMock(AnalyticsScriptRepository::class);
+        $requestStack = new RequestStack();
+        $request = new Request();
+        $request->attributes->set('_route', 'blog_show');
+        $request->attributes->set(AnalyticsScriptExtension::REQUEST_ATTRIBUTE_PAGE_TYPE, 'article');
+        $request->attributes->set(AnalyticsScriptExtension::REQUEST_ATTRIBUTE_PAGE_NAME_BASE, 'Loaded Article Title');
+        $requestStack->push($request);
+
+        $extension = $this->createExtension(
+            $repository,
+            $requestStack,
+            languageResolver: new UserLanguageResolver($requestStack),
+        );
+        $script = (new AnalyticsScript())->setScript(<<<'HTML'
+<script>
+window.VAR_PAGE_NAME_MAP = "VAR_PAGE_NAME";
+const page = VAR_PAGE_NAME;
+const logged = VAR_IS_LOGGED_USER;
+// VAR_PAGE_TYPE
+/* VAR_USER_LANGUAGE */
+</script>
+HTML);
+
+        $this->assertSame(<<<'HTML'
+<script>
+window.VAR_PAGE_NAME_MAP = "VAR_PAGE_NAME";
+const page = "article_page_loaded_article_title";
+const logged = false;
+// VAR_PAGE_TYPE
+/* VAR_USER_LANGUAGE */
+</script>
+HTML, $extension->renderAnalyticsScriptSnippet($script));
+    }
+
     public function testResolvesAnalyticsVariablesPerCurrentRequest(): void
     {
         $repository = $this->createMock(AnalyticsScriptRepository::class);

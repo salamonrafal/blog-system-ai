@@ -87,7 +87,30 @@ class AnalyticsScriptExtension extends AbstractExtension
 
     public function renderAnalyticsScriptSnippet(AnalyticsScript $script): string
     {
-        return strtr($script->getScript(), $this->getVariableReplacements());
+        return self::replaceStandaloneVariables($script->getScript(), $this->getVariableReplacements());
+    }
+
+    /**
+     * @param array<string, string> $replacements
+     */
+    private static function replaceStandaloneVariables(string $snippet, array $replacements): string
+    {
+        $variablesPattern = implode('|', array_map(
+            static fn (string $variable): string => preg_quote($variable, '/'),
+            array_keys($replacements),
+        ));
+
+        return (string) preg_replace_callback(
+            '/("(?:\\\\.|[^"\\\\])*"|\'(?:\\\\.|[^\'\\\\])*\'|`(?:\\\\.|[^`\\\\])*`|\/\/[^\n]*|\/\*.*?\*\/)|(?<![A-Za-z0-9_$])('.$variablesPattern.')(?![A-Za-z0-9_$])/s',
+            static function (array $matches) use ($replacements): string {
+                if (isset($matches[2]) && '' !== $matches[2]) {
+                    return $replacements[$matches[2]];
+                }
+
+                return $matches[0];
+            },
+            $snippet,
+        );
     }
 
     /**

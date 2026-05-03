@@ -19,6 +19,7 @@ use Symfony\Component\Form\Forms;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Validator\Validation;
 
 final class AnalyticsScriptControllerTest extends TestCase
@@ -174,6 +175,117 @@ final class AnalyticsScriptControllerTest extends TestCase
         );
     }
 
+    public function testDeleteRemovesScriptWhenCsrfTokenIsValid(): void
+    {
+        $script = new AnalyticsScript();
+        $this->setEntityId($script, 12);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager
+            ->expects($this->once())
+            ->method('remove')
+            ->with($script);
+        $entityManager
+            ->expects($this->once())
+            ->method('flush');
+
+        $controller = new TestAnalyticsScriptController();
+        $controller->csrfTokenIsValid = true;
+
+        $response = $controller->delete(
+            $script,
+            new Request([], ['_token' => 'valid-token']),
+            $entityManager,
+            $this->createUserLanguageResolverMock('en'),
+        );
+
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertSame('/admin/settings/analytics-scripts', $response->getTargetUrl());
+        $this->assertSame([['success', 'Analytics script deleted.']], $controller->flashes);
+        $this->assertSame([['delete_analytics_script_12', 'valid-token']], $controller->csrfTokenChecks);
+    }
+
+    public function testDeleteThrowsAccessDeniedWhenCsrfTokenIsInvalid(): void
+    {
+        $script = new AnalyticsScript();
+        $this->setEntityId($script, 12);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager
+            ->expects($this->never())
+            ->method('remove');
+        $entityManager
+            ->expects($this->never())
+            ->method('flush');
+
+        $controller = new TestAnalyticsScriptController();
+        $controller->csrfTokenIsValid = false;
+
+        $this->expectException(AccessDeniedException::class);
+        $this->expectExceptionMessage('Invalid CSRF token.');
+
+        $controller->delete(
+            $script,
+            new Request([], ['_token' => 'invalid-token']),
+            $entityManager,
+            $this->createUserLanguageResolverMock('en'),
+        );
+    }
+
+    public function testToggleEnabledDisablesEnabledScriptWhenCsrfTokenIsValid(): void
+    {
+        $script = (new AnalyticsScript())->setEnabled(true);
+        $this->setEntityId($script, 12);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager
+            ->expects($this->once())
+            ->method('flush');
+
+        $controller = new TestAnalyticsScriptController();
+        $controller->csrfTokenIsValid = true;
+
+        $response = $controller->toggleEnabled(
+            $script,
+            new Request([], ['_token' => 'valid-token']),
+            $entityManager,
+            $this->createUserLanguageResolverMock('en'),
+        );
+
+        $this->assertFalse($script->isEnabled());
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertSame('/admin/settings/analytics-scripts', $response->getTargetUrl());
+        $this->assertSame([['success', 'Analytics script disabled.']], $controller->flashes);
+        $this->assertSame([['toggle_analytics_script_12', 'valid-token']], $controller->csrfTokenChecks);
+    }
+
+    public function testToggleEnabledEnablesDisabledScriptWhenCsrfTokenIsValid(): void
+    {
+        $script = (new AnalyticsScript())->setEnabled(false);
+        $this->setEntityId($script, 12);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager
+            ->expects($this->once())
+            ->method('flush');
+
+        $controller = new TestAnalyticsScriptController();
+        $controller->csrfTokenIsValid = true;
+
+        $response = $controller->toggleEnabled(
+            $script,
+            new Request([], ['_token' => 'valid-token']),
+            $entityManager,
+            $this->createUserLanguageResolverMock('en'),
+        );
+
+        $this->assertTrue($script->isEnabled());
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertSame('/admin/settings/analytics-scripts', $response->getTargetUrl());
+        $this->assertSame([['success', 'Analytics script enabled.']], $controller->flashes);
+        $this->assertSame([['toggle_analytics_script_12', 'valid-token']], $controller->csrfTokenChecks);
+    }
+
     /**
      * @param array<string, string> $overrides
      */
@@ -201,6 +313,8 @@ final class AnalyticsScriptControllerTest extends TestCase
 
 final class TestAnalyticsScriptController extends AnalyticsScriptController
 {
+    public bool $csrfTokenIsValid = true;
+
     public string $capturedView = '';
 
     /** @var array<string, mixed> */
@@ -208,6 +322,16 @@ final class TestAnalyticsScriptController extends AnalyticsScriptController
 
     /** @var list<array{0: string, 1: string}> */
     public array $flashes = [];
+
+    /** @var list<array{0: string, 1: string|null}> */
+    public array $csrfTokenChecks = [];
+
+    protected function isCsrfTokenValid(string $id, ?string $token): bool
+    {
+        $this->csrfTokenChecks[] = [$id, $token];
+
+        return $this->csrfTokenIsValid;
+    }
 
     public function addFlash(string $type, mixed $message): void
     {
