@@ -17,6 +17,7 @@ use App\Service\ArticleMarkupRenderer;
 use App\Service\BlogSettingsProvider;
 use App\Service\PaginationBuilder;
 use App\Service\UserLanguageResolver;
+use App\Twig\AnalyticsScriptExtension;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -99,6 +100,7 @@ class BlogController extends AbstractController
     #[Route('/articles/{slug}', name: 'blog_show', methods: ['GET'])]
     public function show(
         string $slug,
+        Request $request,
         ArticleRepository $articleRepository,
         UserLanguageResolver $userLanguageResolver,
         ArticleMarkupRenderer $articleMarkupRenderer,
@@ -135,6 +137,8 @@ class BlogController extends AbstractController
             ? $articleMarkupRenderer->extractTableOfContents($article->getContent())
             : [];
 
+        $this->setAnalyticsPageContext($request, 'article', $article->getTitle());
+
         return $this->render('blog/show.html.twig', [
             'article' => $article,
             'article_category_route_params' => $articleCategoryRouteParams,
@@ -165,6 +169,8 @@ class BlogController extends AbstractController
         if (null !== $categorySlug && null === $currentCategory) {
             throw $this->createNotFoundException('Category not found.');
         }
+
+        $this->setIndexAnalyticsPageContext($request, $currentCategory, $currentKeyword, $language);
 
         $articlesPerPage = max(1, $settings->getArticlesPerPage());
         $requestedPage = max(1, $request->query->getInt('page', 1));
@@ -265,6 +271,34 @@ class BlogController extends AbstractController
         }
 
         return $keyword;
+    }
+
+    private function setIndexAnalyticsPageContext(
+        Request $request,
+        ?ArticleCategory $currentCategory,
+        ?ArticleKeyword $currentKeyword,
+        ?ArticleLanguage $language,
+    ): void {
+        if (null !== $currentKeyword) {
+            $this->setAnalyticsPageContext($request, 'keyword', $currentKeyword->getName());
+
+            return;
+        }
+
+        if (null !== $currentCategory) {
+            $baseName = $currentCategory->getTitle($language?->value ?? UserLanguageResolver::defaultLanguage()) ?? $currentCategory->getName();
+            $this->setAnalyticsPageContext($request, 'category', $baseName);
+
+            return;
+        }
+
+        $this->setAnalyticsPageContext($request, 'blog_index', 'blog_index');
+    }
+
+    private function setAnalyticsPageContext(Request $request, string $pageType, string $pageNameBase): void
+    {
+        $request->attributes->set(AnalyticsScriptExtension::REQUEST_ATTRIBUTE_PAGE_TYPE, $pageType);
+        $request->attributes->set(AnalyticsScriptExtension::REQUEST_ATTRIBUTE_PAGE_NAME_BASE, $pageNameBase);
     }
 
     /**

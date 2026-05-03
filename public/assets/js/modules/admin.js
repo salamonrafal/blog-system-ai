@@ -920,6 +920,98 @@ export function setupDashboardCarousels(){
   setupTabbedPanels('[data-dashboard-carousel]', 'data-dashboard-carousel-tab', 'data-dashboard-carousel-panel');
 }
 
+let activeAnalyticsVariablesModalClose = null;
+let analyticsVariablesEscapeHandlerRegistered = false;
+
+export function setupAnalyticsScriptVariables(){
+  if(!analyticsVariablesEscapeHandlerRegistered){
+    document.addEventListener('keydown', (event)=>{
+      if(event.key !== 'Escape' || typeof activeAnalyticsVariablesModalClose !== 'function') return;
+
+      event.preventDefault();
+      activeAnalyticsVariablesModalClose();
+    });
+    analyticsVariablesEscapeHandlerRegistered = true;
+  }
+
+  qsa('[data-analytics-variables-help-modal]').forEach((modal)=>{
+    if(modal.dataset.analyticsVariablesHelpInitialized === 'true') return;
+    modal.dataset.analyticsVariablesHelpInitialized = 'true';
+
+    const field = modal.closest('.article-editor-field');
+    const dialog = qs('.analytics-script-variables-dialog', modal);
+    const openButton = field ? qs('[data-action="open-analytics-variables-help"]', field) : null;
+    const closeButtons = qsa('[data-action="close-analytics-variables-help"]', modal);
+
+    const closeModal = ()=>{
+      modal.setAttribute('hidden', '');
+      modal.setAttribute('aria-hidden', 'true');
+      unlockDocumentScroll();
+      if(activeAnalyticsVariablesModalClose === closeModal){
+        activeAnalyticsVariablesModalClose = null;
+      }
+      openButton?.focus({ preventScroll: true });
+    };
+
+    const openModal = ()=>{
+      if(!modal.hasAttribute('hidden')) return;
+
+      if(typeof activeAnalyticsVariablesModalClose === 'function' && activeAnalyticsVariablesModalClose !== closeModal){
+        activeAnalyticsVariablesModalClose();
+      }
+
+      modal.removeAttribute('hidden');
+      modal.setAttribute('aria-hidden', 'false');
+      activeAnalyticsVariablesModalClose = closeModal;
+      lockDocumentScroll();
+      if(dialog instanceof HTMLElement){
+        dialog.setAttribute('tabindex', '-1');
+        dialog.focus({ preventScroll: true });
+      }
+    };
+
+    openButton?.addEventListener('click', openModal);
+    closeButtons.forEach((button)=>{
+      button.addEventListener('click', closeModal);
+    });
+
+    modal.addEventListener('click', (event)=>{
+      if(event.target === modal){
+        closeModal();
+      }
+    });
+
+    dialog?.addEventListener('click', (event)=>{
+      event.stopPropagation();
+    });
+  });
+
+  qsa('[data-action="insert-analytics-variable"]').forEach((button)=>{
+    if(button.dataset.analyticsVariableInsertInitialized === 'true') return;
+    button.dataset.analyticsVariableInsertInitialized = 'true';
+
+    button.addEventListener('click', ()=>{
+      const variableName = button.getAttribute('data-analytics-variable') || '';
+      if(!variableName) return;
+
+      const form = button.closest('form');
+      const input = form ? qs('[data-analytics-script-input]', form) : qs('[data-analytics-script-input]');
+      if(!(input instanceof HTMLTextAreaElement)) return;
+
+      const selectionStart = input.selectionStart;
+      const selectionEnd = input.selectionEnd;
+      const prefix = input.value.slice(0, selectionStart);
+      const suffix = input.value.slice(selectionEnd);
+      input.value = `${prefix}${variableName}${suffix}`;
+      input.focus();
+      input.selectionStart = selectionStart + variableName.length;
+      input.selectionEnd = input.selectionStart;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+  });
+}
+
 export function setupTranslationTabs(){
   setupTabbedPanels('[data-translation-tabs]', 'data-translation-tab', 'data-translation-panel');
 }
@@ -1681,6 +1773,29 @@ export function setupArticleKeywordDeleteConfirmation(){
     cancelFallback: 'Przerwij',
     submitI18n: 'admin_article_keywords_delete_popup_confirm',
     submitFallback: 'Usuń słowo kluczowe',
+    closeI18n: 'admin_close_alert',
+    closeFallback: 'Zamknij alert',
+  });
+}
+
+export function setupAnalyticsScriptDeleteConfirmation(){
+  setupDangerConfirmation({
+    triggerSelector: '[data-action="confirm-delete-analytics-script"]',
+    modalClass: 'confirm-delete-analytics-script-modal',
+    modalIdPrefix: 'confirm-delete-analytics-script',
+    titleI18n: 'admin_analytics_scripts_delete_popup_title',
+    titleFallback: 'Usunąć skrypt analityczny?',
+    textI18n: 'admin_analytics_scripts_delete_popup_text',
+    textFallback: 'Ta operacja trwale usunie konfigurację skryptu analitycznego.',
+    detailsClass: 'confirm-delete-analytics-script-name',
+    detailsText: (trigger)=> trigger.getAttribute('data-analytics-script-name') || '',
+    cancelAction: 'cancel-delete-analytics-script',
+    submitAction: 'submit-delete-analytics-script',
+    closeAction: 'close-delete-analytics-script',
+    cancelI18n: 'admin_analytics_scripts_delete_popup_cancel',
+    cancelFallback: 'Przerwij',
+    submitI18n: 'admin_analytics_scripts_delete_popup_confirm',
+    submitFallback: 'Usuń skrypt',
     closeI18n: 'admin_close_alert',
     closeFallback: 'Zamknij alert',
   });

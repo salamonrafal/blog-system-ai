@@ -1,0 +1,27 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nowy skrypt analityczny | {{ app_name }}{% endblock %}
+
+{% block body %}
+    <section class="section">
+        <div class="card">
+            <div class="card-header">
+                <div class="window-dots" aria-hidden="true">
+                    <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                </div>
+                <span class="pill">admin://analytics-scripts/new</span>
+            </div>
+
+            <div class="dashboard-feed-intro">
+                <h1 data-i18n="admin_analytics_script_new_title">Dodaj skrypt analityczny</h1>
+                <p class="lede" data-i18n="admin_analytics_script_new_lede">Dodaj konfigurację skryptu i wskaż, na których publicznych widokach ma zostać wstrzyknięta.</p>
+            </div>
+
+            {% include 'admin/analytics_script/_form.html.twig' with {
+                form: form,
+                submit_label: 'Dodaj skrypt',
+                submit_key: 'analytics_script_form_submit_create'
+            } %}
+        </div>
+    </section>
+{% endblock %}

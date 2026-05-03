@@ -35,6 +35,8 @@ TWIG,
         $twig->addFunction(new TwigFunction('is_granted', static fn (mixed $attribute, mixed $subject = null): bool => false));
         $twig->addFunction(new TwigFunction('csrf_token', static fn (string $tokenId): string => 'token'));
         $twig->addFunction(new TwigFunction('i18n_fallback', static fn (string $id): string => $id));
+        $twig->addFunction(new TwigFunction('analytics_scripts', static fn (string $placement): array => []));
+        $twig->addFunction(new TwigFunction('analytics_script_snippet', static fn (mixed $script): string => ''));
 
         $request = new Request();
         $request->attributes->set('_route', 'app_login');
