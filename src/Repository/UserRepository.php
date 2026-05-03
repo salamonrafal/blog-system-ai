@@ -49,11 +49,14 @@ class UserRepository extends ServiceEntityRepository
         }
 
         $queryBuilder = $this->createQueryBuilder('user')
+            ->select('user.id AS id')
+            ->addSelect('user.email AS HIDDEN authorEmail')
             ->innerJoin(Article::class, 'article', 'WITH', 'article.createdBy = user')
             ->addSelect('MAX(article.updatedAt) AS HIDDEN latestArticleUpdate')
             ->groupBy('user.id')
+            ->addGroupBy('user.email')
             ->orderBy('latestArticleUpdate', 'DESC')
-            ->addOrderBy('user.email', 'ASC')
+            ->addOrderBy('authorEmail', 'ASC')
             ->setMaxResults($limit);
 
         $query = self::normalizeAuthorSearchText($query);
@@ -63,12 +66,35 @@ class UserRepository extends ServiceEntityRepository
                 ->setParameter('authorQuery', '%'.$query.'%');
         }
 
+        /** @var list<array{id: int|string}> $authorIdRows */
+        $authorIdRows = $queryBuilder
+            ->getQuery()
+            ->getScalarResult();
+
+        $authorIds = array_map(static fn (array $row): int => (int) $row['id'], $authorIdRows);
+
+        if ([] === $authorIds) {
+            return [];
+        }
+
         /** @var list<User> $users */
-        $users = $queryBuilder
+        $users = $this->createQueryBuilder('user')
+            ->andWhere('user.id IN (:authorIds)')
+            ->setParameter('authorIds', $authorIds)
             ->getQuery()
             ->getResult();
 
-        return $users;
+        $usersById = [];
+        foreach ($users as $user) {
+            $userId = $user->getId();
+            if (null !== $userId) {
+                $usersById[$userId] = $user;
+            }
+        }
+
+        return array_values(array_filter(
+            array_map(static fn (int $authorId): ?User => $usersById[$authorId] ?? null, $authorIds),
+        ));
     }
 
     public function findArticleAuthorById(int $id): ?User

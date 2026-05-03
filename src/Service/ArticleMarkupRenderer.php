@@ -385,23 +385,21 @@ final class ArticleMarkupRenderer
 
         foreach ($lines as $line) {
             $trimmed = trim($line);
-            $lineBreak = str_ends_with($trimmed, '\\');
-            $content = $lineBreak ? rtrim(substr($trimmed, 0, -1)) : $trimmed;
 
-            if ('' === $content) {
+            if ('' === $trimmed || '\\' === $trimmed) {
                 $blocks[] = '<br>';
 
                 continue;
             }
 
-            $standaloneImage = self::renderStandaloneImage($content);
+            $standaloneImage = self::renderStandaloneImage($trimmed);
             if (null !== $standaloneImage) {
                 $blocks[] = $standaloneImage;
 
                 continue;
             }
 
-            $blocks[] = '<p>'.self::renderInline($content).'</p>';
+            $blocks[] = '<p>'.self::renderInline($trimmed).'</p>';
         }
 
         return implode("\n", $blocks);
