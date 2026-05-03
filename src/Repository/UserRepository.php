@@ -62,8 +62,8 @@ class UserRepository extends ServiceEntityRepository
         $query = self::normalizeAuthorSearchText($query);
         if ('' !== $query) {
             $queryBuilder
-                ->andWhere('LOWER(user.email) LIKE :authorQuery OR user.fullNameSearch LIKE :authorQuery OR user.nicknameSearch LIKE :authorQuery')
-                ->setParameter('authorQuery', '%'.$query.'%');
+                ->andWhere("LOWER(user.email) LIKE :authorQuery ESCAPE '!' OR user.fullNameSearch LIKE :authorQuery ESCAPE '!' OR user.nicknameSearch LIKE :authorQuery ESCAPE '!'")
+                ->setParameter('authorQuery', '%'.self::escapeLikePattern($query).'%');
         }
 
         /** @var list<array{id: int|string}> $authorIdRows */
@@ -149,5 +149,10 @@ class UserRepository extends ServiceEntityRepository
     private static function normalizeAuthorSearchText(string $value): string
     {
         return mb_strtolower(trim($value), 'UTF-8');
+    }
+
+    private static function escapeLikePattern(string $value): string
+    {
+        return str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $value);
     }
 }

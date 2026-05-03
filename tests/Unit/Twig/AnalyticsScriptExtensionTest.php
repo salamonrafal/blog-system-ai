@@ -232,6 +232,8 @@ final class AnalyticsScriptExtensionTest extends TestCase
 window.VAR_PAGE_NAME_MAP = "VAR_PAGE_NAME";
 const page = VAR_PAGE_NAME;
 const logged = VAR_IS_LOGGED_USER;
+const templatePage = `${VAR_PAGE_NAME}`;
+const plainTemplatePage = `VAR_PAGE_NAME`;
 // VAR_PAGE_TYPE
 /* VAR_USER_LANGUAGE */
 </script>
@@ -242,6 +244,8 @@ HTML);
 window.VAR_PAGE_NAME_MAP = "VAR_PAGE_NAME";
 const page = "article_page_loaded_article_title";
 const logged = false;
+const templatePage = `${"article_page_loaded_article_title"}`;
+const plainTemplatePage = `"article_page_loaded_article_title"`;
 // VAR_PAGE_TYPE
 /* VAR_USER_LANGUAGE */
 </script>

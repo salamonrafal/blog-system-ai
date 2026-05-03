@@ -101,7 +101,7 @@ class AnalyticsScriptExtension extends AbstractExtension
         ));
 
         return (string) preg_replace_callback(
-            '/("(?:\\\\.|[^"\\\\])*"|\'(?:\\\\.|[^\'\\\\])*\'|`(?:\\\\.|[^`\\\\])*`|\/\/[^\n]*|\/\*.*?\*\/)|(?<![A-Za-z0-9_$])('.$variablesPattern.')(?![A-Za-z0-9_$])/s',
+            '/("(?:\\\\.|[^"\\\\])*"|\'(?:\\\\.|[^\'\\\\])*\'|\/\/[^\n]*|\/\*.*?\*\/)|(?<![A-Za-z0-9_$])('.$variablesPattern.')(?![A-Za-z0-9_$])/s',
             static function (array $matches) use ($replacements): string {
                 if (isset($matches[2]) && '' !== $matches[2]) {
                     return $replacements[$matches[2]];

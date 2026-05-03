@@ -110,6 +110,31 @@ final class UserRepositoryTest extends TestCase
         $this->assertSame('author@example.com', $authors[0]->getEmail());
     }
 
+    public function testFindForArticleAuthorFilterTreatsLikeWildcardsAsLiteralText(): void
+    {
+        $wildcardAuthor = $this->createUser('literal-percent@example.com', 'Literal 100% Match');
+        $underscoreAuthor = $this->createUser('literal-underscore@example.com', 'Literal under_score');
+        $plainAuthor = $this->createUser('plain@example.com', 'Plain Author');
+
+        $this->createArticle('Wildcard article', 'wildcard-article', $wildcardAuthor);
+        $this->createArticle('Underscore article', 'underscore-article', $underscoreAuthor);
+        $this->createArticle('Plain article', 'plain-article', $plainAuthor);
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+
+        $percentAuthors = $this->repository->findForArticleAuthorFilter('%', 10);
+        $underscoreAuthors = $this->repository->findForArticleAuthorFilter('_', 10);
+
+        $this->assertSame(['literal-percent@example.com'], array_map(
+            static fn (User $user): string => $user->getEmail(),
+            $percentAuthors,
+        ));
+        $this->assertSame(['literal-underscore@example.com'], array_map(
+            static fn (User $user): string => $user->getEmail(),
+            $underscoreAuthors,
+        ));
+    }
+
     public function testFindArticleAuthorByIdOnlyReturnsUsersWhoAuthoredArticles(): void
     {
         $author = $this->createUser('author@example.com', 'Author');
