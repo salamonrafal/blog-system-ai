@@ -179,8 +179,8 @@ class AnalyticsScript
                 ->addViolation();
         }
 
-        foreach (['</head', '</body', '</html'] as $blockedTag) {
-            if (str_contains($script, $blockedTag)) {
+        foreach (['head', 'body', 'html'] as $blockedTag) {
+            if (1 === preg_match(sprintf('/<\/%s\b/i', $blockedTag), $this->script)) {
                 $context
                     ->buildViolation('validation_analytics_script_snippet_disallowed_document_tag')
                     ->atPath('script')

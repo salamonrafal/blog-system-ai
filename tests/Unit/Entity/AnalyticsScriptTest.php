@@ -83,6 +83,23 @@ final class AnalyticsScriptTest extends TestCase
         $this->assertContains('validation_analytics_script_snippet_disallowed_document_tag', $messages);
     }
 
+    public function testSnippetAllowsTagsThatOnlyStartLikeBlockedDocumentTags(): void
+    {
+        $validator = Validation::createValidatorBuilder()
+            ->enableAttributeMapping()
+            ->getValidator();
+
+        $script = (new AnalyticsScript())
+            ->setPageName('safe_similar_tags')
+            ->setName('Safe similar tags')
+            ->setScript('<script>document.write("</header></bodyguard></htmlish>");</script>');
+
+        $violations = $validator->validate($script);
+        $messages = array_map(static fn ($violation): string => $violation->getMessage(), iterator_to_array($violations));
+
+        $this->assertNotContains('validation_analytics_script_snippet_disallowed_document_tag', $messages);
+    }
+
     public function testPageNameMustBeMachineReadable(): void
     {
         $validator = Validation::createValidatorBuilder()
