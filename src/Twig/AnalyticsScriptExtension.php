@@ -87,7 +87,20 @@ class AnalyticsScriptExtension extends AbstractExtension
 
     public function renderAnalyticsScriptSnippet(AnalyticsScript $script): string
     {
-        return self::replaceStandaloneVariables($script->getScript(), $this->getVariableReplacements());
+        $replacements = $this->getVariableReplacements();
+        $snippet = $script->getScript();
+
+        if (1 !== preg_match('/<script\b[^>]*>.*?<\/script\s*>/is', $snippet)) {
+            return self::replaceStandaloneVariables($snippet, $replacements);
+        }
+
+        return (string) preg_replace_callback(
+            '/(<script\b[^>]*>)(.*?)(<\/script\s*>)/is',
+            static function (array $matches) use ($replacements): string {
+                return $matches[1].self::replaceStandaloneVariables($matches[2], $replacements).$matches[3];
+            },
+            $snippet,
+        );
     }
 
     /**
@@ -101,7 +114,7 @@ class AnalyticsScriptExtension extends AbstractExtension
         ));
 
         return (string) preg_replace_callback(
-            '/("(?:\\\\.|[^"\\\\])*"|\'(?:\\\\.|[^\'\\\\])*\'|\/\/[^\n]*|\/\*.*?\*\/)|(?<![A-Za-z0-9_$])('.$variablesPattern.')(?![A-Za-z0-9_$])/s',
+            '/("(?:\\\\.|[^"\\\\])*"|\'(?:\\\\.|[^\'\\\\])*\'|\/\/[^\n]*|\/\*.*?\*\/|\/(?:\\\\.|\\[(?:\\\\.|[^\\\\\]])*\\]|[^\/\\\\\n])+\/[a-z]*)|(?<![A-Za-z0-9_$])('.$variablesPattern.')(?![A-Za-z0-9_$])/s',
             static function (array $matches) use ($replacements): string {
                 if (isset($matches[2]) && '' !== $matches[2]) {
                     return $replacements[$matches[2]];

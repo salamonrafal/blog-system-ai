@@ -234,6 +234,8 @@ const page = VAR_PAGE_NAME;
 const logged = VAR_IS_LOGGED_USER;
 const templatePage = `${VAR_PAGE_NAME}`;
 const plainTemplatePage = `VAR_PAGE_NAME`;
+const pagePattern = /VAR_PAGE_NAME/;
+const escapedPattern = /prefix\/VAR_PAGE_TYPE/i;
 // VAR_PAGE_TYPE
 /* VAR_USER_LANGUAGE */
 </script>
@@ -246,10 +248,37 @@ const page = "article_page_loaded_article_title";
 const logged = false;
 const templatePage = `${"article_page_loaded_article_title"}`;
 const plainTemplatePage = `"article_page_loaded_article_title"`;
+const pagePattern = /VAR_PAGE_NAME/;
+const escapedPattern = /prefix\/VAR_PAGE_TYPE/i;
 // VAR_PAGE_TYPE
 /* VAR_USER_LANGUAGE */
 </script>
 HTML, $extension->renderAnalyticsScriptSnippet($script));
+    }
+
+    public function testDoesNotReplaceAnalyticsVariablesInsideScriptTagAttributes(): void
+    {
+        $repository = $this->createMock(AnalyticsScriptRepository::class);
+        $requestStack = new RequestStack();
+        $request = new Request();
+        $request->attributes->set('_route', 'blog_show');
+        $request->attributes->set(AnalyticsScriptExtension::REQUEST_ATTRIBUTE_PAGE_TYPE, 'article');
+        $request->attributes->set(AnalyticsScriptExtension::REQUEST_ATTRIBUTE_PAGE_NAME_BASE, 'Loaded Article Title');
+        $requestStack->push($request);
+
+        $extension = $this->createExtension(
+            $repository,
+            $requestStack,
+            languageResolver: new UserLanguageResolver($requestStack),
+        );
+        $script = (new AnalyticsScript())->setScript(
+            '<script src="https://example.com/pixel.js?page=VAR_PAGE_NAME" data-type="VAR_PAGE_TYPE">window.page = VAR_PAGE_NAME;</script>',
+        );
+
+        $this->assertSame(
+            '<script src="https://example.com/pixel.js?page=VAR_PAGE_NAME" data-type="VAR_PAGE_TYPE">window.page = "article_page_loaded_article_title";</script>',
+            $extension->renderAnalyticsScriptSnippet($script),
+        );
     }
 
     public function testResolvesAnalyticsVariablesPerCurrentRequest(): void
