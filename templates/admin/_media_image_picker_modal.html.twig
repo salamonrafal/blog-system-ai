@@ -1,0 +1,69 @@
+<div
+    id="{{ modal_id }}"
+    class="confirm-delete-modal headline-image-picker-modal"
+    {{ modal_data_attribute|e('html_attr') }}
+    data-media-image-picker-select-label-key="{{ translation_prefix }}_select"
+    data-media-image-picker-empty-key="{{ translation_prefix }}_empty"
+    data-media-image-picker-no-results-key="{{ translation_prefix }}_no_results"
+    {% if endpoint_data_attribute is defined and endpoint_data_attribute and endpoint_path is defined and endpoint_path %}
+        {{ endpoint_data_attribute|e('html_attr') }}="{{ endpoint_path }}"
+    {% endif %}
+    hidden
+    aria-hidden="true"
+>
+    <div
+        class="confirm-delete-dialog headline-image-picker-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="{{ title_id }}"
+        aria-describedby="{{ text_id }}"
+    >
+        <div class="confirm-delete-topbar">
+            <div class="confirm-delete-eyebrow" data-i18n="{{ translation_prefix }}_eyebrow">{{ i18n_fallback(translation_prefix ~ '_eyebrow') }}</div>
+            <button
+                type="button"
+                class="confirm-delete-close"
+                data-action="close-media-image-picker"
+                data-i18n-aria="{{ translation_prefix }}_close"
+                aria-label="{{ i18n_fallback(translation_prefix ~ '_close') }}"
+            >
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <h2 id="{{ title_id }}" class="confirm-delete-title" data-i18n="{{ translation_prefix }}_title">{{ i18n_fallback(translation_prefix ~ '_title') }}</h2>
+        <p id="{{ text_id }}" class="confirm-delete-text" data-i18n="{{ translation_prefix }}_text">{{ i18n_fallback(translation_prefix ~ '_text') }}</p>
+        <div class="headline-image-picker-toolbar">
+            <div class="headline-image-picker-search">
+                <label for="{{ control_id_base }}-picker-search" class="sr-only" data-i18n="{{ translation_prefix }}_search_label">{{ i18n_fallback(translation_prefix ~ '_search_label') }}</label>
+                <input
+                    id="{{ control_id_base }}-picker-search"
+                    type="search"
+                    class="article-editor-input headline-image-picker-search-input"
+                    {{ search_data_attribute|e('html_attr') }}
+                    data-i18n-placeholder="{{ translation_prefix }}_search_placeholder"
+                    placeholder="{{ i18n_fallback(translation_prefix ~ '_search_placeholder') }}"
+                    autocomplete="off"
+                    spellcheck="false"
+                >
+            </div>
+            <div class="headline-image-picker-sort">
+                <label for="{{ control_id_base }}-picker-sort" class="sr-only" data-i18n="{{ translation_prefix }}_sort_label">{{ i18n_fallback(translation_prefix ~ '_sort_label') }}</label>
+                <select
+                    id="{{ control_id_base }}-picker-sort"
+                    class="article-editor-input article-editor-select headline-image-picker-sort-select"
+                    {{ sort_data_attribute|e('html_attr') }}
+                    data-i18n-aria="{{ translation_prefix }}_sort_label"
+                    aria-label="{{ i18n_fallback(translation_prefix ~ '_sort_label') }}"
+                >
+                    <option value="desc" data-i18n="{{ translation_prefix }}_sort_desc">{{ i18n_fallback(translation_prefix ~ '_sort_desc') }}</option>
+                    <option value="asc" data-i18n="{{ translation_prefix }}_sort_asc">{{ i18n_fallback(translation_prefix ~ '_sort_asc') }}</option>
+                </select>
+            </div>
+        </div>
+        <div class="media-gallery-grid headline-image-picker-grid" {{ grid_data_attribute|e('html_attr') }} role="listbox" data-i18n-aria="{{ translation_prefix }}_grid_aria" aria-label="{{ i18n_fallback(translation_prefix ~ '_grid_aria') }}"></div>
+        <p class="meta headline-image-picker-empty-results" {{ empty_results_data_attribute|e('html_attr') }} role="status" aria-live="polite" aria-atomic="true" hidden>{{ i18n_fallback(translation_prefix ~ '_empty') }}</p>
+        <div class="confirm-delete-actions">
+            <button type="button" class="button secondary" data-action="close-media-image-picker" data-i18n="{{ translation_prefix }}_close">{{ i18n_fallback(translation_prefix ~ '_close') }}</button>
+        </div>
+    </div>
+</div>

@@ -720,8 +720,9 @@ export function setupHeadlineImagePicker(){
 
       if(previewImage instanceof HTMLImageElement){
         if(hasValue){
+          const previewAltKey = previewImage.getAttribute('data-headline-image-preview-alt-key') || 'form_headline_image_preview_alt';
           previewImage.src = previewValue;
-          previewImage.alt = getTranslation('form_headline_image_preview_alt');
+          previewImage.alt = getTranslation(previewAltKey);
         }else{
           previewImage.removeAttribute('src');
         }
@@ -751,6 +752,9 @@ export function setupHeadlineImagePicker(){
       onSelect: ({ path })=>{
         updateInputValue(path);
       },
+      selectLabelKey: modal?.getAttribute('data-media-image-picker-select-label-key') || undefined,
+      emptyKey: modal?.getAttribute('data-media-image-picker-empty-key') || undefined,
+      noResultsKey: modal?.getAttribute('data-media-image-picker-no-results-key') || undefined,
     });
 
     openButton?.addEventListener('click', ()=>{
@@ -758,7 +762,7 @@ export function setupHeadlineImagePicker(){
     });
 
     clearButton?.addEventListener('click', ()=>{
-      updateInputValue('');
+      updateInputValue(clearButton.getAttribute('data-clear-headline-image-value') || '');
     });
 
     toggle?.addEventListener('change', syncPreview);
@@ -914,6 +918,98 @@ function setupTabbedPanels(rootSelector, tabAttribute, panelAttribute){
 
 export function setupDashboardCarousels(){
   setupTabbedPanels('[data-dashboard-carousel]', 'data-dashboard-carousel-tab', 'data-dashboard-carousel-panel');
+}
+
+let activeAnalyticsVariablesModalClose = null;
+let analyticsVariablesEscapeHandlerRegistered = false;
+
+export function setupAnalyticsScriptVariables(){
+  if(!analyticsVariablesEscapeHandlerRegistered){
+    document.addEventListener('keydown', (event)=>{
+      if(event.key !== 'Escape' || typeof activeAnalyticsVariablesModalClose !== 'function') return;
+
+      event.preventDefault();
+      activeAnalyticsVariablesModalClose();
+    });
+    analyticsVariablesEscapeHandlerRegistered = true;
+  }
+
+  qsa('[data-analytics-variables-help-modal]').forEach((modal)=>{
+    if(modal.dataset.analyticsVariablesHelpInitialized === 'true') return;
+    modal.dataset.analyticsVariablesHelpInitialized = 'true';
+
+    const field = modal.closest('.article-editor-field');
+    const dialog = qs('.analytics-script-variables-dialog', modal);
+    const openButton = field ? qs('[data-action="open-analytics-variables-help"]', field) : null;
+    const closeButtons = qsa('[data-action="close-analytics-variables-help"]', modal);
+
+    const closeModal = ()=>{
+      modal.setAttribute('hidden', '');
+      modal.setAttribute('aria-hidden', 'true');
+      unlockDocumentScroll();
+      if(activeAnalyticsVariablesModalClose === closeModal){
+        activeAnalyticsVariablesModalClose = null;
+      }
+      openButton?.focus({ preventScroll: true });
+    };
+
+    const openModal = ()=>{
+      if(!modal.hasAttribute('hidden')) return;
+
+      if(typeof activeAnalyticsVariablesModalClose === 'function' && activeAnalyticsVariablesModalClose !== closeModal){
+        activeAnalyticsVariablesModalClose();
+      }
+
+      modal.removeAttribute('hidden');
+      modal.setAttribute('aria-hidden', 'false');
+      activeAnalyticsVariablesModalClose = closeModal;
+      lockDocumentScroll();
+      if(dialog instanceof HTMLElement){
+        dialog.setAttribute('tabindex', '-1');
+        dialog.focus({ preventScroll: true });
+      }
+    };
+
+    openButton?.addEventListener('click', openModal);
+    closeButtons.forEach((button)=>{
+      button.addEventListener('click', closeModal);
+    });
+
+    modal.addEventListener('click', (event)=>{
+      if(event.target === modal){
+        closeModal();
+      }
+    });
+
+    dialog?.addEventListener('click', (event)=>{
+      event.stopPropagation();
+    });
+  });
+
+  qsa('[data-action="insert-analytics-variable"]').forEach((button)=>{
+    if(button.dataset.analyticsVariableInsertInitialized === 'true') return;
+    button.dataset.analyticsVariableInsertInitialized = 'true';
+
+    button.addEventListener('click', ()=>{
+      const variableName = button.getAttribute('data-analytics-variable') || '';
+      if(!variableName) return;
+
+      const form = button.closest('form');
+      const input = form ? qs('[data-analytics-script-input]', form) : qs('[data-analytics-script-input]');
+      if(!(input instanceof HTMLTextAreaElement)) return;
+
+      const selectionStart = input.selectionStart;
+      const selectionEnd = input.selectionEnd;
+      const prefix = input.value.slice(0, selectionStart);
+      const suffix = input.value.slice(selectionEnd);
+      input.value = `${prefix}${variableName}${suffix}`;
+      input.focus();
+      input.selectionStart = selectionStart + variableName.length;
+      input.selectionEnd = input.selectionStart;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+  });
 }
 
 export function setupTranslationTabs(){
@@ -1219,6 +1315,12 @@ export function setupAdminListingFilters(){
 
   const closeDropdown = (entry, { restoreFocus = false } = {})=>{
     if(!entry?.dropdown) return;
+    if(typeof entry.cancelRemoteSearch === 'function'){
+      entry.cancelRemoteSearch();
+    }
+    if(typeof entry.resetRemoteSearch === 'function'){
+      entry.resetRemoteSearch();
+    }
     entry.dropdown.classList.remove('is-open');
     const trigger = qs('[data-listing-filter-trigger]', entry.dropdown);
     const panel = getPanel(entry);
@@ -1246,10 +1348,145 @@ export function setupAdminListingFilters(){
   dropdownEntries.forEach((entry)=>{
     const { dropdown } = entry;
     const trigger = qs('[data-listing-filter-trigger]', dropdown);
-    const hiddenInput = qs('[data-listing-filter-input]', dropdown.closest('form'));
+    const filterName = dropdown.getAttribute('data-listing-filter-dropdown');
+    const remoteEndpoint = dropdown.getAttribute('data-listing-filter-endpoint') || '';
+    const noResultsKey = dropdown.getAttribute('data-listing-filter-no-results-i18n') || '';
+    const noResultsMessage = dropdown.getAttribute('data-listing-filter-no-results') || '';
+    const form = dropdown.closest('form');
+    const hiddenInput = filterName
+      ? qs(`[data-listing-filter-input="${filterName}"]`, form)
+      : qs('[data-listing-filter-input]', form);
     const panel = qs('.article-index-filter-options', dropdown);
-    const options = qsa('[data-listing-filter-option]', dropdown);
-    if(!trigger || !hiddenInput || !panel || !options.length) return;
+    const searchInput = qs('[data-listing-filter-search-input]', panel);
+    const resultsContainer = qs('[data-listing-filter-results]', panel);
+    const initialRemoteResultsHtml = resultsContainer?.innerHTML ?? '';
+    let searchDebounceId = 0;
+    let searchAbortController = null;
+    let searchRequestId = 0;
+    if(!trigger || !hiddenInput || !panel) return;
+
+    const invalidateRemoteSearch = ()=>{
+      searchRequestId += 1;
+
+      if(searchAbortController instanceof AbortController){
+        searchAbortController.abort();
+        searchAbortController = null;
+      }
+    };
+
+    entry.cancelRemoteSearch = ()=>{
+      window.clearTimeout(searchDebounceId);
+      searchDebounceId = 0;
+      invalidateRemoteSearch();
+    };
+
+    entry.resetRemoteSearch = ()=>{
+      if(searchInput instanceof HTMLInputElement){
+        searchInput.value = '';
+      }
+
+      if(resultsContainer){
+        resultsContainer.innerHTML = initialRemoteResultsHtml;
+      }
+
+      scheduleFloatingPanelSync();
+    };
+
+    const getOptions = ()=> qsa('[data-listing-filter-option]', panel);
+
+    const renderRemoteOptions = (items)=>{
+      if(!resultsContainer) return;
+
+      resultsContainer.innerHTML = '';
+
+      if(!items.length && noResultsMessage){
+        const empty = document.createElement('p');
+        empty.className = 'article-index-filter-empty';
+        empty.setAttribute('role', 'status');
+        if(noResultsKey){
+          empty.setAttribute('data-i18n', noResultsKey);
+        }
+        empty.textContent = noResultsKey
+          ? getTranslation(noResultsKey) || noResultsMessage
+          : noResultsMessage;
+        resultsContainer.appendChild(empty);
+        scheduleFloatingPanelSync();
+        return;
+      }
+
+      items.forEach((item)=>{
+        const id = String(item?.id ?? '');
+        const label = String(item?.label ?? '').trim();
+        if(!id || !label) return;
+
+        const option = document.createElement('button');
+        option.type = 'button';
+        option.className = `article-index-filter-option${hiddenInput.value === id ? ' is-selected' : ''}`;
+        option.setAttribute('data-listing-filter-option', '');
+        option.setAttribute('data-value', id);
+        option.textContent = label;
+        resultsContainer.appendChild(option);
+      });
+
+      scheduleFloatingPanelSync();
+    };
+
+    const loadRemoteOptions = async ()=>{
+      if(!remoteEndpoint || !(searchInput instanceof HTMLInputElement)) return;
+
+      if(searchAbortController instanceof AbortController){
+        searchAbortController.abort();
+      }
+
+      const params = new URLSearchParams({
+        q: searchInput.value.trim(),
+      });
+      if(filterName && hiddenInput.value){
+        params.set(filterName, hiddenInput.value);
+      }
+      const requestId = searchRequestId + 1;
+      const abortController = new AbortController();
+      searchRequestId = requestId;
+      searchAbortController = abortController;
+
+      try{
+        const response = await fetch(`${remoteEndpoint}?${params.toString()}`, {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+          },
+          signal: abortController.signal,
+        });
+
+        if(!response.ok){
+          throw new Error(`Unexpected listing filter response: ${response.status}`);
+        }
+
+        const payload = await response.json();
+        const options = Array.isArray(payload?.options)
+          ? payload.options
+          : Array.isArray(payload?.authors)
+            ? payload.authors
+            : [];
+        if(requestId !== searchRequestId){
+          return;
+        }
+
+        renderRemoteOptions(options);
+      }catch(error){
+        if(error instanceof DOMException && error.name === 'AbortError'){
+          return;
+        }
+      }
+    };
+
+    const requestRemoteOptions = ()=>{
+      window.clearTimeout(searchDebounceId);
+      invalidateRemoteSearch();
+      searchDebounceId = window.setTimeout(()=>{
+        void loadRemoteOptions();
+      }, 160);
+    };
 
     const open = ()=>{
       dropdown.classList.add('is-open');
@@ -1257,6 +1494,12 @@ export function setupAdminListingFilters(){
       panel.hidden = false;
       panel.setAttribute('aria-hidden', 'false');
       floatPanel(entry, panel);
+      if(searchInput instanceof HTMLElement){
+        searchInput.focus({ preventScroll: true });
+        return;
+      }
+
+      const options = getOptions();
       const selectedOption = qs('.article-index-filter-option.is-selected', panel) || options[0];
       selectedOption?.focus({ preventScroll: true });
     };
@@ -1273,11 +1516,23 @@ export function setupAdminListingFilters(){
       }
     });
 
-    options.forEach((option)=>{
-      option.addEventListener('click', ()=>{
-        hiddenInput.value = option.getAttribute('data-value') || '';
-        dropdown.closest('form')?.submit();
-      });
+    panel.addEventListener('click', (event)=>{
+      const target = event.target instanceof Element ? event.target : null;
+      const option = target ? target.closest('[data-listing-filter-option]') : null;
+      if(!(option instanceof HTMLElement) || !panel.contains(option)) return;
+
+      hiddenInput.value = option.getAttribute('data-value') || '';
+      dropdown.closest('form')?.submit();
+    });
+
+    searchInput?.addEventListener('input', requestRemoteOptions);
+    searchInput?.addEventListener('search', requestRemoteOptions);
+    searchInput?.addEventListener('keydown', (event)=>{
+      if(event.key === 'Enter'){
+        event.preventDefault();
+        window.clearTimeout(searchDebounceId);
+        void loadRemoteOptions();
+      }
     });
   });
 
@@ -1518,6 +1773,29 @@ export function setupArticleKeywordDeleteConfirmation(){
     cancelFallback: 'Przerwij',
     submitI18n: 'admin_article_keywords_delete_popup_confirm',
     submitFallback: 'Usuń słowo kluczowe',
+    closeI18n: 'admin_close_alert',
+    closeFallback: 'Zamknij alert',
+  });
+}
+
+export function setupAnalyticsScriptDeleteConfirmation(){
+  setupDangerConfirmation({
+    triggerSelector: '[data-action="confirm-delete-analytics-script"]',
+    modalClass: 'confirm-delete-analytics-script-modal',
+    modalIdPrefix: 'confirm-delete-analytics-script',
+    titleI18n: 'admin_analytics_scripts_delete_popup_title',
+    titleFallback: 'Usunąć skrypt analityczny?',
+    textI18n: 'admin_analytics_scripts_delete_popup_text',
+    textFallback: 'Ta operacja trwale usunie konfigurację skryptu analitycznego.',
+    detailsClass: 'confirm-delete-analytics-script-name',
+    detailsText: (trigger)=> trigger.getAttribute('data-analytics-script-name') || '',
+    cancelAction: 'cancel-delete-analytics-script',
+    submitAction: 'submit-delete-analytics-script',
+    closeAction: 'close-delete-analytics-script',
+    cancelI18n: 'admin_analytics_scripts_delete_popup_cancel',
+    cancelFallback: 'Przerwij',
+    submitI18n: 'admin_analytics_scripts_delete_popup_confirm',
+    submitFallback: 'Usuń skrypt',
     closeI18n: 'admin_close_alert',
     closeFallback: 'Zamknij alert',
   });

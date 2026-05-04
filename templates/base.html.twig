@@ -6,7 +6,7 @@
     <meta name="description" content="{% block meta_description %}{{ blog_settings.homepageSeoDescription }}{% endblock %}">
     <meta name="keywords" content="{% block meta_keywords %}{{ blog_settings.homepageSeoKeywords }}{% endblock %}">
     <meta name="robots" content="{% block meta_robots %}index,follow,max-image-preview:large{% endblock %}">
-    <meta name="author" content="Rafał Salamon">
+    <meta name="author" content="{{ blog_settings.metaAuthor }}">
     <meta name="theme-color" content="#0b0f12">
     <script>
         (function() {
@@ -51,17 +51,20 @@
     <meta property="og:locale" content="{{ og_locale }}">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="{{ app_name }}">
-    <meta property="og:title" content="{% block og_title %}{% block title %}{{ app_name }}{% endblock %}{% endblock %}">
+    <meta property="og:title" content="{% apply trim %}{% block og_title %}{{ block('title') }}{% endblock %}{% endapply %}">
     <meta property="og:description" content="{% block og_description %}{{ block('meta_description') }}{% endblock %}">
     <meta property="og:url" content="{% block og_url %}{{ app_url ~ path('blog_index') }}{% endblock %}">
     <meta property="og:image" content="{% block og_image %}{{ blog_settings.resolvedHomepageSocialImage }}{% endblock %}">
 
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{% block twitter_title %}{{ block('og_title') }}{% endblock %}">
+    <meta name="twitter:title" content="{% apply trim %}{% block twitter_title %}{{ block('og_title') }}{% endblock %}{% endapply %}">
     <meta name="twitter:description" content="{% block twitter_description %}{{ block('og_description') }}{% endblock %}">
     <meta name="twitter:image" content="{% block twitter_image %}{{ block('og_image') }}{% endblock %}">
 
-    <title>{{ block('title') }}</title>
+    <title>{% apply trim %}{% block title %}{{ app_name }}{% endblock %}{% endapply %}</title>
+    {% for analytics_script in analytics_scripts('head') %}
+        {{ analytics_script_snippet(analytics_script) }}
+    {% endfor %}
 </head>
 
 {% set route_name = app.request.attributes.get('_route')|default('') %}
@@ -83,10 +86,11 @@
 {% set is_users_shortcut_active = route_name starts with 'admin_user_' %}
 {% set is_import_export_shortcut_active = route_name == 'admin_queue_status' or route_name starts with 'admin_article_import_' or route_name starts with 'admin_article_keyword_import_' or route_name starts with 'admin_category_import_' or route_name starts with 'admin_top_menu_import_' or route_name starts with 'admin_article_export_' %}
 {% set is_blog_settings_shortcut_active = route_name == 'admin_blog_settings' %}
+{% set is_analytics_script_shortcut_active = route_name starts with 'admin_analytics_script_' %}
 {% set page_title_i18n_key = page_title_i18n_key|default('') %}
 
 <body
-    data-page-title="{% block page_title %}{{ block('title') }}{% endblock %}"
+    data-page-title="{% apply trim %}{% block page_title %}{{ block('title') }}{% endblock %}{% endapply %}"
     {% if page_title_i18n_key is not empty %}
         data-page-title-i18n="{{ page_title_i18n_key }}"
         data-i18n-param-app_name="{{ app_name }}"
@@ -575,6 +579,38 @@ Fullstack Developer</span>
                             </a>
                         </div>
                     </div>
+                    <div class="admin-shortcuts-submenu" data-admin-shortcuts-submenu data-route-active="{{ is_analytics_script_shortcut_active ? 'true' : 'false' }}">
+                        <button type="button" class="admin-shortcuts-link admin-shortcuts-button admin-shortcuts-submenu-trigger{{ is_analytics_script_shortcut_active ? ' is-active' : '' }}" data-action="toggle-admin-submenu" aria-haspopup="true" aria-expanded="false" aria-controls="admin-shortcuts-advanced-panel">
+                            <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                                <svg viewBox="0 0 32 32">
+                                    <path d="M8 8h16"></path>
+                                    <path d="M8 16h10"></path>
+                                    <path d="M8 24h14"></path>
+                                    <circle cx="24" cy="16" r="3"></circle>
+                                </svg>
+                            </span>
+                            <span data-i18n="admin_shortcut_advanced_title">Zaawansowane</span>
+                            <span class="admin-shortcuts-submenu-caret" aria-hidden="true">
+                                <svg viewBox="0 0 32 32">
+                                    <path d="M10 13l6 6 6-6"></path>
+                                </svg>
+                            </span>
+                        </button>
+                        <div class="admin-shortcuts-submenu-panel" id="admin-shortcuts-advanced-panel" data-i18n-aria="admin_shortcut_advanced_title" aria-label="Zaawansowane">
+                            <a class="admin-shortcuts-link admin-shortcuts-sublink{{ is_analytics_script_shortcut_active ? ' is-active' : '' }}" href="{{ path('admin_analytics_script_index') }}"{% if is_analytics_script_shortcut_active %} aria-current="page"{% endif %}>
+                                <span class="admin-shortcuts-link-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 32 32">
+                                        <path d="M8 9h16"></path>
+                                        <path d="M8 16h11"></path>
+                                        <path d="M8 23h8"></path>
+                                        <path d="M21 19l-3 3 3 3"></path>
+                                        <path d="M24 19l3 3-3 3"></path>
+                                    </svg>
+                                </span>
+                                <span data-i18n="admin_shortcut_analytics_scripts">Skrypty analityczne</span>
+                            </a>
+                        </div>
+                    </div>
                     <a class="admin-shortcuts-link" href="{{ path('app_logout') }}">
                         <span class="admin-shortcuts-link-icon" aria-hidden="true">
                             <svg viewBox="0 0 32 32">
@@ -733,5 +769,8 @@ Fullstack Developer</span>
 {% else %}
     <script type="module" src="/assets/js/app.js"></script>
 {% endif %}
+{% for analytics_script in analytics_scripts('body_end') %}
+    {{ analytics_script_snippet(analytics_script) }}
+{% endfor %}
 </body>
 </html>

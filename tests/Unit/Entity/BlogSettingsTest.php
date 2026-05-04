@@ -15,6 +15,7 @@ final class BlogSettingsTest extends TestCase
         $settings = (new BlogSettings())
             ->setAppUrl('  https://example.com/  ')
             ->setBlogTitle('  Moj Blog AI  ')
+            ->setMetaAuthor('  Jan Kowalski  ')
             ->setPreferenceCookieDomainOverride(' Example.com. ')
             ->setHomepageSeoDescription('  Opis strony glownej  ')
             ->setHomepageSocialImage('  /assets/img/blog-share.png  ')
@@ -24,6 +25,7 @@ final class BlogSettingsTest extends TestCase
 
         $this->assertSame('https://example.com', $settings->getAppUrl());
         $this->assertSame('Moj Blog AI', $settings->getBlogTitle());
+        $this->assertSame('Jan Kowalski', $settings->getMetaAuthor());
         $this->assertSame('Opis strony glownej', $settings->getHomepageSeoDescription());
         $this->assertSame('/assets/img/blog-share.png', $settings->getHomepageSocialImage());
         $this->assertSame('https://example.com/assets/img/blog-share.png', $settings->getResolvedHomepageSocialImage());
@@ -40,6 +42,7 @@ final class BlogSettingsTest extends TestCase
 
         $this->assertSame(BlogSettings::DEFAULT_APP_URL, $settings->getAppUrl());
         $this->assertSame(BlogSettings::DEFAULT_BLOG_TITLE, $settings->getBlogTitle());
+        $this->assertSame(BlogSettings::DEFAULT_META_AUTHOR, $settings->getMetaAuthor());
         $this->assertSame(BlogSettings::DEFAULT_SEO_DESCRIPTION, $settings->getHomepageSeoDescription());
         $this->assertSame(BlogSettings::DEFAULT_SOCIAL_IMAGE, $settings->getHomepageSocialImage());
         $this->assertSame(BlogSettings::DEFAULT_SOCIAL_IMAGE, $settings->getResolvedHomepageSocialImage());
@@ -111,6 +114,7 @@ final class BlogSettingsTest extends TestCase
         $missingHostViolations = $validator->validate((new BlogSettings())->setAppUrl('https:///'));
         $pathViolations = $validator->validate((new BlogSettings())->setAppUrl('https://example.com/blog'));
         $emptyTitleViolations = $validator->validate((new BlogSettings())->setBlogTitle(''));
+        $emptyMetaAuthorViolations = $validator->validate((new BlogSettings())->setMetaAuthor(''));
         $invalidCookieDomainViolations = $validator->validate((new BlogSettings())->setPreferenceCookieDomainOverride('.localhost'));
         $invalidCookieDomainWithSemicolonViolations = $validator->validate((new BlogSettings())->setPreferenceCookieDomainOverride('.example.com;secure'));
         $invalidCookieDomainWithUnderscoreViolations = $validator->validate((new BlogSettings())->setPreferenceCookieDomainOverride('.exa_mple.com'));
@@ -128,6 +132,10 @@ final class BlogSettingsTest extends TestCase
         $emptyTitleMessages = array_map(
             static fn (mixed $violation): string => $violation->getMessage(),
             iterator_to_array($emptyTitleViolations)
+        );
+        $emptyMetaAuthorMessages = array_map(
+            static fn (mixed $violation): string => $violation->getMessage(),
+            iterator_to_array($emptyMetaAuthorViolations)
         );
         $invalidCookieDomainMessages = array_map(
             static fn (mixed $violation): string => $violation->getMessage(),
@@ -153,6 +161,7 @@ final class BlogSettingsTest extends TestCase
         $this->assertContains('validation_blog_settings_app_url_origin_invalid', $missingHostMessages);
         $this->assertContains('validation_blog_settings_app_url_origin_only', $pathMessages);
         $this->assertContains('validation_blog_settings_blog_title_required', $emptyTitleMessages);
+        $this->assertContains('validation_blog_settings_meta_author_required', $emptyMetaAuthorMessages);
         $this->assertContains('validation_blog_settings_preference_cookie_domain_invalid', $invalidCookieDomainMessages);
         $this->assertContains('validation_blog_settings_preference_cookie_domain_invalid', $invalidCookieDomainWithSemicolonMessages);
         $this->assertContains('validation_blog_settings_preference_cookie_domain_invalid', $invalidCookieDomainWithUnderscoreMessages);

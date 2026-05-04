@@ -19,6 +19,7 @@ use App\Service\ArticleMarkupRenderer;
 use App\Service\BlogSettingsProvider;
 use App\Service\PaginationBuilder;
 use App\Service\UserLanguageResolver;
+use App\Twig\AnalyticsScriptExtension;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -99,6 +100,8 @@ final class BlogControllerTest extends TestCase
         $this->assertSame('programowanie-php', $controller->capturedParameters['categories'][0]['slug']);
         $this->assertSame([1, 2], $controller->capturedParameters['pagination_items']);
         $this->assertSame('PHP', $controller->capturedParameters['categories'][0]['category']->getLocalizedTitle('pl'));
+        $this->assertSame('blog_index', $request->attributes->get(AnalyticsScriptExtension::REQUEST_ATTRIBUTE_PAGE_TYPE));
+        $this->assertSame('blog_index', $request->attributes->get(AnalyticsScriptExtension::REQUEST_ATTRIBUTE_PAGE_NAME_BASE));
         $this->assertSame([
             [
                 'keyword' => $keyword,
@@ -178,6 +181,8 @@ final class BlogControllerTest extends TestCase
         $this->assertSame('Artificial Intelligence', $controller->capturedParameters['current_category']->getLocalizedTitle('en'));
         $this->assertSame('Articles about AI and machine learning.', $controller->capturedParameters['current_category']->getLocalizedDescription('en'));
         $this->assertNull($controller->capturedParameters['top_keywords']);
+        $this->assertSame('category', $request->attributes->get(AnalyticsScriptExtension::REQUEST_ATTRIBUTE_PAGE_TYPE));
+        $this->assertSame('Artificial Intelligence', $request->attributes->get(AnalyticsScriptExtension::REQUEST_ATTRIBUTE_PAGE_NAME_BASE));
     }
 
     public function testCategoryThrowsNotFoundWhenSlugDoesNotMatchActiveCategory(): void
@@ -251,8 +256,9 @@ final class BlogControllerTest extends TestCase
             ->method('getLanguage')
             ->willReturn('en');
 
+        $request = new Request();
         $controller = new TestBlogController();
-        $response = $controller->show('article', $articleRepository, $userLanguageResolver, new ArticleMarkupRenderer());
+        $response = $controller->show('article', $request, $articleRepository, $userLanguageResolver, new ArticleMarkupRenderer());
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
         $this->assertSame('blog/show.html.twig', $controller->capturedView);
@@ -264,6 +270,8 @@ final class BlogControllerTest extends TestCase
         $this->assertSame([], $controller->capturedParameters['article_keywords']);
         $this->assertSame([], $controller->capturedParameters['recommended_articles']);
         $this->assertSame([], $controller->capturedParameters['table_of_contents']);
+        $this->assertSame('article', $request->attributes->get(AnalyticsScriptExtension::REQUEST_ATTRIBUTE_PAGE_TYPE));
+        $this->assertSame('Article', $request->attributes->get(AnalyticsScriptExtension::REQUEST_ATTRIBUTE_PAGE_NAME_BASE));
     }
 
     public function testShowDoesNotExposeCategoryRouteParamsForInactiveCategory(): void
@@ -296,7 +304,7 @@ final class BlogControllerTest extends TestCase
             ->method('getLanguage');
 
         $controller = new TestBlogController();
-        $response = $controller->show('article', $articleRepository, $userLanguageResolver, new ArticleMarkupRenderer());
+        $response = $controller->show('article', new Request(), $articleRepository, $userLanguageResolver, new ArticleMarkupRenderer());
 
         $this->assertSame(Response::HTTP_OK, $response->getStatusCode());
         $this->assertNull($controller->capturedParameters['article_category_route_params']);
@@ -334,7 +342,7 @@ final class BlogControllerTest extends TestCase
             ->method('getLanguage');
 
         $controller = new TestBlogController();
-        $controller->show('article', $articleRepository, $userLanguageResolver, new ArticleMarkupRenderer());
+        $controller->show('article', new Request(), $articleRepository, $userLanguageResolver, new ArticleMarkupRenderer());
 
         $this->assertSame([$recommendedArticle], $controller->capturedParameters['recommended_articles']);
     }
@@ -409,6 +417,8 @@ final class BlogControllerTest extends TestCase
             'name' => 'symfony',
         ], $controller->capturedParameters['pagination_route_params']);
         $this->assertNull($controller->capturedParameters['top_keywords']);
+        $this->assertSame('keyword', $request->attributes->get(AnalyticsScriptExtension::REQUEST_ATTRIBUTE_PAGE_TYPE));
+        $this->assertSame('symfony', $request->attributes->get(AnalyticsScriptExtension::REQUEST_ATTRIBUTE_PAGE_NAME_BASE));
     }
 
     public function testKeywordThrowsNotFoundWhenSlugDoesNotMatchActiveKeyword(): void
@@ -497,7 +507,7 @@ final class BlogControllerTest extends TestCase
             ->willReturn('en');
 
         $controller = new TestBlogController();
-        $controller->show('article', $articleRepository, $userLanguageResolver, new ArticleMarkupRenderer());
+        $controller->show('article', new Request(), $articleRepository, $userLanguageResolver, new ArticleMarkupRenderer());
 
         $this->assertSame([
             [
@@ -537,7 +547,7 @@ final class BlogControllerTest extends TestCase
             ->method('getLanguage');
 
         $controller = new TestBlogController();
-        $controller->show('article', $articleRepository, $userLanguageResolver, new ArticleMarkupRenderer());
+        $controller->show('article', new Request(), $articleRepository, $userLanguageResolver, new ArticleMarkupRenderer());
 
         $this->assertSame([
             ['id' => 'wstep', 'level' => 1, 'title' => 'Wstep'],

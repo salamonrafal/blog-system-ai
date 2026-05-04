@@ -37,8 +37,11 @@
             <div class="article-index-toolbar">
                 <form method="get" class="article-index-filter-panel" data-i18n-aria="admin_article_filters_aria" aria-label="Filtry listy artykułów">
                     <span class="article-index-filter-label" data-i18n="blog_filters">Filtry</span>
-                    <input type="hidden" name="category" value="{{ selected_category ? selected_category.id : '' }}" data-listing-filter-input>
-                    <div class="article-index-filter-dropdown" data-listing-filter-dropdown>
+                    <input type="hidden" name="category" value="{{ selected_category ? selected_category.id : '' }}" data-listing-filter-input="category">
+                    <input type="hidden" name="status" value="{{ selected_status ? selected_status.value : '' }}" data-listing-filter-input="status">
+                    <input type="hidden" name="author" value="{{ selected_author ? selected_author.id : '' }}" data-listing-filter-input="author">
+                    <input type="hidden" name="sort" value="{{ sort_order != 'desc' ? sort_order : '' }}">
+                    <div class="article-index-filter-dropdown" data-listing-filter-dropdown="category">
                         <button
                             type="button"
                             class="article-index-filter-trigger"
@@ -72,8 +75,95 @@
                             {% endfor %}
                         </div>
                     </div>
-                    {% if selected_category %}
-                        <a class="button secondary article-index-filter-reset" href="{{ path('admin_article_index') }}" data-i18n="admin_article_filter_clear">Wyczyść</a>
+                    <div class="article-index-filter-dropdown" data-listing-filter-dropdown="status">
+                        <button
+                            type="button"
+                            class="article-index-filter-trigger"
+                            data-listing-filter-trigger
+                            data-i18n-aria="{{ selected_status ? selected_status.translationKey : 'admin_article_filter_all_statuses' }}"
+                            aria-haspopup="true"
+                            aria-expanded="false"
+                            aria-controls="article-index-status-filter-panel"
+                            aria-label="{{ selected_status ? selected_status.label : 'Wszystkie statusy' }}"
+                        >
+                            <span class="article-index-filter-trigger-label"{% if not selected_status %} data-i18n="admin_article_filter_all_statuses"{% endif %}>
+                                {% if selected_status %}
+                                    <span data-i18n="{{ selected_status.translationKey }}">{{ selected_status.label }}</span>
+                                {% else %}
+                                    Wszystkie statusy
+                                {% endif %}
+                            </span>
+                            <span class="article-index-filter-trigger-caret" aria-hidden="true">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="m7 10 5 5 5-5"></path>
+                                </svg>
+                            </span>
+                        </button>
+                        <div class="article-index-filter-options" id="article-index-status-filter-panel" data-i18n-aria="admin_article_filter_status_options_aria" aria-label="Statusy artykułów" aria-hidden="true" hidden>
+                            <button type="button" class="article-index-filter-option{{ not selected_status ? ' is-selected' : '' }}" data-listing-filter-option data-value="" data-i18n="admin_article_filter_all_statuses">
+                                Wszystkie statusy
+                            </button>
+                            {% for status in article_statuses %}
+                                <button
+                                    type="button"
+                                    class="article-index-filter-option{{ selected_status and selected_status == status ? ' is-selected' : '' }}"
+                                    data-listing-filter-option
+                                    data-value="{{ status.value }}"
+                                    data-i18n="{{ status.translationKey }}"
+                                >
+                                    {{ status.label }}
+                                </button>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="article-index-filter-dropdown" data-listing-filter-dropdown="author" data-listing-filter-endpoint="{{ path('admin_article_author_filter') }}" data-listing-filter-no-results-i18n="admin_article_filter_author_no_results" data-listing-filter-no-results="{{ i18n_fallback('admin_article_filter_author_no_results') }}">
+                        <button
+                            type="button"
+                            class="article-index-filter-trigger"
+                            data-listing-filter-trigger
+                            {% if not selected_author %}data-i18n-aria="admin_article_filter_all_authors"{% endif %}
+                            aria-haspopup="true"
+                            aria-expanded="false"
+                            aria-controls="article-index-author-filter-panel"
+                            aria-label="{{ selected_author ? selected_author_label : 'Wszyscy autorzy' }}"
+                        >
+                            <span class="article-index-filter-trigger-label"{% if not selected_author %} data-i18n="admin_article_filter_all_authors"{% endif %}>{{ selected_author ? selected_author_label : 'Wszyscy autorzy' }}</span>
+                            <span class="article-index-filter-trigger-caret" aria-hidden="true">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="m7 10 5 5 5-5"></path>
+                                </svg>
+                            </span>
+                        </button>
+                        <div class="article-index-filter-options" id="article-index-author-filter-panel" data-i18n-aria="admin_article_filter_author_options_aria" aria-label="Autorzy artykułów" aria-hidden="true" hidden>
+                            <label class="sr-only" for="article-index-author-filter-search" data-i18n="admin_article_filter_author_search_label">Wyszukaj autora</label>
+                            <input
+                                id="article-index-author-filter-search"
+                                type="search"
+                                class="article-index-filter-search-input"
+                                data-listing-filter-search-input
+                                data-i18n-placeholder="admin_article_filter_author_search_placeholder"
+                                placeholder="{{ i18n_fallback('admin_article_filter_author_search_placeholder') }}"
+                            >
+                            <button type="button" class="article-index-filter-option{{ not selected_author ? ' is-selected' : '' }}" data-listing-filter-option data-value="" data-i18n="admin_article_filter_all_authors">
+                                Wszyscy autorzy
+                            </button>
+                            <div class="article-index-filter-results" data-listing-filter-results>
+                                {% for author in article_authors %}
+                                    <button
+                                        type="button"
+                                        class="article-index-filter-option{{ selected_author and selected_author.id == author.id ? ' is-selected' : '' }}"
+                                        data-listing-filter-option
+                                        data-value="{{ author.id }}"
+                                    >
+                                        {{ author.label }}
+                                    </button>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% if selected_category or selected_status or selected_author %}
+                        {% set reset_route_params = sort_order != 'desc' ? { sort: sort_order } : {} %}
+                        <a class="button secondary article-index-filter-reset" href="{{ path('admin_article_index', reset_route_params) }}" data-i18n="admin_article_filter_clear">Wyczyść</a>
                     {% endif %}
                 </form>
             </div>
@@ -95,7 +185,25 @@
                         <th class="article-index-title-column" data-i18n="admin_table_title">Tytuł</th>
                         <th data-i18n="admin_table_author">Autor</th>
                         <th data-i18n="admin_table_status">Status</th>
-                        <th data-i18n="admin_table_updated">Aktualizacja</th>
+                        <th class="article-index-updated-column" aria-sort="{{ sort_order == 'asc' ? 'ascending' : 'descending' }}">
+                            {% set next_sort_order = sort_order == 'asc' ? 'desc' : 'asc' %}
+                            {% set sort_base_route_params = current_page > 1 ? article_filter_route_params|merge({ page: current_page }) : article_filter_route_params %}
+                            {% set sort_route_params = next_sort_order == 'desc' ? sort_base_route_params : sort_base_route_params|merge({ sort: next_sort_order }) %}
+                            {% set sort_aria_key = sort_order == 'asc' ? 'admin_article_sort_updated_desc' : 'admin_article_sort_updated_asc' %}
+                            <a
+                                class="article-index-sort-link"
+                                href="{{ path('admin_article_index', sort_route_params) }}"
+                                data-i18n-aria="{{ sort_aria_key }}"
+                                aria-label="{{ i18n_fallback(sort_aria_key) }}"
+                            >
+                                <span data-i18n="admin_table_updated">Aktualizacja</span>
+                                <span class="article-index-sort-icon{{ sort_order == 'asc' ? ' is-ascending' : ' is-descending' }}" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" focusable="false">
+                                        <path d="M12 5v14m0 0 5-5m-5 5-5-5"></path>
+                                    </svg>
+                                </span>
+                            </a>
+                        </th>
                         <th data-i18n="admin_table_action">Akcja</th>
                     </tr>
                     </thead>
@@ -128,12 +236,7 @@
                                 {% endif %}
                             </td>
                             <td class="article-index-status-cell">
-                                <span data-lang="pl">
-                                    {% if article.status.value == 'draft' %}Szkic{% elseif article.status.value == 'review' %}W recenzji{% elseif article.status.value == 'archived' %}Zarchiwizowany{% else %}Opublikowany{% endif %}
-                                </span>
-                                <span data-lang="en">
-                                    {% if article.status.value == 'draft' %}Draft{% elseif article.status.value == 'review' %}In review{% elseif article.status.value == 'archived' %}Archived{% else %}Published{% endif %}
-                                </span>
+                                <span data-i18n="{{ article.status.translationKey }}">{{ article.status.label }}</span>
                             </td>
                             <td class="article-index-updated-cell">{{ article.updatedAt|user_date }}</td>
                             <td>

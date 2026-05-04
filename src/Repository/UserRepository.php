@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Entity\Article;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -36,6 +37,79 @@ class UserRepository extends ServiceEntityRepository
             ->getResult();
 
         return $users;
+    }
+
+    /**
+     * @return list<User>
+     */
+    public function findForArticleAuthorFilter(string $query = '', int $limit = 10): array
+    {
+        if ($limit <= 0) {
+            return [];
+        }
+
+        $queryBuilder = $this->createQueryBuilder('user')
+            ->select('user.id AS id')
+            ->addSelect('user.email AS HIDDEN authorEmail')
+            ->innerJoin(Article::class, 'article', 'WITH', 'article.createdBy = user')
+            ->addSelect('MAX(article.updatedAt) AS HIDDEN latestArticleUpdate')
+            ->groupBy('user.id')
+            ->addGroupBy('user.email')
+            ->orderBy('latestArticleUpdate', 'DESC')
+            ->addOrderBy('authorEmail', 'ASC')
+            ->setMaxResults($limit);
+
+        $query = self::normalizeAuthorSearchText($query);
+        if ('' !== $query) {
+            $queryBuilder
+                ->andWhere("LOWER(user.email) LIKE :authorQuery ESCAPE '!' OR user.fullNameSearch LIKE :authorQuery ESCAPE '!' OR user.nicknameSearch LIKE :authorQuery ESCAPE '!'")
+                ->setParameter('authorQuery', '%'.self::escapeLikePattern($query).'%');
+        }
+
+        /** @var list<array{id: int|string}> $authorIdRows */
+        $authorIdRows = $queryBuilder
+            ->getQuery()
+            ->getScalarResult();
+
+        $authorIds = array_map(static fn (array $row): int => (int) $row['id'], $authorIdRows);
+
+        if ([] === $authorIds) {
+            return [];
+        }
+
+        /** @var list<User> $users */
+        $users = $this->createQueryBuilder('user')
+            ->andWhere('user.id IN (:authorIds)')
+            ->setParameter('authorIds', $authorIds)
+            ->getQuery()
+            ->getResult();
+
+        $usersById = [];
+        foreach ($users as $user) {
+            $userId = $user->getId();
+            if (null !== $userId) {
+                $usersById[$userId] = $user;
+            }
+        }
+
+        return array_values(array_filter(
+            array_map(static fn (int $authorId): ?User => $usersById[$authorId] ?? null, $authorIds),
+        ));
+    }
+
+    public function findArticleAuthorById(int $id): ?User
+    {
+        /** @var ?User $user */
+        $user = $this->createQueryBuilder('user')
+            ->select('DISTINCT user')
+            ->innerJoin(Article::class, 'article', 'WITH', 'article.createdBy = user')
+            ->andWhere('user.id = :id')
+            ->setParameter('id', $id)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        return $user;
     }
 
     public function countActive(): int
@@ -71,5 +145,15 @@ class UserRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
 
         return $user;
+    }
+
+    private static function normalizeAuthorSearchText(string $value): string
+    {
+        return mb_strtolower(trim($value), 'UTF-8');
+    }
+
+    private static function escapeLikePattern(string $value): string
+    {
+        return str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $value);
     }
 }

@@ -252,70 +252,20 @@
                     {% endif %}
                 </div>
             </div>
-            <div
-                id="{{ headline_image_picker_modal_id }}"
-                class="confirm-delete-modal headline-image-picker-modal"
-                data-headline-image-modal
-                data-headline-image-endpoint="{{ path('admin_media_picker') }}"
-                hidden
-                aria-hidden="true"
-            >
-                <div
-                    class="confirm-delete-dialog headline-image-picker-dialog"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-labelledby="{{ headline_image_picker_title_id }}"
-                    aria-describedby="{{ headline_image_picker_text_id }}"
-                >
-                    <div class="confirm-delete-topbar">
-                        <div class="confirm-delete-eyebrow" data-i18n="form_headline_image_picker_eyebrow">{{ i18n_fallback('form_headline_image_picker_eyebrow') }}</div>
-                        <button
-                            type="button"
-                            class="confirm-delete-close"
-                            data-action="close-media-image-picker"
-                            data-i18n-aria="form_headline_image_picker_close"
-                            aria-label="{{ i18n_fallback('form_headline_image_picker_close') }}"
-                        >
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <h2 id="{{ headline_image_picker_title_id }}" class="confirm-delete-title" data-i18n="form_headline_image_picker_title">{{ i18n_fallback('form_headline_image_picker_title') }}</h2>
-                    <p id="{{ headline_image_picker_text_id }}" class="confirm-delete-text" data-i18n="form_headline_image_picker_text">{{ i18n_fallback('form_headline_image_picker_text') }}</p>
-                    <div class="headline-image-picker-toolbar">
-                        <div class="headline-image-picker-search">
-                            <label for="{{ form.headlineImage.vars.id }}-picker-search" class="sr-only" data-i18n="form_headline_image_picker_search_label">{{ i18n_fallback('form_headline_image_picker_search_label') }}</label>
-                            <input
-                                id="{{ form.headlineImage.vars.id }}-picker-search"
-                                type="search"
-                                class="article-editor-input headline-image-picker-search-input"
-                                data-headline-image-search-input
-                                data-i18n-placeholder="form_headline_image_picker_search_placeholder"
-                                placeholder="{{ i18n_fallback('form_headline_image_picker_search_placeholder') }}"
-                                autocomplete="off"
-                                spellcheck="false"
-                            >
-                        </div>
-                        <div class="headline-image-picker-sort">
-                            <label for="{{ form.headlineImage.vars.id }}-picker-sort" class="sr-only" data-i18n="form_headline_image_picker_sort_label">{{ i18n_fallback('form_headline_image_picker_sort_label') }}</label>
-                            <select
-                                id="{{ form.headlineImage.vars.id }}-picker-sort"
-                                class="article-editor-input article-editor-select headline-image-picker-sort-select"
-                                data-headline-image-sort-select
-                                data-i18n-aria="form_headline_image_picker_sort_label"
-                                aria-label="{{ i18n_fallback('form_headline_image_picker_sort_label') }}"
-                            >
-                                <option value="desc" data-i18n="form_headline_image_picker_sort_desc">{{ i18n_fallback('form_headline_image_picker_sort_desc') }}</option>
-                                <option value="asc" data-i18n="form_headline_image_picker_sort_asc">{{ i18n_fallback('form_headline_image_picker_sort_asc') }}</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="media-gallery-grid headline-image-picker-grid" data-headline-image-grid role="listbox" data-i18n-aria="form_headline_image_picker_grid_aria" aria-label="{{ i18n_fallback('form_headline_image_picker_grid_aria') }}"></div>
-                    <p class="meta headline-image-picker-empty-results" data-headline-image-empty-results role="status" aria-live="polite" aria-atomic="true" hidden>{{ i18n_fallback('form_headline_image_picker_empty') }}</p>
-                    <div class="confirm-delete-actions">
-                        <button type="button" class="button secondary" data-action="close-media-image-picker" data-i18n="form_headline_image_picker_close">{{ i18n_fallback('form_headline_image_picker_close') }}</button>
-                    </div>
-                </div>
-            </div>
+            {% include 'admin/_media_image_picker_modal.html.twig' with {
+                modal_id: headline_image_picker_modal_id,
+                title_id: headline_image_picker_title_id,
+                text_id: headline_image_picker_text_id,
+                control_id_base: form.headlineImage.vars.id,
+                translation_prefix: 'form_headline_image_picker',
+                modal_data_attribute: 'data-headline-image-modal',
+                endpoint_data_attribute: 'data-headline-image-endpoint',
+                endpoint_path: path('admin_media_picker'),
+                search_data_attribute: 'data-headline-image-search-input',
+                sort_data_attribute: 'data-headline-image-sort-select',
+                grid_data_attribute: 'data-headline-image-grid',
+                empty_results_data_attribute: 'data-headline-image-empty-results'
+            } only %}
         </div>
 
         {% set table_of_contents_has_errors = form.tableOfContentsEnabled.vars.errors|length > 0 %}
@@ -438,69 +388,18 @@
                     'data-markup-image-picker-endpoint': path('admin_media_picker')
                 }|merge(content_has_errors ? {'aria-invalid': 'true', 'aria-describedby': form.content.vars.id ~ '-error'} : {}) }) }}
             </div>
-            <div
-                id="{{ content_image_picker_modal_id }}"
-                class="confirm-delete-modal headline-image-picker-modal"
-                data-markup-image-modal
-                hidden
-                aria-hidden="true"
-            >
-                <div
-                    class="confirm-delete-dialog headline-image-picker-dialog"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-labelledby="{{ content_image_picker_title_id }}"
-                    aria-describedby="{{ content_image_picker_text_id }}"
-                >
-                    <div class="confirm-delete-topbar">
-                        <div class="confirm-delete-eyebrow" data-i18n="editor_image_picker_eyebrow">{{ i18n_fallback('editor_image_picker_eyebrow') }}</div>
-                        <button
-                            type="button"
-                            class="confirm-delete-close"
-                            data-action="close-media-image-picker"
-                            data-i18n-aria="editor_image_picker_close"
-                            aria-label="{{ i18n_fallback('editor_image_picker_close') }}"
-                        >
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <h2 id="{{ content_image_picker_title_id }}" class="confirm-delete-title" data-i18n="editor_image_picker_title">{{ i18n_fallback('editor_image_picker_title') }}</h2>
-                    <p id="{{ content_image_picker_text_id }}" class="confirm-delete-text" data-i18n="editor_image_picker_text">{{ i18n_fallback('editor_image_picker_text') }}</p>
-                    <div class="headline-image-picker-toolbar">
-                        <div class="headline-image-picker-search">
-                            <label for="{{ form.content.vars.id }}-image-picker-search" class="sr-only" data-i18n="editor_image_picker_search_label">{{ i18n_fallback('editor_image_picker_search_label') }}</label>
-                            <input
-                                id="{{ form.content.vars.id }}-image-picker-search"
-                                type="search"
-                                class="article-editor-input headline-image-picker-search-input"
-                                data-markup-image-search-input
-                                data-i18n-placeholder="editor_image_picker_search_placeholder"
-                                placeholder="{{ i18n_fallback('editor_image_picker_search_placeholder') }}"
-                                autocomplete="off"
-                                spellcheck="false"
-                            >
-                        </div>
-                        <div class="headline-image-picker-sort">
-                            <label for="{{ form.content.vars.id }}-image-picker-sort" class="sr-only" data-i18n="editor_image_picker_sort_label">{{ i18n_fallback('editor_image_picker_sort_label') }}</label>
-                            <select
-                                id="{{ form.content.vars.id }}-image-picker-sort"
-                                class="article-editor-input article-editor-select headline-image-picker-sort-select"
-                                data-markup-image-sort-select
-                                data-i18n-aria="editor_image_picker_sort_label"
-                                aria-label="{{ i18n_fallback('editor_image_picker_sort_label') }}"
-                            >
-                                <option value="desc" data-i18n="editor_image_picker_sort_desc">{{ i18n_fallback('editor_image_picker_sort_desc') }}</option>
-                                <option value="asc" data-i18n="editor_image_picker_sort_asc">{{ i18n_fallback('editor_image_picker_sort_asc') }}</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="media-gallery-grid headline-image-picker-grid" data-markup-image-grid role="listbox" data-i18n-aria="editor_image_picker_grid_aria" aria-label="{{ i18n_fallback('editor_image_picker_grid_aria') }}"></div>
-                    <p class="meta headline-image-picker-empty-results" data-markup-image-empty-results role="status" aria-live="polite" aria-atomic="true" hidden>{{ i18n_fallback('editor_image_picker_empty') }}</p>
-                    <div class="confirm-delete-actions">
-                        <button type="button" class="button secondary" data-action="close-media-image-picker" data-i18n="editor_image_picker_close">{{ i18n_fallback('editor_image_picker_close') }}</button>
-                    </div>
-                </div>
-            </div>
+            {% include 'admin/_media_image_picker_modal.html.twig' with {
+                modal_id: content_image_picker_modal_id,
+                title_id: content_image_picker_title_id,
+                text_id: content_image_picker_text_id,
+                control_id_base: form.content.vars.id ~ '-image',
+                translation_prefix: 'editor_image_picker',
+                modal_data_attribute: 'data-markup-image-modal',
+                search_data_attribute: 'data-markup-image-search-input',
+                sort_data_attribute: 'data-markup-image-sort-select',
+                grid_data_attribute: 'data-markup-image-grid',
+                empty_results_data_attribute: 'data-markup-image-empty-results'
+            } only %}
             <div class="article-editor-help-modal" data-markup-help-modal hidden aria-hidden="true">
                 <div id="{{ form.content.vars.id }}-format-help-modal" class="article-editor-help-dialog" role="dialog" aria-modal="true" aria-labelledby="{{ form.content.vars.id }}-format-help-title" aria-describedby="{{ form.content.vars.id }}-format-help-text">
                     <button type="button" class="article-editor-help-close" data-markup-help-close data-i18n-tooltip="editor_modal_close" data-i18n-aria="editor_modal_close" data-tooltip="Zamknij" aria-label="Zamknij"><span class="article-editor-toolbar-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg></span></button>
@@ -523,7 +422,7 @@
                                     <li><code>&gt; Cytat</code> - cytat blokowy</li>
                                     <li><code>- Element listy</code> - lista punktowana</li>
                                     <li><code>1. Element listy</code> - lista numerowana</li>
-                                    <li><code>Linia 1\</code><br><code>Linia 2</code> - wymuszona nowa linia</li>
+                                    <li><code>Linia 1</code><br><code>Linia 2</code> - osobne akapity tekstu</li>
                                     <li><code>---</code> - separator</li>
                                     <li><code>[tekst](https://...)</code> - link</li>
                                     <li><code>![alt](https://...)</code> - obraz</li>

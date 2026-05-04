@@ -6,6 +6,7 @@ namespace App\Form;
 
 use App\Entity\BlogSettings;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -33,6 +34,14 @@ class BlogSettingsType extends AbstractType
                     'data-i18n-placeholder' => 'blog_settings_blog_title_placeholder',
                 ],
             ])
+            ->add('metaAuthor', TextType::class, [
+                'label' => 'Autor meta tagu',
+                'label_attr' => ['data-i18n' => 'blog_settings_meta_author'],
+                'attr' => [
+                    'maxlength' => 255,
+                    'data-i18n-placeholder' => 'blog_settings_meta_author_placeholder',
+                ],
+            ])
             ->add('preferenceCookieDomainOverride', TextType::class, [
                 'label' => 'Domena cookie preferencji',
                 'required' => false,
@@ -52,7 +61,7 @@ class BlogSettingsType extends AbstractType
                     'data-i18n-placeholder' => 'blog_settings_homepage_seo_description_placeholder',
                 ],
             ])
-            ->add('homepageSocialImage', TextType::class, [
+            ->add('homepageSocialImage', HiddenType::class, [
                 'label' => 'Obrazek dla strony głównej',
                 'label_attr' => ['data-i18n' => 'blog_settings_homepage_social_image'],
                 'attr' => [

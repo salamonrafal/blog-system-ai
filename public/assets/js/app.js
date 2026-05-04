@@ -1,5 +1,7 @@
 import {
   setupAdminShortcuts,
+  setupAnalyticsScriptDeleteConfirmation,
+  setupAnalyticsScriptVariables,
   setupAdminListingFilters,
   setupArticleKeywordDeleteConfirmation,
   setupArticleBulkExport,
@@ -66,12 +68,14 @@ async function init(){
   setupTopMenuTreeSorting();
   setupCategoryTranslationCopy();
   setupDashboardCarousels();
+  setupAnalyticsScriptVariables();
   setupArticleBulkExport();
   setupAdminListingFilters();
   setupArticleMarkupEditor();
   setupImagePreview();
   setupDeleteConfirmation();
   setupArticleKeywordDeleteConfirmation();
+  setupAnalyticsScriptDeleteConfirmation();
   setupCategoryDeleteConfirmation();
   setupTopMenuDeleteConfirmation();
   setupUserAvatarPreview();

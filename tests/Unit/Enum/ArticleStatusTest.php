@@ -16,4 +16,12 @@ final class ArticleStatusTest extends TestCase
         $this->assertSame('Published', ArticleStatus::PUBLISHED->label());
         $this->assertSame('Archived', ArticleStatus::ARCHIVED->label());
     }
+
+    public function testTranslationKeyReturnsExpectedKeyForEachStatus(): void
+    {
+        $this->assertSame('article_status_draft', ArticleStatus::DRAFT->translationKey());
+        $this->assertSame('article_status_review', ArticleStatus::REVIEW->translationKey());
+        $this->assertSame('article_status_published', ArticleStatus::PUBLISHED->translationKey());
+        $this->assertSame('article_status_archived', ArticleStatus::ARCHIVED->translationKey());
+    }
 }

@@ -779,7 +779,7 @@
 }
 
 .article-body {
-  line-height:1.75;
+  line-height:1.5;
   color:var(--text);
 }
 
@@ -832,6 +832,13 @@
 
 .article-body p{
   margin:0;
+}
+
+.article-body > p + p,
+.article-body > p + br,
+.article-body > br + p,
+.article-body > br + br{
+  margin-top:0;
 }
 
 .article-body ul,

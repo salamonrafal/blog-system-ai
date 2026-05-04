@@ -1,0 +1,120 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Skrypty analityczne | {{ app_name }}{% endblock %}
+
+{% block body %}
+    <section class="section">
+        <div class="card">
+            <div class="card-header">
+                <div class="window-dots" aria-hidden="true">
+                    <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                </div>
+                <span class="pill">admin://analytics-scripts</span>
+            </div>
+
+            <div class="dashboard-feed-intro">
+                <h1 data-i18n="admin_analytics_script_index_title">Skrypty analityczne</h1>
+                <p class="lede" data-i18n="admin_analytics_script_index_lede">Zarządzaj kodami śledzącymi i wybieraj, na których publicznych widokach mają być uruchamiane.</p>
+
+                <div class="actions">
+                    <a class="button" href="{{ path('admin_analytics_script_new') }}" data-i18n="analytics_script_form_submit_create">Dodaj skrypt</a>
+                </div>
+
+                <section class="article-edit-meta-panel article-edit-meta-panel-compact" data-i18n-aria="admin_analytics_script_overview_aria" aria-label="Podsumowanie skryptów analitycznych">
+                    <div class="article-edit-meta-header">
+                        <span class="pill">admin://analytics-overview</span>
+                    </div>
+                    <dl class="article-edit-meta-list article-edit-meta-list-compact">
+                        <div class="article-edit-meta-item">
+                            <dt class="article-edit-meta-label" data-i18n="admin_analytics_script_overview_all">Wszystkie skrypty</dt>
+                            <dd class="article-edit-meta-value">{{ script_stats.all }}</dd>
+                        </div>
+                        <div class="article-edit-meta-item">
+                            <dt class="article-edit-meta-label" data-i18n="admin_analytics_script_overview_enabled">Włączone</dt>
+                            <dd class="article-edit-meta-value">{{ script_stats.enabled }}</dd>
+                        </div>
+                        <div class="article-edit-meta-item">
+                            <dt class="article-edit-meta-label" data-i18n="admin_analytics_script_overview_disabled">Wyłączone</dt>
+                            <dd class="article-edit-meta-value">{{ script_stats.disabled }}</dd>
+                        </div>
+                    </dl>
+                </section>
+            </div>
+
+            <div class="table-wrap article-index-table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th class="analytics-script-table-centered" data-i18n="analytics_script_form_name">Nazwa</th>
+                        <th class="analytics-script-table-centered" data-i18n="analytics_script_form_page_name">Identyfikator</th>
+                        <th class="analytics-script-table-centered" data-i18n="analytics_script_table_placement">Miejsce</th>
+                        <th class="analytics-script-table-centered" data-i18n="analytics_script_table_status">Stan</th>
+                        <th data-i18n="admin_table_updated">Aktualizacja</th>
+                        <th data-i18n="admin_table_action">Akcja</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for script in scripts %}
+                        <tr>
+                            <td class="analytics-script-table-centered"><strong>{{ script.name }}</strong></td>
+                            <td class="analytics-script-table-centered">{{ script.pageName }}</td>
+                            <td class="analytics-script-table-centered"><span data-i18n="{{ script.placement.translationKey }}">{{ script.placement.label }}</span></td>
+                            <td class="analytics-script-table-centered">
+                                <span
+                                    class="analytics-script-status-light {{ script.enabled ? 'is-enabled' : 'is-disabled' }}"
+                                    data-i18n-tooltip="{{ script.enabled ? 'analytics_script_enabled_tooltip' : 'analytics_script_disabled_tooltip' }}"
+                                    data-tooltip="{{ script.enabled ? i18n_fallback('analytics_script_enabled_tooltip') : i18n_fallback('analytics_script_disabled_tooltip') }}"
+                                    data-tooltip-wrap="true"
+                                    tabindex="0"
+                                    role="img"
+                                    aria-label="{{ script.enabled ? i18n_fallback('analytics_script_enabled_tooltip') : i18n_fallback('analytics_script_disabled_tooltip') }}"
+                                ></span>
+                            </td>
+                            <td class="article-index-updated-cell">{{ script.updatedAt|user_date }}</td>
+                            <td>
+                                <div class="actions">
+                                    <a class="button secondary article-action-button" href="{{ path('admin_analytics_script_edit', {id: script.id}) }}" data-i18n-title="admin_table_edit" data-i18n-tooltip="admin_table_edit" data-i18n-aria="admin_table_edit" data-tooltip="Edytuj" aria-label="Edytuj skrypt">
+                                        <span class="article-action-icon is-edit" aria-hidden="true"></span>
+                                    </a>
+                                    <form method="post" action="{{ path('admin_analytics_script_toggle_enabled', {id: script.id}) }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('toggle_analytics_script_' ~ script.id) }}">
+                                        <button
+                                            class="button secondary article-action-button"
+                                            type="submit"
+                                            data-i18n-tooltip="{{ script.enabled ? 'analytics_script_disable_action' : 'analytics_script_enable_action' }}"
+                                            data-i18n-aria="{{ script.enabled ? 'analytics_script_disable_action' : 'analytics_script_enable_action' }}"
+                                            data-tooltip="{{ script.enabled ? 'Wyłącz' : 'Włącz' }}"
+                                            aria-label="{{ script.enabled ? 'Wyłącz skrypt' : 'Włącz skrypt' }}"
+                                        >
+                                            <span class="article-action-icon {{ script.enabled ? 'is-toggle-off' : 'is-toggle-on' }}" aria-hidden="true"></span>
+                                        </button>
+                                    </form>
+                                    <form method="post" action="{{ path('admin_analytics_script_delete', {id: script.id}) }}" data-delete-form>
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete_analytics_script_' ~ script.id) }}">
+                                        <button
+                                            class="button secondary button-danger article-action-button"
+                                            type="button"
+                                            data-action="confirm-delete-analytics-script"
+                                            data-analytics-script-name="{{ script.name }}"
+                                            data-i18n-tooltip="admin_table_delete"
+                                            data-i18n-aria="admin_table_delete"
+                                            data-tooltip="Usuń"
+                                            aria-label="Usuń skrypt"
+                                        >
+                                            <span class="article-action-icon is-delete" aria-hidden="true"></span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="6" data-i18n="admin_analytics_script_table_empty">Nie znaleziono skryptów analitycznych.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+{% endblock %}

@@ -6,7 +6,6 @@ namespace App\Service;
 
 final class ArticleMarkupRenderer
 {
-    private const LINE_BREAK_TOKEN = '@@ARTICLE_LINE_BREAK@@';
     /**
      * Keep only the last parsed document to avoid unbounded growth on shared service instances.
      *
@@ -76,7 +75,7 @@ final class ArticleMarkupRenderer
                 return;
             }
 
-            $blocks[] = '<p>'.self::renderParagraphLines($paragraph).'</p>';
+            $blocks[] = self::renderParagraphLines($paragraph);
             $paragraph = [];
         };
 
@@ -266,6 +265,12 @@ final class ArticleMarkupRenderer
             }
 
             if ('' === trim($line)) {
+                if ([] !== $paragraph) {
+                    $paragraph[] = '';
+
+                    continue;
+                }
+
                 $flushParagraph();
                 $flushList();
                 $flushQuote();
@@ -373,23 +378,59 @@ final class ArticleMarkupRenderer
 
     private static function renderParagraphLines(array $lines): string
     {
-        $result = '';
-        $previousEndedWithBreak = false;
+        $blocks = [];
+        $inlineParts = [];
+        $flushInlineParts = static function () use (&$blocks, &$inlineParts): void {
+            if ([] === $inlineParts) {
+                return;
+            }
+
+            $blocks[] = '<p>'.implode("\n", $inlineParts).'</p>';
+            $inlineParts = [];
+        };
 
         foreach ($lines as $index => $line) {
             $trimmed = trim($line);
-            $lineBreak = str_ends_with($trimmed, '\\');
-            $content = $lineBreak ? rtrim(substr($trimmed, 0, -1)) : $trimmed;
 
-            if ($index > 0) {
-                $result .= $previousEndedWithBreak ? self::LINE_BREAK_TOKEN : ' ';
+            if ('' === $trimmed || '\\' === $trimmed) {
+                $flushInlineParts();
+                $blocks[] = '<br>';
+
+                continue;
             }
 
-            $result .= $content;
-            $previousEndedWithBreak = $lineBreak;
+            $hasLineBreakMarker = str_ends_with($trimmed, '\\')
+                && array_key_exists($index + 1, $lines)
+                && '' !== trim($lines[$index + 1]);
+            $content = $hasLineBreakMarker ? rtrim(substr($trimmed, 0, -1)) : $trimmed;
+
+            $standaloneImage = self::renderStandaloneImage($trimmed);
+            if (null !== $standaloneImage) {
+                $flushInlineParts();
+                $blocks[] = $standaloneImage;
+
+                continue;
+            }
+
+            if ($hasLineBreakMarker) {
+                $inlineParts[] = self::renderInline($content).'<br />';
+
+                continue;
+            }
+
+            if ([] !== $inlineParts) {
+                $inlineParts[] = self::renderInline($content);
+                $flushInlineParts();
+
+                continue;
+            }
+
+            $blocks[] = '<p>'.self::renderInline($content).'</p>';
         }
 
-        return self::renderInline($result);
+        $flushInlineParts();
+
+        return implode("\n", $blocks);
     }
 
     private static function parseCodeFence(string $line): ?string
@@ -645,15 +686,16 @@ final class ArticleMarkupRenderer
             '/!\[([^\]]*)\]\((((?i:https?):\/\/|\/uploads\/)[^\s)]+)\)/',
             static function (array $matches): string {
                 $source = htmlspecialchars_decode($matches[2], ENT_QUOTES);
-                if (!self::isAllowedImageSource($source)) {
+                $image = self::renderImage(
+                    htmlspecialchars_decode($matches[1], ENT_QUOTES),
+                    $source,
+                );
+
+                if (null === $image) {
                     return $matches[0];
                 }
 
-                return sprintf(
-                    '<img src="%s" alt="%s" loading="lazy">',
-                    htmlspecialchars($source, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
-                    htmlspecialchars(htmlspecialchars_decode($matches[1], ENT_QUOTES), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
-                );
+                return $image;
             },
             $escaped,
         ) ?? $escaped;
@@ -679,7 +721,32 @@ final class ArticleMarkupRenderer
             $escaped = preg_replace($pattern, $replacement, $escaped) ?? $escaped;
         }
 
-        return str_replace(self::LINE_BREAK_TOKEN, '<br>', $escaped);
+        return $escaped;
+    }
+
+    private static function renderStandaloneImage(string $content): ?string
+    {
+        if (preg_match('/^!\[([^\]]*)\]\((((?i:https?):\/\/|\/uploads\/)[^\s)]+)\)$/', $content, $matches) !== 1) {
+            return null;
+        }
+
+        return self::renderImage(
+            htmlspecialchars_decode($matches[1], ENT_QUOTES),
+            htmlspecialchars_decode($matches[2], ENT_QUOTES),
+        );
+    }
+
+    private static function renderImage(string $alt, string $source): ?string
+    {
+        if (!self::isAllowedImageSource($source)) {
+            return null;
+        }
+
+        return sprintf(
+            '<img src="%s" alt="%s" loading="lazy">',
+            htmlspecialchars($source, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
+            htmlspecialchars($alt, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
+        );
     }
 
     private static function isAllowedImageSource(string $source): bool

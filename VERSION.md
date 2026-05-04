@@ -495,3 +495,40 @@
 - Rozbudowano wstęp `README.md` o opis celu projektu, głównych możliwości aplikacji, technicznych fundamentów oraz informacji, że większość implementacji powstaje z pomocą AI i jest dalej utrzymywana w normalnym workflow inżynierskim.
 - Uporządkowano strukturę `README.md`, przenosząc najważniejsze sekcje startowe na górę dokumentu, rozdzielając treści dotyczące serwera developerskiego, assetów, crona oraz kolejek importu i eksportu, a także przenosząc `Next steps` na koniec pliku.
 - Dodano do `README.md` spis treści zgodny z aktualną hierarchią sekcji, wraz z ikonami dla głównych nagłówków `##` i odpowiadających im pozycji w spisie treści.
+
+## 2026-05-01
+
+- Zmieniono renderowanie zwykłej treści artykułu w `ArticleMarkupRenderer`, tak aby każda linia tekstu była osobnym tagiem `<p>`, a puste linie oraz linie z samym `\` były renderowane jako osobne `<br>` bez konieczności łączenia całej treści w jeden paragraf.
+- Uspójniono renderowanie bloków nietekstowych w treści artykułu: samodzielne obrazy Markdown są emitowane jako `<img>` poza paragrafem, a tabele pozostają osobnymi blokami HTML bez opakowania w `<p>`.
+- Naprawiono renderowanie samodzielnych obrazów Markdown z encjami HTML w `alt` i adresie URL, tak aby wynik był spójny z obrazami inline i nie powodował podwójnego encodowania `&amp;`.
+- Dopasowano style publicznego widoku artykułu do nowej struktury treści, zdejmując dodatkowy odstęp między kolejnymi liniami `<p>` i pustymi liniami `<br>` oraz zmniejszając bazowy `line-height` treści.
+- Zaktualizowano podpowiedź formatowania w formularzu artykułu, aby opisywała osobne akapity tekstu zamiast nowej linii w jednym akapicie, oraz rozszerzono testy jednostkowe renderera o zachowanie pustych linii, linii z `\`, samodzielnych obrazów i tekstowych linii renderowanych jako osobne paragrafy.
+- Rozszerzono `BlogSettings` o edytowalną wartość autora meta tagu, dodając pole formularza ustawień bloga, migrację bazy danych, tłumaczenia i walidację, a bazowy layout przestał renderować `<meta name="author">` z zahardcodowaną wartością.
+- Znormalizowano tytuły stron renderowane w `base.html.twig`, usuwając początkowe i końcowe znaki białe z wartości trafiających do `<title>`, `og:title`, `twitter:title` oraz atrybutu `data-page-title`, dzięki czemu wieloliniowe bloki Twig nie generują już spacji ani znaków nowej linii w metadanych.
+- Dodano test regresyjny renderowania bazowego szablonu, który sprawdza trimowanie tytułów w metatagach i `data-page-title` oraz potwierdza, że escapowanie znaków specjalnych nie jest wykonywane podwójnie.
+- Poprawiono akcję `Publikuj` na liście zarządzania artykułami, tak aby zmiana samego statusu na opublikowany nie nadpisywała istniejącej daty publikacji, oraz dodano test regresyjny kontrolera dla tego scenariusza.
+- Zmieniono pole obrazka strony głównej w ustawieniach bloga z widocznego pola tekstowego na wybór obrazka z galerii mediów, z przyciskami wyboru, czyszczenia, przejścia do galerii oraz podglądem aktualnie zapisanej grafiki.
+- Wydzielono wspólny partial Twig modala pickera obrazów mediów i podłączono go zarówno w formularzu artykułu, jak i w ustawieniach bloga, ograniczając duplikację markup-u istniejącego pickera.
+- Dopasowano układ sekcji wyboru obrazka strony głównej w formularzu ustawień bloga tak, aby zajmowała pełną szerokość sekcji zamiast ograniczać się do prawej kolumny formularza.
+- Zmieniono akcję czyszczenia obrazka strony głównej na przywracanie domyślnej grafiki społecznościowej, aby formularz ustawień bloga nie zapisywał pustej wartości odrzucanej przez walidację `NotBlank`.
+- Podpięto dynamiczne teksty pickera mediów do prefiksu tłumaczeń modala, dzięki czemu wybór obrazka strony głównej używa własnych etykiet przycisku wyboru oraz komunikatów pustej galerii i braku wyników.
+- Zabezpieczono wspólny partial modala pickera mediów przed niepotrzebnym renderowaniem nazw atrybutów przez `raw`, zastępując je escapowaniem `html_attr`.
+- Dodano na ekranie `Zarządzanie artykułami` filtr statusu artykułu działający razem z filtrem kategorii i paginacją, wraz z obsługą niepoprawnych wartości parametru `status`.
+- Ujednolicono prezentację statusów artykułów przez klucze tłumaczeń `ArticleStatus`, usuwając powielone warunki `Twig` z tabeli administracyjnej.
+- Rozszerzono frontendowy moduł filtrów listy administracyjnej o obsługę wielu dropdownów w jednym formularzu oraz dodano test JavaScript zabezpieczający poprawne mapowanie dropdownu na właściwe ukryte pole.
+- Uzupełniono testy jednostkowe kontrolera i enumu artykułów o filtrowanie po statusie, łączenie filtrów oraz eksport kluczy tłumaczeń statusów.
+- Dodano na `admin_article_index` sortowanie artykułów po dacie aktualizacji w obu kierunkach, z klikalnym nagłówkiem kolumny, ikoną aktualnego kierunku sortowania bez podkreślenia po najechaniu oraz zachowaniem filtrów i paginacji.
+
+## 2026-05-02
+
+- Dodano na `admin_article_index` filtrowanie artykułów po autorze, z zachowaniem wybranego autora podczas paginacji i sortowania oraz obsługą niepoprawnych wartości parametru `author`.
+- Ograniczono dropdown autorów na `admin_article_index` do 10 pozycji opartych o faktycznych autorów artykułów i dodano w nim pole wyszukiwania, które dociąga dopasowanych autorów z backendu.
+- Usunięto kolumnę `Opis` z tabeli na `admin_article_category_index`, zachowując spójny układ pozostałych kolumn i pustego stanu listy.
+- Zmieniono układ paneli na `admin_dashboard` na powtarzalny wzór rzędów `3 + 2`, dzięki czemu kolejne grupy paneli zachowują bardziej zbalansowaną strukturę przy zachowaniu responsywnego przejścia do węższych układów.
+- Dodano moduł zarządzania skryptami analitycznymi w panelu administracyjnym, obejmujący encję `AnalyticsScript`, repozytorium, formularz, kontroler CRUD, migrację bazy danych oraz ekran listy dostępny w skrótach administratora pod harmonijką `Zaawansowane`.
+- Rozszerzono bazowy layout o dynamiczne wstrzykiwanie aktywnych skryptów analitycznych w `<head>` albo przed `</body>` zależnie od konfiguracji oraz zakresu stron publicznych.
+- Dodano obsługę zakresów skryptów analitycznych dla wszystkich stron publicznych, głównej strony bloga, artykułów, kategorii i słów kluczowych, wraz z możliwością włączania, wyłączania, edycji i usuwania konfiguracji.
+- Rozbudowano edytor kodu JavaScript skryptu analitycznego o zintegrowany pasek zmiennych `VAR_PAGE_NAME`, `VAR_PAGE_TYPE`, `VAR_IS_LOGGED_USER` i `VAR_USER_LANGUAGE`, które są zastępowane aktualnym kontekstem strony podczas renderowania.
+- Dodano popup pomocy dla zmiennych skryptu analitycznego, przyciski wstawiania zmiennych do kodu w miejscu kursora oraz dopracowane podpowiedzi pól formularza, tooltipy i zachowanie dostępności.
+- Dopracowano listę skryptów analitycznych, upraszczając kolumny tabeli, centrując kluczowe wartości, zastępując tekstowy status diodą z tooltipem oraz dodając ikonową akcję przełączania statusu aktywny/nieaktywny.
+- Uzupełniono tłumaczenia `PL/EN`, komunikaty walidacyjne, testy jednostkowe encji i rozszerzenia Twig oraz integrację frontendową dla nowego modułu skryptów analitycznych.

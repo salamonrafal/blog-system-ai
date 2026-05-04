@@ -88,6 +88,50 @@
                 {% endif %}
             </div>
 
+            {% set meta_author_has_errors = form.metaAuthor.vars.errors|length > 0 %}
+            {% set meta_author_counter_id = form.metaAuthor.vars.id ~ '-char-count' %}
+            {% set meta_author_hint_id = form.metaAuthor.vars.id ~ '-hint' %}
+            {% set meta_author_described_by = meta_author_hint_id ~ ' ' ~ meta_author_counter_id ~ (meta_author_has_errors ? ' ' ~ form.metaAuthor.vars.id ~ '-error' : '') %}
+            <div class="field article-editor-field blog-settings-inline-field blog-settings-inline-field-with-counter{{ meta_author_has_errors ? ' has-error' : '' }}">
+                <div class="blog-settings-inline-field-copy">
+                    <div class="blog-settings-label-row">
+                        {{ form_label(form.metaAuthor) }}
+                        <button
+                            type="button"
+                            class="article-keyword-help-trigger"
+                            data-i18n-tooltip="blog_settings_meta_author_hint"
+                            data-i18n-aria="blog_settings_meta_author_hint_aria"
+                            data-tooltip="Wartość trafia do tagu &lt;meta name=&quot;author&quot;&gt; w bazowym layoucie."
+                            data-tooltip-wide="true"
+                            data-tooltip-wrap="true"
+                            aria-label="Pomoc do pola autora meta tagu"
+                        >?</button>
+                    </div>
+                    <span id="{{ meta_author_hint_id }}" class="sr-only" data-i18n="blog_settings_meta_author_hint">Wartość trafia do tagu &lt;meta name=&quot;author&quot;&gt; w bazowym layoucie.</span>
+                </div>
+                <div class="blog-settings-input-stack">
+                    <div class="blog-settings-input-row">
+                        {{ form_widget(form.metaAuthor, { attr: {
+                            class: 'article-editor-input',
+                            placeholder: 'Np. Rafał Salamon',
+                            'data-i18n-placeholder': 'blog_settings_meta_author_placeholder',
+                            'data-character-count-input': 'true',
+                            'aria-describedby': meta_author_described_by
+                        }|merge(meta_author_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
+                        <div class="article-editor-field-meta">
+                            <span id="{{ meta_author_counter_id }}" class="article-editor-character-count" data-character-count-target>{{ form.metaAuthor.vars.value|default('')|length }} / {{ form.metaAuthor.vars.attr.maxlength }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% if meta_author_has_errors %}
+                    <div id="{{ form.metaAuthor.vars.id }}-error" class="article-editor-error-message" role="alert">
+                        {% for error in form.metaAuthor.vars.errors %}
+                            {% include 'admin/_validation_error.html.twig' with { error: error } %}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
             {% set cookie_domain_has_errors = form.preferenceCookieDomainOverride.vars.errors|length > 0 %}
             {% set cookie_domain_counter_id = form.preferenceCookieDomainOverride.vars.id ~ '-char-count' %}
             {% set cookie_domain_hint_id = form.preferenceCookieDomainOverride.vars.id ~ '-hint' %}
@@ -159,10 +203,13 @@
             </div>
 
             {% set social_image_has_errors = form.homepageSocialImage.vars.errors|length > 0 %}
-            {% set social_image_counter_id = form.homepageSocialImage.vars.id ~ '-char-count' %}
             {% set social_image_hint_id = form.homepageSocialImage.vars.id ~ '-hint' %}
-            {% set social_image_described_by = social_image_hint_id ~ ' ' ~ social_image_counter_id ~ (social_image_has_errors ? ' ' ~ form.homepageSocialImage.vars.id ~ '-error' : '') %}
-            <div class="field article-editor-field blog-settings-inline-field blog-settings-inline-field-with-counter{{ social_image_has_errors ? ' has-error' : '' }}">
+            {% set social_image_described_by = social_image_hint_id ~ (social_image_has_errors ? ' ' ~ form.homepageSocialImage.vars.id ~ '-error' : '') %}
+            {% set social_image_value = form.homepageSocialImage.vars.value|default('') %}
+            {% set social_image_picker_modal_id = form.homepageSocialImage.vars.id ~ '-picker-modal' %}
+            {% set social_image_picker_title_id = form.homepageSocialImage.vars.id ~ '-picker-title' %}
+            {% set social_image_picker_text_id = form.homepageSocialImage.vars.id ~ '-picker-text' %}
+            <div class="field article-editor-field blog-settings-inline-field blog-settings-image-picker-field{{ social_image_has_errors ? ' has-error' : '' }}" data-headline-image-section>
                 <div class="blog-settings-inline-field-copy">
                     <div class="blog-settings-label-row">
                         {{ form_label(form.homepageSocialImage) }}
@@ -171,25 +218,54 @@
                             class="article-keyword-help-trigger"
                             data-i18n-tooltip="blog_settings_homepage_social_image_hint"
                             data-i18n-aria="blog_settings_homepage_social_image_hint_aria"
-                            data-tooltip="Podaj pełny URL albo ścieżkę zaczynającą się od /."
+                            data-tooltip="Wybierz obrazek przesłany do galerii mediów."
                             data-tooltip-wide="true"
                             data-tooltip-wrap="true"
                             aria-label="Pomoc do pola obrazka dla strony głównej"
                         >?</button>
                     </div>
-                    <span id="{{ social_image_hint_id }}" class="sr-only" data-i18n="blog_settings_homepage_social_image_hint">Podaj pełny URL albo ścieżkę zaczynającą się od /.</span>
+                    <span id="{{ social_image_hint_id }}" class="blog-settings-image-picker-hint" data-i18n="blog_settings_homepage_social_image_hint">Wybierz obrazek przesłany do galerii mediów.</span>
                 </div>
                 <div class="blog-settings-input-stack">
-                    <div class="blog-settings-input-row">
-                        {{ form_widget(form.homepageSocialImage, { attr: {
-                            class: 'article-editor-input',
-                            placeholder: 'https://... lub /assets/img/...',
-                            'data-i18n-placeholder': 'blog_settings_homepage_social_image_placeholder',
-                            'data-character-count-input': 'true',
-                            'aria-describedby': social_image_described_by
-                        }|merge(social_image_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
-                        <div class="article-editor-field-meta">
-                            <span id="{{ social_image_counter_id }}" class="article-editor-character-count" data-character-count-target>{{ form.homepageSocialImage.vars.value|default('')|length }} / {{ form.homepageSocialImage.vars.attr.maxlength }}</span>
+                    {{ form_widget(form.homepageSocialImage, { attr: {
+                        'data-headline-image-input': 'true',
+                        'aria-describedby': social_image_described_by
+                    }|merge(social_image_has_errors ? {'aria-invalid': 'true'} : {}) }) }}
+                    <div class="article-editor-headline-image-actions blog-settings-image-picker-actions">
+                        <button
+                            type="button"
+                            class="button secondary"
+                            data-action="open-headline-image-picker"
+                            aria-haspopup="dialog"
+                            aria-controls="{{ social_image_picker_modal_id }}"
+                        >
+                            <span data-i18n="blog_settings_homepage_social_image_pick_from_media">{{ i18n_fallback('blog_settings_homepage_social_image_pick_from_media') }}</span>
+                        </button>
+                        <button
+                            type="button"
+                            class="button secondary"
+                            data-action="clear-headline-image"
+                            data-clear-headline-image-value="{{ constant('App\\Entity\\BlogSettings::DEFAULT_SOCIAL_IMAGE') }}"
+                        >
+                            <span data-i18n="blog_settings_homepage_social_image_clear">{{ i18n_fallback('blog_settings_homepage_social_image_clear') }}</span>
+                        </button>
+                        <a class="button secondary" href="{{ path('admin_media_gallery') }}">
+                            <span data-i18n="admin_media_open_gallery">{{ i18n_fallback('admin_media_open_gallery') }}</span>
+                        </a>
+                    </div>
+                    <div class="article-editor-headline-image-preview blog-settings-image-picker-preview" data-headline-image-preview-shell {% if social_image_value is empty %}hidden{% endif %}>
+                        <div class="article-editor-headline-image-preview-frame">
+                            <img
+                                src="{{ social_image_value }}"
+                                alt="{{ i18n_fallback('blog_settings_homepage_social_image_preview_alt') }}"
+                                referrerpolicy="no-referrer"
+                                data-headline-image-preview-alt-key="blog_settings_homepage_social_image_preview_alt"
+                                data-headline-image-preview
+                            >
+                        </div>
+                        <div class="article-editor-headline-image-preview-copy">
+                            <strong data-i18n="blog_settings_homepage_social_image_preview_label">{{ i18n_fallback('blog_settings_homepage_social_image_preview_label') }}</strong>
+                            <span class="article-editor-headline-image-preview-path" data-headline-image-preview-path>{{ social_image_value }}</span>
                         </div>
                     </div>
                 </div>
@@ -200,6 +276,20 @@
                         {% endfor %}
                     </div>
                 {% endif %}
+                {% include 'admin/_media_image_picker_modal.html.twig' with {
+                    modal_id: social_image_picker_modal_id,
+                    title_id: social_image_picker_title_id,
+                    text_id: social_image_picker_text_id,
+                    control_id_base: form.homepageSocialImage.vars.id,
+                    translation_prefix: 'blog_settings_homepage_social_image_picker',
+                    modal_data_attribute: 'data-headline-image-modal',
+                    endpoint_data_attribute: 'data-headline-image-endpoint',
+                    endpoint_path: path('admin_media_picker'),
+                    search_data_attribute: 'data-headline-image-search-input',
+                    sort_data_attribute: 'data-headline-image-sort-select',
+                    grid_data_attribute: 'data-headline-image-grid',
+                    empty_results_data_attribute: 'data-headline-image-empty-results'
+                } only %}
             </div>
 
             {% set keywords_has_errors = form.homepageSeoKeywords.vars.errors|length > 0 %}
