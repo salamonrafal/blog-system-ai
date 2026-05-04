@@ -266,12 +266,9 @@ final class ArticleMarkupRenderer
 
             if ('' === trim($line)) {
                 if ([] !== $paragraph) {
-                    $nextContentIndex = self::findNextContentLineIndex($lines, $index + 1);
-                    if (null !== $nextContentIndex && !self::isBlockStart($lines, $nextContentIndex)) {
-                        $paragraph[] = '';
+                    $paragraph[] = '';
 
-                        continue;
-                    }
+                    continue;
                 }
 
                 $flushParagraph();
@@ -443,41 +440,6 @@ final class ArticleMarkupRenderer
         }
 
         return isset($matches[1]) ? strtolower($matches[1]) : '';
-    }
-
-    /**
-     * @param list<string> $lines
-     */
-    private static function findNextContentLineIndex(array $lines, int $startIndex): ?int
-    {
-        $lineCount = count($lines);
-
-        for ($index = $startIndex; $index < $lineCount; ++$index) {
-            if ('' !== trim($lines[$index])) {
-                return $index;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * @param list<string> $lines
-     */
-    private static function isBlockStart(array $lines, int $index): bool
-    {
-        $line = $lines[$index];
-        $trimmed = trim($line);
-
-        return null !== self::parseCodeFence($line)
-            || ':::pre' === strtolower($trimmed)
-            || preg_match('/^:::(left|center|right|justify)\s*$/i', $trimmed) === 1
-            || self::isTableStart($lines, $index)
-            || null !== self::renderStandaloneImage($trimmed)
-            || preg_match('/^\s*([-*_])(?:\s*\1){2,}\s*$/', $line) === 1
-            || null !== self::parseHeading($line)
-            || preg_match('/^\s*>\s?(.*)$/', $line) === 1
-            || null !== self::parseListLine($line);
     }
 
     /**

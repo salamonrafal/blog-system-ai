@@ -162,7 +162,8 @@
                         </div>
                     </div>
                     {% if selected_category or selected_status or selected_author %}
-                        <a class="button secondary article-index-filter-reset" href="{{ path('admin_article_index') }}" data-i18n="admin_article_filter_clear">Wyczyść</a>
+                        {% set reset_route_params = sort_order != 'desc' ? { sort: sort_order } : {} %}
+                        <a class="button secondary article-index-filter-reset" href="{{ path('admin_article_index', reset_route_params) }}" data-i18n="admin_article_filter_clear">Wyczyść</a>
                     {% endif %}
                 </form>
             </div>
